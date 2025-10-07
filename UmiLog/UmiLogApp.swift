@@ -1,4 +1,10 @@
 import SwiftUI
+import FeatureHome
+import FeatureLiveLog
+import FeatureHistory
+import FeatureSites
+import FeatureSettings
+import UmiDesignSystem
 
 @main
 struct UmiLogApp: App {

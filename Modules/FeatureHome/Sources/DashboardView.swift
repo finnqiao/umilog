@@ -1,4 +1,5 @@
 import SwiftUI
+import UmiDesignSystem
 
 public struct DashboardView: View {
     public init() {}
