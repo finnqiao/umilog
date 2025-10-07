@@ -5,6 +5,11 @@
 ### Phase 0: Foundation ✅
 - [x] Initialize repository
 - [x] Create documentation structure
+- [x] Import design prototype (Figma → React/TypeScript)
+- [x] Document iOS translation strategy (DESIGN.md)
+- [x] Map web components to SwiftUI equivalents
+- [x] Define color palette and design tokens
+- [x] Update asset attributions (shadcn/ui, Unsplash)
 - [ ] Setup Xcode project with XcodeGen
 - [ ] Configure SwiftUI app shell
 - [ ] Setup GRDB + SQLCipher
@@ -12,13 +17,23 @@
 
 ### Phase 1: Core Features
 
+#### 🎨 Design Implementation
+- [ ] Create SwiftUI design system components
+- [ ] Implement color tokens with dark mode support
+- [ ] Build reusable card components
+- [ ] Create custom button styles (primary, secondary, tertiary)
+- [ ] Design stat card grid layout
+- [ ] Implement navigation tab bar
+- [ ] Add SF Symbols icon system
+
 #### 🗺️ Map & Trip Cards
 - [ ] Implement MapKit integration
 - [ ] Custom dive site annotations
 - [ ] Clustering for dense areas
-- [ ] Trip card UI components
+- [ ] Trip card UI components (matching design prototype)
 - [ ] Offline map tile caching
 - [ ] Visited vs wishlist filtering
+- [ ] Hero map card with overlay (Dashboard)
 
 #### 📍 Site Index & GPS
 - [ ] Load seed site database (~5MB)
@@ -147,6 +162,8 @@
 - [x] TODO.md (this file)
 - [x] LEARNINGS.md
 - [x] ASSETS.md
+- [x] DESIGN.md (UI/UX specs and iOS translation)
+- [x] WARP.md (Warp AI guidance)
 - [ ] API documentation
 - [ ] User guide
 - [ ] Contributing guide
