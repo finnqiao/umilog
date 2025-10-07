@@ -1,5 +1,6 @@
 import Foundation
 import GRDB
+import CoreLocation
 
 /// Dive site location and details
 public struct DiveSite: Codable, Identifiable {
@@ -19,6 +20,11 @@ public struct DiveSite: Codable, Identifiable {
     public let wishlist: Bool
     public let visitedCount: Int
     public let createdAt: Date
+    
+    /// Computed property for MapKit compatibility
+    public var coordinate: CLLocationCoordinate2D {
+        CLLocationCoordinate2D(latitude: latitude, longitude: longitude)
+    }
     
     public init(
         id: String = UUID().uuidString,

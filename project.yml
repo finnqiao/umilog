@@ -36,11 +36,13 @@ targets:
       - package: GRDB
       - target: UmiDesignSystem
       - target: UmiCoreKit
+      - target: FeatureMap
       - target: FeatureHome
       - target: FeatureLiveLog
       - target: FeatureHistory
       - target: FeatureSites
       - target: FeatureSettings
+      - target: UmiLocationKit
     settings:
       base:
         INFOPLIST_FILE: UmiLog/Info.plist
@@ -186,6 +188,34 @@ targets:
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: app.umilog.feature.settings
+
+  FeatureMap:
+    type: framework
+    platform: iOS
+    sources:
+      - Modules/FeatureMap/Sources/
+    dependencies:
+      - target: UmiDesignSystem
+      - target: UmiCoreKit
+      - target: UmiDB
+      - target: UmiLocationKit
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: app.umilog.feature.map
+
+  UmiLocationKit:
+    type: framework
+    platform: iOS
+    sources:
+      - Modules/UmiLocationKit/Sources/
+    dependencies:
+      - target: UmiCoreKit
+      - target: UmiDB
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: app.umilog.locationkit
+        INFOPLIST_KEY_NSLocationAlwaysAndWhenInUseUsageDescription: "UmiLog uses your location to automatically detect when you're at a dive site and suggest logging your dive."
+        INFOPLIST_KEY_NSLocationWhenInUseUsageDescription: "UmiLog uses your location to suggest nearby dive sites."
 
 schemes:
   UmiLog:

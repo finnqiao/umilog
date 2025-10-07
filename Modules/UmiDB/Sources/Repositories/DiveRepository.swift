@@ -4,7 +4,7 @@ import GRDB
 public final class DiveRepository {
     private let database: AppDatabase
     
-    init(database: AppDatabase) {
+    public init(database: AppDatabase) {
         self.database = database
     }
     
@@ -65,6 +65,35 @@ public final class DiveRepository {
     public func delete(id: String) throws {
         try database.write { db in
             try DiveLog.deleteOne(db, key: id)
+        }
+    }
+    
+    // MARK: - Async Methods
+    
+    public func getAllDives() async throws -> [DiveLog] {
+        try await database.read { db in
+            try DiveLog
+                .order(DiveLog.Columns.startTime.desc)
+                .fetchAll(db)
+        }
+    }
+    
+    // MARK: - Sync Methods for Map
+    
+    public func getAllDivesSync() throws -> [DiveLog] {
+        try database.read { db in
+            try DiveLog
+                .order(DiveLog.Columns.startTime.desc)
+                .fetchAll(db)
+        }
+    }
+    
+    public func getDivesForSiteSync(siteId: String) throws -> [DiveLog] {
+        try database.read { db in
+            try DiveLog
+                .filter(DiveLog.Columns.siteId == siteId)
+                .order(DiveLog.Columns.startTime.desc)
+                .fetchAll(db)
         }
     }
     

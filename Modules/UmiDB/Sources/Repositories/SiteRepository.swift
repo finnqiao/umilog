@@ -4,7 +4,7 @@ import GRDB
 public final class SiteRepository {
     private let database: AppDatabase
     
-    init(database: AppDatabase) {
+    public init(database: AppDatabase) {
         self.database = database
     }
     
@@ -108,6 +108,16 @@ public final class SiteRepository {
     public func delete(id: String) throws {
         try database.write { db in
             try DiveSite.deleteOne(db, key: id)
+        }
+    }
+    
+    // MARK: - Async Methods
+    
+    public func getAllSites() async throws -> [DiveSite] {
+        try await database.read { db in
+            try DiveSite
+                .order(DiveSite.Columns.name)
+                .fetchAll(db)
         }
     }
 }

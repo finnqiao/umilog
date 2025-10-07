@@ -1,4 +1,5 @@
 import SwiftUI
+import FeatureMap
 import FeatureHome
 import FeatureLiveLog
 import FeatureHistory
@@ -21,17 +22,18 @@ struct UmiLogApp: App {
 /// Root view with tab navigation
 struct ContentView: View {
     @EnvironmentObject var appState: AppState
-    @State private var selectedTab: Tab = .home
+    @State private var selectedTab: Tab = .map  // Map is now the default tab
     
     var body: some View {
         TabView(selection: $selectedTab) {
+            // Map is now the primary tab
             NavigationStack {
-                DashboardView()
+                ScratchOffMapView()
             }
             .tabItem {
-                Label("Home", systemImage: "house.fill")
+                Label("Map", systemImage: "map.fill")
             }
-            .tag(Tab.home)
+            .tag(Tab.map)
             
             NavigationStack {
                 DiveLoggerView()
@@ -53,7 +55,7 @@ struct ContentView: View {
                 SiteExplorerView()
             }
             .tabItem {
-                Label("Sites", systemImage: "map.fill")
+                Label("Sites", systemImage: "mappin.circle.fill")
             }
             .tag(Tab.sites)
             
@@ -70,7 +72,7 @@ struct ContentView: View {
 }
 
 enum Tab: Hashable {
-    case home
+    case map  // Primary tab
     case log
     case history
     case sites
