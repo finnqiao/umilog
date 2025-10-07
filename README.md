@@ -56,6 +56,9 @@ UmiLog (海ログ - "sea log" in Japanese) solves the biggest pain points in div
 - **Offline**: All core features work without connectivity
 - **Performance**: <2s cold start, <100ms field commits
 
+### Design System
+See [DESIGN.md](DESIGN.md) for comprehensive UI/UX specifications and iOS translation guide. A web prototype is available in the `design/` directory for visual reference.
+
 ## 📱 Requirements
 
 - iOS 17.0 or later
