@@ -172,6 +172,39 @@ session.updateApplicationContext(message) // Latest only
 
 ## 🎨 UX Learnings
 
+### Design System Translation (Web → iOS)
+**Source**: Figma design exported as React/TypeScript web prototype
+
+#### Component Mappings
+- **Cards** (shadcn/ui) → `VStack` + `.background()` + `.cornerRadius(12)`
+- **Buttons** (Radix) → `.buttonStyle(.borderedProminent)` for primary
+- **Forms** (React Hook Form) → SwiftUI `Form` with `Section` grouping
+- **Icons** (Lucide) → SF Symbols (see DESIGN.md for mappings)
+- **Colors** (Tailwind) → Semantic `Color.primary`, `.secondary` with dark mode
+
+#### Key Adaptations for iOS
+1. **Navigation**: Web single-page → iOS `TabView` + `NavigationStack`
+2. **Responsive**: Tailwind breakpoints → `@Environment(\.horizontalSizeClass)`
+3. **Spacing**: 4px Tailwind units → 8/16/24pt iOS spacing
+4. **Typography**: Fixed px sizes → Dynamic Type `.body`, `.headline`, etc.
+5. **Input**: Sliders and text fields → Voice input buttons for key fields
+
+#### Design Token System
+- Ocean Blue `#2563EB` - Primary actions, depth indicators
+- Teal `#0D9488` - Water temperature, depth metrics  
+- Sea Green `#16A34A` - Success states, sites visited
+- Purple `#9333EA` - Wildlife, special features
+- Coral Red `#DC2626` - Warnings, required fields
+
+**Implementation**: Use `Color` extensions with dark mode support
+```swift
+extension Color {
+    static let oceanBlue = Color(hex: "2563EB")
+    static let diveTeal = Color(hex: "0D9488")
+    // Automatically adapts to dark mode
+}
+```
+
 ### Voice Input UX
 - Show visual feedback immediately
 - Confirm before writing to DB
