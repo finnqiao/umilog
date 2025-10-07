@@ -20,6 +20,22 @@
 - **Offline-first** - most dive sites have poor connectivity
 - **Data portability** - export anxiety is real
 
+### New PRD Insights
+
+#### The Magic is in Reducing Friction
+1. **One-tap logging** - Most dives similar to previous
+2. **Auto-detection** - Geofencing knows when you're diving
+3. **Smart defaults** - Learn patterns and pre-fill
+4. **Visual progress** - Scratch-off map creates motivation
+5. **Instant gratification** - Achievements and celebrations
+
+#### Gamification That Works
+- **Country collection** - Natural for travelers
+- **Depth clubs** - Existing diver culture (30m, 40m)
+- **Streak tracking** - Habit formation
+- **Social proof** - "X divers here now"
+- **Progress bars** - Clear next steps
+
 ## 🏗️ Architecture Decisions
 
 ### Why GRDB over Core Data

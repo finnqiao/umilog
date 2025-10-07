@@ -10,55 +10,58 @@
 - [x] Map web components to SwiftUI equivalents
 - [x] Define color palette and design tokens
 - [x] Update asset attributions (shadcn/ui, Unsplash)
-- [ ] Setup Xcode project with XcodeGen
-- [ ] Configure SwiftUI app shell
-- [ ] Setup GRDB + SQLCipher
-- [ ] Create modular Swift Package structure
+- [x] Setup Xcode project with XcodeGen
+- [x] Configure SwiftUI app shell
+- [x] Setup GRDB + SQLCipher
+- [x] Create modular Swift Package structure
+- [x] Implement database layer with models
+- [x] Create initial ViewModels and data binding
+- [ ] Generate comprehensive task lists for new PRD
 
-### Phase 1: Core Features
+### Phase 1: Core MVP Features (Based on New PRD)
 
-#### 🎨 Design Implementation
-- [ ] Create SwiftUI design system components
-- [ ] Implement color tokens with dark mode support
-- [ ] Build reusable card components
-- [ ] Create custom button styles (primary, secondary, tertiary)
-- [ ] Design stat card grid layout
-- [ ] Implement navigation tab bar
-- [ ] Add SF Symbols icon system
+#### 🗺️ Scratch-Off World Map (Primary Feature)
+- [ ] Refactor navigation to map-centric design
+- [ ] Implement scratch-off world map visualization
+- [ ] Add country tracking and progress
+- [ ] Create map statistics overlay
+- [ ] Build country detail views
+- [ ] Animate scratch-off reveals
+- [ ] Add percentage completion tracking
 
-#### 🗺️ Map & Trip Cards
-- [ ] Implement MapKit integration
-- [ ] Custom dive site annotations
-- [ ] Clustering for dense areas
-- [ ] Trip card UI components (matching design prototype)
-- [ ] Offline map tile caching
-- [ ] Visited vs wishlist filtering
-- [ ] Hero map card with overlay (Dashboard)
+#### ⚡ Quick Logging Experience
+- [ ] Create one-tap quick log interface
+- [ ] Build auto-fill logic from context
+- [ ] Add "Same as last dive" option
+- [ ] Implement smart defaults
+- [ ] Design compact form layout
+- [ ] Add haptic feedback
 
-#### 📍 Site Index & GPS
-- [ ] Load seed site database (~5MB)
-- [ ] GPS proximity queries
-- [ ] Site search with FTS5
-- [ ] Add new site flow
-- [ ] Offline site suggestions
-- [ ] Site detail views
+#### 📍 Geofencing & Auto-Logging
+- [ ] Setup UmiLocationKit module
+- [ ] Implement geofence manager
+- [ ] Build auto-log detection service
+- [ ] Add smart notification prompts
+- [ ] Optimize for battery efficiency
+- [ ] Handle background location updates
+- [ ] Create user controls for auto-logging
 
-#### 🎙️ Live Logging
-- [ ] State machine (idle → recording → complete)
-- [ ] Voice input integration
-- [ ] Command parsing ("depth twenty")
-- [ ] Manual input fallback
-- [ ] Sub-100ms commit performance
-- [ ] Crash recovery system
-- [ ] Auto-save drafts
+#### 🏆 Gamification & Achievements
+- [ ] Create achievement system architecture
+- [ ] Define achievement categories
+- [ ] Build celebration UI with animations
+- [ ] Implement progress tracking
+- [ ] Add country-based achievements
+- [ ] Create depth milestone badges
+- [ ] Design streak achievements
 
-#### 🐠 Wildlife Tracking  
-- [ ] Regional species database
-- [ ] Species search/browse
-- [ ] Sighting quick-entry
-- [ ] Collection progress UI
-- [ ] Photo attachment support
-- [ ] Statistics dashboard
+#### 👥 Community Features
+- [ ] Build "Divers Here Now" feature
+- [ ] Create popular sites discovery
+- [ ] Add social proof elements
+- [ ] Implement privacy controls
+- [ ] Show activity heat maps
+- [ ] Add seasonal recommendations
 
 #### ✍️ QR Sign-off
 - [ ] QR code generation
@@ -183,31 +186,32 @@
 - [ ] App review preparation
 - [ ] Marketing materials
 
-## 📅 Sprint Planning
+### Sprint Planning (Updated for New PRD)
 
-### Current Sprint (Week 1-2)
-- Foundation setup
-- Database schema
-- Basic UI shell
-- Site index
+### Phase 1: Core Map Experience (Week 1-2)
+- Refactor navigation to map-centric
+- Implement scratch-off world map
+- Add map statistics overlay
+- Create country detail views
 
-### Next Sprint (Week 3-4)
-- Live logging
-- Voice input
-- Wildlife tracking
-- Map view
+### Phase 2: Smart Logging (Week 3-4)
+- Build quick log interface
+- Setup geofencing system
+- Implement auto-logging service
+- Add smart notifications
 
-### Sprint 3 (Week 5-6)
-- QR sign-off
-- Backfill wizard
-- Export features
-- Watch app
+### Phase 3: Engagement Features (Week 5-6)
+- Create achievement system
+- Build celebration UI
+- Add community features
+- Implement social proof
 
-### Sprint 4 (Week 7-8)
-- Polish & bug fixes
+### Phase 4: Polish & APIs (Week 7-8)
+- Integrate weather APIs
+- Add ocean conditions
+- Polish micro-interactions
 - Performance optimization
-- TestFlight beta
-- Documentation
+- TestFlight beta release
 
 ---
 

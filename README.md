@@ -10,26 +10,37 @@ UmiLog (海ログ - "sea log" in Japanese) solves the biggest pain points in div
 
 ### MVP Scope (6-8 weeks)
 
-#### 🗺️ Map & Trip Cards
-- Interactive world map showing visited vs wishlist dive sites
-- Beautiful trip cards with dive summaries
-- Offline-capable with fallback views
+#### 🗺️ Scratch-Off World Map
+- **Primary navigation**: Map-centric home screen
+- Scratch-off effect reveals visited countries
+- Visual progress tracking of world exploration
+- Country statistics and dive counts
+- Animated reveals for first visits
 
 #### 📍 Smart Site Index
 - Offline database of popular dive sites
 - GPS-based automatic site suggestions
 - Community-driven site additions
 
-#### 🎙️ Live Logging
-- **Voice input** for hands-free logging (depth, time, pressures)
-- Pre-filled defaults based on location and season
-- Sub-100ms data commits for reliability
-- Apple Watch Ultra immersion detection support
+#### ⚡ Quick Logging
+- **One-tap logging** with smart defaults
+- Auto-fill from GPS location and conditions
+- "Same as last dive" quick option
+- Geofencing-triggered logging prompts
+- Sub-10 second complete log entry
 
-#### 🐠 Wildlife Tracking
-- Regional species lists (offline)
-- "Pokédex"-style collection progress
-- Quick sighting entry during dives
+#### 🏆 Gamification & Achievements
+- Country visit badges and milestones
+- Depth achievements (30m, 40m clubs)
+- Streak tracking for regular divers
+- Celebration animations on unlocks
+- Progress bars and "almost there" hints
+
+#### 👥 Community Features
+- "X divers here now" social proof
+- Popular sites discovery
+- Activity heat maps
+- Privacy-first anonymous aggregation
 
 #### ✍️ Digital Sign-off
 - QR code generation for instructor/DM verification
@@ -126,19 +137,20 @@ xcodebuild test -workspace UmiLog.xcworkspace -scheme UmiLog -destination 'platf
 
 ## 🗺️ Roadmap
 
-### Phase 0: Foundation (Current)
-- [x] Project setup and architecture
-- [ ] Core database schema
-- [ ] Offline-first infrastructure
+### Phase 0: Foundation ✅
+- [x] Project setup and architecture  
+- [x] Core database schema
+- [x] Offline-first infrastructure
+- [x] Initial ViewModels and data binding
 
 ### Phase 1: MVP (6-8 weeks)
-- [ ] Map & trip cards
-- [ ] Live logging with voice
-- [ ] Site index with GPS
-- [ ] Wildlife tracking
-- [ ] QR sign-off
-- [ ] Backfill wizard
-- [ ] Watch Ultra support
+- [ ] Scratch-off world map (Week 1-2)
+- [ ] Quick logging & geofencing (Week 3-4)
+- [ ] Achievements & gamification (Week 5-6)
+- [ ] Community features (Week 5-6)
+- [ ] Weather/ocean APIs (Week 7-8)
+- [ ] Polish & delight (Week 7-8)
+- [ ] QR sign-off & backfill wizard
 
 ### Phase 2: Delight (Post-MVP)
 - [ ] Shop stamps & badges
