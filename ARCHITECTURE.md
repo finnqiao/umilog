@@ -339,6 +339,34 @@ enum Feature: String {
 - Android (Kotlin Multiplatform)
 - Web PWA for sign-off
 
+## Design System
+
+See [DESIGN.md](DESIGN.md) for comprehensive UI/UX specifications.
+
+### Visual Reference
+- **Web Prototype**: `design/` directory (React/TypeScript)
+- **Figma Source**: https://www.figma.com/design/JwMxy351eNAi3eQvWX6GBA/UmiLog-Dive-Log-App
+- **Component Library**: shadcn/ui (translated to SwiftUI)
+
+### Color Palette
+- Ocean Blue `#2563EB` - Primary actions
+- Teal `#0D9488` - Depth metrics
+- Sea Green `#16A34A` - Success states
+- Purple `#9333EA` - Wildlife
+- Coral Red `#DC2626` - Warnings
+
+### Typography
+Dynamic Type with SF Pro:
+- `.largeTitle` - Dashboard title
+- `.title` - Section headers
+- `.body` - Primary text
+- `.caption` - Metadata
+
+### Navigation
+- TabView with 5 tabs: Home, Log, History, Sites, More
+- NavigationStack per tab for deep navigation
+- Sheet presentations for modals (dive logger, settings)
+
 ## Decision Log
 
 | Decision | Rationale | Trade-offs |
@@ -348,7 +376,8 @@ enum Feature: String {
 | On-device STT | Privacy, offline capability | Limited to device languages |
 | SQLCipher | HIPAA-level encryption | ~15% performance overhead |
 | SwiftUI only | Modern, less code | iOS 17+ requirement |
+| shadcn/ui as design ref | Modern, accessible components | Requires manual SwiftUI translation |
 
 ---
 
-*Last Updated: 2024*
+*Last Updated: October 2024*
