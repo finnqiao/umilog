@@ -1,56 +1,178 @@
 import SwiftUI
+import UmiDB
+import UmiDesignSystem
 
 public struct DiveLoggerView: View {
-    public init() {}
+    @StateObject private var viewModel = DiveLoggerViewModel()
+    @Environment(\.dismiss) private var dismiss
     
-    @State private var selectedSite = ""
-    @State private var date = Date()
-    @State private var maxDepth = ""
-    @State private var bottomTime = ""
+    public init() {}
     
     public var body: some View {
         Form {
+            // Site Selection
             Section("Dive Site") {
-                TextField("Search or select site", text: $selectedSite)
+                if let site = viewModel.selectedSite {
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text(site.name)
+                            .font(.headline)
+                        Text(site.location)
+                            .font(.subheadline)
+                            .foregroundStyle(.secondary)
+                    }
+                    
+                    Picker("Select Site", selection: $viewModel.selectedSite) {
+                        ForEach(viewModel.availableSites) { site in
+                            Text(site.name).tag(Optional(site))
+                        }
+                    }
+                } else {
+                    Text("No sites available")
+                        .foregroundStyle(.secondary)
+                }
             }
             
+            // Date & Time
             Section("Date & Time") {
-                DatePicker("Dive Date", selection: $date, displayedComponents: [.date, .hourAndMinute])
+                DatePicker("Dive Date", selection: $viewModel.diveDate, displayedComponents: [.date])
+                DatePicker("Start Time", selection: $viewModel.startTime, displayedComponents: [.hourAndMinute])
             }
             
+            // Dive Details (Required)
             Section("Dive Details") {
                 HStack {
-                    Text("Max Depth")
+                    Label("Max Depth", systemImage: "arrow.down")
                     Spacer()
-                    TextField("0", text: $maxDepth)
+                    TextField("0", text: $viewModel.maxDepth)
                         .keyboardType(.decimalPad)
                         .multilineTextAlignment(.trailing)
+                        .frame(width: 80)
                     Text("m")
                         .foregroundStyle(.secondary)
                 }
                 
                 HStack {
-                    Text("Bottom Time")
+                    Label("Bottom Time", systemImage: "clock")
                     Spacer()
-                    TextField("0", text: $bottomTime)
+                    TextField("0", text: $viewModel.bottomTime)
                         .keyboardType(.numberPad)
                         .multilineTextAlignment(.trailing)
+                        .frame(width: 80)
                     Text("min")
+                        .foregroundStyle(.secondary)
+                }
+            } footer: {
+                Text("Required fields")
+            }
+            
+            // Pressures
+            Section("Tank Pressure") {
+                HStack {
+                    Label("Start", systemImage: "gauge.high")
+                    Spacer()
+                    TextField("200", text: $viewModel.startPressure)
+                        .keyboardType(.numberPad)
+                        .multilineTextAlignment(.trailing)
+                        .frame(width: 80)
+                    Text("bar")
+                        .foregroundStyle(.secondary)
+                }
+                
+                HStack {
+                    Label("End", systemImage: "gauge.low")
+                    Spacer()
+                    TextField("50", text: $viewModel.endPressure)
+                        .keyboardType(.numberPad)
+                        .multilineTextAlignment(.trailing)
+                        .frame(width: 80)
+                    Text("bar")
                         .foregroundStyle(.secondary)
                 }
             }
             
-            Section {
-                Button("Save Dive") {
-                    // TODO: Save dive
+            // Environment
+            Section("Environment") {
+                HStack {
+                    Label("Temperature", systemImage: "thermometer")
+                    Spacer()
+                    TextField("27", text: $viewModel.temperature)
+                        .keyboardType(.decimalPad)
+                        .multilineTextAlignment(.trailing)
+                        .frame(width: 80)
+                    Text("°C")
+                        .foregroundStyle(.secondary)
                 }
-                .frame(maxWidth: .infinity)
+                
+                HStack {
+                    Label("Visibility", systemImage: "eye")
+                    Spacer()
+                    TextField("30", text: $viewModel.visibility)
+                        .keyboardType(.decimalPad)
+                        .multilineTextAlignment(.trailing)
+                        .frame(width: 80)
+                    Text("m")
+                        .foregroundStyle(.secondary)
+                }
+                
+                Picker("Current", selection: $viewModel.current) {
+                    ForEach([DiveLog.Current.none, .light, .moderate, .strong], id: \.self) { current in
+                        Text(current.rawValue).tag(current)
+                    }
+                }
+                
+                Picker("Conditions", selection: $viewModel.conditions) {
+                    ForEach([DiveLog.Conditions.excellent, .good, .fair, .poor], id: \.self) { condition in
+                        Text(condition.rawValue).tag(condition)
+                    }
+                }
+            }
+            
+            // Notes
+            Section("Notes") {
+                TextEditor(text: $viewModel.notes)
+                    .frame(minHeight: 100)
+            }
+            
+            // Instructor Sign-off
+            Section("Instructor Sign-off (Optional)") {
+                TextField("Instructor Name", text: $viewModel.instructorName)
+                TextField("Instructor Number", text: $viewModel.instructorNumber)
+                Toggle("Signed", isOn: $viewModel.signed)
+            }
+            
+            // Save Button
+            Section {
+                Button {
+                    Task {
+                        if await viewModel.saveDive() {
+                            dismiss()
+                        }
+                    }
+                } label: {
+                    if viewModel.isLoading {
+                        ProgressView()
+                            .frame(maxWidth: .infinity)
+                    } else {
+                        Text("Save Dive")
+                            .frame(maxWidth: .infinity)
+                    }
+                }
+                .disabled(!viewModel.canSave || viewModel.isLoading)
                 .buttonStyle(.borderedProminent)
                 .tint(.oceanBlue)
             }
         }
         .navigationTitle("Log Dive")
         .navigationBarTitleDisplayMode(.inline)
+        .alert("Error", isPresented: .constant(viewModel.error != nil)) {
+            Button("OK") {
+                viewModel.error = nil
+            }
+        } message: {
+            if let error = viewModel.error {
+                Text(error)
+            }
+        }
     }
 }
 
