@@ -10,14 +10,33 @@
 - **License**: Proprietary
 - **Files**: `Assets.xcassets/AppIcon.appiconset/`
 
+### Design Prototype
+- **Source**: Figma design exported as React/TypeScript
+- **Location**: `design/` directory
+- **Framework**: React 18 + Vite + TypeScript
+- **UI Components**: shadcn/ui (MIT License)
+- **License**: MIT (shadcn/ui components)
+- **Attribution**: https://ui.shadcn.com/
+- **Figma URL**: https://www.figma.com/design/JwMxy351eNAi3eQvWX6GBA/UmiLog-Dive-Log-App
+- **Usage**: Visual reference for native iOS implementation
+- **Documentation**: See DESIGN.md for iOS translation guide
+
 ### SF Symbols
 - **Source**: Apple SF Symbols 5.0
 - **License**: Apple SDK Agreement
 - **Usage**: System icons throughout app
 - **Icons Used**:
-  - `location.fill` - GPS indicators
+  - `house.fill` - Home/Dashboard
+  - `plus.circle.fill` - Log dive action
+  - `clock.fill` - History/Recent dives
+  - `map.fill` - Site explorer
+  - `ellipsis.circle.fill` - More/Settings
+  - `fish.fill` - Wildlife tracking
+  - `rosette` - Certifications/Awards
+  - `mappin.circle.fill` - Location markers
+  - `calendar` - Date selection
+  - `chart.bar.fill` - Statistics
   - `mic.fill` - Voice input
-  - `map.fill` - Map view
   - `qrcode` - Sign-off feature
   - `lock.fill` - Privacy/security
 
@@ -90,7 +109,15 @@
 
 ## 📸 Stock Photography
 
-### Placeholder Images
+### Design Prototype Images
+- **Source**: Unsplash
+- **License**: Unsplash License (free for commercial use)
+- **Usage**: Web prototype reference images only (not in production iOS app)
+- **Attribution**: "Photos from Unsplash used under Unsplash License"
+- **URL**: https://unsplash.com/license
+- **Location**: `design/` directory (web prototype)
+
+### Production App Images
 - **Ocean Surface**: Unsplash (Free license)
   - Photo by [Author Name]
   - URL: [unsplash.com/photos/...]
@@ -159,6 +186,10 @@ Open Source Libraries:
 • ZIPFoundation (MIT License)
 • Swift Collections & Algorithms (Apache 2.0)
 
+Design:
+• UI components from shadcn/ui (MIT License)
+• Design prototype created with Figma
+
 Icons & Graphics:
 • SF Symbols by Apple Inc.
 • Ocean photography from Unsplash contributors
@@ -196,6 +227,9 @@ Include: "Contains data from OpenDiveSites, FishBase, and SeaLifeBase"
 
 | Date | Asset | Change | License |
 |------|-------|--------|---------|
+| 2024-10-07 | Design Prototype | Added Figma web prototype (React/TypeScript) | MIT (shadcn/ui) |
+| 2024-10-07 | SF Symbols | Expanded icon mappings for tab bar and features | Apple SDK |
+| 2024-10-07 | DESIGN.md | Created iOS translation guide from web design | - |
 | 2024-01-01 | Initial | Asset tracking started | Various |
 
 ## ⚖️ License Compliance Checklist
