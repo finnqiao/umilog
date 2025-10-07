@@ -1,7 +1,10 @@
 import SwiftUI
 import UmiDesignSystem
+import UmiDB
 
 public struct DashboardView: View {
+    @StateObject private var viewModel = DashboardViewModel()
+    
     public init() {}
     
     public var body: some View {
@@ -31,10 +34,10 @@ public struct DashboardView: View {
                 
                 // Quick Stats Grid
                 LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 16) {
-                    StatCard(value: "0", label: "Total Dives", color: .oceanBlue)
-                    StatCard(value: "0m", label: "Max Depth", color: .diveTeal)
-                    StatCard(value: "0", label: "Sites Visited", color: .seaGreen)
-                    StatCard(value: "0", label: "Species Spotted", color: .divePurple)
+                    StatCard(value: "\(viewModel.stats.totalDives)", label: "Total Dives", color: .oceanBlue)
+                    StatCard(value: String(format: "%.0fm", viewModel.stats.maxDepth), label: "Max Depth", color: .diveTeal)
+                    StatCard(value: "\(viewModel.stats.sitesVisited)", label: "Sites Visited", color: .seaGreen)
+                    StatCard(value: "\(viewModel.stats.speciesSpotted)", label: "Species Spotted", color: .divePurple)
                 }
                 .padding(.horizontal)
                 
@@ -56,7 +59,7 @@ public struct DashboardView: View {
                             Text("Explore Dive Sites")
                                 .font(.title2.bold())
                                 .foregroundStyle(.white)
-                            Text("0 sites visited • Discover more")
+                            Text("\(viewModel.stats.sitesVisited) sites visited • Discover more")
                                 .font(.subheadline)
                                 .foregroundStyle(.white.opacity(0.9))
                         }
@@ -80,25 +83,41 @@ public struct DashboardView: View {
                     .padding(.horizontal)
                     
                     VStack(spacing: 16) {
-                        // Empty state
-                        Card {
-                            VStack(spacing: 16) {
-                                Image(systemName: "fish.fill")
-                                    .font(.system(size: 48))
-                                    .foregroundStyle(.oceanBlue.opacity(0.5))
-                                
-                                Text("No dives logged yet")
-                                    .font(.headline)
-                                
-                                Text("Start your diving journey by logging your first dive!")
-                                    .font(.subheadline)
-                                    .foregroundStyle(.secondary)
-                                    .multilineTextAlignment(.center)
+                        if viewModel.recentDives.isEmpty {
+                            // Empty state
+                            Card {
+                                VStack(spacing: 16) {
+                                    Image(systemName: "fish.fill")
+                                        .font(.system(size: 48))
+                                        .foregroundStyle(.oceanBlue.opacity(0.5))
+                                    
+                                    Text("No dives logged yet")
+                                        .font(.headline)
+                                    
+                                    Text("Start your diving journey by logging your first dive!")
+                                        .font(.subheadline)
+                                        .foregroundStyle(.secondary)
+                                        .multilineTextAlignment(.center)
+                                    
+                                    Button("Load Sample Data") {
+                                        Task {
+                                            await viewModel.seedSampleData()
+                                        }
+                                    }
+                                    .buttonStyle(.borderedProminent)
+                                    .tint(.oceanBlue)
+                                }
+                                .frame(maxWidth: .infinity)
+                                .padding(.vertical, 32)
                             }
-                            .frame(maxWidth: .infinity)
-                            .padding(.vertical, 32)
+                            .padding(.horizontal)
+                        } else {
+                            // Dive list
+                            ForEach(viewModel.recentDives) { dive in
+                                DiveRow(dive: dive)
+                            }
+                            .padding(.horizontal)
                         }
-                        .padding(.horizontal)
                     }
                 }
                 
@@ -123,6 +142,62 @@ public struct DashboardView: View {
             .padding(.vertical)
         }
         .navigationBarTitleDisplayMode(.inline)
+    }
+}
+
+private struct DiveRow: View {
+    let dive: DiveLog
+    
+    var body: some View {
+        Card {
+            HStack(spacing: 16) {
+                // Icon
+                Circle()
+                    .fill(Color.oceanBlue.opacity(0.2))
+                    .frame(width: 50, height: 50)
+                    .overlay {
+                        Image(systemName: "fish.fill")
+                            .foregroundStyle(.oceanBlue)
+                    }
+                
+                // Content
+                VStack(alignment: .leading, spacing: 4) {
+                    HStack {
+                        Text(formatDate(dive.date))
+                            .font(.headline)
+                        
+                        if dive.signed {
+                            Image(systemName: "rosette")
+                                .font(.caption)
+                                .foregroundStyle(.seaGreen)
+                        }
+                    }
+                    
+                    HStack(spacing: 12) {
+                        Label(String(format: "%.1fm", dive.maxDepth), systemImage: "arrow.down")
+                        Label("\(dive.bottomTime)min", systemImage: "clock")
+                    }
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
+                    
+                    if !dive.notes.isEmpty {
+                        Text(dive.notes)
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                            .lineLimit(1)
+                    }
+                }
+                
+                Spacer()
+            }
+            .padding()
+        }
+    }
+    
+    private func formatDate(_ date: Date) -> String {
+        let formatter = DateFormatter()
+        formatter.dateStyle = .medium
+        return formatter.string(from: date)
     }
 }
 
