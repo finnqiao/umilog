@@ -64,7 +64,7 @@ private struct DiveHistoryRow: View {
                 
                 if dive.signed {
                     Image(systemName: "rosette")
-                        .foregroundStyle(.seaGreen)
+                        .foregroundStyle(Color.seaGreen)
                 }
             }
             
@@ -72,7 +72,7 @@ private struct DiveHistoryRow: View {
             HStack(spacing: 16) {
                 Label(String(format: "%.1fm", dive.maxDepth), systemImage: "arrow.down")
                     .font(.subheadline)
-                    .foregroundStyle(.diveTeal)
+                    .foregroundStyle(Color.diveTeal)
                 
                 Label("\(dive.bottomTime)min", systemImage: "clock")
                     .font(.subheadline)
@@ -112,13 +112,14 @@ private struct DiveDetailView: View {
     let site: DiveSite?
     
     var body: some View {
-        ScrollView {
+        ScrollView(.vertical, showsIndicators: true) {
             VStack(alignment: .leading, spacing: 20) {
                 // Site Info
                 if let site = site {
                     VStack(alignment: .leading, spacing: 8) {
                         Text(site.name)
-                            .font(.title.bold())
+                            .font(.title)
+                            .bold()
                         HStack {
                             Image(systemName: "mappin.circle.fill")
                             Text(site.location)
@@ -179,7 +180,7 @@ private struct DiveDetailView: View {
                             .font(.headline)
                         HStack {
                             Image(systemName: dive.signed ? "checkmark.seal.fill" : "xmark.seal")
-                                .foregroundStyle(dive.signed ? .seaGreen : .secondary)
+                                .foregroundStyle(dive.signed ? Color.seaGreen : Color.gray)
                             VStack(alignment: .leading) {
                                 Text(instructor)
                                 if let number = dive.instructorNumber {

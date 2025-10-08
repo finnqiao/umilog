@@ -97,7 +97,7 @@ public final class GeofenceManager: NSObject, ObservableObject {
     }
     
     private func fetchNearbySites(location: CLLocation, radiusKm: Double) async throws -> [DiveSite] {
-        try await database.read { db in
+        try database.read { db in
             let allSites = try DiveSite.fetchAll(db)
             
             return allSites
@@ -225,11 +225,11 @@ public final class GeofenceManager: NSObject, ObservableObject {
             trigger: trigger
         )
         
-        do {
-            try await UNUserNotificationCenter.current().add(request)
-        } catch {
-            print("Failed to schedule notification: \(error)")
-        }
+        UNUserNotificationCenter.current().add(request, withCompletionHandler: { error in
+            if let error = error {
+                print("Failed to schedule notification: \(error)")
+            }
+        })
     }
     
     private func triggerAutoLogPrompt(for site: DiveSite) async {
@@ -247,11 +247,11 @@ public final class GeofenceManager: NSObject, ObservableObject {
             trigger: nil // Immediate
         )
         
-        do {
-            try await UNUserNotificationCenter.current().add(request)
-        } catch {
-            print("Failed to send notification: \(error)")
-        }
+        UNUserNotificationCenter.current().add(request, withCompletionHandler: { error in
+            if let error = error {
+                print("Failed to send notification: \(error)")
+            }
+        })
         
         // Also post app notification
         NotificationCenter.default.post(

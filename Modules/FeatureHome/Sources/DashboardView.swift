@@ -15,7 +15,7 @@ public struct DashboardView: View {
                     VStack(alignment: .leading, spacing: 4) {
                         Text("UmiLog")
                             .font(.largeTitle.bold())
-                            .foregroundStyle(.oceanBlue)
+                            .foregroundStyle(Color.oceanBlue)
                         Text("Your dive adventures await")
                             .font(.subheadline)
                             .foregroundStyle(.secondary)
@@ -28,13 +28,13 @@ public struct DashboardView: View {
                             .font(.headline)
                     }
                     .buttonStyle(.borderedProminent)
-                    .tint(.oceanBlue)
+                    .tint(Color.oceanBlue)
                 }
                 .padding(.horizontal)
                 
                 // Quick Stats Grid
                 LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 16) {
-                    StatCard(value: "\(viewModel.stats.totalDives)", label: "Total Dives", color: .oceanBlue)
+                    StatCard(value: "\(viewModel.stats.totalDives)", label: "Total Dives", color: Color.oceanBlue)
                     StatCard(value: String(format: "%.0fm", viewModel.stats.maxDepth), label: "Max Depth", color: .diveTeal)
                     StatCard(value: "\(viewModel.stats.sitesVisited)", label: "Sites Visited", color: .seaGreen)
                     StatCard(value: "\(viewModel.stats.speciesSpotted)", label: "Species Spotted", color: .divePurple)
@@ -89,7 +89,7 @@ public struct DashboardView: View {
                                 VStack(spacing: 16) {
                                     Image(systemName: "fish.fill")
                                         .font(.system(size: 48))
-                                        .foregroundStyle(.oceanBlue.opacity(0.5))
+                                        .foregroundStyle(Color.oceanBlue.opacity(0.5))
                                     
                                     Text("No dives logged yet")
                                         .font(.headline)
@@ -105,7 +105,7 @@ public struct DashboardView: View {
                                         }
                                     }
                                     .buttonStyle(.borderedProminent)
-                                    .tint(.oceanBlue)
+                                    .tint(Color.oceanBlue)
                                 }
                                 .frame(maxWidth: .infinity)
                                 .padding(.vertical, 32)
@@ -127,7 +127,7 @@ public struct DashboardView: View {
                         icon: "map.fill",
                         title: "Site Explorer",
                         description: "Find new dive sites",
-                        color: .oceanBlue
+                        color: Color.oceanBlue
                     )
                     
                     QuickActionCard(
@@ -157,7 +157,7 @@ private struct DiveRow: View {
                     .frame(width: 50, height: 50)
                     .overlay {
                         Image(systemName: "fish.fill")
-                            .foregroundStyle(.oceanBlue)
+                            .foregroundStyle(Color.oceanBlue)
                     }
                 
                 // Content
@@ -169,7 +169,7 @@ private struct DiveRow: View {
                         if dive.signed {
                             Image(systemName: "rosette")
                                 .font(.caption)
-                                .foregroundStyle(.seaGreen)
+                                .foregroundStyle(Color.seaGreen)
                         }
                     }
                     

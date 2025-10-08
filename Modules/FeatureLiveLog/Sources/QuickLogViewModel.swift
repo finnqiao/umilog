@@ -75,7 +75,7 @@ public final class QuickLogViewModel: ObservableObject {
         
         // Try to find the site
         Task {
-            if let site = try? await siteRepository.fetch(id: dive.siteId) {
+            if let site = try? siteRepository.fetch(id: dive.siteId) {
                 selectedSite = site
             }
         }
@@ -176,7 +176,7 @@ public final class QuickLogViewModel: ObservableObject {
     
     private func loadLastDive() async {
         do {
-            let dives = try await diveRepository.fetchRecent(limit: 1)
+            let dives = try diveRepository.fetchRecent(limit: 1)
             lastDive = dives.first
             hasLastDive = lastDive != nil
         } catch {
@@ -188,7 +188,7 @@ public final class QuickLogViewModel: ObservableObject {
         guard let location = locationService.currentLocation else { return }
         
         do {
-            let allSites = try await siteRepository.getAllSites()
+            let allSites = try siteRepository.getAllSites()
             
             // Sort by distance
             nearbySites = allSites.sorted { site1, site2 in
@@ -250,32 +250,29 @@ public final class QuickLogViewModel: ObservableObject {
             // Create dive log
             let dive = DiveLog(
                 id: UUID().uuidString,
-                diveNumber: try await getNextDiveNumber(),
+                siteId: site.id,
                 date: diveDate,
                 startTime: diveDate,
                 endTime: endTime,
-                bottomTime: bottomTime,
                 maxDepth: maxDepth,
                 averageDepth: maxDepth * 0.7, // Estimate
-                waterTemp: waterTemp ?? 26,
-                visibility: visibility ?? 15,
+                bottomTime: bottomTime,
                 startPressure: 200,
                 endPressure: 50,
-                gasType: "Air",
+                temperature: waterTemp ?? 26,
+                visibility: visibility ?? 15,
                 notes: notes,
-                buddy: buddy.isEmpty ? nil : buddy,
-                siteId: site.id,
-                verified: false,
+                signed: false,
                 createdAt: Date(),
                 updatedAt: Date()
             )
             
             // Save to database
-            try await diveRepository.create(dive)
+            try diveRepository.create(dive)
             
             // Update site visited count
             var updatedSite = site
-            try await database.write { db in
+            try database.write { db in
                 updatedSite = DiveSite(
                     id: site.id,
                     name: site.name,
@@ -298,7 +295,7 @@ public final class QuickLogViewModel: ObservableObject {
             }
             
             // Post notification for map update
-            NotificationCenter.default.post(name: .diveLogUpdated, object: nil)
+            NotificationCenter.default.post(name: Notification.Name("diveLogUpdated"), object: nil)
             
             return true
             
@@ -307,12 +304,6 @@ public final class QuickLogViewModel: ObservableObject {
             showingError = true
             return false
         }
-    }
-    
-    private func getNextDiveNumber() async throws -> Int {
-        let allDives = try await diveRepository.getAllDives()
-        let maxNumber = allDives.map(\.diveNumber).max() ?? 0
-        return maxNumber + 1
     }
 }
 

@@ -4,20 +4,21 @@ import UmiDesignSystem
 import UmiLocationKit
 
 /// Quick log view for one-tap dive logging with smart defaults
+
+enum QuickLogField: Hashable {
+    case depth, bottomTime, notes
+}
+
 public struct QuickLogView: View {
     @StateObject private var viewModel = QuickLogViewModel()
     @Environment(\.dismiss) private var dismiss
-    @FocusState private var focusedField: Field?
+    @FocusState private var focusedField: QuickLogField?
     
     // Optional pre-filled site from geofencing
     private let suggestedSite: DiveSite?
     
     public init(suggestedSite: DiveSite? = nil) {
         self.suggestedSite = suggestedSite
-    }
-    
-    enum Field: Hashable {
-        case depth, bottomTime, notes
     }
     
     public var body: some View {
@@ -160,7 +161,7 @@ struct SiteSelectionSection: View {
 
 struct EssentialFieldsSection: View {
     @ObservedObject var viewModel: QuickLogViewModel
-    @FocusState.Binding var focusedField: Field?
+    @FocusState.Binding var focusedField: QuickLogField?
     
     var body: some View {
         VStack(spacing: 16) {
@@ -176,9 +177,9 @@ struct EssentialFieldsSection: View {
             HStack(spacing: 16) {
                 // Max Depth
                 VStack(alignment: .leading, spacing: 4) {
-                    Text("Max Depth")
-                        .font(.caption)
-                        .foregroundColor(.secondary)
+                        Text("Max Depth")
+                            .font(SwiftUI.Font.caption)
+                            .foregroundStyle(.secondary)
                     
                     HStack {
                         TextField("0", value: $viewModel.maxDepth, format: .number)
@@ -193,9 +194,9 @@ struct EssentialFieldsSection: View {
                 
                 // Bottom Time
                 VStack(alignment: .leading, spacing: 4) {
-                    Text("Bottom Time")
-                        .font(.caption)
-                        .foregroundColor(.secondary)
+                        Text("Bottom Time")
+                            .font(SwiftUI.Font.caption)
+                            .foregroundStyle(.secondary)
                     
                     HStack {
                         TextField("0", value: $viewModel.bottomTime, format: .number)
@@ -250,7 +251,7 @@ struct OptionalFieldsSection: View {
                 // Water temperature
                 HStack {
                     Label("Water Temp", systemImage: "thermometer.medium")
-                        .font(.subheadline)
+                        .font(SwiftUI.Font.subheadline)
                     
                     Spacer()
                     
@@ -261,14 +262,14 @@ struct OptionalFieldsSection: View {
                             .frame(width: 60)
                         
                         Text("°C")
-                            .foregroundColor(.secondary)
+                            .foregroundStyle(.secondary)
                     }
                 }
                 
                 // Visibility
                 HStack {
                     Label("Visibility", systemImage: "eye")
-                        .font(.subheadline)
+                        .font(SwiftUI.Font.subheadline)
                     
                     Spacer()
                     
@@ -286,7 +287,7 @@ struct OptionalFieldsSection: View {
                 // Buddy
                 HStack {
                     Label("Buddy", systemImage: "person.2")
-                        .font(.subheadline)
+                        .font(SwiftUI.Font.subheadline)
                     
                     Spacer()
                     
@@ -298,7 +299,7 @@ struct OptionalFieldsSection: View {
                 // Notes
                 VStack(alignment: .leading, spacing: 4) {
                     Label("Notes", systemImage: "note.text")
-                        .font(.subheadline)
+                        .font(SwiftUI.Font.subheadline)
                     
                     TextEditor(text: $viewModel.notes)
                         .frame(minHeight: 80)
@@ -330,7 +331,7 @@ struct SaveButton: View {
                 HStack {
                     Image(systemName: "checkmark.circle.fill")
                     Text(viewModel.saveButtonTitle)
-                        .font(.headline)
+                        .font(SwiftUI.Font.headline)
                 }
                 .frame(maxWidth: .infinity)
             }
@@ -406,7 +407,7 @@ struct SitePickerView: View {
     private func loadSites() async {
         do {
             let repository = SiteRepository(database: AppDatabase.shared)
-            sites = try await repository.getAllSites()
+            sites = try repository.getAllSites()
         } catch {
             print("Failed to load sites: \(error)")
         }

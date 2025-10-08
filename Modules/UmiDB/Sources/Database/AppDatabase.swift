@@ -43,9 +43,7 @@ public final class AppDatabase {
         dbPool = try DatabasePool(path: dbPath, configuration: config)
         
         // Run migrations
-        try dbPool.write { db in
-            try DatabaseMigrator.migrate(db)
-        }
+        try DatabaseMigrator.migrate(dbPool)
         
         print("✅ Database initialized successfully")
     }

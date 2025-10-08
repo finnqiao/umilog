@@ -5,7 +5,7 @@ import UmiDB
 
 public struct ScratchOffMapView: View {
     @StateObject private var viewModel = ScratchOffMapViewModel()
-    @State private var mapRegion = MKMapRegion(
+    @State private var mapRegion = MKCoordinateRegion(
         center: CLLocationCoordinate2D(latitude: 20, longitude: 0),
         span: MKCoordinateSpan(latitudeDelta: 120, longitudeDelta: 120)
     )
@@ -17,10 +17,9 @@ public struct ScratchOffMapView: View {
     public var body: some View {
         ZStack {
             // Base map layer
-            Map(coordinateRegion: $mapRegion, 
+            Map(coordinateRegion: $mapRegion,
                 interactionModes: .all,
                 showsUserLocation: true,
-                userTrackingMode: .none,
                 annotationItems: viewModel.diveSites) { site in
                 MapAnnotation(coordinate: site.coordinate) {
                     DiveSiteAnnotation(site: site, isVisited: viewModel.hasVisitedSite(site))
@@ -94,7 +93,6 @@ struct DiveSiteAnnotation: View {
                 .frame(width: 20, height: 20)
             
             Image(systemName: isVisited ? "water.waves" : "mappin")
-                .font(.caption)
                 .foregroundColor(.white)
         }
     }
@@ -108,14 +106,13 @@ struct StatsButton: View {
         VStack(spacing: 4) {
             HStack(spacing: 8) {
                 Image(systemName: "map.fill")
-                    .font(.headline)
                 
                 VStack(alignment: .leading, spacing: 2) {
                     Text("\(countriesVisited) countries")
-                        .font(.caption.bold())
+                        .bold()
+                        .foregroundStyle(.primary)
                     Text("\(Int(percentageExplored))% explored")
-                        .font(.caption2)
-                        .foregroundColor(.secondary)
+                        .foregroundStyle(.secondary)
                 }
             }
             .padding(12)
@@ -133,20 +130,16 @@ struct CountryInfoCard: View {
         VStack(alignment: .leading, spacing: 12) {
             HStack {
                 Text(country.flag)
-                    .font(.largeTitle)
                 
                 VStack(alignment: .leading, spacing: 4) {
                     Text(country.name)
-                        .font(.headline)
                     
                     if stats.totalDives > 0 {
                         Text("\(stats.totalDives) dives • \(stats.uniqueSites) sites")
-                            .font(.caption)
-                            .foregroundColor(.secondary)
+                            .foregroundStyle(.secondary)
                     } else {
                         Text("Not visited yet")
-                            .font(.caption)
-                            .foregroundColor(.secondary)
+                            .foregroundStyle(.secondary)
                     }
                 }
                 
@@ -155,14 +148,12 @@ struct CountryInfoCard: View {
                 if stats.totalDives > 0 {
                     Image(systemName: "checkmark.circle.fill")
                         .foregroundColor(.seaGreen)
-                        .font(.title2)
                 }
             }
             
             if let lastDive = stats.lastDiveDate {
                 Text("Last dive: \(lastDive, style: .date)")
-                    .font(.caption2)
-                    .foregroundColor(.secondary)
+                    .foregroundStyle(.secondary)
             }
         }
         .padding()

@@ -13,11 +13,18 @@ public struct SiteExplorerView: View {
                 ProgressView()
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
             } else if viewModel.filteredSites.isEmpty {
-                ContentUnavailableView(
-                    "No Sites Found",
-                    systemImage: "map",
-                    description: Text(viewModel.searchText.isEmpty ? "Load some sample data to get started" : "No sites match your search")
-                )
+                VStack(spacing: 12) {
+                    Image(systemName: "map")
+                        .font(.system(size: 40))
+                        .foregroundStyle(.secondary)
+                    Text("No Sites Found")
+                        .font(.headline)
+                    Text(viewModel.searchText.isEmpty ? "Load some sample data to get started" : "No sites match your search")
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
+                        .multilineTextAlignment(.center)
+                }
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
             } else {
                 List {
                     ForEach(viewModel.filteredSites) { site in
@@ -76,7 +83,7 @@ private struct SiteRow: View {
                     DifficultyBadge(difficulty: site.difficulty)
                     if site.wishlist {
                         Image(systemName: "heart.fill")
-                            .foregroundStyle(.coralRed)
+                            .foregroundStyle(Color.coralRed)
                             .font(.caption)
                     }
                 }
@@ -85,7 +92,7 @@ private struct SiteRow: View {
             HStack(spacing: 16) {
                 Label(String(format: "%.0fm", site.maxDepth), systemImage: "arrow.down")
                     .font(.caption)
-                    .foregroundStyle(.diveTeal)
+                    .foregroundStyle(Color.diveTeal)
                 
                 Label(String(format: "%.0f°C", site.averageTemp), systemImage: "thermometer")
                     .font(.caption)
@@ -126,9 +133,9 @@ private struct DifficultyBadge: View {
     
     private var color: Color {
         switch difficulty {
-        case .beginner: return .seaGreen
-        case .intermediate: return .oceanBlue
-        case .advanced: return .coralRed
+        case .beginner: return Color.seaGreen
+        case .intermediate: return Color.oceanBlue
+        case .advanced: return Color.coralRed
         }
     }
 }
@@ -138,14 +145,15 @@ private struct SiteDetailView: View {
     @ObservedObject var viewModel: SiteExplorerViewModel
     
     var body: some View {
-        ScrollView {
+ScrollView(.vertical, showsIndicators: true) {
             VStack(alignment: .leading, spacing: 20) {
                 // Header
                 VStack(alignment: .leading, spacing: 12) {
                     HStack {
                         VStack(alignment: .leading, spacing: 4) {
                             Text(site.name)
-                                .font(.title.bold())
+                                .font(.title)
+                                .bold()
                             HStack {
                                 Image(systemName: "mappin.circle.fill")
                                 Text(site.location)
@@ -162,7 +170,7 @@ private struct SiteDetailView: View {
                         } label: {
                             Image(systemName: site.wishlist ? "heart.fill" : "heart")
                                 .font(.title2)
-                                .foregroundStyle(site.wishlist ? .coralRed : .secondary)
+                                .foregroundStyle(site.wishlist ? Color.coralRed : Color.gray)
                         }
                     }
                     
@@ -173,7 +181,7 @@ private struct SiteDetailView: View {
                             .padding(.horizontal, 8)
                             .padding(.vertical, 2)
                             .background(Color.oceanBlue.opacity(0.2))
-                            .foregroundStyle(.oceanBlue)
+                            .foregroundStyle(Color.oceanBlue)
                             .cornerRadius(4)
                         Text(site.region)
                             .font(.caption)

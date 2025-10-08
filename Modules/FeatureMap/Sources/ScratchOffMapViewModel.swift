@@ -40,7 +40,7 @@ public class ScratchOffMapViewModel: ObservableObject {
     public func loadData() async {
         do {
             // Load all dive sites
-            diveSites = try await siteRepository.getAllSites()
+            diveSites = try siteRepository.getAllSites()
             
             // Load visited countries from dives
             let dives = try await diveRepository.getAllDives()
@@ -115,7 +115,7 @@ public class ScratchOffMapViewModel: ObservableObject {
 
 // MARK: - Supporting Types
 
-public struct Country: Identifiable, Equatable {
+public struct Country: Identifiable {
     public let id = UUID()
     public let code: String  // ISO 3166-1 alpha-2
     public let name: String

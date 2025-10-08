@@ -2,7 +2,7 @@ import Foundation
 import GRDB
 
 public enum DatabaseMigrator {
-    public static func migrate(_ db: Database) throws {
+    public static func migrate(_ writer: DatabaseWriter) throws {
         var migrator = GRDB.DatabaseMigrator()
         
         // MARK: - v1: Initial Schema
@@ -103,6 +103,6 @@ public enum DatabaseMigrator {
         }
         
         // Run migrations
-        try migrator.migrate(db)
+        try migrator.migrate(writer)
     }
 }

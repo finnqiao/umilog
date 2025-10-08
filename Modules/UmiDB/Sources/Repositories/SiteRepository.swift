@@ -42,10 +42,10 @@ public final class SiteRepository {
     
     public func search(query: String) throws -> [DiveSite] {
         try database.read { db in
-            let pattern = FTS5Pattern(matchingAllTokensIn: query)
+            let like = "%\(query)%"
             return try DiveSite
-                .joining(required: DiveSite.association(to: FTS5.searchTable("sites_fts")))
-                .filter(pattern != nil)
+                .filter(DiveSite.Columns.name.like(like) || DiveSite.Columns.location.like(like))
+                .order(DiveSite.Columns.name)
                 .fetchAll(db)
         }
     }
@@ -111,10 +111,10 @@ public final class SiteRepository {
         }
     }
     
-    // MARK: - Async Methods
+    // MARK: - Convenience Methods
     
-    public func getAllSites() async throws -> [DiveSite] {
-        try await database.read { db in
+    public func getAllSites() throws -> [DiveSite] {
+        try database.read { db in
             try DiveSite
                 .order(DiveSite.Columns.name)
                 .fetchAll(db)
@@ -122,9 +122,3 @@ public final class SiteRepository {
     }
 }
 
-// MARK: - FTS5 Helper
-extension FTS5 {
-    static func searchTable(_ name: String) -> FTS5 {
-        FTS5()
-    }
-}
