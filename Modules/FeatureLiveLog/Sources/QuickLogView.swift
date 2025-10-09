@@ -23,7 +23,7 @@ public struct QuickLogView: View {
     
     public var body: some View {
         NavigationStack {
-            ScrollView {
+            ScrollView(.vertical, showsIndicators: true) {
                 VStack(spacing: 24) {
                     // Quick actions
                     QuickActionsSection(viewModel: viewModel)
@@ -89,14 +89,14 @@ struct QuickActionsSection: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             Text("Quick Actions")
-                .font(.caption)
-                .foregroundColor(.secondary)
+                .font(SwiftUI.Font.caption)
+                .foregroundStyle(.secondary)
             
             HStack(spacing: 12) {
                 // Same as last dive
                 Button(action: { viewModel.fillFromLastDive() }) {
                     Label("Same as Last", systemImage: "arrow.clockwise")
-                        .font(.caption)
+                        .font(SwiftUI.Font.caption)
                         .frame(maxWidth: .infinity)
                 }
                 .buttonStyle(.bordered)
@@ -107,7 +107,7 @@ struct QuickActionsSection: View {
                     Task { await viewModel.useCurrentLocation() }
                 }) {
                     Label("Current Location", systemImage: "location.fill")
-                        .font(.caption)
+                        .font(SwiftUI.Font.caption)
                         .frame(maxWidth: .infinity)
                 }
                 .buttonStyle(.bordered)
@@ -123,30 +123,30 @@ struct SiteSelectionSection: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             Text("Dive Site")
-                .font(.caption)
-                .foregroundColor(.secondary)
+                .font(SwiftUI.Font.caption)
+                .foregroundStyle(.secondary)
             
             Button(action: { showingSitePicker = true }) {
                 HStack {
                     VStack(alignment: .leading, spacing: 4) {
                         if let site = viewModel.selectedSite {
                             Text(site.name)
-                                .font(.headline)
-                                .foregroundColor(.primary)
+                                .font(SwiftUI.Font.headline)
+                                .foregroundStyle(.primary)
                             Text(site.location)
-                                .font(.caption)
-                                .foregroundColor(.secondary)
+                                .font(SwiftUI.Font.caption)
+                                .foregroundStyle(.secondary)
                         } else {
                             Text("Select dive site")
-                                .foregroundColor(.secondary)
+                                .foregroundStyle(.secondary)
                         }
                     }
                     
                     Spacer()
                     
                     Image(systemName: "chevron.right")
-                        .font(.caption)
-                        .foregroundColor(.secondary)
+                        .font(SwiftUI.Font.caption)
+                        .foregroundStyle(.secondary)
                 }
                 .padding()
                 .background(Color.gray.opacity(0.1))
@@ -188,7 +188,7 @@ struct EssentialFieldsSection: View {
                             .focused($focusedField, equals: .depth)
                         
                         Text("m")
-                            .foregroundColor(.secondary)
+                            .foregroundStyle(.secondary)
                     }
                 }
                 
@@ -205,7 +205,7 @@ struct EssentialFieldsSection: View {
                             .focused($focusedField, equals: .bottomTime)
                         
                         Text("min")
-                            .foregroundColor(.secondary)
+                            .foregroundStyle(.secondary)
                     }
                 }
             }
@@ -280,7 +280,7 @@ struct OptionalFieldsSection: View {
                             .frame(width: 60)
                         
                         Text("m")
-                            .foregroundColor(.secondary)
+                            .foregroundStyle(.secondary)
                     }
                 }
                 
@@ -311,8 +311,8 @@ struct OptionalFieldsSection: View {
             .padding(.top, 8)
         } label: {
             Label("More Details", systemImage: isExpanded ? "chevron.up" : "chevron.down")
-                .font(.subheadline)
-                .foregroundColor(.oceanBlue)
+                .font(SwiftUI.Font.subheadline)
+                .foregroundStyle(Color.oceanBlue)
         }
     }
 }
@@ -372,19 +372,19 @@ struct SitePickerView: View {
                         HStack {
                             VStack(alignment: .leading, spacing: 4) {
                                 Text(site.name)
-                                    .font(.headline)
-                                    .foregroundColor(.primary)
+                                    .font(SwiftUI.Font.headline)
+                                    .foregroundStyle(.primary)
                                 
                                 Text(site.location)
-                                    .font(.caption)
-                                    .foregroundColor(.secondary)
+                                    .font(SwiftUI.Font.caption)
+                                    .foregroundStyle(.secondary)
                             }
                             
                             Spacer()
                             
                             if site.id == selectedSite?.id {
                                 Image(systemName: "checkmark")
-                                    .foregroundColor(.oceanBlue)
+                                    .foregroundStyle(Color.oceanBlue)
                             }
                         }
                     }
