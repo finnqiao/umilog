@@ -136,10 +136,26 @@ record["encrypted_field"] = sealed.combined
 
 ### iOS Development
 
+#### Signing with Free Apple ID
+- For simulator and basic device builds without paid program:
+  - Remove Push Notifications and iCloud capabilities
+  - Keep only Application Groups and Keychain access groups if needed
+  - Ensure entitlements reflect the above (see `UmiLog/UmiLog.entitlements`)
+- CloudKit-dependent features must remain disabled or mocked
+
 #### SwiftUI State Management
 - `@StateObject` vs `@ObservedObject` confusion causes view recreation
 - Use `@StateObject` for ownership, `@ObservedObject` for references
 - Task cancellation needs explicit handling in async views
+
+#### SwiftUI API Ambiguity with Design System Colors/Fonts (Xcode 15)
+- When a design system adds `Color` extensions (e.g., `Color.oceanBlue`), calls like `.foregroundColor(.secondary)` and `.font(.subheadline)` can become ambiguous
+- Fixes that worked reliably:
+  - Fully qualify fonts: `.font(SwiftUI.Font.caption)` instead of `.font(.caption)`
+  - Prefer `.foregroundStyle(...)` over `.foregroundColor(...)`
+  - Avoid chained weight in font literals: use `.font(SwiftUI.Font.title).bold()` instead of `.font(.title.bold())`
+  - Disambiguate ScrollView init: `ScrollView(.vertical, showsIndicators: true)`
+- Applied across QuickLogView and other screens to eliminate compile errors
 
 #### Background Processing
 - CloudKit background notifications unreliable

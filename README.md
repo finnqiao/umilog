@@ -116,6 +116,11 @@ open UmiLog.xcworkspace
    - Select "UmiLog" target
    - Choose your team in "Signing & Capabilities"
 
+6. If you're using a free Apple ID (not in the Developer Program):
+   - Remove Push Notifications and iCloud capabilities
+   - Keep only Application Groups and Keychain Access Groups (as configured in `UmiLog/UmiLog.entitlements`)
+   - CloudKit features are disabled in this configuration; all core features work offline
+
 6. Build and run:
    - Select target device/simulator
    - Press `Cmd+R` to run

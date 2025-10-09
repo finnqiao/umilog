@@ -98,7 +98,9 @@
 
 ## 🐛 Known Issues
 
-- [ ] None yet - new project!
+- [ ] Free Apple ID build: Push Notifications and iCloud disabled — re-enable when Developer Program is active; add build config to toggle capabilities
+- [ ] CloudKit features temporarily disabled/mocked — verify offline-first paths and add guards
+- [ ] Audit remaining SwiftUI screens for `.foregroundColor`/`.font` ambiguity and standardize on `.foregroundStyle` + `SwiftUI.Font`
 
 ## 💡 Improvements & Ideas
 
