@@ -15,9 +15,9 @@ public struct DiveLoggerView: View {
                 if let site = viewModel.selectedSite {
                     VStack(alignment: .leading, spacing: 4) {
                         Text(site.name)
-                            .font(.headline)
+                            .font(SwiftUI.Font.headline)
                         Text(site.location)
-                            .font(.subheadline)
+                            .font(SwiftUI.Font.subheadline)
                             .foregroundStyle(.secondary)
                     }
                     
@@ -159,7 +159,7 @@ public struct DiveLoggerView: View {
                 }
                 .disabled(!viewModel.canSave || viewModel.isLoading)
                 .buttonStyle(.borderedProminent)
-                .tint(.oceanBlue)
+                .tint(Color.oceanBlue)
             }
         }
         .navigationTitle("Log Dive")

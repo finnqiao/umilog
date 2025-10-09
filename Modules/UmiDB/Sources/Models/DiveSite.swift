@@ -3,7 +3,7 @@ import GRDB
 import CoreLocation
 
 /// Dive site location and details
-public struct DiveSite: Codable, Identifiable {
+public struct DiveSite: Codable, Identifiable, Hashable {
     public let id: String
     public let name: String
     public let location: String
