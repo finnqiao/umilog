@@ -157,6 +157,14 @@ record["encrypted_field"] = sealed.combined
   - Disambiguate ScrollView init: `ScrollView(.vertical, showsIndicators: true)`
 - Applied across QuickLogView and other screens to eliminate compile errors
 
+#### Picker selection requires Hashable
+- SwiftUI `Picker(selection:)` requires the selection type to conform to `Hashable`
+- Our `DiveSite` model did not conform; adding `Hashable` resolved the error and allowed `tag(Optional(site))`
+- Alternative approach is to bind selection to `site.id` (String) and tag with the id
+
+#### Section generic inference edge case
+- `Section("Title") { ... } footer: { ... }` failed generic inference once; rewriting as `Section { ... } header: { Text("Title") } footer: {...}` stabilized builds in Xcode 15
+
 #### Background Processing
 - CloudKit background notifications unreliable
 - Use silent push + fetch for sync triggers
