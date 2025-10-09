@@ -39,7 +39,7 @@ public struct DiveLoggerView: View {
             }
             
             // Dive Details (Required)
-            Section("Dive Details") {
+            Section {
                 HStack {
                     Label("Max Depth", systemImage: "arrow.down")
                     Spacer()
@@ -61,6 +61,8 @@ public struct DiveLoggerView: View {
                     Text("min")
                         .foregroundStyle(.secondary)
                 }
+            } header: {
+                Text("Dive Details")
             } footer: {
                 Text("Required fields")
             }
