@@ -2,6 +2,7 @@ import SwiftUI
 import MapKit
 import UmiDesignSystem
 import UmiDB
+import FeatureLiveLog
 
 public struct ScratchOffMapView: View {
     @StateObject private var viewModel = ScratchOffMapViewModel()
@@ -11,6 +12,7 @@ public struct ScratchOffMapView: View {
     )
     @State private var showingStats = false
     @State private var selectedCountry: Country?
+    @State private var showingQuickLog = false
     
     public init() {}
     
@@ -67,12 +69,31 @@ public struct ScratchOffMapView: View {
                         stats: viewModel.getCountryStats(for: country)
                     )
                     .transition(.move(edge: .bottom).combined(with: .opacity))
-                    .padding()
+                    .padding(.horizontal)
+                    
+                    // Floating action bar with Quick Log
+                    FloatingActionBar {
+                        showingQuickLog = true
+                    }
+                    .padding(.bottom, 16)
+                }
+            } else {
+                // Show FAB even without selected country
+                VStack {
+                    Spacer()
+                    FloatingActionBar {
+                        showingQuickLog = true
+                    }
+                    .padding(.bottom, 16)
                 }
             }
         }
         .sheet(isPresented: $showingStats) {
             MapStatsView(viewModel: viewModel)
+        }
+        .sheet(isPresented: $showingQuickLog) {
+            // Pass currently selected site when available
+            QuickLogView(suggestedSite: viewModel.selectedSite)
         }
         .task {
             await viewModel.loadData()
@@ -159,6 +180,47 @@ struct CountryInfoCard: View {
         .padding()
         .background(.ultraThinMaterial)
         .cornerRadius(16)
+    }
+}
+
+// MARK: - Floating Action Bar
+
+struct FloatingActionBar: View {
+    let onLog: () -> Void
+    var body: some View {
+        HStack(spacing: 24) {
+            // Map tab indicator (selected)
+            VStack {
+                Image(systemName: "map.fill")
+                Text("Map").font(.caption2)
+            }
+            .padding(12)
+            .background(Color.white.opacity(0.8))
+            .cornerRadius(20)
+            
+            Spacer(minLength: 0)
+            
+            Button(action: onLog) {
+                Image(systemName: "plus.circle.fill")
+                    .font(.system(size: 36, weight: .bold))
+            }
+            .tint(Color.oceanBlue)
+            
+            Spacer(minLength: 0)
+            
+            // Placeholder slots for bottom items
+            HStack(spacing: 24) {
+                VStack { Image(systemName: "clock"); Text("History").font(.caption2) }
+                    .opacity(0.6)
+                VStack { Image(systemName: "fish"); Text("Wildlife").font(.caption2) }
+                    .opacity(0.6)
+            }
+        }
+        .padding(.horizontal)
+        .padding(.vertical, 10)
+        .background(.ultraThinMaterial)
+        .cornerRadius(28)
+        .padding(.horizontal)
     }
 }
 

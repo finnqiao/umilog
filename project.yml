@@ -220,6 +220,7 @@ targets:
       - target: UmiCoreKit
       - target: UmiDB
       - target: UmiLocationKit
+      - target: FeatureLiveLog
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: app.umilog.feature.map
