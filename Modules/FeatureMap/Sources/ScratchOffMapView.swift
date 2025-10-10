@@ -13,6 +13,8 @@ public struct ScratchOffMapView: View {
     @State private var showingStats = false
     @State private var selectedCountry: Country?
     @State private var showingQuickLog = false
+    @State private var showingWizard = false
+    @State private var showingLogOptions = false
     
     public init() {}
     
@@ -73,7 +75,7 @@ public struct ScratchOffMapView: View {
                     
                     // Floating action bar with Quick Log
                     FloatingActionBar {
-                        showingQuickLog = true
+                        showingLogOptions = true
                     }
                     .padding(.bottom, 16)
                 }
@@ -82,7 +84,7 @@ public struct ScratchOffMapView: View {
                 VStack {
                     Spacer()
                     FloatingActionBar {
-                        showingQuickLog = true
+                        showingLogOptions = true
                     }
                     .padding(.bottom, 16)
                 }
@@ -92,8 +94,15 @@ public struct ScratchOffMapView: View {
             MapStatsView(viewModel: viewModel)
         }
         .sheet(isPresented: $showingQuickLog) {
-            // Pass currently selected site when available
             QuickLogView(suggestedSite: viewModel.selectedSite)
+        }
+        .sheet(isPresented: $showingWizard) {
+            LiveLogWizardView(initialSite: viewModel.selectedSite)
+        }
+        .confirmationDialog("Log dive", isPresented: $showingLogOptions, titleVisibility: .visible) {
+            Button("Full log (4 steps)") { showingWizard = true }
+            Button("Quick log") { showingQuickLog = true }
+            Button("Cancel", role: .cancel) {}
         }
         .task {
             await viewModel.loadData()

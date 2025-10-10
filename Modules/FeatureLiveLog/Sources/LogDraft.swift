@@ -18,6 +18,10 @@ public struct LogDraft: Identifiable, Codable {
     public var temperatureC: Double?
     public var visibilityM: Double?
     
+    // Step 3: Wildlife & Notes
+    public var selectedSpecies: Set<String> // species IDs
+    public var notes: String
+    
     public init(id: String = UUID().uuidString,
                 site: DiveSite? = nil,
                 date: Date = Date(),
@@ -27,7 +31,9 @@ public struct LogDraft: Identifiable, Codable {
                 startPressureBar: Int? = nil,
                 endPressureBar: Int? = nil,
                 temperatureC: Double? = nil,
-                visibilityM: Double? = nil) {
+                visibilityM: Double? = nil,
+                selectedSpecies: Set<String> = [],
+                notes: String = "") {
         self.id = id
         self.site = site
         self.date = date
@@ -38,5 +44,7 @@ public struct LogDraft: Identifiable, Codable {
         self.endPressureBar = endPressureBar
         self.temperatureC = temperatureC
         self.visibilityM = visibilityM
+        self.selectedSpecies = selectedSpecies
+        self.notes = notes
     }
 }
