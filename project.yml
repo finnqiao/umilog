@@ -30,7 +30,8 @@ targets:
     sources:
       - UmiLog/
     resources:
-      - Resources/**
+      - path: Resources
+        type: folder
     dependencies:
       - package: GRDB
       - target: UmiDesignSystem
