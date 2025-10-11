@@ -1,5 +1,4 @@
 import SwiftUI
-import UmiDesignSystem
 import UmiDB
 
 public struct ProfileView: View {

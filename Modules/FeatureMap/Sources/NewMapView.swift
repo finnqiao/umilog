@@ -1,6 +1,5 @@
 import SwiftUI
 import MapKit
-import UmiDesignSystem
 import UmiDB
 import FeatureLiveLog
 
