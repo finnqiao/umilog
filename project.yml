@@ -29,6 +29,8 @@ targets:
     deploymentTarget: "17.0"
     sources:
       - UmiLog/
+    resources:
+      - Resources/**
     dependencies:
       - package: GRDB
       - target: UmiDesignSystem
