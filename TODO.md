@@ -10,14 +10,21 @@ This list tracks the 2025 refactor to a map‑first IA with a 4‑step logging w
 - Map FAB: prompt Quick Log vs Full Wizard
 - Fix numeric text field bindings by converting to String inputs with safe parsing
 - Build succeeded on iPhone 17 Pro simulator
-- Site details card updated to the “Grand Bazaar” pattern
+- Site details card updated to the "Grand Bazaar" pattern
+- **Database seeder implementation**: All JSON files loaded on first launch
+- **24 dive sites** across Red Sea, Caribbean, Southeast Asia, Pacific, Mediterranean
+- **35 wildlife species** with scientific names and categories
+- **3 mock dive logs** with instructor sign-offs
+- **19 wildlife sightings** linked to dives and species
 
 ## 🚧 In Progress / Next Up
+- **Test the app** with seeded data on simulator
+- Verify map displays all 24 pins correctly
+- Confirm wizard shows 35 species in catalog
+- Test history view displays 3 completed dives
+- Validate wildlife sightings display per dive
 - Enhance Step 4 summary to show species names instead of IDs
 - "View in History" banner after successful save with tap‑through
-- Wire up DatabaseSeeder to load all seed JSON files on first launch
-- Test map display with 24 sites across all regions
-- Test wizard with species catalog and dive log creation
 - Explore gestures: double‑tap pin and swipe on card → ★ Wishlist
 - History: bulk export CSV and Sign‑off (stub)
 - QA acceptance checklist and in‑app instrumentation hooks

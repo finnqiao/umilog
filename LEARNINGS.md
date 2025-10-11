@@ -12,6 +12,7 @@
 - Site Details Card: adopting the "Grand Bazaar" pattern (hero image, quick‑facts chips, description, CTA) brought visual hierarchy and clear primary action; Explore prioritizes Wishlist; My Map prioritizes Log.
 - Profile: stats tiles (Dives, Max Depth, Sites, Species, Total Bottom Time) plus Cloud Backup block give an immediate sense of progress; these tiles link to filtered History scopes.
 - Mock data generation: Created comprehensive seed data with **24 world-famous dive sites** (Red Sea, Caribbean, Southeast Asia, Pacific), **35 real marine species** with scientific names, **3 realistic dive logs** with instructor sign-offs, and **19 wildlife sightings**. All data uses real coordinates, species taxonomy, and realistic dive profiles for authentic testing.
+- Database seeding implementation: Built comprehensive JSON loader that reads all seed files from bundle, maps JSON field names to Swift model properties, handles enum string-to-case conversion, parses ISO 8601 dates, and automatically seeds database on first app launch. The seeder checks if data exists to avoid duplicates and provides detailed logging for each step.
 
 ## 🎯 Product Insights
 
