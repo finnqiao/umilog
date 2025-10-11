@@ -19,64 +19,77 @@ struct UmiLogApp: App {
     }
 }
 
-/// Root view with tab navigation
+/// Root view with tab navigation (map-first design)
 struct ContentView: View {
     @EnvironmentObject var appState: AppState
-    @State private var selectedTab: Tab = .map  // Map is now the default tab
+    @State private var selectedTab: Tab = .map
+    @State private var showingWizard = false
     
     var body: some View {
-        TabView(selection: $selectedTab) {
-            // Map is now the primary tab
-            NavigationStack {
-                ScratchOffMapView()
+        ZStack {
+            TabView(selection: $selectedTab) {
+                NavigationStack {
+                    NewMapView()
+                }
+                .tabItem {
+                    Label("Map", systemImage: "map.fill")
+                }
+                .tag(Tab.map)
+                
+                NavigationStack {
+                    DiveHistoryView()
+                }
+                .tabItem {
+                    Label("History", systemImage: "clock.fill")
+                }
+                .tag(Tab.history)
+                
+                // Empty placeholder for center FAB
+                Text("")
+                    .tabItem {
+                        Label("Log", systemImage: "plus.circle.fill")
+                    }
+                    .tag(Tab.log)
+                
+                NavigationStack {
+                    WildlifeView()
+                }
+                .tabItem {
+                    Label("Wildlife", systemImage: "fish.fill")
+                }
+                .tag(Tab.wildlife)
+                
+                NavigationStack {
+                    ProfileView()
+                }
+                .tabItem {
+                    Label("Profile", systemImage: "person.fill")
+                }
+                .tag(Tab.profile)
             }
-            .tabItem {
-                Label("Map", systemImage: "map.fill")
+            .tint(.oceanBlue)
+            .onChange(of: selectedTab) { newTab in
+                if newTab == .log {
+                    showingWizard = true
+                    // Revert to previous tab
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                        selectedTab = .map
+                    }
+                }
             }
-            .tag(Tab.map)
-            
-            NavigationStack {
-                DiveLoggerView()
-            }
-            .tabItem {
-                Label("Log", systemImage: "plus.circle.fill")
-            }
-            .tag(Tab.log)
-            
-            NavigationStack {
-                DiveHistoryView()
-            }
-            .tabItem {
-                Label("History", systemImage: "clock.fill")
-            }
-            .tag(Tab.history)
-            
-            NavigationStack {
-                SiteExplorerView()
-            }
-            .tabItem {
-                Label("Sites", systemImage: "mappin.circle.fill")
-            }
-            .tag(Tab.sites)
-            
-            NavigationStack {
-                SettingsView()
-            }
-            .tabItem {
-                Label("More", systemImage: "ellipsis.circle.fill")
-            }
-            .tag(Tab.more)
         }
-        .tint(.oceanBlue)
+        .sheet(isPresented: $showingWizard) {
+            LiveLogWizardView()
+        }
     }
 }
 
 enum Tab: Hashable {
-    case map  // Primary tab
-    case log
+    case map
     case history
-    case sites
-    case more
+    case log  // FAB trigger
+    case wildlife
+    case profile
 }
 
 /// Global app state
