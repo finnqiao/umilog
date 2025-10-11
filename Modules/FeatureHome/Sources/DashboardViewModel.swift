@@ -41,7 +41,7 @@ public class DashboardViewModel: ObservableObject {
     
     public func seedSampleData() async {
         do {
-            try DatabaseSeeder.seedSampleData()
+            try DatabaseSeeder.seedIfNeeded()
             await loadData()
         } catch {
             self.error = "Failed to seed data: \(error.localizedDescription)"
