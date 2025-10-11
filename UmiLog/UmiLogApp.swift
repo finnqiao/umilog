@@ -6,6 +6,7 @@ import FeatureHistory
 import FeatureSites
 import FeatureSettings
 import UmiDesignSystem
+import UmiDB
 
 @main
 struct UmiLogApp: App {
@@ -101,6 +102,15 @@ class AppState: ObservableObject {
     init() {
         // Initialize app state
         // TODO: Check authentication status
+        
+        // Seed database with test data on first launch
+        Task {
+            do {
+                try DatabaseSeeder.seedIfNeeded()
+            } catch {
+                print("❌ Failed to seed database: \(error)")
+            }
+        }
     }
 }
 

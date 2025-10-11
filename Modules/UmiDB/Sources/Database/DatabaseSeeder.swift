@@ -1,151 +1,296 @@
 import Foundation
 
 public enum DatabaseSeeder {
-    public static func seedSampleData() throws {
+    
+    // MARK: - Main Seeding Entry Point
+    
+    /// Seeds the database with comprehensive test data from JSON files
+    public static func seedIfNeeded() throws {
         let db = AppDatabase.shared
         
-        // Add sample dive sites
-        let sites = sampleSites()
-        for site in sites {
-            try? db.siteRepository.create(site)
+        // Check if database is already seeded
+        let siteCount = try db.siteRepository.fetchAll().count
+        if siteCount > 0 {
+            print("📊 Database already seeded (\(siteCount) sites found)")
+            return
         }
         
-        // Add sample dives
-        let dives = sampleDives(sites: sites)
-        for dive in dives {
-            try? db.diveRepository.create(dive)
+        print("🌱 Starting database seed...")
+        
+        // 1. Load and seed dive sites
+        try seedSites()
+        
+        // 2. Load and seed wildlife species
+        try seedSpecies()
+        
+        // 3. Load and seed dive logs
+        try seedDives()
+        
+        // 4. Load and seed wildlife sightings
+        try seedSightings()
+        
+        print("✅ Database seeding complete!")
+    }
+    
+    // MARK: - Site Seeding
+    
+    private static func seedSites() throws {
+        print("  📍 Loading dive sites...")
+        
+        // Load both seed files
+        let seedSites = try loadJSON("sites_seed", as: SitesSeedFile.self)
+        let extendedSites = try loadJSON("sites_extended", as: SitesSeedFile.self)
+        
+        let allSiteData = seedSites.sites + extendedSites.sites
+        let sites = allSiteData.map { convertToSite($0) }
+        
+        let db = AppDatabase.shared
+        try db.siteRepository.createMany(sites)
+        
+        print("  ✅ Loaded \(sites.count) dive sites")
+    }
+    
+    private static func convertToSite(_ json: SiteSeedData) -> DiveSite {
+        // Combine area and country to form location
+        let location = [json.area, json.country].joined(separator: ", ")
+        
+        return DiveSite(
+            id: json.id,
+            name: json.name,
+            location: location,
+            latitude: json.latitude,
+            longitude: json.longitude,
+            region: json.region,
+            averageDepth: json.averageDepth,
+            maxDepth: json.maxDepth,
+            averageTemp: json.averageTemp,
+            averageVisibility: json.averageVisibility,
+            difficulty: DiveSite.Difficulty(rawValue: json.difficulty) ?? .intermediate,
+            type: convertSiteType(json.type),
+            description: json.description,
+            wishlist: json.wishlist,
+            visitedCount: json.visitedCount,
+            createdAt: Date()
+        )
+    }
+    
+    private static func convertSiteType(_ typeString: String) -> DiveSite.SiteType {
+        // Handle extended site types that don't map directly
+        switch typeString {
+        case "Pinnacle", "Seamount", "Chimney", "Bay", "Cenote", "Sinkhole":
+            return .wall // Map to closest existing type
+        default:
+            return DiveSite.SiteType(rawValue: typeString) ?? .reef
+        }
+    }
+    
+    // MARK: - Species Seeding
+    
+    private static func seedSpecies() throws {
+        print("  🐠 Loading wildlife species...")
+        
+        let catalog = try loadJSON("species_catalog", as: SpeciesCatalogFile.self)
+        
+        let db = AppDatabase.shared
+        
+        // Insert species one by one (no bulk insert method for species yet)
+        for speciesData in catalog.species {
+            let species = WildlifeSpecies(
+                id: speciesData.id,
+                name: speciesData.name,
+                scientificName: speciesData.scientificName,
+                category: WildlifeSpecies.Category(rawValue: speciesData.category) ?? .fish,
+                rarity: convertRarity(speciesData.rarity),
+                regions: speciesData.regions,
+                imageUrl: speciesData.imageUrl
+            )
+            
+            try db.write { db in
+                try species.insert(db)
+            }
         }
         
-        print("✅ Seeded \(sites.count) sites and \(dives.count) dives")
+        print("  ✅ Loaded \(catalog.species.count) wildlife species")
     }
     
-    private static func sampleSites() -> [DiveSite] {
-        [
-            DiveSite(
-                name: "Blue Corner",
-                location: "Palau",
-                latitude: 7.3152,
-                longitude: 134.5052,
-                region: "Pacific",
-                averageDepth: 25,
-                maxDepth: 40,
-                averageTemp: 28,
-                averageVisibility: 30,
-                difficulty: .advanced,
-                type: .wall,
-                description: "Famous wall dive with strong currents and abundant marine life"
-            ),
-            DiveSite(
-                name: "Great Blue Hole",
-                location: "Belize",
-                latitude: 17.3184,
-                longitude: -87.5364,
-                region: "Caribbean",
-                averageDepth: 35,
-                maxDepth: 124,
-                averageTemp: 26,
-                averageVisibility: 40,
-                difficulty: .advanced,
-                type: .cave,
-                description: "Giant marine sinkhole with stunning underwater formations"
-            ),
-            DiveSite(
-                name: "Barracuda Point",
-                location: "Sipadan, Malaysia",
-                latitude: 4.1153,
-                longitude: 118.6281,
-                region: "Indo-Pacific",
-                averageDepth: 20,
-                maxDepth: 30,
-                averageTemp: 27,
-                averageVisibility: 35,
-                difficulty: .intermediate,
-                type: .reef,
-                description: "Schooling barracuda and diverse reef life"
-            ),
-            DiveSite(
-                name: "Ras Mohammed",
-                location: "Sharm El Sheikh, Egypt",
-                latitude: 27.7333,
-                longitude: 34.2333,
-                region: "Red Sea",
-                averageDepth: 18,
-                maxDepth: 40,
-                averageTemp: 24,
-                averageVisibility: 30,
-                difficulty: .beginner,
-                type: .reef,
-                description: "Beautiful coral gardens and colorful fish"
-            ),
-            DiveSite(
-                name: "Koh Bon",
-                location: "Similan Islands, Thailand",
-                latitude: 9.1044,
-                longitude: 97.7933,
-                region: "Indo-Pacific",
-                averageDepth: 22,
-                maxDepth: 35,
-                averageTemp: 28,
-                averageVisibility: 25,
-                difficulty: .intermediate,
-                type: .drift,
-                description: "Manta ray cleaning stations and drift diving"
-            )
-        ]
+    private static func convertRarity(_ rarityString: String) -> WildlifeSpecies.Rarity {
+        switch rarityString {
+        case "VeryRare":
+            return .veryRare
+        default:
+            return WildlifeSpecies.Rarity(rawValue: rarityString) ?? .common
+        }
     }
     
-    private static func sampleDives(sites: [DiveSite]) -> [DiveLog] {
-        guard sites.count >= 2 else { return [] }
+    // MARK: - Dive Log Seeding
+    
+    private static func seedDives() throws {
+        print("  📝 Loading dive logs...")
         
-        let calendar = Calendar.current
-        let now = Date()
+        let logsFile = try loadJSON("dive_logs_mock", as: DiveLogsSeedFile.self)
         
-        return [
-            DiveLog(
-                siteId: sites[0].id,
-                date: calendar.date(byAdding: .day, value: -7, to: now)!,
-                startTime: calendar.date(byAdding: .day, value: -7, to: now)!,
-                maxDepth: 28.5,
-                averageDepth: 22.3,
-                bottomTime: 45,
-                startPressure: 200,
-                endPressure: 80,
-                temperature: 27.5,
-                visibility: 30,
-                current: .moderate,
-                conditions: .excellent,
-                notes: "Amazing wall dive with gray reef sharks and schooling fish. Strong current but incredible visibility."
-            ),
-            DiveLog(
-                siteId: sites[1].id,
-                date: calendar.date(byAdding: .day, value: -14, to: now)!,
-                startTime: calendar.date(byAdding: .day, value: -14, to: now)!,
-                maxDepth: 35.2,
-                averageDepth: 30.1,
-                bottomTime: 38,
-                startPressure: 200,
-                endPressure: 90,
-                temperature: 26.0,
-                visibility: 40,
-                current: .light,
-                conditions: .excellent,
-                notes: "Breathtaking dive into the Blue Hole. Saw stalactites and unique formations."
-            ),
-            DiveLog(
-                siteId: sites[0].id,
-                date: calendar.date(byAdding: .day, value: -21, to: now)!,
-                startTime: calendar.date(byAdding: .day, value: -21, to: now)!,
-                maxDepth: 25.8,
-                averageDepth: 20.5,
-                bottomTime: 52,
-                startPressure: 200,
-                endPressure: 70,
-                temperature: 28.0,
-                visibility: 28,
-                current: .strong,
-                conditions: .good,
-                notes: "Second dive at Blue Corner. Even more marine life today!"
+        let db = AppDatabase.shared
+        let dateFormatter = ISO8601DateFormatter()
+        
+        for logData in logsFile.dives {
+            let dive = DiveLog(
+                id: logData.id,
+                siteId: logData.siteId,
+                date: dateFormatter.date(from: logData.date) ?? Date(),
+                startTime: dateFormatter.date(from: logData.startTime) ?? Date(),
+                endTime: logData.endTime.flatMap { dateFormatter.date(from: $0) },
+                maxDepth: logData.maxDepth,
+                averageDepth: logData.averageDepth,
+                bottomTime: logData.bottomTime,
+                startPressure: logData.startPressure,
+                endPressure: logData.endPressure,
+                temperature: logData.temperature,
+                visibility: logData.visibility,
+                current: DiveLog.Current(rawValue: logData.current) ?? .none,
+                conditions: DiveLog.Conditions(rawValue: logData.conditions) ?? .good,
+                notes: logData.notes,
+                instructorName: logData.instructorName,
+                instructorNumber: logData.instructorNumber,
+                signed: logData.signed,
+                createdAt: dateFormatter.date(from: logData.createdAt) ?? Date(),
+                updatedAt: dateFormatter.date(from: logData.updatedAt) ?? Date()
             )
-        ]
+            
+            try db.diveRepository.create(dive)
+        }
+        
+        print("  ✅ Loaded \(logsFile.dives.count) dive logs")
     }
+    
+    // MARK: - Sighting Seeding
+    
+    private static func seedSightings() throws {
+        print("  👁️ Loading wildlife sightings...")
+        
+        let sightingsFile = try loadJSON("sightings_mock", as: SightingsSeedFile.self)
+        
+        let db = AppDatabase.shared
+        let dateFormatter = ISO8601DateFormatter()
+        
+        for sightingData in sightingsFile.sightings {
+            let sighting = WildlifeSighting(
+                id: sightingData.id,
+                diveId: sightingData.diveId,
+                speciesId: sightingData.speciesId,
+                count: sightingData.count,
+                notes: sightingData.notes,
+                createdAt: dateFormatter.date(from: sightingData.createdAt) ?? Date()
+            )
+            
+            try db.write { db in
+                try sighting.insert(db)
+            }
+        }
+        
+        print("  ✅ Loaded \(sightingsFile.sightings.count) wildlife sightings")
+    }
+    
+    // MARK: - JSON Loading
+    
+    private static func loadJSON<T: Decodable>(_ filename: String, as type: T.Type) throws -> T {
+        guard let url = Bundle.main.url(forResource: filename, withExtension: "json", subdirectory: "SeedData") else {
+            throw SeedError.fileNotFound(filename)
+        }
+        
+        let data = try Data(contentsOf: url)
+        let decoder = JSONDecoder()
+        return try decoder.decode(T.self, from: data)
+    }
+    
+    // MARK: - Errors
+    
+    enum SeedError: LocalizedError {
+        case fileNotFound(String)
+        
+        var errorDescription: String? {
+            switch self {
+            case .fileNotFound(let filename):
+                return "Seed data file not found: \(filename).json"
+            }
+        }
+    }
+}
+
+// MARK: - JSON Decodable Models
+
+private struct SitesSeedFile: Decodable {
+    let sites: [SiteSeedData]
+}
+
+private struct SiteSeedData: Decodable {
+    let id: String
+    let name: String
+    let region: String
+    let area: String
+    let country: String
+    let latitude: Double
+    let longitude: Double
+    let averageDepth: Double
+    let maxDepth: Double
+    let averageTemp: Double
+    let averageVisibility: Double
+    let difficulty: String
+    let type: String
+    let description: String
+    let wishlist: Bool
+    let visitedCount: Int
+}
+
+private struct SpeciesCatalogFile: Decodable {
+    let species: [SpeciesSeedData]
+}
+
+private struct SpeciesSeedData: Decodable {
+    let id: String
+    let name: String
+    let scientificName: String
+    let category: String
+    let rarity: String
+    let regions: [String]
+    let imageUrl: String?
+}
+
+private struct DiveLogsSeedFile: Decodable {
+    let dives: [DiveLogSeedData]
+}
+
+private struct DiveLogSeedData: Decodable {
+    let id: String
+    let siteId: String
+    let date: String
+    let startTime: String
+    let endTime: String?
+    let maxDepth: Double
+    let averageDepth: Double?
+    let bottomTime: Int
+    let startPressure: Int
+    let endPressure: Int
+    let temperature: Double
+    let visibility: Double
+    let current: String
+    let conditions: String
+    let notes: String
+    let instructorName: String?
+    let instructorNumber: String?
+    let signed: Bool
+    let createdAt: String
+    let updatedAt: String
+}
+
+private struct SightingsSeedFile: Decodable {
+    let sightings: [SightingSeedData]
+}
+
+private struct SightingSeedData: Decodable {
+    let id: String
+    let diveId: String
+    let speciesId: String
+    let count: Int
+    let notes: String?
+    let createdAt: String
 }
