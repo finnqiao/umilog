@@ -4,6 +4,24 @@
 
 ## 📱 App Icons & Design
 
+### Design Tokens & UI Patterns (Map‑first)
+- Grid: 8pt; Insets: 16pt; Min tap: 44pt
+- Corner radius: 16–20
+- Typography: LargeTitle 22/28, Headline 17/22, Body 15/20, Caption 13/16
+- Accents: Blue = My Map; Sand/Orange = Explore
+- Pin states: Visited (filled) · Wishlist (hollow + ★) · Planned (dashed); muted gray for unowned (Explore only)
+- Bottom‑sheet snaps: 24% / 58% / 92%
+
+### Site Details Card Pattern
+- Hero image header with rounded top corners
+- Title + meta line (area/country)
+- Quick‑facts chips: Beginner/Advanced · Max depth · Avg temp · Visibility · Type
+- Primary CTA varies by mode: Log (My Map) vs ★ Wishlist (Explore)
+
+### Screenshots & Diagrams
+- Place screenshots in `docs/screens/` and reference them from README.md
+- Suggested names: `map-my-map.png`, `map-explore.png`, `history.png`, `site-details.png`, `profile.png`
+
 ### App Icon
 - **Source**: Custom design
 - **Designer**: TBD
@@ -227,6 +245,8 @@ Include: "Contains data from OpenDiveSites, FishBase, and SeaLifeBase"
 
 | Date | Asset | Change | License |
 |------|-------|--------|---------|
+| 2025-10-11 | Screenshots | Added site details and profile screenshots; defined docs/screens/ convention | Internal |
+| 2025-10-11 | Tokens | Added map‑first tokens (pins, snaps, accents) | - |
 | 2024-10-07 | Design Prototype | Added Figma web prototype (React/TypeScript) | MIT (shadcn/ui) |
 | 2024-10-07 | SF Symbols | Expanded icon mappings for tab bar and features | Apple SDK |
 | 2024-10-07 | DESIGN.md | Created iOS translation guide from web design | - |

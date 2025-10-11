@@ -2,6 +2,16 @@
 
 > Document key decisions, discoveries, and lessons learned during development.
 
+## 🔎 Latest Learnings (Oct 2025)
+
+- Wizard flow refactor shipped: numeric text fields bound to optional numbers caused compile/runtime issues. Switched to String-bound TextFields with safe parse/write on commit in view-models. This eliminated generics ambiguity and edge-case crashes when fields were cleared.
+- Validation gating between steps keeps the wizard lightweight: Step 1 requires site/time, Step 2 unlocks fast save, Steps 3–4 optional chips and notes. The review bar mirrors essentials and its enablement state.
+- SpeciesRepository exposes two hot paths: `search(query)` and `popular(limit, region?)` derived from `COUNT(sightings)`; caching popular results by region removes jank on Step 4.
+- WizardSaver centralizes persistence: transactionally writes Dive + Sighting rows and updates ListState, then posts `DiveListDidChange` and `MapStatsDidChange` so History/Map update automatically.
+- FAB UX: on Map, offering Quick Log vs Full Wizard via confirmation dialog reduces accidental long flows and speeds “essentials in ≤30s”.
+- Site Details Card: adopting the “Grand Bazaar” pattern (hero image, quick‑facts chips, description, CTA) brought visual hierarchy and clear primary action; Explore prioritizes Wishlist; My Map prioritizes Log.
+- Profile: stats tiles (Dives, Max Depth, Sites, Species, Total Bottom Time) plus Cloud Backup block give an immediate sense of progress; these tiles link to filtered History scopes.
+
 ## 🎯 Product Insights
 
 ### User Research Findings

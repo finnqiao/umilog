@@ -1,74 +1,70 @@
-# 🌊 UmiLog - iOS Dive Log App
+# 🌊 UmiLog - iOS Dive Log App (Map‑first)
 
-> A zero-friction, offline-first dive log that makes casual logging fun, trustworthy, and fast.
+> A zero‑friction, offline‑first dive log with a map‑first IA, guided logging wizard, and a tidy history. Built to make casual logging fast, trustworthy, and fun.
 
 ## 🎯 Vision
 
-UmiLog (海ログ - "sea log" in Japanese) solves the biggest pain points in dive logging: tedious after-dive forms, unreliable apps that lose data, and painful historical backfilling. Built for casual recreational divers who want to capture essentials quickly, even when wet, offline, and tired.
+UmiLog (海ログ – "sea log") reduces friction before and after a dive. The map is the home, logging is a short guided flow, and everything works offline with optional end‑to‑end encrypted backup.
 
-## ✨ Key Features
+## ✨ What’s New (2025)
 
-### MVP Scope (6-8 weeks)
+- Map‑first IA with two modes: My Map and Explore
+- Regions → Areas → Sites tiering with bottom‑sheet details
+- Floating action button (center) offering Quick Log or Full Wizard
+- 4‑step Logging Wizard with validation and fast‑path save after Step 2
+- Wildlife Pokédex with species search and sightings
+- History with KPI tiles, grouped cards, and quick actions
+- Profile with stats, achievements, and Cloud backup controls
 
-#### 🗺️ Scratch-Off World Map
-- **Primary navigation**: Map-centric home screen
-- Scratch-off effect reveals visited countries
-- Visual progress tracking of world exploration
-- Country statistics and dive counts
-- Animated reveals for first visits
+## 🧭 Information Architecture
 
-#### 📍 Smart Site Index
-- Offline database of popular dive sites
-- GPS-based automatic site suggestions
-- Community-driven site additions
+Tabs: Map · History · Log (FAB) · Wildlife · Profile
 
-#### ⚡ Quick Logging
-- **One-tap logging** with smart defaults
-- Auto-fill from GPS location and conditions
-- "Same as last dive" quick option
-- Geofencing-triggered logging prompts
-- Sub-10 second complete log entry
+- My Map: Visited • Wishlist • Planned
+- Explore: All • Nearby • Popular • Beginner
+- Tiering across both: Regions · Areas · Sites
+- Details use bottom sheets that snap at 24% / 58% / 92%
 
-#### 🏆 Gamification & Achievements
-- Country visit badges and milestones
-- Depth achievements (30m, 40m clubs)
-- Streak tracking for regular divers
-- Celebration animations on unlocks
-- Progress bars and "almost there" hints
+## 🧩 Logging Wizard
 
-#### 👥 Community Features
-- "X divers here now" social proof
-- Popular sites discovery
-- Activity heat maps
-- Privacy-first anonymous aggregation
+1) Site & Time – date/time prefilled; site picker half‑sheet with nearby + search + “Add new”
+2) Depth & Duration – large numeric pickers with unit toggles and guardrails
+3) Air & Conditions – chips for gas, temperature, visibility, current (optional with sensible defaults)
+4) Wildlife & Notes – species search with chips and free‑text notes
 
-#### ✍️ Digital Sign-off
-- QR code generation for instructor/DM verification
-- 20-second sign-off workflow
-- PDF generation with signatures
+- Persistent review bar shows essentials; Save enabled after Step 2
+- On save, the Wizard persists Dive + Sighting rows and updates site list state
 
-#### 📊 Backfill Wizard
-- Import years of past dives in minutes
-- CSV/UDDF import support
-- Photo EXIF and calendar assistance
+## 🗺️ Site Details Card
 
-#### 🔐 Data Ownership
-- **100% offline-first** - all features work without internet
-- End-to-end encrypted CloudKit sync (optional)
-- Export to PDF/CSV/UDDF formats
-- Face ID app lock
+Bottom‑sheet or full‑screen detail follows the “Grand Bazaar” pattern: hero image header, title, quick‑facts chips (Max depth · Avg temp · Visibility · Type), description, difficulty, and a prominent “Log Dive at <Site>” CTA. Wishlist is primary in Explore; Log is primary in My Map.
 
-## 🏗️ Architecture
+## 🏗️ Architecture (high‑level)
 
-- **Platform**: iOS 17+ (SwiftUI)
-- **Database**: GRDB + SQLCipher (encrypted SQLite)
-- **Sync**: CloudKit with E2E encryption
-- **Voice**: On-device Speech framework
-- **Offline**: All core features work without connectivity
-- **Performance**: <2s cold start, <100ms field commits
+- Platform: iOS 17+ (SwiftUI)
+- Database: GRDB + SQLCipher (encrypted SQLite)
+- Sync: CloudKit with E2E encryption (optional)
+- Voice: On‑device Speech framework
+- Performance: <2s cold start, <100ms field commits
 
-### Design System
-See [DESIGN.md](DESIGN.md) for comprehensive UI/UX specifications and iOS translation guide. A web prototype is available in the `design/` directory for visual reference.
+Key components added in this refactor:
+- SpeciesRepository in UmiDB for search and “popular species” by sightings count
+- LogDraft model extended with selected species and notes
+- WizardSaver to persist Dive, Sighting, and site visited/wishlist state and to broadcast refresh notifications
+
+## 📊 History & Profile
+
+- History: KPI tiles (Dives, Bottom Time, Max Depth), grouped by day, cards with editable chips, quick actions (Duplicate, Create template, PDF), multi‑select (Export | Send for sign‑off | Delete)
+- Profile: Certification header, stats tiles, achievements, Cloud backup toggle with last sync, data controls (Import CSV/UDDF, Export all, Backfill), Face ID lock
+
+## 📸 Screens
+
+Drop screenshots in docs/screens/ and reference them here (filenames are examples):
+- docs/screens/map-my-map.png
+- docs/screens/map-explore.png
+- docs/screens/history.png
+- docs/screens/site-details.png
+- docs/screens/profile.png
 
 ## 📱 Requirements
 
@@ -79,95 +75,41 @@ See [DESIGN.md](DESIGN.md) for comprehensive UI/UX specifications and iOS transl
 
 ## 🚀 Getting Started
 
-### Prerequisites
-
-1. **Xcode 15.0+** - [Download from App Store](https://apps.apple.com/app/xcode/id497799835)
-2. **Apple Developer Account** - For CloudKit and device testing
-3. **Homebrew** - Package manager for macOS
-```bash
-/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
-```
-
-### Installation
-
-1. Clone the repository:
-```bash
-git clone https://github.com/yourusername/umilog.git
-cd umilog
-```
-
-2. Install build tools:
+1) Install tools
 ```bash
 brew install xcodegen swiftlint
 ```
-
-3. Generate Xcode project:
+2) Generate project
 ```bash
 xcodegen generate
 ```
-
-4. Open in Xcode:
+3) Open workspace and run
 ```bash
 open UmiLog.xcworkspace
 ```
-
-5. Select your development team in Xcode:
-   - Open project settings
-   - Select "UmiLog" target
-   - Choose your team in "Signing & Capabilities"
-
-6. If you're using a free Apple ID (not in the Developer Program):
-   - Remove Push Notifications and iCloud capabilities
-   - Keep only Application Groups and Keychain Access Groups (as configured in `UmiLog/UmiLog.entitlements`)
-   - CloudKit features are disabled in this configuration; all core features work offline
-
-6. Build and run:
-   - Select target device/simulator
-   - Press `Cmd+R` to run
+If using a free Apple ID, remove Push/iCloud capabilities; all core features work offline.
 
 ## 🧪 Testing
 
-Run all tests:
 ```bash
 xcodebuild test -workspace UmiLog.xcworkspace -scheme UmiLog -destination 'platform=iOS Simulator,name=iPhone 15 Pro'
 ```
 
-## 📊 Success Metrics
+## 📈 Acceptance Targets
 
-- **North Star**: Dives successfully logged per active diver per trip day
-- **Activation**: Time-to-first-dive < 5 min
-- **Backfill**: 10 historical dives < 8 min
-- **Sign-off**: Median time < 20 seconds
-- **Data Loss**: Zero tolerance
+- Start log from My Map ≤ 2 taps; essentials complete ≤ 30 s
+- Wishlist from Explore ≤ 2 taps (double‑tap pin or swipe)
+- My Map vs Explore recognition ≥ 90% (hallway test)
 
-## 🗺️ Roadmap
+## 🗺️ Roadmap (phased)
 
-### Phase 0: Foundation ✅
-- [x] Project setup and architecture  
-- [x] Core database schema
-- [x] Offline-first infrastructure
-- [x] Initial ViewModels and data binding
+- Phase 0 – Foundations: tokens, remove overlay nav ✅
+- Phase 1 – Map IA: segmented modes, chips, tier tabs, bottom sheets ✅
+- Phase 2 – Logging & History: 4‑step wizard, KPI history, bulk export (CSV)
+- Phase 3 – Wildlife: Pokédex, sightings attach to dives
+- Phase 4 – Backfill & Polish: backfill flow, Explore filters sorting, a11y
 
-### Phase 1: MVP (6-8 weeks)
-- [ ] Scratch-off world map (Week 1-2)
-- [ ] Quick logging & geofencing (Week 3-4)
-- [ ] Achievements & gamification (Week 5-6)
-- [ ] Community features (Week 5-6)
-- [ ] Weather/ocean APIs (Week 7-8)
-- [ ] Polish & delight (Week 7-8)
-- [ ] QR sign-off & backfill wizard
-
-### Phase 2: Delight (Post-MVP)
-- [ ] Shop stamps & badges
-- [ ] Enhanced wildlife features
-- [ ] Social features (private groups)
-- [ ] Advanced statistics
-
-### Phase 3: Scale
-- [ ] Dive computer integrations
-- [ ] PADI/SSI partnerships
-- [ ] Shop dashboards
-- [ ] Android version
+Non‑goals this pass: QR sign‑off, shop stamps, computer imports
 
 ## 🤝 Contributing
 
@@ -175,20 +117,12 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for development guidelines.
 
 ## 📄 License
 
-MIT License - see [LICENSE](LICENSE) for details.
+MIT License – see [LICENSE](LICENSE).
 
 ## 🙏 Acknowledgments
 
-- Dive site data: OpenDiveSites (CC BY-SA 4.0)
-- Species data: FishBase, SeaLifeBase
-- Icons: SF Symbols, custom designs
-
-## 📧 Contact
-
-- Email: team@umilog.app
-- Discord: [Join our community](https://discord.gg/umilog)
-- Issues: [GitHub Issues](https://github.com/yourusername/umilog/issues)
+OpenDiveSites, FishBase, SeaLifeBase, SF Symbols.
 
 ---
 
-*UmiLog - Log dives before the rinse bucket drains* 🤿
+UmiLog — log dives before the rinse bucket drains 🤿
