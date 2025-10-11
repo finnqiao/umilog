@@ -14,8 +14,10 @@ This list tracks the 2025 refactor to a map‑first IA with a 4‑step logging w
 
 ## 🚧 In Progress / Next Up
 - Enhance Step 4 summary to show species names instead of IDs
-- “View in History” banner after successful save with tap‑through
-- Seed SiteIndex JSON for Nearby demo (a few hotspots)
+- "View in History" banner after successful save with tap‑through
+- Wire up DatabaseSeeder to load all seed JSON files on first launch
+- Test map display with 24 sites across all regions
+- Test wizard with species catalog and dive log creation
 - Explore gestures: double‑tap pin and swipe on card → ★ Wishlist
 - History: bulk export CSV and Sign‑off (stub)
 - QA acceptance checklist and in‑app instrumentation hooks
@@ -53,7 +55,9 @@ This list tracks the 2025 refactor to a map‑first IA with a 4‑step logging w
 - [ ] Animations, haptics, empty states
 
 ## Data & Models
-- Region → Area → Site hierarchy (seed JSON)
+- [x] Region → Area → Site hierarchy (seed JSON) - 24 sites across 4 regions
+- [x] Wildlife species catalog (35 real marine species)
+- [x] Mock dive logs (3 completed dives with sightings)
 - Dive, ListState, Species, Sighting
 - UIState persisted for mode/tier/filters
 

@@ -9,8 +9,9 @@
 - SpeciesRepository exposes two hot paths: `search(query)` and `popular(limit, region?)` derived from `COUNT(sightings)`; caching popular results by region removes jank on Step 4.
 - WizardSaver centralizes persistence: transactionally writes Dive + Sighting rows and updates ListState, then posts `DiveListDidChange` and `MapStatsDidChange` so History/Map update automatically.
 - FAB UX: on Map, offering Quick Log vs Full Wizard via confirmation dialog reduces accidental long flows and speeds “essentials in ≤30s”.
-- Site Details Card: adopting the “Grand Bazaar” pattern (hero image, quick‑facts chips, description, CTA) brought visual hierarchy and clear primary action; Explore prioritizes Wishlist; My Map prioritizes Log.
+- Site Details Card: adopting the "Grand Bazaar" pattern (hero image, quick‑facts chips, description, CTA) brought visual hierarchy and clear primary action; Explore prioritizes Wishlist; My Map prioritizes Log.
 - Profile: stats tiles (Dives, Max Depth, Sites, Species, Total Bottom Time) plus Cloud Backup block give an immediate sense of progress; these tiles link to filtered History scopes.
+- Mock data generation: Created comprehensive seed data with **24 world-famous dive sites** (Red Sea, Caribbean, Southeast Asia, Pacific), **35 real marine species** with scientific names, **3 realistic dive logs** with instructor sign-offs, and **19 wildlife sightings**. All data uses real coordinates, species taxonomy, and realistic dive profiles for authentic testing.
 
 ## 🎯 Product Insights
 
