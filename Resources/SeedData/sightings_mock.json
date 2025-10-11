@@ -1,0 +1,163 @@
+{
+  "version": "1.0",
+  "sightings": [
+    {
+      "id": "sighting_001_01",
+      "diveId": "dive_001",
+      "speciesId": "species_scalloped_hammerhead",
+      "count": 2,
+      "notes": "Two juveniles cruising along the wall at 25m, very curious",
+      "createdAt": "2024-10-05T10:30:00Z"
+    },
+    {
+      "id": "sighting_001_02",
+      "diveId": "dive_001",
+      "speciesId": "species_napoleon_wrasse",
+      "count": 1,
+      "notes": "Large male, followed the group for 20+ minutes",
+      "createdAt": "2024-10-05T10:30:00Z"
+    },
+    {
+      "id": "sighting_001_03",
+      "diveId": "dive_001",
+      "speciesId": "species_great_barracuda",
+      "count": 15,
+      "notes": "School at 18m near the reef edge",
+      "createdAt": "2024-10-05T10:30:00Z"
+    },
+    {
+      "id": "sighting_001_04",
+      "diveId": "dive_001",
+      "speciesId": "species_green_turtle",
+      "count": 1,
+      "notes": "Resting under coral overhang",
+      "createdAt": "2024-10-05T10:30:00Z"
+    },
+    {
+      "id": "sighting_001_05",
+      "diveId": "dive_001",
+      "speciesId": "species_lionfish",
+      "count": 3,
+      "notes": "Hunting at various depths",
+      "createdAt": "2024-10-05T10:30:00Z"
+    },
+    {
+      "id": "sighting_001_06",
+      "diveId": "dive_001",
+      "speciesId": "species_moray_eel",
+      "count": 2,
+      "notes": "Giant morays in crevices",
+      "createdAt": "2024-10-05T10:30:00Z"
+    },
+    {
+      "id": "sighting_002_01",
+      "diveId": "dive_002",
+      "speciesId": "species_spotted_eagle_ray",
+      "count": 1,
+      "notes": "Gliding along the wall at 25m, magnificent wingspan",
+      "createdAt": "2024-10-05T15:15:00Z"
+    },
+    {
+      "id": "sighting_002_02",
+      "diveId": "dive_002",
+      "speciesId": "species_great_barracuda",
+      "count": 120,
+      "notes": "Massive school forming a wall, estimated 100-150 individuals",
+      "createdAt": "2024-10-05T15:15:00Z"
+    },
+    {
+      "id": "sighting_002_03",
+      "diveId": "dive_002",
+      "speciesId": "species_green_turtle",
+      "count": 2,
+      "notes": "Both feeding on soft corals",
+      "createdAt": "2024-10-05T15:15:00Z"
+    },
+    {
+      "id": "sighting_002_04",
+      "diveId": "dive_002",
+      "speciesId": "species_coral_grouper",
+      "count": 5,
+      "notes": "Various sizes throughout the dive",
+      "createdAt": "2024-10-05T15:15:00Z"
+    },
+    {
+      "id": "sighting_002_05",
+      "diveId": "dive_002",
+      "speciesId": "species_lionfish",
+      "count": 4,
+      "notes": "Hunting in the current",
+      "createdAt": "2024-10-05T15:15:00Z"
+    },
+    {
+      "id": "sighting_002_06",
+      "diveId": "dive_002",
+      "speciesId": "species_whitetip_reef_shark",
+      "count": 1,
+      "notes": "Resting under ledge at 28m",
+      "createdAt": "2024-10-05T15:15:00Z"
+    },
+    {
+      "id": "sighting_003_01",
+      "diveId": "dive_003",
+      "speciesId": "species_great_barracuda",
+      "count": 40,
+      "notes": "School on north side of pinnacle",
+      "createdAt": "2024-09-28T09:30:00Z"
+    },
+    {
+      "id": "sighting_003_02",
+      "diveId": "dive_003",
+      "speciesId": "species_nudibranch",
+      "count": 8,
+      "notes": "Various species including Spanish dancers",
+      "createdAt": "2024-09-28T09:30:00Z"
+    },
+    {
+      "id": "sighting_003_03",
+      "diveId": "dive_003",
+      "speciesId": "species_clownfish",
+      "count": 12,
+      "notes": "Multiple anemones with resident clownfish families",
+      "createdAt": "2024-09-28T09:30:00Z"
+    },
+    {
+      "id": "sighting_003_04",
+      "diveId": "dive_003",
+      "speciesId": "species_frogfish",
+      "count": 1,
+      "notes": "Yellow giant frogfish at 15m, perfectly camouflaged",
+      "createdAt": "2024-09-28T09:30:00Z"
+    },
+    {
+      "id": "sighting_003_05",
+      "diveId": "dive_003",
+      "speciesId": "species_cuttlefish",
+      "count": 2,
+      "notes": "Displaying color changes",
+      "createdAt": "2024-09-28T09:30:00Z"
+    },
+    {
+      "id": "sighting_003_06",
+      "diveId": "dive_003",
+      "speciesId": "species_giant_trevally",
+      "count": 6,
+      "notes": "Hunting in the current",
+      "createdAt": "2024-09-28T09:30:00Z"
+    },
+    {
+      "id": "sighting_003_07",
+      "diveId": "dive_003",
+      "speciesId": "species_moray_eel",
+      "count": 3,
+      "notes": "Including one white-eyed moray",
+      "createdAt": "2024-09-28T09:30:00Z"
+    }
+  ],
+  "meta": {
+    "generatedAt": "2025-10-11T13:00:00Z",
+    "totalSightings": 19,
+    "linkedToDives": 3,
+    "purpose": "Wildlife sightings for testing dive detail view and wildlife stats"
+  }
+}

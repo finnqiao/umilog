@@ -1,0 +1,327 @@
+{
+  "version": "1.0",
+  "species": [
+    {
+      "id": "species_scalloped_hammerhead",
+      "name": "Scalloped Hammerhead",
+      "scientificName": "Sphyrna lewini",
+      "category": "Fish",
+      "rarity": "Rare",
+      "regions": ["Red Sea", "Pacific", "Caribbean", "Southeast Asia"],
+      "imageUrl": null
+    },
+    {
+      "id": "species_great_hammerhead",
+      "name": "Great Hammerhead",
+      "scientificName": "Sphyrna mokarran",
+      "category": "Fish",
+      "rarity": "VeryRare",
+      "regions": ["Pacific", "Caribbean"],
+      "imageUrl": null
+    },
+    {
+      "id": "species_whale_shark",
+      "name": "Whale Shark",
+      "scientificName": "Rhincodon typus",
+      "category": "Fish",
+      "rarity": "Rare",
+      "regions": ["Red Sea", "Pacific", "Caribbean", "Southeast Asia"],
+      "imageUrl": null
+    },
+    {
+      "id": "species_manta_ray",
+      "name": "Giant Manta Ray",
+      "scientificName": "Mobula birostris",
+      "category": "Fish",
+      "rarity": "Uncommon",
+      "regions": ["Red Sea", "Pacific", "Caribbean", "Southeast Asia"],
+      "imageUrl": null
+    },
+    {
+      "id": "species_spotted_eagle_ray",
+      "name": "Spotted Eagle Ray",
+      "scientificName": "Aetobatus narinari",
+      "category": "Fish",
+      "rarity": "Uncommon",
+      "regions": ["Red Sea", "Pacific", "Caribbean", "Southeast Asia"],
+      "imageUrl": null
+    },
+    {
+      "id": "species_napoleon_wrasse",
+      "name": "Napoleon Wrasse",
+      "scientificName": "Cheilinus undulatus",
+      "category": "Fish",
+      "rarity": "Uncommon",
+      "regions": ["Red Sea", "Pacific", "Southeast Asia"],
+      "imageUrl": null
+    },
+    {
+      "id": "species_great_barracuda",
+      "name": "Great Barracuda",
+      "scientificName": "Sphyraena barracuda",
+      "category": "Fish",
+      "rarity": "Common",
+      "regions": ["Red Sea", "Pacific", "Caribbean", "Southeast Asia", "Mediterranean"],
+      "imageUrl": null
+    },
+    {
+      "id": "species_green_turtle",
+      "name": "Green Sea Turtle",
+      "scientificName": "Chelonia mydas",
+      "category": "Reptile",
+      "rarity": "Common",
+      "regions": ["Red Sea", "Pacific", "Caribbean", "Southeast Asia"],
+      "imageUrl": null
+    },
+    {
+      "id": "species_hawksbill_turtle",
+      "name": "Hawksbill Turtle",
+      "scientificName": "Eretmochelys imbricata",
+      "category": "Reptile",
+      "rarity": "Uncommon",
+      "regions": ["Red Sea", "Pacific", "Caribbean", "Southeast Asia"],
+      "imageUrl": null
+    },
+    {
+      "id": "species_moray_eel",
+      "name": "Giant Moray Eel",
+      "scientificName": "Gymnothorax javanicus",
+      "category": "Fish",
+      "rarity": "Common",
+      "regions": ["Red Sea", "Pacific", "Caribbean", "Southeast Asia", "Mediterranean"],
+      "imageUrl": null
+    },
+    {
+      "id": "species_lionfish",
+      "name": "Common Lionfish",
+      "scientificName": "Pterois volitans",
+      "category": "Fish",
+      "rarity": "Common",
+      "regions": ["Red Sea", "Pacific", "Caribbean", "Southeast Asia"],
+      "imageUrl": null
+    },
+    {
+      "id": "species_octopus",
+      "name": "Day Octopus",
+      "scientificName": "Octopus cyanea",
+      "category": "Invertebrate",
+      "rarity": "Common",
+      "regions": ["Red Sea", "Pacific", "Southeast Asia", "Mediterranean"],
+      "imageUrl": null
+    },
+    {
+      "id": "species_coral_grouper",
+      "name": "Coral Grouper",
+      "scientificName": "Cephalopholis miniata",
+      "category": "Fish",
+      "rarity": "Common",
+      "regions": ["Red Sea", "Pacific", "Southeast Asia"],
+      "imageUrl": null
+    },
+    {
+      "id": "species_stingray",
+      "name": "Blue-spotted Stingray",
+      "scientificName": "Taeniura lymma",
+      "category": "Fish",
+      "rarity": "Common",
+      "regions": ["Red Sea", "Pacific", "Southeast Asia"],
+      "imageUrl": null
+    },
+    {
+      "id": "species_caribbean_reef_shark",
+      "name": "Caribbean Reef Shark",
+      "scientificName": "Carcharhinus perezi",
+      "category": "Fish",
+      "rarity": "Uncommon",
+      "regions": ["Caribbean"],
+      "imageUrl": null
+    },
+    {
+      "id": "species_grey_reef_shark",
+      "name": "Grey Reef Shark",
+      "scientificName": "Carcharhinus amblyrhynchos",
+      "category": "Fish",
+      "rarity": "Uncommon",
+      "regions": ["Red Sea", "Pacific", "Southeast Asia"],
+      "imageUrl": null
+    },
+    {
+      "id": "species_whitetip_reef_shark",
+      "name": "Whitetip Reef Shark",
+      "scientificName": "Triaenodon obesus",
+      "category": "Fish",
+      "rarity": "Common",
+      "regions": ["Red Sea", "Pacific", "Southeast Asia"],
+      "imageUrl": null
+    },
+    {
+      "id": "species_queen_angelfish",
+      "name": "Queen Angelfish",
+      "scientificName": "Holacanthus ciliaris",
+      "category": "Fish",
+      "rarity": "Common",
+      "regions": ["Caribbean"],
+      "imageUrl": null
+    },
+    {
+      "id": "species_nassau_grouper",
+      "name": "Nassau Grouper",
+      "scientificName": "Epinephelus striatus",
+      "category": "Fish",
+      "rarity": "Uncommon",
+      "regions": ["Caribbean"],
+      "imageUrl": null
+    },
+    {
+      "id": "species_nurse_shark",
+      "name": "Nurse Shark",
+      "scientificName": "Ginglymostoma cirratum",
+      "category": "Fish",
+      "rarity": "Common",
+      "regions": ["Caribbean", "Pacific"],
+      "imageUrl": null
+    },
+    {
+      "id": "species_bottlenose_dolphin",
+      "name": "Bottlenose Dolphin",
+      "scientificName": "Tursiops truncatus",
+      "category": "Mammal",
+      "rarity": "Rare",
+      "regions": ["Red Sea", "Pacific", "Caribbean", "Mediterranean", "Southeast Asia"],
+      "imageUrl": null
+    },
+    {
+      "id": "species_tuna",
+      "name": "Yellowfin Tuna",
+      "scientificName": "Thunnus albacares",
+      "category": "Fish",
+      "rarity": "Uncommon",
+      "regions": ["Red Sea", "Pacific", "Caribbean", "Mediterranean", "Southeast Asia"],
+      "imageUrl": null
+    },
+    {
+      "id": "species_giant_trevally",
+      "name": "Giant Trevally",
+      "scientificName": "Caranx ignobilis",
+      "category": "Fish",
+      "rarity": "Common",
+      "regions": ["Red Sea", "Pacific", "Southeast Asia"],
+      "imageUrl": null
+    },
+    {
+      "id": "species_lobster",
+      "name": "Spiny Lobster",
+      "scientificName": "Panulirus argus",
+      "category": "Invertebrate",
+      "rarity": "Common",
+      "regions": ["Caribbean", "Mediterranean", "Pacific"],
+      "imageUrl": null
+    },
+    {
+      "id": "species_clownfish",
+      "name": "Clownfish",
+      "scientificName": "Amphiprion ocellaris",
+      "category": "Fish",
+      "rarity": "Common",
+      "regions": ["Red Sea", "Pacific", "Southeast Asia"],
+      "imageUrl": null
+    },
+    {
+      "id": "species_nudibranch",
+      "name": "Spanish Dancer",
+      "scientificName": "Hexabranchus sanguineus",
+      "category": "Invertebrate",
+      "rarity": "Uncommon",
+      "regions": ["Red Sea", "Pacific", "Southeast Asia"],
+      "imageUrl": null
+    },
+    {
+      "id": "species_frogfish",
+      "name": "Giant Frogfish",
+      "scientificName": "Antennarius commerson",
+      "category": "Fish",
+      "rarity": "Uncommon",
+      "regions": ["Red Sea", "Pacific", "Southeast Asia"],
+      "imageUrl": null
+    },
+    {
+      "id": "species_cuttlefish",
+      "name": "Broadclub Cuttlefish",
+      "scientificName": "Sepia latimanus",
+      "category": "Invertebrate",
+      "rarity": "Common",
+      "regions": ["Red Sea", "Pacific", "Southeast Asia"],
+      "imageUrl": null
+    },
+    {
+      "id": "species_mola_mola",
+      "name": "Ocean Sunfish",
+      "scientificName": "Mola mola",
+      "category": "Fish",
+      "rarity": "Rare",
+      "regions": ["Pacific", "Southeast Asia"],
+      "imageUrl": null
+    },
+    {
+      "id": "species_seahorse",
+      "name": "Pygmy Seahorse",
+      "scientificName": "Hippocampus bargibanti",
+      "category": "Fish",
+      "rarity": "Rare",
+      "regions": ["Pacific", "Southeast Asia"],
+      "imageUrl": null
+    },
+    {
+      "id": "species_grouper_goliath",
+      "name": "Goliath Grouper",
+      "scientificName": "Epinephelus itajara",
+      "category": "Fish",
+      "rarity": "Rare",
+      "regions": ["Caribbean", "Pacific"],
+      "imageUrl": null
+    },
+    {
+      "id": "species_sea_snake",
+      "name": "Yellow-bellied Sea Snake",
+      "scientificName": "Hydrophis platurus",
+      "category": "Reptile",
+      "rarity": "Uncommon",
+      "regions": ["Pacific", "Southeast Asia"],
+      "imageUrl": null
+    },
+    {
+      "id": "species_blue_ringed_octopus",
+      "name": "Blue-ringed Octopus",
+      "scientificName": "Hapalochlaena lunulata",
+      "category": "Invertebrate",
+      "rarity": "Rare",
+      "regions": ["Pacific", "Southeast Asia"],
+      "imageUrl": null
+    },
+    {
+      "id": "species_bumphead_parrotfish",
+      "name": "Bumphead Parrotfish",
+      "scientificName": "Bolbometopon muricatum",
+      "category": "Fish",
+      "rarity": "Uncommon",
+      "regions": ["Red Sea", "Pacific", "Southeast Asia"],
+      "imageUrl": null
+    },
+    {
+      "id": "species_jellyfish_box",
+      "name": "Box Jellyfish",
+      "scientificName": "Chironex fleckeri",
+      "category": "Invertebrate",
+      "rarity": "Rare",
+      "regions": ["Pacific", "Southeast Asia"],
+      "imageUrl": null
+    }
+  ],
+  "meta": {
+    "generatedAt": "2025-10-11T13:00:00Z",
+    "totalSpecies": 35,
+    "categories": ["Fish", "Reptile", "Mammal", "Invertebrate"],
+    "rarities": ["Common", "Uncommon", "Rare", "VeryRare"],
+    "purpose": "Wildlife species catalog for dive logging"
+  }
+}
