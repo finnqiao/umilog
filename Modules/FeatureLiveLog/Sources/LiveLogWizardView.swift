@@ -7,6 +7,7 @@ public struct LiveLogWizardView: View {
     @Environment(\.dismiss) private var dismiss
     @State private var draft: LogDraft
     @State private var step: Int = 1 // 1..4
+    @State private var showSuccessBanner: Bool = false
     
     public init(initialSite: DiveSite? = nil) {
         _draft = State(initialValue: LogDraft(site: initialSite))
@@ -26,7 +27,7 @@ public struct LiveLogWizardView: View {
                     case 3:
                         StepWildlifeNotes(draft: $draft)
                     case 4:
-                        StepReviewSave(draft: $draft, onSaved: { dismiss() })
+                        StepReviewSave(draft: $draft, saveSuccess: $showSuccessBanner, onSaved: { dismiss() })
                     default:
                         StepSiteTiming(draft: $draft)
                     }
@@ -74,7 +75,13 @@ public struct LiveLogWizardView: View {
     
     private func saveAndClose() async {
         let ok = await WizardSaver.save(draft: draft)
-        if ok { dismiss() }
+        if ok {
+            await MainActor.run {
+                showSuccessBanner = true
+            }
+            try? await Task.sleep(nanoseconds: 500_000_000) // half sec to show banner
+            dismiss()
+        }
     }
 }
 
@@ -293,40 +300,92 @@ struct SelectableChip: View {
 
 struct StepReviewSave: View {
     @Binding var draft: LogDraft
+    @Binding var saveSuccess: Bool
     let onSaved: () -> Void
+    @State private var speciesNames: [String: String] = [:]
     
     var body: some View {
         VStack(spacing: 16) {
-            Text("Review & Save").font(.headline).frame(maxWidth: .infinity, alignment: .leading)
-            
-            VStack(alignment: .leading, spacing: 8) {
-                HStack { Text("Site:").foregroundStyle(.secondary); Spacer(); Text(draft.site?.name ?? "—") }
-                HStack { Text("Date:").foregroundStyle(.secondary); Spacer(); Text(draft.date, style: .date) }
-                HStack { Text("Max Depth:").foregroundStyle(.secondary); Spacer(); Text("\(Int(draft.maxDepthM ?? 0)) m") }
-                HStack { Text("Bottom Time:").foregroundStyle(.secondary); Spacer(); Text("\(draft.bottomTimeMin ?? 0) min") }
-                HStack { Text("Temperature:").foregroundStyle(.secondary); Spacer(); Text(valueString(draft.temperatureC, suffix: "°C")) }
-                HStack { Text("Visibility:").foregroundStyle(.secondary); Spacer(); Text(valueString(draft.visibilityM, suffix: "m")) }
-            }
-            .padding()
-            .background(Color.gray.opacity(0.06))
-            .cornerRadius(12)
-            
-            if !draft.selectedSpecies.isEmpty {
-                VStack(alignment: .leading, spacing: 8) {
-                    Text("Wildlife Spotted").font(.subheadline)
-                    WrapList(items: Array(draft.selectedSpecies)) { id in
-                        Text(id).font(.caption).padding(6).background(Color.gray.opacity(0.15)).cornerRadius(8)
+            if saveSuccess {
+                VStack(spacing: 12) {
+                    HStack {
+                        Image(systemName: "checkmark.circle.fill")
+                            .foregroundStyle(.green)
+                            .font(.title2)
+                        Text("Dive Logged Successfully!")
+                            .font(.headline)
+                        Spacer()
+                    }
+                    .padding()
+                    .background(Color.green.opacity(0.1))
+                    .cornerRadius(12)
+                    
+                    Button {
+                        onSaved()
+                    } label: {
+                        HStack {
+                            Image(systemName: "clock.arrow.circlepath")
+                            Text("View in History")
+                        }
+                        .frame(maxWidth: .infinity)
+                        .padding()
+                        .background(Color.oceanBlue)
+                        .foregroundStyle(.white)
+                        .cornerRadius(12)
                     }
                 }
-                .frame(maxWidth: .infinity, alignment: .leading)
-            }
-            
-            if !draft.notes.isEmpty {
+            } else {
+                Text("Review & Save").font(.headline).frame(maxWidth: .infinity, alignment: .leading)
+                
                 VStack(alignment: .leading, spacing: 8) {
-                    Text("Notes").font(.subheadline)
-                    Text(draft.notes).frame(maxWidth: .infinity, alignment: .leading)
+                    HStack { Text("Site:").foregroundStyle(.secondary); Spacer(); Text(draft.site?.name ?? "—") }
+                    HStack { Text("Date:").foregroundStyle(.secondary); Spacer(); Text(draft.date, style: .date) }
+                    HStack { Text("Max Depth:").foregroundStyle(.secondary); Spacer(); Text("\(Int(draft.maxDepthM ?? 0)) m") }
+                    HStack { Text("Bottom Time:").foregroundStyle(.secondary); Spacer(); Text("\(draft.bottomTimeMin ?? 0) min") }
+                    HStack { Text("Temperature:").foregroundStyle(.secondary); Spacer(); Text(valueString(draft.temperatureC, suffix: "°C")) }
+                    HStack { Text("Visibility:").foregroundStyle(.secondary); Spacer(); Text(valueString(draft.visibilityM, suffix: "m")) }
+                }
+                .padding()
+                .background(Color.gray.opacity(0.06))
+                .cornerRadius(12)
+                
+                if !draft.selectedSpecies.isEmpty {
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text("Wildlife Spotted").font(.subheadline)
+                        WrapList(items: Array(draft.selectedSpecies)) { id in
+                            Text(speciesNames[id] ?? id)
+                                .font(.caption)
+                                .padding(6)
+                                .background(Color.purple.opacity(0.15))
+                                .cornerRadius(8)
+                        }
+                    }
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                }
+                
+                if !draft.notes.isEmpty {
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text("Notes").font(.subheadline)
+                        Text(draft.notes).frame(maxWidth: .infinity, alignment: .leading)
+                    }
                 }
             }
+        }
+        .task {
+            await loadSpeciesNames()
+        }
+    }
+    
+    private func loadSpeciesNames() async {
+        do {
+            let ids = Array(draft.selectedSpecies)
+            guard !ids.isEmpty else { return }
+            let species = try AppDatabase.shared.read { db in
+                try WildlifeSpecies.fetchAll(db, keys: ids)
+            }
+            speciesNames = Dictionary(uniqueKeysWithValues: species.map { ($0.id, $0.name) })
+        } catch {
+            print("Failed to load species names: \(error)")
         }
     }
     
