@@ -28,10 +28,17 @@ targets:
     platform: iOS
     deploymentTarget: "17.0"
     sources:
-      - UmiLog/
-    resources:
-      - path: Resources
-        type: folder
+      - path: UmiLog/
+      - path: Resources/SeedData/sites_seed.json
+        buildPhase: resources
+      - path: Resources/SeedData/sites_extended.json
+        buildPhase: resources
+      - path: Resources/SeedData/species_catalog.json
+        buildPhase: resources
+      - path: Resources/SeedData/dive_logs_mock.json
+        buildPhase: resources
+      - path: Resources/SeedData/sightings_mock.json
+        buildPhase: resources
     dependencies:
       - package: GRDB
       - target: UmiDesignSystem
