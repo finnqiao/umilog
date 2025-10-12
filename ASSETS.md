@@ -8,9 +8,11 @@
 - Grid: 8pt; Insets: 16pt; Min tap: 44pt
 - Corner radius: 16–20
 - Typography: LargeTitle 22/28, Headline 17/22, Body 15/20, Caption 13/16
-- Accents: Blue = My Map; Sand/Orange = Explore
+- Accents: Blue = My Map; Teal = Ocean; Sand/Orange = Explore
 - Pin states: Visited (filled) · Wishlist (hollow + ★) · Planned (dashed); muted gray for unowned (Explore only)
 - Bottom‑sheet snaps: 24% / 58% / 92%
+- Cards: `.wateryCardStyle()` glassy look with ultraThinMaterial and highlight stroke
+- Transitions: `.wateryTransition()` for smooth push/pop
 
 ### Site Details Card Pattern
 - Hero image header with rounded top corners
@@ -242,6 +244,10 @@ Include: "Contains data from OpenDiveSites, FishBase, and SeaLifeBase"
 - Chunking: Species by region (~3MB each)
 
 ## 🔄 Update Log
+
+| Date | Asset | Change | License |
+|------|-------|--------|---------|
+| 2025-10-12 | Underwater DS | Added UnderwaterTheme (mesh gradient, caustics, bubbles), card and transition helpers | Internal |
 
 | Date | Asset | Change | License |
 |------|-------|--------|---------|
