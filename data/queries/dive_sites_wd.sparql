@@ -1,0 +1,12 @@
+# Dive sites tagged as recreational (Q2141554) with coordinates, labels, country, and admin area (if available)
+# Note: We filter for items that have a coordinate location (P625)
+
+SELECT DISTINCT ?item ?itemLabel ?description ?coord ?country ?countryLabel ?admin ?adminLabel WHERE {
+  ?item wdt:P31 wd:Q2141554 .           # instance of: recreational dive site
+  ?item wdt:P625 ?coord .               # with coordinates
+  OPTIONAL { ?item wdt:P17 ?country . } # country
+  OPTIONAL { ?item wdt:P131 ?admin . }  # admin territorial entity
+  OPTIONAL { ?item schema:description ?description FILTER(LANG(?description) = "en") }
+
+  SERVICE wikibase:label { bd:serviceParam wikibase:language "en". }
+}

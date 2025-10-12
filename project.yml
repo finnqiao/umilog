@@ -41,6 +41,8 @@ targets:
         buildPhase: resources
       - path: Resources/SeedData/sites_extended2.json
         buildPhase: resources
+      - path: Resources/SeedData/sites_wikidata.json
+        buildPhase: resources
     dependencies:
       - package: GRDB
       - target: UmiDesignSystem

@@ -43,8 +43,9 @@ public enum DatabaseSeeder {
         let primary = try loadJSON("sites_seed", as: SitesSeedFile.self)
         let ext1 = optionalJSON("sites_extended", as: SitesSeedFile.self)
         let ext2 = optionalJSON("sites_extended2", as: SitesSeedFile.self)
+        let ext3 = optionalJSON("sites_wikidata", as: SitesSeedFile.self)
         
-        let seedArrays: [[SiteSeedData]] = [primary.sites, ext1?.sites ?? [], ext2?.sites ?? []]
+        let seedArrays: [[SiteSeedData]] = [primary.sites, ext1?.sites ?? [], ext2?.sites ?? [], ext3?.sites ?? []]
         let allSiteData = seedArrays.flatMap { $0 }
         let sites = allSiteData.map { convertToSite($0) }
         
