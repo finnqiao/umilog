@@ -10,7 +10,8 @@ UmiLog (海ログ – "sea log") reduces friction before and after a dive. The m
 
 - Map‑first IA with two modes: My Map and Explore
 - Regions → Areas → Sites tiering with bottom‑sheet details
-- Floating action button (center) offering Quick Log or Full Wizard
+- Middle tab triggers the Logging Wizard (overlay FAB removed)
+- Viewport‑based map pin loading for performance; clustering remains enabled
 - 4‑step Logging Wizard with validation and fast‑path save after Step 2
 - Wildlife Pokédex with species search and sightings
 - History with KPI tiles, grouped cards, and quick actions
@@ -19,7 +20,7 @@ UmiLog (海ログ – "sea log") reduces friction before and after a dive. The m
 
 ## 🧭 Information Architecture
 
-Tabs: Map · History · Log (FAB) · Wildlife · Profile
+Tabs: Map · History · Log · Wildlife · Profile
 
 - My Map: Visited • Wishlist • Planned
 - Explore: All • Nearby • Popular • Beginner

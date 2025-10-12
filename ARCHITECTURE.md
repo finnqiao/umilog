@@ -67,6 +67,9 @@ Tables (minimum to ship):
 Repositories:
 - DiveRepository, SiteRepository, SpeciesRepository, SightingRepository, ListStateRepository, UIStateRepository
 
+SiteRepository additions:
+- fetchInBounds(minLat: Double, maxLat: Double, minLon: Double, maxLon: Double) → [DiveSite] for viewport‑bounded map queries
+
 ### SpeciesRepository
 
 - search(query: String) → [Species]
@@ -118,7 +121,7 @@ All operations are idempotent and crash‑safe; partial failures roll back.
 
 - WAL mode, prepared statements, and batch inserts
 - FTS5 indexes for site/species search
-- Map: pin clustering and lazy sheet content
+- Map: viewport‑bounded queries (SiteRepository.fetchInBounds), pin clustering, and lazy sheet content
 
 ## Telemetry (privacy‑preserving)
 

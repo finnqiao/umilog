@@ -176,10 +176,13 @@ record["encrypted_field"] = sealed.combined
   - Fully qualify fonts: `.font(SwiftUI.Font.caption)` instead of `.font(.caption)`
   - Prefer `.foregroundStyle(...)` over `.foregroundColor(...)`
   - Avoid chained weight in font literals: use `.font(SwiftUI.Font.title).bold()` instead of `.font(.title.bold())`
-  - Disambiguate ScrollView init: `ScrollView(.vertical, showsIndicators: true)`
+- Disambiguate ScrollView init: `ScrollView(.vertical, showsIndicators: true)`
 - Applied across QuickLogView and other screens to eliminate compile errors
 
-#### Picker selection requires Hashable
+- Map viewport loading: Bridge MKMapView→SwiftUI by adding `regionDidChange` in the UIViewRepresentable coordinator and passing `MKCoordinateRegion` back to the ViewModel. Query `SiteRepository.fetchInBounds(...)` to refresh only visible pins. This keeps memory low and improves pan/zoom responsiveness.
+- Filter chips navigation: Status and Explore chips now jump directly to the Sites tier, clearing region/area, with light haptic + animated transition. This matches user intent and reduces taps.
+
+## 🎯 Product Insights
 - SwiftUI `Picker(selection:)` requires the selection type to conform to `Hashable`
 - Our `DiveSite` model did not conform; adding `Hashable` resolved the error and allowed `tag(Optional(site))`
 - Alternative approach is to bind selection to `site.id` (String) and tag with the id

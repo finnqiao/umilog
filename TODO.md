@@ -16,6 +16,7 @@ This list tracks the 2025 refactor to a map‑first IA with a 4‑step logging w
 - Build succeeded on iPhone 17 Pro simulator
 - Site details card updated to the "Grand Bazaar" pattern
 - Map clustering compile fix: added MapClusterView.swift to the FeatureMap target via XcodeGen and corrected pin id extraction in didSelect; FeatureMap now builds cleanly
+- Viewport‑based site loading via `SiteRepository.fetchInBounds`; MapClusterView propagates `regionDidChange` → ViewModel refresh
 - **Database seeder implementation**: All JSON files loaded on first launch
 - **24 dive sites** across Red Sea, Caribbean, Southeast Asia, Pacific, Mediterranean
 - **35 wildlife species** with scientific names and categories
@@ -29,6 +30,7 @@ This list tracks the 2025 refactor to a map‑first IA with a 4‑step logging w
 - Add small debug toggle in Profile to enable/disable UnderwaterTheme
 - **Test the app** with seeded data on simulator
 - Verify map displays all 24 pins correctly
+- Verify viewport filtering: panning/zooming updates visible pins smoothly
 - Confirm wizard shows 35 species in catalog
 - Test history view displays 3 completed dives
 - Validate wildlife sightings display per dive
