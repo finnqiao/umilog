@@ -39,6 +39,9 @@ public struct NewMapView: View {
                         showingSiteDetail = true
                     }
                 },
+                onRegionChange: { region in
+                    Task { await viewModel.refreshVisibleSites(in: region) }
+                },
                 center: mapRegion.center
             )
             .ignoresSafeArea()
@@ -151,7 +154,7 @@ public struct NewMapView: View {
                             })
                                 .frame(maxHeight: 260)
                         case .sites:
-                            SitesListView(sites: viewModel.visibleSites, onSiteTap: { site in
+                            SitesListView(sites: viewModel.filteredSites, onSiteTap: { site in
                                 Haptics.soft()
                                 selectedSite = site
                                 showingSiteDetail = true
@@ -466,9 +469,10 @@ class MapViewModel: ObservableObject {
     @Published var sites: [DiveSite] = []
     @Published var regions: [Region] = []
     @Published var loading: Bool = false
+    @Published var visibleSites: [DiveSite] = []
     
-    var visibleSites: [DiveSite] {
-        sites.filter { site in
+    var filteredSites: [DiveSite] {
+        visibleSites.filter { site in
             // Region filter
             if let region = selectedRegion, site.region != region.name { return false }
             // Area filter
@@ -529,6 +533,23 @@ class MapViewModel: ObservableObject {
             }.sorted { $0.name < $1.name }
         } catch {
             print("Failed to load sites: \(error)")
+        }
+    }
+    
+    func refreshVisibleSites(in region: MKCoordinateRegion) async {
+        // Compute bounding box
+        let span = region.span
+        let center = region.center
+        let minLat = center.latitude - span.latitudeDelta/2
+        let maxLat = center.latitude + span.latitudeDelta/2
+        let minLon = center.longitude - span.longitudeDelta/2
+        let maxLon = center.longitude + span.longitudeDelta/2
+        let repo = SiteRepository(database: AppDatabase.shared)
+        do {
+            let boxSites = try repo.fetchInBounds(minLat: minLat, maxLat: maxLat, minLon: minLon, maxLon: maxLon)
+            await MainActor.run { self.visibleSites = boxSites }
+        } catch {
+            print("Failed to fetch box sites: \(error)")
         }
     }
 }

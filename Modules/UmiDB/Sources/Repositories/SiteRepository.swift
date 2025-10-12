@@ -40,6 +40,16 @@ public final class SiteRepository {
         }
     }
     
+    public func fetchInBounds(minLat: Double, maxLat: Double, minLon: Double, maxLon: Double) throws -> [DiveSite] {
+        try database.read { db in
+            try DiveSite
+                .filter(DiveSite.Columns.latitude >= minLat && DiveSite.Columns.latitude <= maxLat)
+                .filter(DiveSite.Columns.longitude >= minLon && DiveSite.Columns.longitude <= maxLon)
+                .order(DiveSite.Columns.name)
+                .fetchAll(db)
+        }
+    }
+    
     public func search(query: String) throws -> [DiveSite] {
         try database.read { db in
             let like = "%\(query)%"

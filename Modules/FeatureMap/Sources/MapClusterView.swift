@@ -14,8 +14,12 @@ struct SiteAnnotation: Identifiable {
 
 final class MapCoordinator: NSObject, MKMapViewDelegate {
     private let onSelect: (String) -> Void
+    private let onRegionChange: (MKCoordinateRegion) -> Void
     private let logger = Logger(subsystem: "app.umilog", category: "MapCluster")
-    init(onSelect: @escaping (String) -> Void) { self.onSelect = onSelect }
+    init(onSelect: @escaping (String) -> Void, onRegionChange: @escaping (MKCoordinateRegion) -> Void) {
+        self.onSelect = onSelect
+        self.onRegionChange = onRegionChange
+    }
     
     func mapView(_ mapView: MKMapView, viewFor annotation: MKAnnotation) -> MKAnnotationView? {
         if annotation is MKUserLocation { return nil }
@@ -47,11 +51,19 @@ final class MapCoordinator: NSObject, MKMapViewDelegate {
             onSelect(id)
         }
     }
+    
+    func mapView(_ mapView: MKMapView, regionDidChangeAnimated animated: Bool) {
+        let center = mapView.region.center
+        let span = mapView.region.span
+        let region = MKCoordinateRegion(center: center, span: span)
+        onRegionChange(region)
+    }
 }
 
 struct MapClusterView: UIViewRepresentable {
     var annotations: [SiteAnnotation]
     var onSelect: (String) -> Void
+    var onRegionChange: (MKCoordinateRegion) -> Void = { _ in }
     var center: CLLocationCoordinate2D?
 
     func makeUIView(context: Context) -> MKMapView {
@@ -82,5 +94,5 @@ struct MapClusterView: UIViewRepresentable {
         if let c = center { uiView.setCenter(c, animated: true) }
     }
 
-    func makeCoordinator() -> MapCoordinator { MapCoordinator(onSelect: onSelect) }
+    func makeCoordinator() -> MapCoordinator { MapCoordinator(onSelect: onSelect, onRegionChange: onRegionChange) }
 }
