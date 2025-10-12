@@ -31,87 +31,79 @@ public struct NewMapView: View {
             }
             .ignoresSafeArea()
             
-            // Top controls overlay
+            // Top controls: only Mode segmented control at top
             VStack(spacing: 0) {
-                // Mode segmented control
-                Picker("Mode", selection: $viewModel.mode) {
-                    Text("My Map").tag(MapMode.myMap)
-                    Text("Explore").tag(MapMode.explore)
+                HStack {
+                    Picker("Mode", selection: $viewModel.mode) {
+                        Text("My Map").tag(MapMode.myMap)
+                        Text("Explore").tag(MapMode.explore)
+                    }
+                    .pickerStyle(.segmented)
                 }
-                .pickerStyle(.segmented)
                 .padding(.horizontal, 16)
                 .padding(.top, 8)
-                
-                // Filter chips row
-                ScrollView(.horizontal, showsIndicators: false) {
-                    HStack(spacing: 8) {
-                        if viewModel.mode == .myMap {
-                            FilterChip(title: "Visited (\(viewModel.visitedCount))", isSelected: viewModel.statusFilter == .visited) {
-                                viewModel.statusFilter = .visited
-                            }
-                            FilterChip(title: "Wishlist (\(viewModel.wishlistCount))", isSelected: viewModel.statusFilter == .wishlist) {
-                                viewModel.statusFilter = .wishlist
-                            }
-                            FilterChip(title: "Planned (\(viewModel.plannedCount))", isSelected: viewModel.statusFilter == .planned) {
-                                viewModel.statusFilter = .planned
-                            }
-                        } else {
-                            FilterChip(title: "All", isSelected: viewModel.exploreFilter == .all) {
-                                viewModel.exploreFilter = .all
-                            }
-                            FilterChip(title: "Nearby", isSelected: viewModel.exploreFilter == .nearby) {
-                                viewModel.exploreFilter = .nearby
-                            }
-                            FilterChip(title: "Popular", isSelected: viewModel.exploreFilter == .popular) {
-                                viewModel.exploreFilter = .popular
-                            }
-                            FilterChip(title: "Beginner", isSelected: viewModel.exploreFilter == .beginner) {
-                                viewModel.exploreFilter = .beginner
+                Spacer()
+
+                // Bottom contextual sheet
+                VStack(spacing: 12) {
+                    // Breadcrumb header + counts
+                    BreadcrumbHeader(viewModel: viewModel)
+                        .padding(.top, 8)
+                        .padding(.horizontal, 16)
+
+                    // Filter chips inside sheet (contextual)
+                    ScrollView(.horizontal, showsIndicators: false) {
+                        HStack(spacing: 8) {
+                            if viewModel.mode == .myMap {
+                                FilterChip(title: "Visited (\(viewModel.visitedCount))", isSelected: viewModel.statusFilter == .visited) { viewModel.statusFilter = .visited }
+                                FilterChip(title: "Wishlist (\(viewModel.wishlistCount))", isSelected: viewModel.statusFilter == .wishlist) { viewModel.statusFilter = .wishlist }
+                                FilterChip(title: "Planned (\(viewModel.plannedCount))", isSelected: viewModel.statusFilter == .planned) { viewModel.statusFilter = .planned }
+                            } else {
+                                FilterChip(title: "All", isSelected: viewModel.exploreFilter == .all) { viewModel.exploreFilter = .all }
+                                FilterChip(title: "Nearby", isSelected: viewModel.exploreFilter == .nearby) { viewModel.exploreFilter = .nearby }
+                                FilterChip(title: "Popular", isSelected: viewModel.exploreFilter == .popular) { viewModel.exploreFilter = .popular }
+                                FilterChip(title: "Beginner", isSelected: viewModel.exploreFilter == .beginner) { viewModel.exploreFilter = .beginner }
+                                // Additional chips (stubs)
+                                FilterChip(title: "Wrecks", isSelected: false) {}
+                                FilterChip(title: "Cave", isSelected: false) {}
+                                FilterChip(title: "Nitrox", isSelected: false) {}
                             }
                         }
+                        .padding(.horizontal, 16)
                     }
-                    .padding(.horizontal, 16)
+                    .padding(.vertical, 4)
+
+                    // Contextual list based on tier
+                    Group {
+                        switch viewModel.tier {
+                        case .regions:
+                            RegionsListView(regions: viewModel.regions, selectedRegion: $viewModel.selectedRegion)
+                                .frame(maxHeight: 260)
+                        case .areas:
+                            AreasListView(areas: viewModel.areasInSelectedRegion, onAreaTap: { area in
+                                viewModel.selectedArea = area
+                                viewModel.tier = .sites
+                            })
+                                .frame(maxHeight: 260)
+                        case .sites:
+                            SitesListView(sites: viewModel.visibleSites, onSiteTap: { site in
+                                selectedSite = site
+                                showingSiteDetail = true
+                            })
+                            .frame(maxHeight: 260)
+                        }
+                    }
                 }
-                .padding(.vertical, 8)
                 .background(.ultraThinMaterial)
-                
-                // Tier tabs
-                HStack(spacing: 0) {
-                    TierTab(title: "Regions", isSelected: viewModel.tier == .regions) {
-                        viewModel.tier = .regions
-                    }
-                    TierTab(title: "Areas", isSelected: viewModel.tier == .areas) {
-                        viewModel.tier = .areas
-                    }
-                    TierTab(title: "Sites", isSelected: viewModel.tier == .sites) {
-                        viewModel.tier = .sites
-                    }
-                }
-                .padding(.horizontal, 16)
-                .padding(.bottom, 8)
-                .background(.ultraThinMaterial)
-                
-                Spacer()
-                
-                // Bottom sheet list
-                if viewModel.tier == .regions {
-                    RegionsListView(regions: viewModel.regions, selectedRegion: $viewModel.selectedRegion)
-                        .frame(height: 200)
-                        .background(.ultraThinMaterial)
-                        .cornerRadius(20, corners: [.topLeft, .topRight])
-                } else if viewModel.tier == .sites {
-                    SitesListView(sites: viewModel.visibleSites, onSiteTap: { site in
-                        selectedSite = site
-                        showingSiteDetail = true
-                    })
-                    .frame(height: 200)
-                    .background(.ultraThinMaterial)
-                    .cornerRadius(20, corners: [.topLeft, .topRight])
-                }
+                .cornerRadius(20, corners: [.topLeft, .topRight])
             }
         }
-        .navigationTitle(viewModel.mode == .myMap ? "My Map" : "Explore")
-        .navigationBarTitleDisplayMode(.inline)
+.navigationTitle("Map")
+        .navigationBarTitleDisplayMode(.large)
+        .toolbar {
+            ToolbarItem(placement: .topBarTrailing) { Button(action: {}) { Image(systemName: "magnifyingglass") } }
+            ToolbarItem(placement: .topBarTrailing) { Button(action: {}) { Image(systemName: "line.3.horizontal.decrease.circle") } }
+        }
         .sheet(isPresented: $showingSiteDetail) {
             if let site = selectedSite {
                 SiteDetailSheet(site: site, mode: viewModel.mode)
@@ -173,34 +165,67 @@ struct FilterChip: View {
     }
 }
 
-// MARK: - Tier Tabs
+// MARK: - Breadcrumb Header & Areas
 
-struct TierTab: View {
-    let title: String
-    let isSelected: Bool
-    let action: () -> Void
-    
+struct BreadcrumbHeader: View {
+    @ObservedObject var viewModel: MapViewModel
     var body: some View {
-        Button(action: action) {
-            VStack(spacing: 4) {
-                Text(title)
-                    .font(SwiftUI.Font.subheadline)
-                    .fontWeight(isSelected ? .semibold : .regular)
-                    .foregroundStyle(isSelected ? Color.oceanBlue : .secondary)
-                
-                if isSelected {
-                    Capsule()
-                        .fill(Color.oceanBlue)
-                        .frame(height: 3)
-                } else {
-                    Spacer().frame(height: 3)
-                }
+        HStack(spacing: 8) {
+            // Breadcrumb
+            HStack(spacing: 6) {
+                Text("Regions")
+                    .font(.subheadline).bold()
+                    .foregroundStyle(viewModel.tier == .regions ? Color.oceanBlue : .primary)
+                    .onTapGesture { viewModel.tier = .regions }
+                Text("›").foregroundStyle(.secondary)
+                Text(viewModel.selectedRegion?.name ?? "Areas")
+                    .font(.subheadline)
+                    .foregroundStyle(viewModel.tier == .areas ? Color.oceanBlue : .secondary)
+                    .onTapGesture { if viewModel.selectedRegion != nil { viewModel.tier = .areas } }
+                Text("›").foregroundStyle(.secondary)
+                Text("Sites")
+                    .font(.subheadline)
+                    .foregroundStyle(viewModel.tier == .sites ? Color.oceanBlue : .secondary)
             }
-            .frame(maxWidth: .infinity)
+            Spacer()
+            // Counts
+            Text(countText)
+                .font(.caption)
+                .foregroundStyle(.secondary)
+        }
+    }
+    private var countText: String {
+        switch viewModel.tier {
+        case .regions: return "\(viewModel.regions.count) regions"
+        case .areas: return "\(viewModel.areasInSelectedRegion.count) areas"
+        case .sites: return "\(viewModel.visibleSites.count) sites"
         }
     }
 }
 
+struct AreasListView: View {
+    let areas: [Area]
+    let onAreaTap: (Area) -> Void
+    var body: some View {
+        ScrollView { LazyVStack(spacing: 0) {
+            ForEach(areas) { area in
+                HStack {
+                    VStack(alignment: .leading) {
+                        Text(area.name).font(.body)
+                        Text("\(area.country) · \(area.siteCount) sites")
+                            .font(.caption).foregroundStyle(.secondary)
+                    }
+                    Spacer()
+                    Image(systemName: "chevron.right").foregroundStyle(.secondary)
+                }
+                .contentShape(Rectangle())
+                .onTapGesture { onAreaTap(area) }
+                .padding(.horizontal, 16)
+                .padding(.vertical, 10)
+            }
+        }}
+    }
+}
 // MARK: - Regions List
 
 struct RegionsListView: View {
@@ -351,23 +376,29 @@ class MapViewModel: ObservableObject {
     @Published var exploreFilter: ExploreFilter = .all
     @Published var tier: Tier = .regions
     @Published var selectedRegion: Region?
+    @Published var selectedArea: Area?
     
     @Published var sites: [DiveSite] = []
     @Published var regions: [Region] = []
     
     var visibleSites: [DiveSite] {
         sites.filter { site in
+            // Region filter
+            if let region = selectedRegion, site.region != region.name { return false }
+            // Area filter
+            if let area = selectedArea, parseAreaCountry(site.location).area != area.name { return false }
+            // Mode filters
             if mode == .myMap {
                 switch statusFilter {
                 case .visited: return site.visitedCount > 0
                 case .wishlist: return site.wishlist
-                case .planned: return false  // TODO: Add planned logic
+                case .planned: return false // TODO planned
                 }
             } else {
                 switch exploreFilter {
                 case .all: return true
-                case .nearby: return true  // TODO: Add distance logic
-                case .popular: return site.visitedCount > 5  // Placeholder
+                case .nearby: return true // TODO distance
+                case .popular: return site.visitedCount > 5
                 case .beginner: return site.difficulty.rawValue == "Beginner"
                 }
             }
@@ -386,6 +417,14 @@ class MapViewModel: ObservableObject {
         0  // TODO
     }
     
+    var areasInSelectedRegion: [Area] {
+        guard let region = selectedRegion else { return [] }
+        let regionSites = sites.filter { $0.region == region.name }
+        let groups = Dictionary(grouping: regionSites) { parseAreaCountry($0.location).area }
+        return groups.map { Area(id: $0.key, name: $0.key, country: parseAreaCountry($0.value.first!.location).country, siteCount: $0.value.count) }
+            .sorted { $0.name < $1.name }
+    }
+
     func loadSites() async {
         // Load from seed data
         let siteRepo = SiteRepository(database: AppDatabase.shared)
@@ -434,6 +473,13 @@ struct Region: Identifiable {
     let visitedCount: Int
 }
 
+struct Area: Identifiable {
+    let id: String
+    let name: String
+    let country: String
+    let siteCount: Int
+}
+
 // MARK: - Helper Extensions
 
 extension View {
@@ -454,6 +500,13 @@ struct RoundedCorner: Shape {
         )
         return Path(path.cgPath)
     }
+}
+
+// Helper to parse "Area, Country" from location
+fileprivate func parseAreaCountry(_ location: String) -> (area: String, country: String) {
+    let parts = location.split(separator: ",").map { $0.trimmingCharacters(in: .whitespaces) }
+    if parts.count >= 2 { return (String(parts[0]), String(parts[1])) }
+    return (location, "")
 }
 
 #Preview {
