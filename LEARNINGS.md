@@ -19,6 +19,10 @@
 - Database seeding implementation: Built comprehensive JSON loader that reads all seed files from bundle, maps JSON field names to Swift model properties, handles enum string-to-case conversion, parses ISO 8601 dates, and automatically seeds database on first app launch. The seeder checks if data exists to avoid duplicates and provides detailed logging for each step.
 - XcodeGen tip: After adding new Swift source files under a module directory, regenerate the project with `xcodegen generate` so Xcode includes the files in the target. Missing this caused "cannot find 'MapClusterView'/'SiteAnnotation' in scope" until the project was regenerated.
 - MapKit selection binding: `MKPointAnnotation.title` is optional; use `if let t = point.title` directly for conditional binding. Fixed `MapCoordinator.mapView(_:didSelect:)` to safely extract the pin id suffix after the `"id:"` prefix.
+- SwiftUI ambiguity: Avoid `.font(.subheadline)`, `.bold()`, `.fontWeight(_:)`, and `.foregroundStyle(.primary|.secondary)` when a design system also extends `Color`/`Font`. Prefer explicit forms or UIKit bridges:
+  - Use `SwiftUI.Color(UIColor.label)` and `SwiftUI.Color(UIColor.secondaryLabel)` instead of `.primary/.secondary`
+  - Avoid `bold()/fontWeight` on Text when overloads conflict; prefer plain weight in concrete fonts or omit where not critical
+  - If needed, move chip styling to `.buttonStyle(.bordered)` with `.tint(...)` to keep codegen simple
 
 ## 🎯 Product Insights
 

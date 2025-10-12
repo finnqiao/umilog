@@ -7,7 +7,11 @@ This list tracks the 2025 refactor to a map‑first IA with a 4‑step logging w
 - Add SpeciesRepository (popular + search)
 - Extend LogDraft with selected species + notes
 - Implement WizardSaver (Dive + Sighting + ListState + notifications)
-- Map FAB: prompt Quick Log vs Full Wizard
+- Center plus tab: removed floating overlay, middle tab now triggers wizard and returns to Map
+- Explore mode styling: distinct tint, chips use mode color
+- Haptics on region/area/site taps; subtle animations for tier transitions
+- Status chips (Visited/Wishlist/Planned) now navigate to Sites tier and clear region/area filters
+- Toolbar wired: search sheet + filters sheet
 - Fix numeric text field bindings by converting to String inputs with safe parsing
 - Build succeeded on iPhone 17 Pro simulator
 - Site details card updated to the "Grand Bazaar" pattern
