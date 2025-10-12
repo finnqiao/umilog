@@ -3,6 +3,7 @@ import UmiDB
 
 public struct ProfileView: View {
     @StateObject private var viewModel = ProfileViewModel()
+    @Environment(\.underwaterThemeBinding) private var underwaterThemeBinding
     
     public init() {}
     
@@ -102,6 +103,26 @@ public struct ProfileView: View {
                     ActionRow(icon: "arrow.up.doc", title: "Import from CSV/UDDF", subtitle: "Bring existing logs", color: .purple)
                     ActionRow(icon: "plus.square", title: "Backfill Past Dives", subtitle: "Add multiple dives quickly", color: .blue)
                     ActionRow(icon: "square.and.arrow.down", title: "Export All Data", subtitle: "Download your dive logs", color: .green)
+                }
+                
+                // Developer (Debug)
+                VStack(alignment: .leading, spacing: 12) {
+                    Text("Developer")
+                        .font(.headline)
+                        .padding(.horizontal, 16)
+                    HStack {
+                        Text("Underwater Theme")
+                            .font(.body)
+                        Spacer()
+                        Toggle("", isOn: underwaterThemeBinding ?? .constant(true))
+                            .onChange(of: underwaterThemeBinding?.wrappedValue ?? true) { _ in
+                                Haptics.soft()
+                            }
+                    }
+                    .padding(16)
+                    .background(Color(.secondarySystemGroupedBackground))
+                    .cornerRadius(16)
+                    .padding(.horizontal, 16)
                 }
                 
                 // Privacy & Security

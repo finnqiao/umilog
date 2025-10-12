@@ -17,6 +17,7 @@ struct UmiLogApp: App {
         WindowGroup {
             ContentView()
                 .environmentObject(appState)
+                .environment(\.underwaterThemeBinding, $appState.underwaterThemeEnabled)
         }
     }
 }

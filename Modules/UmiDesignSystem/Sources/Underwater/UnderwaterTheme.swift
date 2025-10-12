@@ -79,9 +79,13 @@ public extension View {
     }
 }
 
-// MARK: - Environment toggle
+// MARK: - Environment keys
 private struct WaterTransitionKey: EnvironmentKey { static let defaultValue: Bool = false }
 public extension EnvironmentValues { var waterTransitionEnabled: Bool { get { self[WaterTransitionKey.self] } set { self[WaterTransitionKey.self] = newValue } } }
+
+// Provide an optional binding to control the theme from feature modules without referencing AppState
+private struct UnderwaterThemeBindingKey: EnvironmentKey { static let defaultValue: Binding<Bool>? = nil }
+public extension EnvironmentValues { var underwaterThemeBinding: Binding<Bool>? { get { self[UnderwaterThemeBindingKey.self] } set { self[UnderwaterThemeBindingKey.self] = newValue } } }
 
 // MARK: - Caustics Overlay
 struct CausticsOverlay: View {
