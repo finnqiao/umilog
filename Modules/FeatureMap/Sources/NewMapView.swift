@@ -2,6 +2,7 @@ import SwiftUI
 import MapKit
 import UmiDB
 import FeatureLiveLog
+import UmiDesignSystem
 
 public struct NewMapView: View {
     @StateObject private var viewModel = MapViewModel()
@@ -11,8 +12,13 @@ public struct NewMapView: View {
     )
     @State private var selectedSite: DiveSite?
     @State private var showingSiteDetail = false
+    @State private var showSearch = false
+    @State private var showFilters = false
+    @State private var searchText = ""
     
     public init() {}
+    
+    private var primaryColor: Color { viewModel.mode == .explore ? .purple : .oceanBlue }
     
     public var body: some View {
         ZStack(alignment: .bottom) {
@@ -45,6 +51,9 @@ public struct NewMapView: View {
                         Text("Explore").tag(MapMode.explore)
                     }
                     .pickerStyle(.segmented)
+                    .onChange(of: viewModel.mode) { _ in
+                        Haptics.soft()
+                    }
                 }
                 .padding(.horizontal, 16)
                 .padding(.top, 8)
@@ -61,18 +70,54 @@ public struct NewMapView: View {
                     ScrollView(.horizontal, showsIndicators: false) {
                         HStack(spacing: 8) {
                             if viewModel.mode == .myMap {
-                                FilterChip(title: "Visited (\(viewModel.visitedCount))", isSelected: viewModel.statusFilter == .visited) { viewModel.statusFilter = .visited }
-                                FilterChip(title: "Wishlist (\(viewModel.wishlistCount))", isSelected: viewModel.statusFilter == .wishlist) { viewModel.statusFilter = .wishlist }
-                                FilterChip(title: "Planned (\(viewModel.plannedCount))", isSelected: viewModel.statusFilter == .planned) { viewModel.statusFilter = .planned }
+                                FilterChip(title: "Visited (\(viewModel.visitedCount))", isSelected: viewModel.statusFilter == .visited, action: {
+                                    withAnimation(.spring(response: 0.25)) {
+                                        viewModel.statusFilter = .visited
+                                        viewModel.tier = .sites
+                                        viewModel.selectedRegion = nil
+                                        viewModel.selectedArea = nil
+                                    }
+                                    Haptics.tap()
+                                }, primaryColor: primaryColor)
+                                FilterChip(title: "Wishlist (\(viewModel.wishlistCount))", isSelected: viewModel.statusFilter == .wishlist, action: {
+                                    withAnimation(.spring(response: 0.25)) {
+                                        viewModel.statusFilter = .wishlist
+                                        viewModel.tier = .sites
+                                        viewModel.selectedRegion = nil
+                                        viewModel.selectedArea = nil
+                                    }
+                                    Haptics.tap()
+                                }, primaryColor: primaryColor)
+                                FilterChip(title: "Planned (\(viewModel.plannedCount))", isSelected: viewModel.statusFilter == .planned, action: {
+                                    withAnimation(.spring(response: 0.25)) {
+                                        viewModel.statusFilter = .planned
+                                        viewModel.tier = .sites
+                                        viewModel.selectedRegion = nil
+                                        viewModel.selectedArea = nil
+                                    }
+                                    Haptics.tap()
+                                }, primaryColor: primaryColor)
                             } else {
-                                FilterChip(title: "All", isSelected: viewModel.exploreFilter == .all) { viewModel.exploreFilter = .all }
-                                FilterChip(title: "Nearby", isSelected: viewModel.exploreFilter == .nearby) { viewModel.exploreFilter = .nearby }
-                                FilterChip(title: "Popular", isSelected: viewModel.exploreFilter == .popular) { viewModel.exploreFilter = .popular }
-                                FilterChip(title: "Beginner", isSelected: viewModel.exploreFilter == .beginner) { viewModel.exploreFilter = .beginner }
+                                FilterChip(title: "All", isSelected: viewModel.exploreFilter == .all, action: {
+                                    withAnimation(.spring(response: 0.25)) { viewModel.exploreFilter = .all; viewModel.tier = .sites; viewModel.selectedRegion = nil; viewModel.selectedArea = nil }
+                                    Haptics.tap()
+                                }, primaryColor: primaryColor)
+                                FilterChip(title: "Nearby", isSelected: viewModel.exploreFilter == .nearby, action: {
+                                    withAnimation(.spring(response: 0.25)) { viewModel.exploreFilter = .nearby; viewModel.tier = .sites; viewModel.selectedRegion = nil; viewModel.selectedArea = nil }
+                                    Haptics.tap()
+                                }, primaryColor: primaryColor)
+                                FilterChip(title: "Popular", isSelected: viewModel.exploreFilter == .popular, action: {
+                                    withAnimation(.spring(response: 0.25)) { viewModel.exploreFilter = .popular; viewModel.tier = .sites; viewModel.selectedRegion = nil; viewModel.selectedArea = nil }
+                                    Haptics.tap()
+                                }, primaryColor: primaryColor)
+                                FilterChip(title: "Beginner", isSelected: viewModel.exploreFilter == .beginner, action: {
+                                    withAnimation(.spring(response: 0.25)) { viewModel.exploreFilter = .beginner; viewModel.tier = .sites; viewModel.selectedRegion = nil; viewModel.selectedArea = nil }
+                                    Haptics.tap()
+                                }, primaryColor: primaryColor)
                                 // Additional chips (stubs)
-                                FilterChip(title: "Wrecks", isSelected: false) {}
-                                FilterChip(title: "Cave", isSelected: false) {}
-                                FilterChip(title: "Nitrox", isSelected: false) {}
+                                FilterChip(title: "Wrecks", isSelected: false, action: {}, primaryColor: primaryColor)
+                                FilterChip(title: "Cave", isSelected: false, action: {}, primaryColor: primaryColor)
+                                FilterChip(title: "Nitrox", isSelected: false, action: {}, primaryColor: primaryColor)
                             }
                         }
                         .padding(.horizontal, 16)
@@ -83,16 +128,31 @@ public struct NewMapView: View {
                     Group {
                         switch viewModel.tier {
                         case .regions:
-                            RegionsListView(regions: viewModel.regions, selectedRegion: $viewModel.selectedRegion)
-                                .frame(maxHeight: 260)
+                            RegionsListView(
+                                regions: viewModel.regions,
+                                selectedRegion: $viewModel.selectedRegion,
+                                onRegionTap: { region in
+                                    withAnimation(.spring(response: 0.25)) {
+                                        viewModel.selectedRegion = region
+                                        viewModel.selectedArea = nil
+                                        viewModel.tier = .areas
+                                    }
+                                    Haptics.tap()
+                                }
+                            )
+                            .frame(maxHeight: 260)
                         case .areas:
                             AreasListView(areas: viewModel.areasInSelectedRegion, onAreaTap: { area in
-                                viewModel.selectedArea = area
-                                viewModel.tier = .sites
+                                withAnimation(.spring(response: 0.25)) {
+                                    viewModel.selectedArea = area
+                                    viewModel.tier = .sites
+                                }
+                                Haptics.tap()
                             })
                                 .frame(maxHeight: 260)
                         case .sites:
                             SitesListView(sites: viewModel.visibleSites, onSiteTap: { site in
+                                Haptics.soft()
                                 selectedSite = site
                                 showingSiteDetail = true
                             })
@@ -104,16 +164,28 @@ public struct NewMapView: View {
                 .cornerRadius(20, corners: [.topLeft, .topRight])
             }
         }
-.navigationTitle("Map")
+        .tint(primaryColor)
+        .navigationTitle("Map")
         .navigationBarTitleDisplayMode(.large)
         .toolbar {
-            ToolbarItem(placement: .topBarTrailing) { Button(action: {}) { Image(systemName: "magnifyingglass") } }
-            ToolbarItem(placement: .topBarTrailing) { Button(action: {}) { Image(systemName: "line.3.horizontal.decrease.circle") } }
+            ToolbarItem(placement: .topBarTrailing) { Button(action: { showSearch = true; Haptics.soft() }) { Image(systemName: "magnifyingglass") } }
+            ToolbarItem(placement: .topBarTrailing) { Button(action: { showFilters = true; Haptics.soft() }) { Image(systemName: "line.3.horizontal.decrease.circle") } }
         }
         .sheet(isPresented: $showingSiteDetail) {
             if let site = selectedSite {
                 SiteDetailSheet(site: site, mode: viewModel.mode)
             }
+        }
+        .sheet(isPresented: $showSearch) {
+            SearchSheet(searchText: $searchText, sites: viewModel.sites) { site in
+                selectedSite = site
+                showingSiteDetail = true
+                showSearch = false
+            }
+        }
+        .sheet(isPresented: $showFilters) {
+            FilterSheet(mode: $viewModel.mode, statusFilter: $viewModel.statusFilter, exploreFilter: $viewModel.exploreFilter, onDismiss: { showFilters = false })
+                .presentationDetents([.medium])
         }
         .task {
             await viewModel.loadSites()
@@ -159,17 +231,14 @@ struct FilterChip: View {
     let title: String
     let isSelected: Bool
     let action: () -> Void
+    var primaryColor: Color
     
     var body: some View {
         Button(action: action) {
             Text(title)
-                .font(SwiftUI.Font.subheadline)
-                .padding(.horizontal, 16)
-                .padding(.vertical, 8)
-                .background(isSelected ? Color.oceanBlue : Color.gray.opacity(0.15))
-                .foregroundStyle(isSelected ? .white : .primary)
-                .cornerRadius(20)
         }
+        .buttonStyle(.bordered)
+        .tint(isSelected ? primaryColor : Color.gray.opacity(0.4))
     }
 }
 
@@ -182,24 +251,21 @@ struct BreadcrumbHeader: View {
             // Breadcrumb
             HStack(spacing: 6) {
                 Text("Regions")
-                    .font(.subheadline).bold()
-                    .foregroundStyle(viewModel.tier == .regions ? Color.oceanBlue : .primary)
+                    .foregroundStyle(viewModel.tier == .regions ? Color.oceanBlue : SwiftUI.Color(UIColor.label))
                     .onTapGesture { viewModel.tier = .regions }
                 Text("›").foregroundStyle(.secondary)
                 Text(viewModel.selectedRegion?.name ?? "Areas")
-                    .font(.subheadline)
-                    .foregroundStyle(viewModel.tier == .areas ? Color.oceanBlue : .secondary)
+                    .foregroundStyle(viewModel.tier == .areas ? Color.oceanBlue : SwiftUI.Color(UIColor.secondaryLabel))
                     .onTapGesture { if viewModel.selectedRegion != nil { viewModel.tier = .areas } }
                 Text("›").foregroundStyle(.secondary)
                 Text("Sites")
-                    .font(.subheadline)
-                    .foregroundStyle(viewModel.tier == .sites ? Color.oceanBlue : .secondary)
+                    .foregroundStyle(viewModel.tier == .sites ? Color.oceanBlue : SwiftUI.Color(UIColor.secondaryLabel))
             }
             Spacer()
             // Counts
             Text(countText)
-                .font(.caption)
-                .foregroundStyle(.secondary)
+                .font(SwiftUI.Font.system(.caption, design: .default))
+                .foregroundStyle(SwiftUI.Color(UIColor.secondaryLabel))
         }
     }
     private var countText: String {
@@ -221,7 +287,7 @@ struct AreasListView: View {
                     VStack(alignment: .leading) {
                         Text(area.name).font(.body)
                         Text("\(area.country) · \(area.siteCount) sites")
-                            .font(.caption).foregroundStyle(.secondary)
+                            .font(.caption).foregroundStyle(SwiftUI.Color(UIColor.secondaryLabel))
                     }
                     Spacer()
                     Image(systemName: "chevron.right").foregroundStyle(.secondary)
@@ -239,6 +305,7 @@ struct AreasListView: View {
 struct RegionsListView: View {
     let regions: [Region]
     @Binding var selectedRegion: Region?
+    var onRegionTap: (Region) -> Void
     
     var body: some View {
         ScrollView {
@@ -251,16 +318,15 @@ struct RegionsListView: View {
                 
                 Text("2/8 visited")
                     .font(.subheadline)
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(SwiftUI.Color(UIColor.secondaryLabel))
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .padding(.horizontal, 16)
                     .padding(.bottom, 8)
                 
                 ForEach(regions) { region in
                     RegionRow(region: region)
-                        .onTapGesture {
-                            selectedRegion = region
-                        }
+                        .contentShape(Rectangle())
+                        .onTapGesture { onRegionTap(region) }
                 }
             }
         }
@@ -281,7 +347,7 @@ struct RegionRow: View {
                     .font(.body)
                 Text("\(region.visitedCount)/\(region.totalSites) visited")
                     .font(.caption)
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(SwiftUI.Color(UIColor.secondaryLabel))
             }
             
             Spacer()
@@ -308,10 +374,10 @@ struct SitesListView: View {
             VStack(spacing: 12) {
                 Image(systemName: "tray")
                     .font(.system(size: 28))
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(SwiftUI.Color(UIColor.secondaryLabel))
                 Text("No items")
                     .font(.subheadline)
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(SwiftUI.Color(UIColor.secondaryLabel))
             }
             .frame(maxWidth: .infinity)
             .padding(.vertical, 24)
@@ -345,7 +411,7 @@ struct SiteRow: View {
                 
                 Text(site.location)
                     .font(.caption)
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(SwiftUI.Color(UIColor.secondaryLabel))
                 
                 // Quick facts chips
                 HStack(spacing: 6) {
@@ -357,7 +423,7 @@ struct SiteRow: View {
             
             Spacer()
             
-            Button(action: {}) {
+            Button(action: { Haptics.soft() /* Present wizard from SiteDetail for now */ }) {
                 Text("Log")
                     .font(.subheadline)
                     .fontWeight(.semibold)
@@ -526,6 +592,84 @@ fileprivate func parseAreaCountry(_ location: String) -> (area: String, country:
     let parts = location.split(separator: ",").map { $0.trimmingCharacters(in: .whitespaces) }
     if parts.count >= 2 { return (String(parts[0]), String(parts[1])) }
     return (location, "")
+}
+
+// MARK: - Sheets
+
+struct SearchSheet: View {
+    @Binding var searchText: String
+    let sites: [DiveSite]
+    let onSelect: (DiveSite) -> Void
+    @Environment(\.dismiss) private var dismiss
+    
+    var filtered: [DiveSite] {
+        if searchText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty { return sites }
+        let q = searchText.lowercased()
+        return sites.filter { $0.name.lowercased().contains(q) || $0.location.lowercased().contains(q) }
+    }
+    
+    var body: some View {
+        NavigationStack {
+            List(filtered) { site in
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(site.name).font(.body)
+                    Text(site.location).font(.caption).foregroundStyle(.secondary)
+                }
+                .contentShape(Rectangle())
+                .onTapGesture { Haptics.soft(); onSelect(site); dismiss() }
+            }
+            .searchable(text: $searchText, placement: .navigationBarDrawer(displayMode: .always))
+            .navigationTitle("Search Sites")
+            .toolbar {
+                ToolbarItem(placement: .topBarTrailing) { Button("Done") { dismiss() } }
+            }
+        }
+    }
+}
+
+struct FilterSheet: View {
+    @Binding var mode: MapMode
+    @Binding var statusFilter: StatusFilter
+    @Binding var exploreFilter: ExploreFilter
+    var onDismiss: () -> Void
+    @Environment(\.dismiss) private var dismiss
+    
+    var body: some View {
+        NavigationStack {
+            Form {
+                Section("Mode") {
+                    Picker("Mode", selection: $mode) {
+                        Text("My Map").tag(MapMode.myMap)
+                        Text("Explore").tag(MapMode.explore)
+                    }.pickerStyle(.segmented)
+                    .onChange(of: mode) { _ in Haptics.soft() }
+                }
+                
+                if mode == .myMap {
+                    Section("Status Filter") {
+                        Picker("Status", selection: $statusFilter) {
+                            Text("Visited").tag(StatusFilter.visited)
+                            Text("Wishlist").tag(StatusFilter.wishlist)
+                            Text("Planned").tag(StatusFilter.planned)
+                        }.pickerStyle(.segmented)
+                        .onChange(of: statusFilter) { _ in Haptics.tap() }
+                    }
+                } else {
+                    Section("Explore Filter") {
+                        Picker("Explore", selection: $exploreFilter) {
+                            Text("All").tag(ExploreFilter.all)
+                            Text("Nearby").tag(ExploreFilter.nearby)
+                            Text("Popular").tag(ExploreFilter.popular)
+                            Text("Beginner").tag(ExploreFilter.beginner)
+                        }.pickerStyle(.segmented)
+                        .onChange(of: exploreFilter) { _ in Haptics.tap() }
+                    }
+                }
+            }
+            .navigationTitle("Filters")
+            .toolbar { ToolbarItem(placement: .topBarTrailing) { Button("Done") { onDismiss(); dismiss() } } }
+        }
+    }
 }
 
 #Preview {
