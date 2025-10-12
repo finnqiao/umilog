@@ -13,26 +13,11 @@ public struct UnderwaterThemeView<Content: View>: View {
 
     public var body: some View {
         ZStack {
-            // 1) Animated mesh gradient as ocean backdrop
-            MeshGradient(
-                width: 3, height: 3,
-                points: [
-                    .init(x: 0, y: 0), .init(x: 1, y: 0), .init(x: 0, y: 1),
-                    .init(x: 1, y: 1), .init(x: 0.5, y: 0.5), .init(x: 0.2, y: 0.8)
-                ],
-                colors: [
-                    Color(\.oceanBlue),
-                    Color(\.diveTeal),
-                    Color(\.oceanBlue).opacity(0.8),
-                    Color(\.diveTeal).opacity(0.6),
-                    Color(\.oceanBlue).opacity(0.5),
-                    Color(\.diveTeal).opacity(0.4)
-                ]
-            )
-            .ignoresSafeArea()
-            .blur(radius: 16)
-            .opacity(colorScheme == .dark ? 0.9 : 0.8)
-            .animation(.easeInOut(duration: 6).repeatForever(autoreverses: true), value: t)
+            // 1) Ocean backdrop (MeshGradient on iOS 18+, gradient fallback on iOS 17)
+            oceanBackground
+                .blur(radius: 16)
+                .opacity(colorScheme == .dark ? 0.9 : 0.8)
+                .animation(.easeInOut(duration: 6).repeatForever(autoreverses: true), value: t)
 
             // 2) Caustics-like shimmering overlay using Canvas
             CausticsOverlay(amplitude: 0.25, speed: 0.25)
@@ -56,7 +41,35 @@ public struct UnderwaterThemeView<Content: View>: View {
             withAnimation { t = 1 }
         }
     }
-}
+    private var oceanBackground: some View {
+        Group {
+            if #available(iOS 18.0, *) {
+                MeshGradient(
+                    width: 3, height: 3,
+                    points: [
+                        .init(x: 0, y: 0), .init(x: 1, y: 0), .init(x: 0, y: 1),
+                        .init(x: 1, y: 1), .init(x: 0.5, y: 0.5), .init(x: 0.2, y: 0.8)
+                    ],
+                    colors: [
+                        Color(.oceanBlue),
+                        Color(.diveTeal),
+                        Color(.oceanBlue).opacity(0.8),
+                        Color(.diveTeal).opacity(0.6),
+                        Color(.oceanBlue).opacity(0.5),
+                        Color(.diveTeal).opacity(0.4)
+                    ]
+                )
+                .ignoresSafeArea()
+            } else {
+                // Fallback: layered gradients
+                ZStack {
+                    LinearGradient(colors: [Color(.oceanBlue), Color(.diveTeal)], startPoint: .topLeading, endPoint: .bottomTrailing)
+                    RadialGradient(colors: [Color(.diveTeal).opacity(0.3), .clear], center: .center, startRadius: 0, endRadius: 350)
+                }
+                .ignoresSafeArea()
+            }
+        }
+    }
 
 // MARK: - Modifiers and Transitions
 public extension View {
