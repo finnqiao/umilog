@@ -157,3 +157,16 @@ docs/generated/
 
 # SPM
 .package.resolved
+
+# Data pipeline outputs (generated)
+data/raw/
+data/stage/
+data/export/
+
+# Keep pipeline code & queries
+!data/README.md
+!data/scripts/
+!data/queries/
+
+# Allow seed artifact; do not ignore the app resource
+# Resources/SeedData/sites_wikidata.json
