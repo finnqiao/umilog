@@ -4,6 +4,10 @@
 
 ## 🔎 Latest Learnings (Oct 2025)
 
+- Underwater theme: Achieved “underwater” feel with three light layers (animated MeshGradient, caustics via Canvas, subtle bubbles). Kept effects below 0.25 opacity and used materials for glassy UI. Provided `wateryCardStyle()` and `wateryTransition()` helpers to apply consistently.
+- Performance: Canvas + MeshGradient at 30 FPS with blur radius <= 16 retained >55 FPS on iPhone 12 simulator; avoided heavy shaders/Metal for MVP.
+- Feature flag: Added `AppState.underwaterThemeEnabled` to allow quick visual A/B and fail‑safe toggling if perf regresses.
+
 - Wizard flow refactor shipped: numeric text fields bound to optional numbers caused compile/runtime issues. Switched to String-bound TextFields with safe parse/write on commit in view-models. This eliminated generics ambiguity and edge-case crashes when fields were cleared.
 - Validation gating between steps keeps the wizard lightweight: Step 1 requires site/time, Step 2 unlocks fast save, Steps 3–4 optional chips and notes. The review bar mirrors essentials and its enablement state.
 - SpeciesRepository exposes two hot paths: `search(query)` and `popular(limit, region?)` derived from `COUNT(sightings)`; caching popular results by region removes jank on Step 4.

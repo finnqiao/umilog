@@ -15,6 +15,7 @@ UmiLog (海ログ – "sea log") reduces friction before and after a dive. The m
 - Wildlife Pokédex with species search and sightings
 - History with KPI tiles, grouped cards, and quick actions
 - Profile with stats, achievements, and Cloud backup controls
+- NEW: Underwater theme with glossy, watery transitions and animated ocean overlays (toggle in AppState)
 
 ## 🧭 Information Architecture
 
@@ -90,6 +91,13 @@ open UmiLog.xcworkspace
 If using a free Apple ID, remove Push/iCloud capabilities; all core features work offline.
 
 ## 🧪 Testing
+
+### Visual polish checks
+- Smooth watery transitions between tabs and sheets
+- Glassy cards use ultraThinMaterial with subtle highlights
+- Bubbles and caustics overlays remain subtle (opacity < 0.25) and non‑interactive
+
+### Automated
 
 ```bash
 xcodebuild test -workspace UmiLog.xcworkspace -scheme UmiLog -destination 'platform=iOS Simulator,name=iPhone 15 Pro'

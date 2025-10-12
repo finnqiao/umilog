@@ -84,6 +84,13 @@ All operations are idempotent and crash‑safe; partial failures roll back.
 
 ## UI Patterns
 
+### Underwater Theme (Design System)
+- Implemented in `UmiDesignSystem/Underwater/UnderwaterTheme.swift`
+- Layers: MeshGradient ocean backdrop, Canvas caustics overlay, subtle bubble particles
+- Helpers: `wateryCardStyle()` and `wateryTransition()` for glassy UI and smooth transitions
+- Feature flag: `AppState.underwaterThemeEnabled` (default true)
+- Logging: os.Logger hooks for theme start and seeding completion
+
 ### Site Details Card (Grand‑Bazaar style)
 
 - Hero image header with overlay title

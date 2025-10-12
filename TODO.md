@@ -18,6 +18,10 @@ This list tracks the 2025 refactor to a map‑first IA with a 4‑step logging w
 - **19 wildlife sightings** linked to dives and species
 
 ## 🚧 In Progress / Next Up
+- Ship visual polish: Underwater theme animations/tweaks
+- Add A11y labels on pins, chips, cards; ensure no overlap with home indicator
+- Add QA acceptance checklist below and verify
+- Add small debug toggle in Profile to enable/disable UnderwaterTheme
 - **Test the app** with seeded data on simulator
 - Verify map displays all 24 pins correctly
 - Confirm wizard shows 35 species in catalog
@@ -45,7 +49,7 @@ This list tracks the 2025 refactor to a map‑first IA with a 4‑step logging w
 
 ### Phase 2 – Logging & History (active)
 - [x] 4‑step wizard with validation and fast‑path save
-- [ ] Review bar polish and haptics
+- [x] Review bar haptics (light feedback)
 - [ ] History KPI tiles, group by day
 - [ ] Editable chips and multi‑select toolbar
 - [ ] CSV export (initial)
@@ -58,8 +62,10 @@ This list tracks the 2025 refactor to a map‑first IA with a 4‑step logging w
 ### Phase 4 – Backfill & Polish
 - [ ] Backfill v1 (date range → per‑day site pick → essentials)
 - [ ] Explore sorters: Nearby/Popular/Beginner
+- [x] Underwater theme: glossy watery transitions and overlays
+- [x] Animations + haptics baseline
 - [ ] A11y labels on pins, chips, cards; ensure no overlap with home indicator
-- [ ] Animations, haptics, empty states
+- [ ] Empty states
 
 ## Data & Models
 - [x] Region → Area → Site hierarchy (seed JSON) - 24 sites across 4 regions
@@ -75,6 +81,9 @@ This list tracks the 2025 refactor to a map‑first IA with a 4‑step logging w
 - Backfill 10 dives < 8 min (seeded set)
 
 ## Testing Checklist
+- Visual: watery transitions smooth (no hitching); overlays remain under content
+- A11y: VoiceOver reads map tabs, chips, cards; hit targets ≥44pt
+- Perf: overlays keep FPS > 55 on iPhone 12+, CPU < 25% during idle
 - Unit: repositories, migrations, WizardSaver, species search
 - UI: map → sheet → wizard, offline paths, wishlist gesture
 - Perf: cold start < 2s; DB writes < 100ms; search < 200ms
