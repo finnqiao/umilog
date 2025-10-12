@@ -194,7 +194,10 @@ public enum DatabaseSeeder {
     
     private static func loadJSON<T: Decodable>(_ filename: String, as type: T.Type) throws -> T {
         // Try multiple paths to find the JSON files
-        let possiblePaths = [
+        let possiblePaths: [URL?] = [
+            // Most common: files are at the bundle root (as our logs show)
+            Bundle.main.url(forResource: filename, withExtension: "json"),
+            // Subdirectories we may have configured
             Bundle.main.url(forResource: filename, withExtension: "json", subdirectory: "SeedData"),
             Bundle.main.url(forResource: filename, withExtension: "json", subdirectory: "Resources/SeedData"),
             Bundle.main.url(forResource: "Resources/SeedData/\(filename)", withExtension: "json")
@@ -205,7 +208,7 @@ public enum DatabaseSeeder {
             if let resourcePath = Bundle.main.resourcePath {
                 print("  📂 Bundle resource path: \(resourcePath)")
                 if let contents = try? FileManager.default.contentsOfDirectory(atPath: resourcePath) {
-                    print("  📂 Available resources: \(contents.prefix(10))")
+                    print("  📂 Available resources: \(contents.prefix(50))")
                 }
             }
             throw SeedError.fileNotFound(filename)
