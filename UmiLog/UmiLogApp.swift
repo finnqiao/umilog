@@ -29,7 +29,7 @@ struct ContentView: View {
     @State private var showingWizard = false
     
     var body: some View {
-        ZStack {
+        ZStack(alignment: .bottom) {
             Group {
                 if appState.underwaterThemeEnabled {
                     UnderwaterThemeView { tabs }
@@ -41,12 +41,20 @@ struct ContentView: View {
             .onChange(of: selectedTab) { newTab in
                 if newTab == .log {
                     showingWizard = true
-                    // Revert to previous tab
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-                        selectedTab = .map
-                    }
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) { selectedTab = .map }
                 }
             }
+
+            // Center FAB overlay
+            Button(action: { showingWizard = true }) {
+                Image(systemName: "plus")
+                    .font(.system(size: 20, weight: .bold))
+                    .foregroundStyle(.white)
+                    .frame(width: 56, height: 56)
+                    .background(Color.oceanBlue, in: Circle())
+                    .shadow(color: .black.opacity(0.2), radius: 8, x: 0, y: 6)
+            }
+            .padding(.bottom, 24)
         }
         .sheet(isPresented: $showingWizard) {
             LiveLogWizardView()

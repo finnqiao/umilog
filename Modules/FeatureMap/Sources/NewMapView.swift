@@ -16,19 +16,25 @@ public struct NewMapView: View {
     
     public var body: some View {
         ZStack(alignment: .bottom) {
-            // Map layer
-            Map(coordinateRegion: $mapRegion,
-                interactionModes: .all,
-                showsUserLocation: true,
-                annotationItems: viewModel.visibleSites) { site in
-                MapAnnotation(coordinate: CLLocationCoordinate2D(latitude: site.latitude, longitude: site.longitude)) {
-                    PinView(site: site, isSelected: selectedSite?.id == site.id)
-                        .onTapGesture {
-                            selectedSite = site
-                            showingSiteDetail = true
-                        }
-                }
-            }
+            // Map layer (clustered, POIs suppressed)
+            MapClusterView(
+                annotations: viewModel.visibleSites.map { s in
+                    SiteAnnotation(
+                        id: s.id,
+                        coordinate: CLLocationCoordinate2D(latitude: s.latitude, longitude: s.longitude),
+                        title: s.name,
+                        subtitle: s.location,
+                        visited: s.visitedCount > 0,
+                        wishlist: s.wishlist)
+                },
+                onSelect: { siteId in
+                    if let s = viewModel.sites.first(where: { $0.id == siteId }) {
+                        selectedSite = s
+                        showingSiteDetail = true
+                    }
+                },
+                center: mapRegion.center
+            )
             .ignoresSafeArea()
             
             // Top controls: only Mode segmented control at top
@@ -112,6 +118,8 @@ public struct NewMapView: View {
         .task {
             await viewModel.loadSites()
         }
+        .accessibilityElement(children: .contain)
+        .accessibilitySortPriority(1)
     }
 }
 
@@ -296,13 +304,24 @@ struct SitesListView: View {
     let onSiteTap: (DiveSite) -> Void
     
     var body: some View {
-        ScrollView {
-            LazyVStack(spacing: 0) {
-                ForEach(sites) { site in
-                    SiteRow(site: site)
-                        .onTapGesture {
-                            onSiteTap(site)
-                        }
+        if sites.isEmpty {
+            VStack(spacing: 12) {
+                Image(systemName: "tray")
+                    .font(.system(size: 28))
+                    .foregroundStyle(.secondary)
+                Text("No items")
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
+            }
+            .frame(maxWidth: .infinity)
+            .padding(.vertical, 24)
+        } else {
+            ScrollView {
+                LazyVStack(spacing: 0) {
+                    ForEach(sites) { site in
+                        SiteRow(site: site)
+                            .onTapGesture { onSiteTap(site) }
+                    }
                 }
             }
         }
@@ -380,6 +399,7 @@ class MapViewModel: ObservableObject {
     
     @Published var sites: [DiveSite] = []
     @Published var regions: [Region] = []
+    @Published var loading: Bool = false
     
     var visibleSites: [DiveSite] {
         sites.filter { site in
@@ -426,12 +446,11 @@ class MapViewModel: ObservableObject {
     }
 
     func loadSites() async {
-        // Load from seed data
+        loading = true
+        defer { loading = false }
         let siteRepo = SiteRepository(database: AppDatabase.shared)
         do {
             sites = try siteRepo.fetchAll()
-            
-            // Create regions from sites
             let regionNames = Set(sites.map { $0.region })
             regions = regionNames.map { name in
                 let regionSites = sites.filter { $0.region == name }
