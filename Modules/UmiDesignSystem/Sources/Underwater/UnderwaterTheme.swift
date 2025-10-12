@@ -51,25 +51,26 @@ public struct UnderwaterThemeView<Content: View>: View {
                         .init(x: 1, y: 1), .init(x: 0.5, y: 0.5), .init(x: 0.2, y: 0.8)
                     ],
                     colors: [
-                        Color(.oceanBlue),
-                        Color(.diveTeal),
-                        Color(.oceanBlue).opacity(0.8),
-                        Color(.diveTeal).opacity(0.6),
-                        Color(.oceanBlue).opacity(0.5),
-                        Color(.diveTeal).opacity(0.4)
+                        Color.oceanBlue,
+                        Color.diveTeal,
+                        Color.oceanBlue.opacity(0.8),
+                        Color.diveTeal.opacity(0.6),
+                        Color.oceanBlue.opacity(0.5),
+                        Color.diveTeal.opacity(0.4)
                     ]
                 )
                 .ignoresSafeArea()
             } else {
                 // Fallback: layered gradients
                 ZStack {
-                    LinearGradient(colors: [Color(.oceanBlue), Color(.diveTeal)], startPoint: .topLeading, endPoint: .bottomTrailing)
-                    RadialGradient(colors: [Color(.diveTeal).opacity(0.3), .clear], center: .center, startRadius: 0, endRadius: 350)
+                    LinearGradient(colors: [Color.oceanBlue, Color.diveTeal], startPoint: .topLeading, endPoint: .bottomTrailing)
+                    RadialGradient(colors: [Color.diveTeal.opacity(0.3), .clear], center: .center, startRadius: 0, endRadius: 350)
                 }
                 .ignoresSafeArea()
             }
         }
     }
+}
 
 // MARK: - Modifiers and Transitions
 public extension View {

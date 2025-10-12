@@ -1,5 +1,6 @@
 import SwiftUI
 import UmiDB
+import UmiDesignSystem
 
 public struct ProfileView: View {
     @StateObject private var viewModel = ProfileViewModel()

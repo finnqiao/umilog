@@ -1,6 +1,8 @@
 import Foundation
+import os
 
 public enum DatabaseSeeder {
+    static let logger = Logger(subsystem: "app.umilog", category: "DatabaseSeeder")
     
     // MARK: - Main Seeding Entry Point
     
@@ -11,11 +13,11 @@ public enum DatabaseSeeder {
         // Check if database is already seeded
         let siteCount = try db.siteRepository.fetchAll().count
         if siteCount > 0 {
-            print("📊 Database already seeded (\(siteCount) sites found)")
+            Self.logger.log("Database already seeded (\\(siteCount, privacy: .public) sites)")
             return
         }
         
-        print("🌱 Starting database seed...")
+        Self.logger.log("🌱 Starting database seed...")
         
         // 1. Load and seed dive sites
         try seedSites()
@@ -29,25 +31,28 @@ public enum DatabaseSeeder {
         // 4. Load and seed wildlife sightings
         try seedSightings()
         
-        print("✅ Database seeding complete!")
+        Self.logger.log("✅ Database seeding complete!")
     }
     
     // MARK: - Site Seeding
     
     private static func seedSites() throws {
-        print("  📍 Loading dive sites...")
+        Self.logger.log("  📍 Loading dive sites...")
         
-        // Load both seed files
-        let seedSites = try loadJSON("sites_seed", as: SitesSeedFile.self)
-        let extendedSites = try loadJSON("sites_extended", as: SitesSeedFile.self)
+        // Load multiple optional site files
+        let primary = try loadJSON("sites_seed", as: SitesSeedFile.self)
+        let ext1 = optionalJSON("sites_extended", as: SitesSeedFile.self)
+        let ext2 = optionalJSON("sites_extended2", as: SitesSeedFile.self)
         
-        let allSiteData = seedSites.sites + extendedSites.sites
+        let seedArrays: [[SiteSeedData]] = [primary.sites, ext1?.sites ?? [], ext2?.sites ?? []]
+        let allSiteData = seedArrays.flatMap { $0 }
         let sites = allSiteData.map { convertToSite($0) }
         
         let db = AppDatabase.shared
         try db.siteRepository.createMany(sites)
         
-        print("  ✅ Loaded \(sites.count) dive sites")
+        let regionCount = Set(sites.map { $0.region }).count
+        Self.logger.log("  ✅ Loaded \\(sites.count, privacy: .public) sites across \\(regionCount, privacy: .public) regions")
     }
     
     private static func convertToSite(_ json: SiteSeedData) -> DiveSite {
@@ -87,7 +92,7 @@ public enum DatabaseSeeder {
     // MARK: - Species Seeding
     
     private static func seedSpecies() throws {
-        print("  🐠 Loading wildlife species...")
+        Self.logger.log("  🐠 Loading wildlife species...")
         
         let catalog = try loadJSON("species_catalog", as: SpeciesCatalogFile.self)
         
@@ -110,7 +115,7 @@ public enum DatabaseSeeder {
             }
         }
         
-        print("  ✅ Loaded \(catalog.species.count) wildlife species")
+        Self.logger.log("  ✅ Loaded \\(catalog.species.count, privacy: .public) wildlife species")
     }
     
     private static func convertRarity(_ rarityString: String) -> WildlifeSpecies.Rarity {
@@ -125,7 +130,7 @@ public enum DatabaseSeeder {
     // MARK: - Dive Log Seeding
     
     private static func seedDives() throws {
-        print("  📝 Loading dive logs...")
+        Self.logger.log("  📝 Loading dive logs...")
         
         let logsFile = try loadJSON("dive_logs_mock", as: DiveLogsSeedFile.self)
         
@@ -159,13 +164,13 @@ public enum DatabaseSeeder {
             try db.diveRepository.create(dive)
         }
         
-        print("  ✅ Loaded \(logsFile.dives.count) dive logs")
+        Self.logger.log("  ✅ Loaded \\(logsFile.dives.count, privacy: .public) dive logs")
     }
     
     // MARK: - Sighting Seeding
     
     private static func seedSightings() throws {
-        print("  👁️ Loading wildlife sightings...")
+        Self.logger.log("  👁️ Loading wildlife sightings...")
         
         let sightingsFile = try loadJSON("sightings_mock", as: SightingsSeedFile.self)
         
@@ -187,7 +192,7 @@ public enum DatabaseSeeder {
             }
         }
         
-        print("  ✅ Loaded \(sightingsFile.sightings.count) wildlife sightings")
+        Self.logger.log("  ✅ Loaded \\(sightingsFile.sightings.count, privacy: .public) wildlife sightings")
     }
     
     // MARK: - JSON Loading
@@ -206,15 +211,15 @@ public enum DatabaseSeeder {
         guard let url = possiblePaths.compactMap({ $0 }).first else {
             // Print available resources for debugging
             if let resourcePath = Bundle.main.resourcePath {
-                print("  📂 Bundle resource path: \(resourcePath)")
+                Self.logger.error("  📂 Bundle resource path: \\(resourcePath, privacy: .public)")
                 if let contents = try? FileManager.default.contentsOfDirectory(atPath: resourcePath) {
-                    print("  📂 Available resources: \(contents.prefix(50))")
+                    Self.logger.error("  📂 Available resources sample: \\(String(describing: contents.prefix(50)), privacy: .public)")
                 }
             }
             throw SeedError.fileNotFound(filename)
         }
         
-        print("  ✅ Found file at: \(url.lastPathComponent)")
+        Self.logger.log("  ✅ Found file at: \\(url.lastPathComponent, privacy: .public)")
         let data = try Data(contentsOf: url)
         let decoder = JSONDecoder()
         return try decoder.decode(T.self, from: data)
@@ -230,6 +235,19 @@ public enum DatabaseSeeder {
             case .fileNotFound(let filename):
                 return "Seed data file not found: \(filename).json"
             }
+        }
+    }
+    // Optional loader that returns nil if the file is not present
+    private static func optionalJSON<T: Decodable>(_ filename: String, as type: T.Type) -> T? {
+        do {
+            return try loadJSON(filename, as: type)
+        } catch {
+            if case SeedError.fileNotFound = error {
+                Self.logger.log("  ℹ️ Optional seed file not found: \\(filename, privacy: .public).json")
+                return nil
+            }
+            Self.logger.error("  ❌ Error loading optional file: \\(filename, privacy: .public) – \\((error as NSError).localizedDescription, privacy: .public)")
+            return nil
         }
     }
 }

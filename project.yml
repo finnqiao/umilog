@@ -39,6 +39,8 @@ targets:
         buildPhase: resources
       - path: Resources/SeedData/sightings_mock.json
         buildPhase: resources
+      - path: Resources/SeedData/sites_extended2.json
+        buildPhase: resources
     dependencies:
       - package: GRDB
       - target: UmiDesignSystem

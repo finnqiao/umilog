@@ -30,51 +30,14 @@ struct ContentView: View {
     
     var body: some View {
         ZStack {
-            if appState.underwaterThemeEnabled {
-                UnderwaterThemeView {
+            Group {
+                if appState.underwaterThemeEnabled {
+                    UnderwaterThemeView { tabs }
+                        .wateryTransition()
+                } else {
                     tabs
                 }
-                .wateryTransition()
-            } else {
-                tabs
             }
-                .tabItem {
-                    Label("Map", systemImage: "map.fill")
-                }
-                .tag(Tab.map)
-                
-                NavigationStack {
-                    DiveHistoryView()
-                }
-                .tabItem {
-                    Label("History", systemImage: "clock.fill")
-                }
-                .tag(Tab.history)
-                
-                // Empty placeholder for center FAB
-                Text("")
-                    .tabItem {
-                        Label("Log", systemImage: "plus.circle.fill")
-                    }
-                    .tag(Tab.log)
-                
-                NavigationStack {
-                    WildlifeView()
-                }
-                .tabItem {
-                    Label("Wildlife", systemImage: "fish.fill")
-                }
-                .tag(Tab.wildlife)
-                
-                NavigationStack {
-                    ProfileView()
-                }
-                .tabItem {
-                    Label("Profile", systemImage: "person.fill")
-                }
-                .tag(Tab.profile)
-            }
-            .tint(.oceanBlue)
             .onChange(of: selectedTab) { newTab in
                 if newTab == .log {
                     showingWizard = true
