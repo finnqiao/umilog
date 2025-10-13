@@ -36,6 +36,7 @@ targets:
         buildPhase: resources
       - path: Resources/Maps/dive_light.json
       - path: Resources/Maps/dive_offline.json
+      - path: Resources/Maps/umilog_min.json
         buildPhase: resources
       - path: Resources/Maps/sites.geojson
         buildPhase: resources

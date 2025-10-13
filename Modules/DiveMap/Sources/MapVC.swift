@@ -81,13 +81,13 @@ public final class MapVC: UIViewController, MLNMapViewDelegate, UIGestureRecogni
     private var map: MLNMapView!
     private let fallbackBackground = UIView()
     private let logger = Logger(subsystem: "app.umilog", category: "DiveMap")
-    private let siteColor = UIColor(brandHex: "#0C89A8") ?? UIColor(red: 0.05, green: 0.54, blue: 0.66, alpha: 1.0)
-    private let wreckColor = UIColor(brandHex: "#7A5A3A") ?? UIColor(red: 0.48, green: 0.35, blue: 0.23, alpha: 1.0)
+    private let accentColor = UIColor(brandHex: "#F26A3D") ?? UIColor(red: 0.95, green: 0.42, blue: 0.24, alpha: 1.0)
+    private lazy var stopFillColor = accentColor.withAlphaComponent(0.18)
     private var didFallbackToOfflineStyle = false
-    private lazy var primaryStyleURL: URL? = Bundle.main.url(forResource: "dive_light", withExtension: "json")
+    private lazy var primaryStyleURL: URL? = Bundle.main.url(forResource: "umilog_min", withExtension: "json")
     private lazy var offlineStyleURL: URL? = Bundle.main.url(forResource: "dive_offline", withExtension: "json")
     private var hasAttemptedPrimarySwitch = false
-    private let vectorTileTemplates = ["https://demotiles.maplibre.org/tiles/tiles/{z}/{x}/{y}.pbf"]
+    private let vectorTileTemplates = ["https://demotiles.maplibre.org/tiles/{z}/{x}/{y}.pbf"]
 
     // Runtime callbacks
     public var onSelectAnnotation: ((String) -> Void)?
@@ -100,7 +100,8 @@ public final class MapVC: UIViewController, MLNMapViewDelegate, UIGestureRecogni
     }
 
     private var styleIsReady = false
-    private var siteSource: MLNShapeSource?
+    private var stopsSource: MLNShapeSource?
+    private var routeSource: MLNShapeSource?
     private var pendingStyleWork: DispatchWorkItem?
 
     public override func viewDidLoad() {
@@ -110,12 +111,12 @@ public final class MapVC: UIViewController, MLNMapViewDelegate, UIGestureRecogni
         fallbackBackground.backgroundColor = UIColor(red: 0.91, green: 0.95, blue: 0.96, alpha: 1.0)
         view.addSubview(fallbackBackground)
 
-        guard let initialURL = offlineStyleURL ?? primaryStyleURL else {
+        guard let initialURL = primaryStyleURL ?? offlineStyleURL else {
             logger.error("style_missing: no style JSONs bundled")
             return
         }
 
-        didFallbackToOfflineStyle = (offlineStyleURL != nil)
+        didFallbackToOfflineStyle = (primaryStyleURL == nil)
 
         map = MLNMapView(frame: view.bounds, styleURL: initialURL)
         map.autoresizingMask = [.flexibleWidth, .flexibleHeight]
@@ -188,15 +189,10 @@ public final class MapVC: UIViewController, MLNMapViewDelegate, UIGestureRecogni
 
     @objc private func handleMapTap(_ gesture: UITapGestureRecognizer) {
         let point = gesture.location(in: map)
-        let identifiers: Set<String> = ["site-layer", "site-cluster"]
+        let identifiers: Set<String> = ["stop-num", "stop-circle"]
         let features = map.visibleFeatures(at: point, styleLayerIdentifiers: identifiers)
 
         guard let feature = features.first else { return }
-
-        if let isCluster = feature.attribute(forKey: "cluster") as? NSNumber, isCluster.boolValue {
-            zoomIntoCluster(at: point)
-            return
-        }
 
         if let id = feature.attribute(forKey: "id") as? String {
             logger.log("feature_selected id=\(id, privacy: .public)")
@@ -212,75 +208,74 @@ public final class MapVC: UIViewController, MLNMapViewDelegate, UIGestureRecogni
 
     private func configureStyle(_ style: MLNStyle) {
         ensureBaseLayers(in: style)
-        registerSpriteImages(in: style)
-        addSiteSource(to: style)
-        addSiteLayers(style)
+        ensureDataSources(in: style)
+        ensureOverlayLayers(in: style)
     }
 
-    private func addSiteSource(to style: MLNStyle) {
-        let emptyFeatures = MLNShapeCollectionFeature(shapes: [])
-        let source = MLNShapeSource(identifier: "sites", shape: emptyFeatures, options: [
-            .clustered: true as NSNumber,
-            .clusterRadius: 44 as NSNumber,
-            .maximumZoomLevelForClustering: 10 as NSNumber
-        ])
-        style.addSource(source)
-        siteSource = source
-        logger.log("sources_ready: sites")
+    private func ensureDataSources(in style: MLNStyle) {
+        if stopsSource == nil, let existingStops = style.source(withIdentifier: "stops") as? MLNShapeSource {
+            stopsSource = existingStops
+        }
+        if routeSource == nil, let existingRoute = style.source(withIdentifier: "route") as? MLNShapeSource {
+            routeSource = existingRoute
+        }
+
+        if stopsSource == nil {
+            let empty = MLNShapeCollectionFeature(shapes: [])
+            let stops = MLNShapeSource(identifier: "stops", shape: empty, options: nil)
+            style.addSource(stops)
+            stopsSource = stops
+            logger.log("source_added: stops")
+        }
+
+        if routeSource == nil {
+            let empty = MLNShapeCollectionFeature(shapes: [])
+            let route = MLNShapeSource(identifier: "route", shape: empty, options: nil)
+            style.addSource(route)
+            routeSource = route
+            logger.log("source_added: route")
+        }
     }
 
-    private func addSiteLayers(_ style: MLNStyle) {
-        guard let source = siteSource else { return }
+    private func ensureOverlayLayers(in style: MLNStyle) {
+        if style.layer(withIdentifier: "route-line") == nil, let routeSource {
+            let line = MLNLineStyleLayer(identifier: "route-line", source: routeSource)
+            line.lineColor = NSExpression(forConstantValue: accentColor)
+            line.lineWidth = NSExpression(forConstantValue: 3.0)
+            line.lineJoin = NSExpression(forConstantValue: "round")
+            line.lineCap = NSExpression(forConstantValue: "round")
+            style.addLayer(line)
+        }
 
-        // Clusters
-        let cluster = MLNCircleStyleLayer(identifier: "site-cluster", source: source)
-        cluster.predicate = NSPredicate(format: "cluster == YES")
-        cluster.circleColor = NSExpression(forConstantValue: siteColor)
-        cluster.circleRadius = NSExpression(forConstantValue: 16)
-        style.addLayer(cluster)
+        if style.layer(withIdentifier: "stop-circle") == nil, let stopsSource {
+            let circle = MLNCircleStyleLayer(identifier: "stop-circle", source: stopsSource)
+            circle.circleColor = NSExpression(forConstantValue: stopFillColor)
+            circle.circleStrokeColor = NSExpression(forConstantValue: accentColor)
+            circle.circleStrokeWidth = NSExpression(forConstantValue: 1.0)
+            circle.circleRadius = NSExpression(forConstantValue: 16)
+            style.addLayer(circle)
+        }
 
-        let count = MLNSymbolStyleLayer(identifier: "site-cluster-count", source: source)
-        count.predicate = NSPredicate(format: "cluster == YES")
-        count.text = NSExpression(format: "CAST(point_count, 'NSString')")
-        count.textColor = NSExpression(forConstantValue: UIColor.white)
-        count.textFontSize = NSExpression(forConstantValue: 12)
-        count.textFontNames = NSExpression(forConstantValue: ["HelveticaNeue-Bold"])
-        style.addLayer(count)
-
-        // Individual sites
-        let sites = MLNSymbolStyleLayer(identifier: "site-layer", source: source)
-        sites.predicate = NSPredicate(format: "cluster != YES")
-        sites.iconImageName = NSExpression(format: "TERNARY(kind == 'wreck', 'wreck-icon', 'site-icon')")
-        sites.iconScale = NSExpression(forConstantValue: 1.0)
-        sites.iconAllowsOverlap = NSExpression(forConstantValue: true)
-        sites.iconIgnoresPlacement = NSExpression(forConstantValue: true)
-        style.addLayer(sites)
-
-        // Selection halo
-        let halo = MLNSymbolStyleLayer(identifier: "site-halo", source: source)
-        halo.predicate = NSPredicate(format: "selected == 1 && cluster != YES")
-        halo.iconImageName = NSExpression(forConstantValue: "halo-icon")
-        halo.iconScale = NSExpression(forConstantValue: 1.4)
-        halo.iconAllowsOverlap = NSExpression(forConstantValue: true)
-        halo.iconIgnoresPlacement = NSExpression(forConstantValue: true)
-        style.addLayer(halo)
-
-        logger.log("layers_added: site-cluster, cluster-count, site-layer, site-halo")
-    }
-
-    private func registerSpriteImages(in style: MLNStyle) {
-        style.setImage(makeSiteGlyph(color: siteColor), forName: "site-icon")
-        style.setImage(makeSiteGlyph(color: wreckColor), forName: "wreck-icon")
-        style.setImage(makeHaloGlyph(color: siteColor), forName: "halo-icon")
+        if style.layer(withIdentifier: "stop-num") == nil, let stopsSource {
+            let num = MLNSymbolStyleLayer(identifier: "stop-num", source: stopsSource)
+            num.text = NSExpression(format: "CAST(n, 'NSString')")
+            num.textColor = NSExpression(forConstantValue: UIColor.white)
+            num.textFontSize = NSExpression(forConstantValue: 12)
+            num.textHaloColor = NSExpression(forConstantValue: accentColor)
+            num.textHaloWidth = NSExpression(forConstantValue: 1.0)
+            num.textAllowsOverlap = NSExpression(forConstantValue: true)
+            num.textFontNames = NSExpression(forConstantValue: ["HelveticaNeue-Bold"])
+            style.addLayer(num)
+        }
     }
 
     private func updateAnnotationsIfReady() {
-        guard styleIsReady, let source = siteSource else { return }
+        guard styleIsReady, let stopsSource else { return }
 
         pendingStyleWork?.cancel()
         let work = DispatchWorkItem { [weak self] in
             guard let self else { return }
-            let features = self.annotations.map { annotation -> MLNPointFeature in
+            let features = self.annotations.enumerated().map { index, annotation -> MLNPointFeature in
                 let feature = MLNPointFeature()
                 feature.coordinate = annotation.coordinate
                 feature.attributes = [
@@ -288,12 +283,24 @@ public final class MapVC: UIViewController, MLNMapViewDelegate, UIGestureRecogni
                     "kind": annotation.kind.rawValue,
                     "visited": annotation.visited ? 1 : 0,
                     "wishlist": annotation.wishlist ? 1 : 0,
-                    "selected": annotation.isSelected ? 1 : 0
+                    "selected": annotation.isSelected ? 1 : 0,
+                    "n": index + 1
                 ]
                 return feature
             }
             let collection = MLNShapeCollectionFeature(shapes: features)
-            source.shape = collection
+            stopsSource.shape = collection
+
+            if let routeSource {
+                if self.annotations.count >= 2 {
+                    var coordinates = self.annotations.map { $0.coordinate }
+                    let polyline = MLNPolylineFeature(coordinates: &coordinates, count: UInt(coordinates.count))
+                    routeSource.shape = polyline
+                } else {
+                    routeSource.shape = nil
+                }
+            }
+
             self.logger.log("annotations_applied count=\(self.annotations.count, privacy: .public)")
             if let first = self.annotations.first {
                 self.logger.log("annotations_first id=\(first.id, privacy: .public) lat=\(first.coordinate.latitude, privacy: .public) lon=\(first.coordinate.longitude, privacy: .public)")
@@ -317,57 +324,19 @@ public final class MapVC: UIViewController, MLNMapViewDelegate, UIGestureRecogni
         }
     }
 
-    private func zoomIntoCluster(at point: CGPoint) {
-        let coordinate = map.convert(point, toCoordinateFrom: map)
-        let targetZoom = min(map.zoomLevel + 1.5, map.maximumZoomLevel)
-        map.setCenter(coordinate, zoomLevel: targetZoom, animated: true)
-    }
+    // MARK: - Minimal Base & Overlays
 
-    // MARK: - Sprite Helpers
-
-    private func makeSiteGlyph(color: UIColor) -> UIImage {
-        let size = CGSize(width: 24, height: 24)
-        let renderer = UIGraphicsImageRenderer(size: size)
-        return renderer.image { context in
-            let cg = context.cgContext
-            cg.setFillColor(color.cgColor)
-            cg.addEllipse(in: CGRect(x: 2, y: 2, width: 20, height: 20))
-            cg.fillPath()
-
-            cg.setBlendMode(.clear)
-            cg.addEllipse(in: CGRect(x: 9, y: 9, width: 6, height: 6))
-            cg.fillPath()
-            cg.setBlendMode(.normal)
-        }
-    }
-
-    private func makeHaloGlyph(color: UIColor) -> UIImage {
-        let size = CGSize(width: 32, height: 32)
-        let renderer = UIGraphicsImageRenderer(size: size)
-        return renderer.image { context in
-            let cg = context.cgContext
-            cg.setStrokeColor(color.withAlphaComponent(0.6).cgColor)
-            cg.setLineWidth(6)
-            cg.addEllipse(in: CGRect(x: 3, y: 3, width: 26, height: 26))
-            cg.strokePath()
-        }
-    }
-}
-
-// MARK: - Base Style Helpers
-
-private extension MapVC {
-    func ensureBaseLayers(in style: MLNStyle) {
-        // Style JSON now contains raster tiles, no need to add layers programmatically
-        // Just log that the base style is ready
-        if style.layer(withIdentifier: "osm-tiles") != nil {
-            logger.log("base_layers_found: osm-tiles (raster)")
+    private func ensureBaseLayers(in style: MLNStyle) {
+        // Style JSON already defines all base layers (bg, water, roads, admin, place, poi)
+        // Just verify the source exists
+        if style.source(withIdentifier: "openmap") != nil {
+            logger.log("base_layers_verified: openmap source found")
         } else {
-            logger.warning("base_layers_missing: expected osm-tiles layer in style")
+            logger.warning("base_layers_missing: openmap source not found in style")
         }
     }
 
-    func attemptSwitchToPrimaryStyleIfNeeded() {
+    private func attemptSwitchToPrimaryStyleIfNeeded() {
         guard didFallbackToOfflineStyle, let primaryURL = primaryStyleURL else { return }
         guard !hasAttemptedPrimarySwitch else { return }
         hasAttemptedPrimarySwitch = true
@@ -418,7 +387,7 @@ private extension MapVC {
         }.resume()
     }
 
-    func schedulePrimaryRetry(after delay: TimeInterval = 12) {
+    private func schedulePrimaryRetry(after delay: TimeInterval = 12) {
         guard didFallbackToOfflineStyle else { return }
         DispatchQueue.main.asyncAfter(deadline: .now() + delay) { [weak self] in
             guard let self, self.didFallbackToOfflineStyle else { return }
