@@ -43,11 +43,17 @@ final class MapCoordinator: NSObject, MKMapViewDelegate {
     }
     
     func mapView(_ mapView: MKMapView, didSelect view: MKAnnotationView) {
+        if let cluster = view.annotation as? MKClusterAnnotation {
+            // Zoom into cluster
+            let members = cluster.memberAnnotations
+            mapView.showAnnotations(members, animated: true)
+            return
+        }
         guard let point = view.annotation as? MKPointAnnotation else { return }
         let idPrefix = "id:"
         if let t = point.title, let range = t.range(of: idPrefix) {
             let id = String(t[range.upperBound...])
-            logger.log("pin_selected id=\(id, privacy: .public)")
+            logger.log("pin_selected id=\\(id, privacy: .public)")
             onSelect(id)
         }
     }
