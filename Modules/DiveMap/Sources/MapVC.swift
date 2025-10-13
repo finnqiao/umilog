@@ -106,6 +106,7 @@ public final class MapVC: UIViewController, MLNMapViewDelegate, UIGestureRecogni
 
     public override func viewDidLoad() {
         super.viewDidLoad()
+        print("[DEBUG] MapVC viewDidLoad started")
 
         // Placeholder background while style loads
         fallbackBackground.backgroundColor = UIColor(red: 0.91, green: 0.95, blue: 0.96, alpha: 1.0)

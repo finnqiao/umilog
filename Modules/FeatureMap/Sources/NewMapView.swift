@@ -20,6 +20,7 @@ public struct NewMapView: View {
     
     public init(useMapLibre: Bool = true) {
         self.useMapLibre = useMapLibre
+        print("[DEBUG] NewMapView init: useMapLibre=\(useMapLibre)")
     }
     
     private var primaryColor: Color { viewModel.mode == .explore ? .purple : .oceanBlue }
@@ -44,6 +45,7 @@ public struct NewMapView: View {
     public var body: some View {
         ZStack(alignment: .bottom) {
             if useMapLibre {
+                let _ = print("[DEBUG] Rendering DiveMapView with \(mapLibreAnnotations.count) annotations")
                 DiveMapView(
                     annotations: mapLibreAnnotations,
                     initialCamera: diveMapCamera,

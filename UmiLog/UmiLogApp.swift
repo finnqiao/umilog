@@ -100,7 +100,7 @@ class AppState: ObservableObject {
     
     init() {
         // Initialize app state
-        logger.log("AppState init, underwaterThemeEnabled=\\(self.underwaterThemeEnabled, privacy: .public)")
+        logger.log("AppState init, underwaterThemeEnabled=\\(self.underwaterThemeEnabled, privacy: .public), useMapLibre=\\(self.useMapLibre, privacy: .public)")
         
         // Seed database with test data on first launch
         Task {

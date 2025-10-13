@@ -24,6 +24,7 @@ public struct DiveMapView: UIViewControllerRepresentable {
     }
 
     public func makeUIViewController(context: Context) -> MapVC {
+        print("[DEBUG] Creating MapVC with \(annotations.count) annotations")
         let controller = MapVC()
         controller.initialCamera = initialCamera
         controller.onSelectAnnotation = onSelect
