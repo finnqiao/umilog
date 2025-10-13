@@ -1,7 +1,16 @@
 {
   "version": 8,
   "name": "UmiLog Offline",
-  "sources": {},
+  "sources": {
+    "osm-raster": {
+      "type": "raster",
+      "tiles": ["https://tile.openstreetmap.org/{z}/{x}/{y}.png"],
+      "tileSize": 256,
+      "attribution": "© OpenStreetMap contributors",
+      "minzoom": 0,
+      "maxzoom": 19
+    }
+  },
   "layers": [
     {
       "id": "bg",
@@ -9,6 +18,13 @@
       "paint": {
         "background-color": "#FFFDFB"
       }
+    },
+    {
+      "id": "osm-tiles",
+      "type": "raster",
+      "source": "osm-raster",
+      "minzoom": 0,
+      "maxzoom": 19
     }
   ]
 }

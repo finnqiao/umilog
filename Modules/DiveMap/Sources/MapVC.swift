@@ -116,7 +116,7 @@ public final class MapVC: UIViewController, MLNMapViewDelegate, UIGestureRecogni
             return
         }
 
-        didFallbackToOfflineStyle = (primaryStyleURL == nil)
+        didFallbackToOfflineStyle = (initialURL == offlineStyleURL)
 
         map = MLNMapView(frame: view.bounds, styleURL: initialURL)
         map.autoresizingMask = [.flexibleWidth, .flexibleHeight]
@@ -146,7 +146,7 @@ public final class MapVC: UIViewController, MLNMapViewDelegate, UIGestureRecogni
         logger.log("camera_set lat=\(camera.center.latitude, privacy: .public) lon=\(camera.center.longitude, privacy: .public) zoom=\(camera.zoomLevel, privacy: .public)")
 
         logger.log("style_initial style=\(initialURL.lastPathComponent, privacy: .public) offline=\(self.didFallbackToOfflineStyle, privacy: .public)")
-        attemptSwitchToPrimaryStyleIfNeeded()
+        // Disabled auto-switching to avoid complexity: attemptSwitchToPrimaryStyleIfNeeded()
     }
 
     public override func viewDidLayoutSubviews() {
