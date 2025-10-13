@@ -24,6 +24,10 @@ This list tracks the 2025 refactor to a map‑first IA with a 4‑step logging w
 - **19 wildlife sightings** linked to dives and species
 
 ## 🚧 In Progress / Next Up
+- [ ] Add UI toggle in Profile to switch Map Engine (MapKit vs MapLibre)
+- [ ] Expand MapLibre style (bathymetry raster source + land/water layers)
+- [ ] Add custom Metal water layer to MapLibre style (low alpha caustics)
+- [ ] Replace runtime images with bundled SDF sprite once asset pipeline is ready
 - Ship visual polish: Underwater theme animations/tweaks
 - Add A11y labels on pins, chips, cards; ensure no overlap with home indicator
 - Add QA acceptance checklist below and verify

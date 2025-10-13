@@ -77,6 +77,18 @@ Drop screenshots in docs/screens/ and reference them here (filenames are example
 
 ## 🚀 Getting Started
 
+### Optional MapLibre (custom clustered map)
+- We now include an experimental MapLibre-based map (DiveMap) with GeoJSON runtime sources and clustering. Toggle it via `AppState.useMapLibre`.
+- Style: Resources/Maps/dive_light.json (v8 minimal)
+- Data: Resources/Maps/sites.geojson, shops.geojson
+- Package: MapLibre via SPM (maplibre-gl-native-distribution)
+
+If SPM fails fetching the binary artifact with a cache error, clear the broken artifact and resolve again:
+```bash
+rm -rf ~/Library/Caches/org.swift.swiftpm/artifacts/https___github_com_maplibre_maplibre_native_releases_download_ios_v6_19_1_MapLibre_dynamic_xcframework_zip
+xcodebuild -resolvePackageDependencies -project UmiLog.xcodeproj
+```
+
 1) Install tools
 ```bash
 brew install xcodegen swiftlint

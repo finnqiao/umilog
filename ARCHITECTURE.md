@@ -121,7 +121,12 @@ All operations are idempotent and crash‑safe; partial failures roll back.
 
 - WAL mode, prepared statements, and batch inserts
 - FTS5 indexes for site/species search
-- Map: viewport‑bounded queries (SiteRepository.fetchInBounds), pin clustering, and lazy sheet content
+### Map: viewport‑bounded queries (SiteRepository.fetchInBounds), pin clustering, and lazy sheet content
+
+- MapKit path (current default):
+  - Stable clustering via MKMapView with clusteringIdentifier; cluster tap zooms into members; annotation updates are diffed to prevent jitter.
+- MapLibre path (optional):
+  - New DiveMap module using MapLibre Native. Minimal v8 style (dive_light.json) + runtime GeoJSON sources (sites, shops) with clustering layers and counts. Selection halo prepared; custom Metal water layer planned.
 
 ## Telemetry (privacy‑preserving)
 
