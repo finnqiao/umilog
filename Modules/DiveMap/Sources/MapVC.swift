@@ -328,12 +328,12 @@ public final class MapVC: UIViewController, MLNMapViewDelegate, UIGestureRecogni
     // MARK: - Minimal Base & Overlays
 
     private func ensureBaseLayers(in style: MLNStyle) {
-        // Style JSON already defines all base layers (bg, water, roads, admin, place, poi)
+        // Style JSON now contains raster tiles
         // Just verify the source exists
-        if style.source(withIdentifier: "openmap") != nil {
-            logger.log("base_layers_verified: openmap source found")
+        if style.source(withIdentifier: "osm-raster") != nil {
+            logger.log("base_layers_verified: osm-raster source found")
         } else {
-            logger.warning("base_layers_missing: openmap source not found in style")
+            logger.warning("base_layers_missing: osm-raster source not found in style")
         }
     }
 

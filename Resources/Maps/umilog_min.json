@@ -1,28 +1,23 @@
 {
   "version": 8,
   "name": "UmiLog Minimal",
-  "glyphs": "https://demotiles.maplibre.org/font/{fontstack}/{range}.pbf",
   "sources": {
-    "openmap": {
-      "type": "vector",
-      "tiles": ["https://demotiles.maplibre.org/tiles/{z}/{x}/{y}.pbf"],
+    "osm-raster": {
+      "type": "raster",
+      "tiles": ["https://tile.openstreetmap.org/{z}/{x}/{y}.png"],
+      "tileSize": 256,
+      "attribution": "© OpenStreetMap contributors",
       "minzoom": 0,
-      "maxzoom": 14
+      "maxzoom": 19
     }
   },
   "layers": [
-    {"id": "bg", "type": "background", "paint": {"background-color": "#FFFDFB"}},
-    {"id": "water", "type": "fill", "source": "openmap", "source-layer": "water", "paint": {"fill-color": "#E8F2F6"}},
-    {"id": "major-road", "type": "line", "source": "openmap", "source-layer": "transportation",
-     "filter": ["in", ["get", "class"], ["literal", ["motorway", "trunk", "primary"]]],
-     "paint": {"line-color": "#E0DEDB", "line-width": ["interpolate", ["linear"], ["zoom"], 5, 0.2, 14, 1.2]}},
-    {"id": "admin", "type": "line", "source": "openmap", "source-layer": "boundary",
-     "paint": {"line-color": "#ECEAE7", "line-width": ["interpolate", ["linear"], ["zoom"], 3, 0.2, 8, 0.8]}},
-    {"id": "place", "type": "symbol", "source": "openmap", "source-layer": "place",
-     "layout": {"text-field": ["coalesce", ["get", "name_en"], ["get", "name"]],
-                 "text-size": ["interpolate", ["linear"], ["zoom"], 4, 10, 12, 16]},
-     "paint": {"text-color": "#5E5E5E", "text-halo-color": "#FFFFFF", "text-halo-width": 1}},
-    {"id": "poi", "type": "symbol", "source": "openmap", "source-layer": "poi",
-     "layout": {"visibility": "none"}}
+    {
+      "id": "osm-tiles",
+      "type": "raster",
+      "source": "osm-raster",
+      "minzoom": 0,
+      "maxzoom": 19
+    }
   ]
 }
