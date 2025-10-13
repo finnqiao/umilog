@@ -40,7 +40,7 @@ public struct NewMapView: View {
                     }
                 },
                 onRegionChange: { region in
-                    Task { await viewModel.refreshVisibleSites(in: region) }
+                    viewModel.scheduleRefreshVisibleSites(in: region)
                 },
                 center: mapRegion.center
             )
@@ -536,6 +536,17 @@ class MapViewModel: ObservableObject {
         }
     }
     
+    private var viewportDebounceTask: Task<Void, Never>?
+    
+    func scheduleRefreshVisibleSites(in region: MKCoordinateRegion) {
+        // Debounce region changes to avoid "modifying state during view update" warnings
+        viewportDebounceTask?.cancel()
+        viewportDebounceTask = Task { [weak self] in
+            try? await Task.sleep(nanoseconds: 150_000_000) // 150ms
+            await self?.refreshVisibleSites(in: region)
+        }
+    }
+    
     func refreshVisibleSites(in region: MKCoordinateRegion) async {
         // Compute bounding box
         let span = region.span
@@ -549,7 +560,7 @@ class MapViewModel: ObservableObject {
             let boxSites = try repo.fetchInBounds(minLat: minLat, maxLat: maxLat, minLon: minLon, maxLon: maxLon)
             await MainActor.run { self.visibleSites = boxSites }
         } catch {
-            print("Failed to fetch box sites: \(error)")
+            print("Failed to fetch box sites: \\(error)")
         }
     }
 }

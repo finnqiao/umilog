@@ -47,7 +47,16 @@ public enum DatabaseSeeder {
         
         let seedArrays: [[SiteSeedData]] = [primary.sites, ext1?.sites ?? [], ext2?.sites ?? [], ext3?.sites ?? []]
         let allSiteData = seedArrays.flatMap { $0 }
-        let sites = allSiteData.map { convertToSite($0) }
+        
+        // Deduplicate by id to avoid primary key insert failures when sources overlap
+        var unique: [String: SiteSeedData] = [:]
+        for s in allSiteData {
+            // Keep first occurrence to prefer curated seeds over external
+            if unique[s.id] == nil {
+                unique[s.id] = s
+            }
+        }
+        let sites = unique.values.map { convertToSite($0) }
         
         let db = AppDatabase.shared
         try db.siteRepository.createMany(sites)
