@@ -1,0 +1,8 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {"type":"Feature","properties":{"kind":"site","state":"default","name":"Shark & Yolanda Reef"},"geometry":{"type":"Point","coordinates":[34.3167,27.7833]}},
+    {"type":"Feature","properties":{"kind":"site","state":"visited","name":"Ras Mohammed"},"geometry":{"type":"Point","coordinates":[34.2333,27.7319]}},
+    {"type":"Feature","properties":{"kind":"wreck","state":"wishlist","name":"SS Thistlegorm"},"geometry":{"type":"Point","coordinates":[33.9172,27.8144]}}
+  ]
+}

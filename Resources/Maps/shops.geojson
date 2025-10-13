@@ -1,0 +1,7 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {"type":"Feature","properties":{"kind":"shop","name":"Red Sea Dive Shop"},"geometry":{"type":"Point","coordinates":[34.35,27.90]}},
+    {"type":"Feature","properties":{"kind":"shop","name":"Cozumel Pro Dive"},"geometry":{"type":"Point","coordinates":[-87.03,20.33]}}
+  ]
+}
