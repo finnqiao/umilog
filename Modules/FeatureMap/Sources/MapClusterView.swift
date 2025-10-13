@@ -80,18 +80,49 @@ struct MapClusterView: UIViewRepresentable {
     }
 
     func updateUIView(_ uiView: MKMapView, context: Context) {
-        // Remove old annotations
-        uiView.removeAnnotations(uiView.annotations.filter { !($0 is MKUserLocation) })
-        // Add new
-        let pts = annotations.map { ann -> MKPointAnnotation in
-            let p = MKPointAnnotation()
-            p.coordinate = ann.coordinate
-            p.title = "id:\(ann.id)"
-            p.subtitle = "visited:\(ann.visited ? 1 : 0);wishlist:\(ann.wishlist ? 1 : 0)"
-            return p
+        // Diff existing vs desired annotations to avoid churn and visual jitter
+        let existing = uiView.annotations.compactMap { $0 as? MKPointAnnotation }
+        var existingById: [String: MKPointAnnotation] = [:]
+        for e in existing {
+            if let t = e.title, t.hasPrefix("id:") {
+                let id = String(t.dropFirst(3))
+                existingById[id] = e
+            }
         }
-        uiView.addAnnotations(pts)
-        if let c = center { uiView.setCenter(c, animated: true) }
+        let desiredById: [String: SiteAnnotation] = Dictionary(uniqueKeysWithValues: annotations.map { ($0.id, $0) })
+        
+        // Remove annotations that are no longer desired
+        let toRemove = existing.filter { e in
+            guard let t = e.title, t.hasPrefix("id:") else { return true }
+            let id = String(t.dropFirst(3))
+            return desiredById[id] == nil
+        }
+        if !toRemove.isEmpty { uiView.removeAnnotations(toRemove) }
+        
+        // Add or update annotations
+        var toAdd: [MKPointAnnotation] = []
+        for (id, ann) in desiredById {
+            if let ex = existingById[id] {
+                // Update coordinate and subtitle if changed
+                if ex.coordinate.latitude != ann.coordinate.latitude || ex.coordinate.longitude != ann.coordinate.longitude {
+                    ex.coordinate = ann.coordinate
+                }
+                let newSubtitle = "visited:\(ann.visited ? 1 : 0);wishlist:\(ann.wishlist ? 1 : 0)"
+                if ex.subtitle != newSubtitle { ex.subtitle = newSubtitle }
+            } else {
+                let p = MKPointAnnotation()
+                p.coordinate = ann.coordinate
+                p.title = "id:\(ann.id)"
+                p.subtitle = "visited:\(ann.visited ? 1 : 0);wishlist:\(ann.wishlist ? 1 : 0)"
+                toAdd.append(p)
+            }
+        }
+        if !toAdd.isEmpty {
+            UIView.performWithoutAnimation {
+                uiView.addAnnotations(toAdd)
+            }
+        }
+        // Do not constantly recenter here; region is controlled by gestures and initial makeUIView
     }
 
     func makeCoordinator() -> MapCoordinator { MapCoordinator(onSelect: onSelect, onRegionChange: onRegionChange) }
