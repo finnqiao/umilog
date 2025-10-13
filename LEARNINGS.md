@@ -184,6 +184,7 @@ record["encrypted_field"] = sealed.combined
 - Seeding robustness: When merging multiple site seeds (curated + WD), deduplicate by `id` to avoid PK collisions. Seeding is now idempotent per-table (sites/species/dives/sightings) so a partial failure won’t block subsequent runs.
 - MapKit jitter fix: Avoid removing/adding all annotations on every update; diff by id and update in place. Also stop auto-recentering during SwiftUI updates. This eliminated the "icons jumping" issue.
 - Cluster UX: On tapping an MKClusterAnnotation, zoom to show member annotations. This matches the “split on tap” drill-down.
+- Map engine default: MapLibre is now default for custom styling, clustering, and future bathymetry/Metal water layer; MapKit remains as fallback for compatibility.
 
 ## 🎯 Product Insights
 - SwiftUI `Picker(selection:)` requires the selection type to conform to `Hashable`

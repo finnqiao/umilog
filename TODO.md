@@ -17,6 +17,7 @@ This list tracks the 2025 refactor to a map‑first IA with a 4‑step logging w
 - Site details card updated to the "Grand Bazaar" pattern
 - Map clustering compile fix: added MapClusterView.swift to the FeatureMap target via XcodeGen and corrected pin id extraction in didSelect; FeatureMap now builds cleanly
 - Viewport‑based site loading via `SiteRepository.fetchInBounds`; MapClusterView propagates `regionDidChange` → ViewModel refresh
+- MapLibre is the default map engine (DiveMap); MapKit retained as fallback
 - **Database seeder implementation**: All JSON files loaded on first launch
 - **24 dive sites** across Red Sea, Caribbean, Southeast Asia, Pacific, Mediterranean
 - **35 wildlife species** with scientific names and categories

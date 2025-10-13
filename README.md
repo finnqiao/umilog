@@ -77,8 +77,9 @@ Drop screenshots in docs/screens/ and reference them here (filenames are example
 
 ## 🚀 Getting Started
 
-### Optional MapLibre (custom clustered map)
-- We now include an experimental MapLibre-based map (DiveMap) with GeoJSON runtime sources and clustering. Toggle it via `AppState.useMapLibre`.
+### Map engine (default: MapLibre)
+- The default map engine is MapLibre Native (DiveMap) with GeoJSON runtime sources and clustering.
+- Fallback: MapKit (NewMapView) remains available for testing.
 - Style: Resources/Maps/dive_light.json (v8 minimal)
 - Data: Resources/Maps/sites.geojson, shops.geojson
 - Package: MapLibre via SPM (maplibre-gl-native-distribution)

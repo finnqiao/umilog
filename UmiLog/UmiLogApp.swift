@@ -101,7 +101,7 @@ class AppState: ObservableObject {
     @Published var isAuthenticated: Bool = false
     @Published var requiresFaceID: Bool = false
     @Published var underwaterThemeEnabled: Bool = true
-    @Published var useMapLibre: Bool = false
+    @Published var useMapLibre: Bool = true
     private let logger = Logger(subsystem: "app.umilog", category: "AppState")
     
     init() {
