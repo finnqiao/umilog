@@ -8,11 +8,28 @@ public final class MapVC: UIViewController, MLNMapViewDelegate {
 
     public override func viewDidLoad() {
         super.viewDidLoad()
+        
+        // Add a background view as fallback while tiles load
+        let backgroundView = UIView(frame: view.bounds)
+        backgroundView.backgroundColor = UIColor(red: 0.91, green: 0.95, blue: 0.96, alpha: 1.0) // Light blue
+        backgroundView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
+        view.addSubview(backgroundView)
+        
         guard let styleURL = Bundle.main.url(forResource: "dive_light", withExtension: "json") else {
             logger.error("style_missing: dive_light.json not found in bundle")
             return
         }
-        logger.log("style_url=\(styleURL.absoluteString, privacy: .public)")
+        
+        // Verify style JSON is valid
+        do {
+            let styleData = try Data(contentsOf: styleURL)
+            let _ = try JSONSerialization.jsonObject(with: styleData)
+            logger.log("style_url=\(styleURL.absoluteString, privacy: .public) [valid JSON]")
+        } catch {
+            logger.error("style_invalid: \(error.localizedDescription, privacy: .public)")
+            return
+        }
+        
         map = MLNMapView(frame: view.bounds, styleURL: styleURL)
         map.autoresizingMask = [.flexibleWidth, .flexibleHeight]
         map.logoView.isHidden = true
