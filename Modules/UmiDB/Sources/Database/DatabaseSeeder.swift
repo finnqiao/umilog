@@ -10,28 +10,49 @@ public enum DatabaseSeeder {
     public static func seedIfNeeded() throws {
         let db = AppDatabase.shared
         
-        // Check if database is already seeded
+        Self.logger.log("🌱 Starting database seed...")
+        var seededSomething = false
+        
+        // Sites
         let siteCount = try db.siteRepository.fetchAll().count
-        if siteCount > 0 {
-            Self.logger.log("Database already seeded (\\(siteCount, privacy: .public) sites)")
-            return
+        if siteCount == 0 {
+            try seedSites(); seededSomething = true
+        } else {
+            Self.logger.log("  ℹ️ Sites already present (\\(siteCount, privacy: .public))")
         }
         
-        Self.logger.log("🌱 Starting database seed...")
+        // Species
+        let speciesRepo = SpeciesRepository(database: db)
+        let speciesCount = try speciesRepo.fetchAll().count
+        if speciesCount == 0 {
+            try seedSpecies(); seededSomething = true
+        } else {
+            Self.logger.log("  ℹ️ Species already present (\\(speciesCount, privacy: .public))")
+        }
         
-        // 1. Load and seed dive sites
-        try seedSites()
+        // Dives
+        let diveCount = try db.diveRepository.fetchAll().count
+        if diveCount == 0 {
+            try seedDives(); seededSomething = true
+        } else {
+            Self.logger.log("  ℹ️ Dives already present (\\(diveCount, privacy: .public))")
+        }
         
-        // 2. Load and seed wildlife species
-        try seedSpecies()
+        // Sightings
+        let sightingsCount = try db.read { db in
+            try Int.fetchOne(db, sql: "SELECT COUNT(*) FROM sightings") ?? 0
+        }
+        if sightingsCount == 0 {
+            try seedSightings(); seededSomething = true
+        } else {
+            Self.logger.log("  ℹ️ Sightings already present (\\(sightingsCount, privacy: .public))")
+        }
         
-        // 3. Load and seed dive logs
-        try seedDives()
-        
-        // 4. Load and seed wildlife sightings
-        try seedSightings()
-        
-        Self.logger.log("✅ Database seeding complete!")
+        if seededSomething {
+            Self.logger.log("✅ Database seeding complete!")
+        } else {
+            Self.logger.log("✅ Database already seeded; nothing to do")
+        }
     }
     
     // MARK: - Site Seeding
