@@ -21,6 +21,9 @@ packages:
   GRDB:
     url: https://github.com/groue/GRDB.swift
     version: 6.29.2
+  MapLibre:
+    url: https://github.com/maplibre/maplibre-gl-native-distribution
+    branch: main
 
 targets:
   UmiLog:
@@ -30,6 +33,12 @@ targets:
     sources:
       - path: UmiLog/
       - path: Resources/SeedData/sites_seed.json
+        buildPhase: resources
+      - path: Resources/Maps/dive_light.json
+        buildPhase: resources
+      - path: Resources/Maps/sites.geojson
+        buildPhase: resources
+      - path: Resources/Maps/shops.geojson
         buildPhase: resources
       - path: Resources/SeedData/sites_extended.json
         buildPhase: resources
@@ -54,6 +63,7 @@ targets:
       - target: FeatureSites
       - target: FeatureSettings
       - target: UmiLocationKit
+      - target: DiveMap
     settings:
       base:
         INFOPLIST_FILE: UmiLog/Info.plist
@@ -238,6 +248,21 @@ targets:
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: app.umilog.feature.map
+        GENERATE_INFOPLIST_FILE: YES
+        DEFINES_MODULE: YES
+        SWIFT_INSTALL_OBJC_HEADER: NO
+
+  DiveMap:
+    type: framework
+    platform: iOS
+    sources:
+      - Modules/DiveMap/Sources/
+    dependencies:
+      - package: MapLibre
+      - target: UmiCoreKit
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: app.umilog.feature.divemap
         GENERATE_INFOPLIST_FILE: YES
         DEFINES_MODULE: YES
         SWIFT_INSTALL_OBJC_HEADER: NO
