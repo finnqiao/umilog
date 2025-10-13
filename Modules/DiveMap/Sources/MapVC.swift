@@ -292,14 +292,9 @@ public final class MapVC: UIViewController, MLNMapViewDelegate, UIGestureRecogni
             let collection = MLNShapeCollectionFeature(shapes: features)
             stopsSource.shape = collection
 
+            // Disable route drawing - we want individual dive site badges, not connected routes
             if let routeSource {
-                if self.annotations.count >= 2 {
-                    var coordinates = self.annotations.map { $0.coordinate }
-                    let polyline = MLNPolylineFeature(coordinates: &coordinates, count: UInt(coordinates.count))
-                    routeSource.shape = polyline
-                } else {
-                    routeSource.shape = nil
-                }
+                routeSource.shape = nil // Always empty - no route lines
             }
 
             self.logger.log("annotations_applied count=\(self.annotations.count, privacy: .public)")
@@ -328,12 +323,12 @@ public final class MapVC: UIViewController, MLNMapViewDelegate, UIGestureRecogni
     // MARK: - Minimal Base & Overlays
 
     private func ensureBaseLayers(in style: MLNStyle) {
-        // Style JSON now contains raster tiles
+        // Style JSON now contains clean CARTO Light raster tiles
         // Just verify the source exists
-        if style.source(withIdentifier: "osm-raster") != nil {
-            logger.log("base_layers_verified: osm-raster source found")
+        if style.source(withIdentifier: "carto-light") != nil {
+            logger.log("base_layers_verified: carto-light source found")
         } else {
-            logger.warning("base_layers_missing: osm-raster source not found in style")
+            logger.warning("base_layers_missing: carto-light source not found in style")
         }
     }
 

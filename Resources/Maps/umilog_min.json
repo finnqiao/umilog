@@ -2,22 +2,26 @@
   "version": 8,
   "name": "UmiLog Minimal",
   "sources": {
-    "osm-raster": {
+    "carto-light": {
       "type": "raster",
-      "tiles": ["https://tile.openstreetmap.org/{z}/{x}/{y}.png"],
+      "tiles": [
+        "https://cartodb-basemaps-a.global.ssl.fastly.net/light_all/{z}/{x}/{y}.png",
+        "https://cartodb-basemaps-b.global.ssl.fastly.net/light_all/{z}/{x}/{y}.png",
+        "https://cartodb-basemaps-c.global.ssl.fastly.net/light_all/{z}/{x}/{y}.png"
+      ],
       "tileSize": 256,
-      "attribution": "© OpenStreetMap contributors",
       "minzoom": 0,
-      "maxzoom": 19
+      "maxzoom": 18,
+      "attribution": "© OpenStreetMap contributors, © CARTO"
     }
   },
   "layers": [
     {
-      "id": "osm-tiles",
+      "id": "carto-light-tiles",
       "type": "raster",
-      "source": "osm-raster",
+      "source": "carto-light",
       "minzoom": 0,
-      "maxzoom": 19
+      "maxzoom": 18
     }
   ]
 }
