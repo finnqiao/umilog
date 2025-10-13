@@ -8,7 +8,6 @@ import FeatureSettings
 import UmiDesignSystem
 import UmiDB
 import os
-import DiveMap
 
 @main
 struct UmiLogApp: App {
@@ -55,13 +54,8 @@ private extension ContentView {
     @ViewBuilder var tabs: some View {
         TabView(selection: $selectedTab) {
             NavigationStack {
-                if appState.useMapLibre {
-                    DiveMapView()
-                        .navigationBarTitleDisplayMode(.inline)
-                } else {
-                    NewMapView()
-                        .navigationBarTitleDisplayMode(.inline)
-                }
+                NewMapView(useMapLibre: appState.useMapLibre)
+                    .navigationBarTitleDisplayMode(.inline)
             }
             .tabItem { Label("Map", systemImage: "map.fill") }
             .tag(Tab.map)
@@ -101,7 +95,7 @@ class AppState: ObservableObject {
     @Published var isAuthenticated: Bool = false
     @Published var requiresFaceID: Bool = false
     @Published var underwaterThemeEnabled: Bool = true
-    @Published var useMapLibre: Bool = false  // Experimental: MapLibre is not yet fully integrated
+    @Published var useMapLibre: Bool = true  // MapLibre is the default map engine; set false for MapKit fallback
     private let logger = Logger(subsystem: "app.umilog", category: "AppState")
     
     init() {

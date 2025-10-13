@@ -1,12 +1,16 @@
 {
   "version": 8,
-  "name": "Dive Light",
+  "name": "UmiLog Light",
   "sources": {
     "osm-raster": {
       "type": "raster",
-      "tiles": ["https://tile.openstreetmap.org/{z}/{x}/{y}.png"],
+      "tiles": [
+        "https://tile.openstreetmap.org/{z}/{x}/{y}.png"
+      ],
       "tileSize": 256,
-      "attribution": "© OpenStreetMap contributors"
+      "attribution": "© OpenStreetMap contributors",
+      "minzoom": 0,
+      "maxzoom": 19
     }
   },
   "layers": [

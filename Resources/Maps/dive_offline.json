@@ -1,0 +1,14 @@
+{
+  "version": 8,
+  "name": "UmiLog Offline",
+  "sources": {},
+  "layers": [
+    {
+      "id": "bg",
+      "type": "background",
+      "paint": {
+        "background-color": "#0A1C24"
+      }
+    }
+  ]
+}

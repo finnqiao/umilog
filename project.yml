@@ -35,6 +35,7 @@ targets:
       - path: Resources/SeedData/sites_seed.json
         buildPhase: resources
       - path: Resources/Maps/dive_light.json
+      - path: Resources/Maps/dive_offline.json
         buildPhase: resources
       - path: Resources/Maps/sites.geojson
         buildPhase: resources
@@ -244,6 +245,7 @@ targets:
       - target: UmiDB
       - target: UmiLocationKit
       - target: FeatureLiveLog
+      - target: DiveMap
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: app.umilog.feature.map

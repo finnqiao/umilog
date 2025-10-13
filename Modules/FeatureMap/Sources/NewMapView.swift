@@ -3,8 +3,10 @@ import MapKit
 import UmiDB
 import FeatureLiveLog
 import UmiDesignSystem
+import DiveMap
 
 public struct NewMapView: View {
+    private let useMapLibre: Bool
     @StateObject private var viewModel = MapViewModel()
     @State private var mapRegion = MKCoordinateRegion(
         center: CLLocationCoordinate2D(latitude: 27.7833, longitude: 34.3167),
@@ -16,35 +18,70 @@ public struct NewMapView: View {
     @State private var showFilters = false
     @State private var searchText = ""
     
-    public init() {}
+    public init(useMapLibre: Bool = true) {
+        self.useMapLibre = useMapLibre
+    }
     
     private var primaryColor: Color { viewModel.mode == .explore ? .purple : .oceanBlue }
+    private var mapLibreAnnotations: [DiveMapAnnotation] {
+        let selectedId = selectedSite?.id
+        return viewModel.visibleSites.map { site in
+            let kind: DiveMapAnnotation.Kind = site.type == .wreck ? .wreck : .site
+            return DiveMapAnnotation(
+                id: site.id,
+                coordinate: CLLocationCoordinate2D(latitude: site.latitude, longitude: site.longitude),
+                kind: kind,
+                visited: site.visitedCount > 0,
+                wishlist: site.wishlist,
+                isSelected: selectedId == site.id
+            )
+        }
+    }
+    private var diveMapCamera: DiveMapCamera {
+        DiveMapCamera(center: mapRegion.center, zoomLevel: 4.8)
+    }
     
     public var body: some View {
         ZStack(alignment: .bottom) {
-            // Map layer (clustered, POIs suppressed)
-            MapClusterView(
-                annotations: viewModel.visibleSites.map { s in
-                    SiteAnnotation(
-                        id: s.id,
-                        coordinate: CLLocationCoordinate2D(latitude: s.latitude, longitude: s.longitude),
-                        title: s.name,
-                        subtitle: s.location,
-                        visited: s.visitedCount > 0,
-                        wishlist: s.wishlist)
-                },
-                onSelect: { siteId in
-                    if let s = viewModel.sites.first(where: { $0.id == siteId }) {
-                        selectedSite = s
-                        showingSiteDetail = true
+            if useMapLibre {
+                DiveMapView(
+                    annotations: mapLibreAnnotations,
+                    initialCamera: diveMapCamera,
+                    onSelect: { siteId in
+                        if let site = viewModel.sites.first(where: { $0.id == siteId }) {
+                            selectedSite = site
+                            showingSiteDetail = true
+                        }
+                    },
+                    onRegionChange: { viewport in
+                        viewModel.scheduleRefreshVisibleSites(bounds: MapBounds(viewport: viewport))
                     }
-                },
-                onRegionChange: { region in
-                    viewModel.scheduleRefreshVisibleSites(in: region)
-                },
-                center: mapRegion.center
-            )
-            .ignoresSafeArea()
+                )
+                .ignoresSafeArea()
+            } else {
+                MapClusterView(
+                    annotations: viewModel.visibleSites.map { s in
+                        SiteAnnotation(
+                            id: s.id,
+                            coordinate: CLLocationCoordinate2D(latitude: s.latitude, longitude: s.longitude),
+                            title: s.name,
+                            subtitle: s.location,
+                            visited: s.visitedCount > 0,
+                            wishlist: s.wishlist)
+                    },
+                    onSelect: { siteId in
+                        if let s = viewModel.sites.first(where: { $0.id == siteId }) {
+                            selectedSite = s
+                            showingSiteDetail = true
+                        }
+                    },
+                    onRegionChange: { region in
+                        viewModel.scheduleRefreshVisibleSites(in: region)
+                    },
+                    center: mapRegion.center
+                )
+                .ignoresSafeArea()
+            }
             
             // Top controls: only Mode segmented control at top
             VStack(spacing: 0) {
@@ -192,6 +229,7 @@ public struct NewMapView: View {
         }
         .task {
             await viewModel.loadSites()
+            await viewModel.refreshVisibleSites(in: mapRegion)
         }
         .accessibilityElement(children: .contain)
         .accessibilitySortPriority(1)
@@ -444,7 +482,7 @@ struct SiteRow: View {
 
 struct QuickFactChip: View {
     let text: String
-    
+
     var body: some View {
         Text(text)
             .font(.caption2)
@@ -456,6 +494,40 @@ struct QuickFactChip: View {
 }
 
 // MARK: - View Model
+
+struct MapBounds {
+    let minLatitude: Double
+    let maxLatitude: Double
+    let minLongitude: Double
+    let maxLongitude: Double
+
+    init(minLatitude: Double, maxLatitude: Double, minLongitude: Double, maxLongitude: Double) {
+        self.minLatitude = minLatitude
+        self.maxLatitude = maxLatitude
+        self.minLongitude = minLongitude
+        self.maxLongitude = maxLongitude
+    }
+
+    init(region: MKCoordinateRegion) {
+        let span = region.span
+        let center = region.center
+        self.init(
+            minLatitude: center.latitude - span.latitudeDelta / 2,
+            maxLatitude: center.latitude + span.latitudeDelta / 2,
+            minLongitude: center.longitude - span.longitudeDelta / 2,
+            maxLongitude: center.longitude + span.longitudeDelta / 2
+        )
+    }
+
+    init(viewport: DiveMapViewport) {
+        self.init(
+            minLatitude: viewport.minLatitude,
+            maxLatitude: viewport.maxLatitude,
+            minLongitude: viewport.minLongitude,
+            maxLongitude: viewport.maxLongitude
+        )
+    }
+}
 
 @MainActor
 class MapViewModel: ObservableObject {
@@ -539,28 +611,33 @@ class MapViewModel: ObservableObject {
     private var viewportDebounceTask: Task<Void, Never>?
     
     func scheduleRefreshVisibleSites(in region: MKCoordinateRegion) {
-        // Debounce region changes to avoid "modifying state during view update" warnings
+        scheduleRefreshVisibleSites(bounds: MapBounds(region: region))
+    }
+
+    func scheduleRefreshVisibleSites(bounds: MapBounds) {
         viewportDebounceTask?.cancel()
         viewportDebounceTask = Task { [weak self] in
-            try? await Task.sleep(nanoseconds: 150_000_000) // 150ms
-            await self?.refreshVisibleSites(in: region)
+            try? await Task.sleep(nanoseconds: 150_000_000)
+            await self?.refreshVisibleSites(bounds: bounds)
         }
     }
-    
+
     func refreshVisibleSites(in region: MKCoordinateRegion) async {
-        // Compute bounding box
-        let span = region.span
-        let center = region.center
-        let minLat = center.latitude - span.latitudeDelta/2
-        let maxLat = center.latitude + span.latitudeDelta/2
-        let minLon = center.longitude - span.longitudeDelta/2
-        let maxLon = center.longitude + span.longitudeDelta/2
+        await refreshVisibleSites(bounds: MapBounds(region: region))
+    }
+
+    private func refreshVisibleSites(bounds: MapBounds) async {
         let repo = SiteRepository(database: AppDatabase.shared)
         do {
-            let boxSites = try repo.fetchInBounds(minLat: minLat, maxLat: maxLat, minLon: minLon, maxLon: maxLon)
+            let boxSites = try repo.fetchInBounds(
+                minLat: bounds.minLatitude,
+                maxLat: bounds.maxLatitude,
+                minLon: bounds.minLongitude,
+                maxLon: bounds.maxLongitude
+            )
             await MainActor.run { self.visibleSites = boxSites }
         } catch {
-            print("Failed to fetch box sites: \\(error)")
+            print("Failed to fetch box sites: \(error)")
         }
     }
 }

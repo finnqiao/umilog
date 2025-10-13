@@ -287,6 +287,22 @@ public enum DatabaseSeeder {
 
 private struct SitesSeedFile: Decodable {
     let sites: [SiteSeedData]
+
+    init(from decoder: Decoder) throws {
+        let container = try decoder.singleValueContainer()
+
+        if let legacy = try? container.decode([String: [SiteSeedData]].self), let legacySites = legacy["sites"] {
+            self.sites = legacySites
+            return
+        }
+
+        if let featureCollection = try? container.decode(GeoJSONFeatureCollection.self) {
+            self.sites = featureCollection.features.compactMap { SiteSeedData(feature: $0) }
+            return
+        }
+
+        throw DecodingError.dataCorrupted(.init(codingPath: decoder.codingPath, debugDescription: "Unsupported sites seed format"))
+    }
 }
 
 private struct SiteSeedData: Decodable {
@@ -306,6 +322,98 @@ private struct SiteSeedData: Decodable {
     let description: String
     let wishlist: Bool
     let visitedCount: Int
+}
+
+private struct GeoJSONFeatureCollection: Decodable {
+    let type: String
+    let features: [GeoJSONFeature]
+}
+
+private struct GeoJSONFeature: Decodable {
+    let type: String
+    let properties: GeoJSONProperties
+    let geometry: GeoJSONGeometry
+}
+
+private struct GeoJSONGeometry: Decodable {
+    let type: String
+    let coordinates: [Double]
+}
+
+private struct GeoJSONProperties: Decodable {
+    let id: String?
+    let name: String?
+    let kind: String?
+    let country: String?
+    let region: String?
+    let area: String?
+    let source: String?
+    let quality: Int?
+    let depthMin: Int?
+    let depthMax: Int?
+
+    private enum CodingKeys: String, CodingKey {
+        case id
+        case name
+        case kind
+        case country
+        case region
+        case area
+        case source
+        case quality
+        case depthMin = "depth_min_m"
+        case depthMax = "depth_max_m"
+    }
+}
+
+private extension SiteSeedData {
+    init?(feature: GeoJSONFeature) {
+        guard feature.geometry.type == "Point" else { return nil }
+        guard feature.geometry.coordinates.count >= 2 else { return nil }
+        guard
+            let id = feature.properties.id,
+            let name = feature.properties.name,
+            let region = feature.properties.region,
+            let area = feature.properties.area,
+            let country = feature.properties.country
+        else {
+            return nil
+        }
+
+        let longitude = feature.geometry.coordinates[0]
+        let latitude = feature.geometry.coordinates[1]
+        let depthMin = Double(feature.properties.depthMin ?? 0)
+        let depthMax = Double(feature.properties.depthMax ?? feature.properties.depthMin ?? 0)
+
+        let typeString: String
+        switch feature.properties.kind?.lowercased() {
+        case "wreck":
+            typeString = "Wreck"
+        case "site":
+            typeString = "Reef"
+        default:
+            typeString = "Reef"
+        }
+
+        self.init(
+            id: id,
+            name: name,
+            region: region,
+            area: area,
+            country: country,
+            latitude: latitude,
+            longitude: longitude,
+            averageDepth: depthMin > 0 ? depthMin : depthMax,
+            maxDepth: depthMax,
+            averageTemp: 0,
+            averageVisibility: 0,
+            difficulty: "Intermediate",
+            type: typeString,
+            description: feature.properties.source ?? "",
+            wishlist: false,
+            visitedCount: 0
+        )
+    }
 }
 
 private struct SpeciesCatalogFile: Decodable {
