@@ -1,21 +1,21 @@
 {
   "version": 8,
   "name": "Dive Light",
-  "glyphs": "https://demotiles.maplibre.org/font/{fontstack}/{range}.pbf",
   "sources": {
-    "openmap": {
-      "type": "vector",
-      "tiles": ["https://demotiles.maplibre.org/tiles/{z}/{x}/{y}.pbf"],
-      "minzoom": 0,
-      "maxzoom": 14
+    "osm-raster": {
+      "type": "raster",
+      "tiles": ["https://tile.openstreetmap.org/{z}/{x}/{y}.png"],
+      "tileSize": 256,
+      "attribution": "© OpenStreetMap contributors"
     }
   },
   "layers": [
-    {"id":"background","type":"background","paint":{"background-color":"#F7F4F1"}},
-    {"id":"water","type":"fill","source":"openmap","source-layer":"water","paint":{"fill-color":"#E8F2F6"}},
-    {"id":"landuse","type":"fill","source":"openmap","source-layer":"landuse","paint":{"fill-color":"#F3F1EE"}},
-    {"id":"road","type":"line","source":"openmap","source-layer":"transportation","paint":{"line-color":"#D8D6D3","line-width":["interpolate",["linear"],["zoom"],5,0.2,14,1.2]}},
-    {"id":"admin","type":"line","source":"openmap","source-layer":"boundary","paint":{"line-color":"#E3E1DE","line-width":["interpolate",["linear"],["zoom"],3,0.2,8,0.8]}},
-    {"id":"place-labels","type":"symbol","source":"openmap","source-layer":"place","layout":{"text-field":["get","name_en"],"text-size":["interpolate",["linear"],["zoom"],4,10,12,16]},"paint":{"text-color":"#6B6B6B","text-halo-color":"#FFFFFF","text-halo-width":1}}
+    {
+      "id": "osm-tiles",
+      "type": "raster",
+      "source": "osm-raster",
+      "minzoom": 0,
+      "maxzoom": 19
+    }
   ]
 }
