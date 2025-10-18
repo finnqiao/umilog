@@ -101,7 +101,12 @@ public final class MapVC: UIViewController, MLNMapViewDelegate, UIGestureRecogni
 
     // Data model
     public var annotations: [DiveMapAnnotation] = [] {
-        didSet { updateAnnotationsIfReady() }
+        didSet {
+            // Defer update to avoid state mutation during view updates
+            DispatchQueue.main.async { [weak self] in
+                self?.updateAnnotationsIfReady()
+            }
+        }
     }
 
     private var styleIsReady = false
