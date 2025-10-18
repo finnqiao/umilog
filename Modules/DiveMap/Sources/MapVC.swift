@@ -401,17 +401,19 @@ public final class MapVC: UIViewController, MLNMapViewDelegate, UIGestureRecogni
     }
 
     private func ensureBaseLayers(in style: MLNStyle) {
-        // Simple background - no external tiles to avoid loading issues
-        if style.layer(withIdentifier: "bg") == nil {
-            let background = MLNBackgroundStyleLayer(identifier: "bg")
-            // Light ocean blue background
+        // The style JSON already has raster tiles configured
+        // Just ensure our background is below them
+        if style.layer(withIdentifier: "umi-bg") == nil {
+            let background = MLNBackgroundStyleLayer(identifier: "umi-bg")
+            // Light ocean blue background as fallback
             background.backgroundColor = NSExpression(forConstantValue: UIColor(brandHex: "#E8F2F6") ?? UIColor(red: 0.91, green: 0.95, blue: 0.96, alpha: 1.0))
+            // Insert below all other layers as base
             if let firstLayer = style.layers.first {
                 style.insertLayer(background, below: firstLayer)
             } else {
                 style.addLayer(background)
             }
-            logger.log("layer_added: bg (no external tiles)")
+            logger.log("layer_added: umi-bg as base layer")
         }
     }
 
