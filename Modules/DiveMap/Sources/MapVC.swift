@@ -121,9 +121,14 @@ public final class MapVC: UIViewController, MLNMapViewDelegate, UIGestureRecogni
 
     public override func viewDidLoad() {
         super.viewDidLoad()
+        logger.log("mapvc_viewdidload")
+        
         // Placeholder background while style loads
         fallbackBackground.backgroundColor = UIColor(red: 0.91, green: 0.95, blue: 0.96, alpha: 1.0)
         view.addSubview(fallbackBackground)
+        let w = view.bounds.size.width
+        let h = view.bounds.size.height
+        logger.log("mapvc_bounds width=\(w, privacy: .public) height=\(h, privacy: .public)")
 
         guard let initialURL = primaryStyleURL ?? offlineStyleURL else {
             logger.error("style_missing: no style JSONs bundled")

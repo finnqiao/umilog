@@ -150,6 +150,7 @@ public struct NewMapView: View {
                 viewModel.scheduleRefreshVisibleSites(bounds: MapBounds(viewport: viewport))
             }
         )
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
         .ignoresSafeArea()
     }
     
