@@ -92,9 +92,15 @@ public final class MapVC: UIViewController, MLNMapViewDelegate, UIGestureRecogni
     // Runtime callbacks
     public var onSelectAnnotation: ((String) -> Void)?
     public var onRegionChange: ((DiveMapViewport) -> Void)?
+    private var lastSetCamera: DiveMapCamera?
     public var initialCamera: DiveMapCamera? {
         didSet {
             guard let camera = initialCamera, map != nil else { return }
+            // Only update if significantly different to avoid loops
+            if let last = lastSetCamera, abs(last.center.latitude - camera.center.latitude) < 0.01 && abs(last.zoomLevel - camera.zoomLevel) < 0.5 {
+                return
+            }
+            lastSetCamera = camera
             setCamera(camera, animated: true)
         }
     }
@@ -133,6 +139,13 @@ public final class MapVC: UIViewController, MLNMapViewDelegate, UIGestureRecogni
         map.attributionButton.isHidden = true
         map.automaticallyAdjustsContentInset = false
         map.delegate = self
+        
+        // Enable gestures for zoom/pan
+        map.allowsZooming = true
+        map.allowsScrolling = true
+        map.allowsRotating = false  // Disable rotation for simplicity
+        map.allowsTilting = false
+        
         view.addSubview(map)
 
         let tap = UITapGestureRecognizer(target: self, action: #selector(handleMapTap(_:)))
@@ -193,7 +206,26 @@ public final class MapVC: UIViewController, MLNMapViewDelegate, UIGestureRecogni
         attemptSwitchToPrimaryStyleIfNeeded()
     }
 
+    private var lastEmittedViewport: DiveMapViewport?
+    
     public func mapView(_ mapView: MLNMapView, regionDidChangeAnimated animated: Bool) {
+        // Debounce viewport changes to avoid update loops
+        let bounds = map.visibleCoordinateBounds
+        let viewport = DiveMapViewport(
+            minLatitude: bounds.sw.latitude,
+            maxLatitude: bounds.ne.latitude,
+            minLongitude: bounds.sw.longitude,
+            maxLongitude: bounds.ne.longitude
+        )
+        
+        // Only emit if significantly different from last
+        if let last = lastEmittedViewport,
+           abs(last.minLatitude - viewport.minLatitude) < 0.1,
+           abs(last.maxLatitude - viewport.maxLatitude) < 0.1 {
+            return
+        }
+        
+        lastEmittedViewport = viewport
         emitViewportChange()
     }
 
@@ -369,62 +401,17 @@ public final class MapVC: UIViewController, MLNMapViewDelegate, UIGestureRecogni
     }
 
     private func ensureBaseLayers(in style: MLNStyle) {
+        // Simple background - no external tiles to avoid loading issues
         if style.layer(withIdentifier: "bg") == nil {
             let background = MLNBackgroundStyleLayer(identifier: "bg")
-            // Use light blue to make it obvious the map is rendering
+            // Light ocean blue background
             background.backgroundColor = NSExpression(forConstantValue: UIColor(brandHex: "#E8F2F6") ?? UIColor(red: 0.91, green: 0.95, blue: 0.96, alpha: 1.0))
             if let firstLayer = style.layers.first {
                 style.insertLayer(background, below: firstLayer)
             } else {
                 style.addLayer(background)
             }
-        }
-
-        if didFallbackToOfflineStyle {
-            logger.log("base_layers_skip_remote")
-            return
-        }
-
-        if style.source(withIdentifier: "openmap") == nil {
-            let options: [MLNTileSourceOption: Any] = [
-                .minimumZoomLevel: 0,
-                .maximumZoomLevel: 14
-            ]
-            let vector = MLNVectorTileSource(identifier: "openmap", tileURLTemplates: vectorTileTemplates, options: options)
-            style.addSource(vector)
-            logger.log("source_added: openmap")
-
-            let water = MLNFillStyleLayer(identifier: "water", source: vector)
-            water.sourceLayerIdentifier = "water"
-            water.fillColor = NSExpression(forConstantValue: UIColor(brandHex: "#E8F2F6") ?? UIColor(red: 0.91, green: 0.95, blue: 0.96, alpha: 1.0))
-            style.addLayer(water)
-
-            let road = MLNLineStyleLayer(identifier: "major-road", source: vector)
-            road.sourceLayerIdentifier = "transportation"
-            road.predicate = NSPredicate(format: "class IN %@", ["motorway", "trunk", "primary"])
-            road.lineColor = NSExpression(forConstantValue: UIColor(brandHex: "#E0DEDB") ?? UIColor(white: 0.88, alpha: 1.0))
-            road.lineWidth = NSExpression(forConstantValue: 1.2)
-            style.addLayer(road)
-
-            let admin = MLNLineStyleLayer(identifier: "admin", source: vector)
-            admin.sourceLayerIdentifier = "boundary"
-            admin.lineColor = NSExpression(forConstantValue: UIColor(brandHex: "#ECEAE7") ?? UIColor(white: 0.92, alpha: 1.0))
-            admin.lineWidth = NSExpression(forConstantValue: 0.6)
-            style.addLayer(admin)
-
-            let place = MLNSymbolStyleLayer(identifier: "place", source: vector)
-            place.sourceLayerIdentifier = "place"
-            place.text = NSExpression(forKeyPath: "name_en")  // Simplified: use name_en directly
-            place.textFontSize = NSExpression(forConstantValue: 13)
-            place.textColor = NSExpression(forConstantValue: UIColor(brandHex: "#5E5E5E") ?? UIColor.darkGray)
-            place.textHaloColor = NSExpression(forConstantValue: UIColor.white)
-            place.textHaloWidth = NSExpression(forConstantValue: 1)
-            style.addLayer(place)
-
-            let poi = MLNSymbolStyleLayer(identifier: "poi", source: vector)
-            poi.sourceLayerIdentifier = "poi"
-            poi.isVisible = false
-            style.addLayer(poi)
+            logger.log("layer_added: bg (no external tiles)")
         }
     }
 
