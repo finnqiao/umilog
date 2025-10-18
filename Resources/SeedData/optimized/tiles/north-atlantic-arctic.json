@@ -1,0 +1,43 @@
+{
+  "region": "North Atlantic & Arctic",
+  "sites": [
+    {
+      "id": "dive_site_000002",
+      "name": "Pointe de la Torche",
+      "latitude": 47.836667,
+      "longitude": -4.354444,
+      "country": "France",
+      "description": "Promontory in Finist\u00e8re, France",
+      "maxDepth": 40,
+      "region": "North Atlantic & Arctic",
+      "source": "dive_sites",
+      "license": "CC0",
+      "verified": true,
+      "createdAt": "2025-10-18T14:01:07Z"
+    },
+    {
+      "id": "dive_site_000018",
+      "name": "Calvi Plonge",
+      "latitude": 42.565213,
+      "longitude": 8.756508,
+      "description": "",
+      "maxDepth": 40,
+      "region": "North Atlantic & Arctic",
+      "source": "OpenStreetMap",
+      "license": "ODbL",
+      "verified": true,
+      "createdAt": "2025-10-18T14:03:51Z"
+    }
+  ],
+  "metadata": {
+    "count": 2,
+    "bounds": {
+      "min_lat": 42.565213,
+      "max_lat": 47.836667,
+      "min_lon": -4.354444,
+      "max_lon": 8.756508,
+      "center_lat": 45.20094,
+      "center_lon": 2.201032
+    }
+  }
+}

@@ -1,0 +1,87 @@
+{
+  "version": "1.0",
+  "generated_at": "2025-10-18T14:16:19.673433Z",
+  "tiles": [
+    {
+      "name": "australia-pacific-islands.json",
+      "region": "Australia & Pacific Islands",
+      "count": 6,
+      "size_uncompressed_kb": 2.4,
+      "size_compressed_kb": 0.5,
+      "bounds": {
+        "min_lat": -23.470119,
+        "max_lat": -10.507996,
+        "min_lon": 150.100263,
+        "max_lon": 152.039845,
+        "center_lat": -20.954663666666665,
+        "center_lon": 151.08962783333334
+      }
+    },
+    {
+      "name": "caribbean-atlantic.json",
+      "region": "Caribbean & Atlantic",
+      "count": 165,
+      "size_uncompressed_kb": 57.1,
+      "size_compressed_kb": 4.5,
+      "bounds": {
+        "min_lat": 10.153877,
+        "max_lat": 25.811326,
+        "min_lon": -83.749225,
+        "max_lon": -60.826653,
+        "center_lat": 17.271157333333335,
+        "center_lon": -76.10637037575756
+      }
+    },
+    {
+      "name": "mediterranean.json",
+      "region": "Mediterranean",
+      "count": 212,
+      "size_uncompressed_kb": 73.8,
+      "size_compressed_kb": 5.5,
+      "bounds": {
+        "min_lat": -23.873506,
+        "max_lat": 29.50984,
+        "min_lon": 32.576715,
+        "max_lon": 49.435938,
+        "center_lat": 8.790547698113206,
+        "center_lon": 38.997849816037736
+      }
+    },
+    {
+      "name": "north-atlantic-arctic.json",
+      "region": "North Atlantic & Arctic",
+      "count": 2,
+      "size_uncompressed_kb": 1.0,
+      "size_compressed_kb": 0.4,
+      "bounds": {
+        "min_lat": 42.565213,
+        "max_lat": 47.836667,
+        "min_lon": -4.354444,
+        "max_lon": 8.756508,
+        "center_lat": 45.20094,
+        "center_lon": 2.201032
+      }
+    },
+    {
+      "name": "red-sea-indian-ocean.json",
+      "region": "Red Sea & Indian Ocean",
+      "count": 735,
+      "size_uncompressed_kb": 255.5,
+      "size_compressed_kb": 18.5,
+      "bounds": {
+        "min_lat": -22.134647,
+        "max_lat": 20.960576,
+        "min_lon": 53.34612,
+        "max_lon": 149.999638,
+        "center_lat": 1.070804217687075,
+        "center_lon": 111.9337738
+      }
+    }
+  ],
+  "summary": {
+    "total_sites": 1120,
+    "total_regions": 5,
+    "total_size_uncompressed_mb": 0.4,
+    "total_size_compressed_mb": 0.0
+  }
+}

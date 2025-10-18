@@ -1,0 +1,94 @@
+{
+  "region": "Australia & Pacific Islands",
+  "sites": [
+    {
+      "id": "dive_site_000723",
+      "name": "Two Round Rocks Reef",
+      "latitude": -22.028924,
+      "longitude": 150.100263,
+      "description": "",
+      "maxDepth": 40,
+      "region": "Australia & Pacific Islands",
+      "source": "OpenStreetMap",
+      "license": "ODbL",
+      "verified": true,
+      "createdAt": "2025-10-18T14:03:51Z"
+    },
+    {
+      "id": "dive_site_000778",
+      "name": "Wistari Reef",
+      "latitude": -23.470119,
+      "longitude": 151.880721,
+      "description": "",
+      "maxDepth": 40,
+      "region": "Australia & Pacific Islands",
+      "source": "OpenStreetMap",
+      "license": "ODbL",
+      "verified": true,
+      "createdAt": "2025-10-18T14:03:51Z"
+    },
+    {
+      "id": "dive_site_000779",
+      "name": "Sykes Reef",
+      "latitude": -23.433795,
+      "longitude": 152.039845,
+      "description": "",
+      "maxDepth": 40,
+      "region": "Australia & Pacific Islands",
+      "source": "OpenStreetMap",
+      "license": "ODbL",
+      "verified": true,
+      "createdAt": "2025-10-18T14:03:51Z"
+    },
+    {
+      "id": "dive_site_000780",
+      "name": "Shelving Reef",
+      "latitude": -23.18951,
+      "longitude": 150.934749,
+      "description": "",
+      "maxDepth": 40,
+      "region": "Australia & Pacific Islands",
+      "source": "OpenStreetMap",
+      "license": "ODbL",
+      "verified": true,
+      "createdAt": "2025-10-18T14:03:51Z"
+    },
+    {
+      "id": "dive_site_000825",
+      "name": "Square Rocks Reef",
+      "latitude": -23.097638,
+      "longitude": 150.884831,
+      "description": "",
+      "maxDepth": 40,
+      "region": "Australia & Pacific Islands",
+      "source": "OpenStreetMap",
+      "license": "ODbL",
+      "verified": true,
+      "createdAt": "2025-10-18T14:03:51Z"
+    },
+    {
+      "id": "dive_site_000826",
+      "name": "Dorasi Shoal",
+      "latitude": -10.507996,
+      "longitude": 150.697358,
+      "description": "",
+      "maxDepth": 40,
+      "region": "Australia & Pacific Islands",
+      "source": "OpenStreetMap",
+      "license": "ODbL",
+      "verified": true,
+      "createdAt": "2025-10-18T14:03:51Z"
+    }
+  ],
+  "metadata": {
+    "count": 6,
+    "bounds": {
+      "min_lat": -23.470119,
+      "max_lat": -10.507996,
+      "min_lon": 150.100263,
+      "max_lon": 152.039845,
+      "center_lat": -20.954663666666665,
+      "center_lon": 151.08962783333334
+    }
+  }
+}
