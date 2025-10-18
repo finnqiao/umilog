@@ -358,8 +358,13 @@ public final class MapVC: UIViewController, MLNMapViewDelegate, UIGestureRecogni
     private func ensureBaseLayers(in style: MLNStyle) {
         if style.layer(withIdentifier: "bg") == nil {
             let background = MLNBackgroundStyleLayer(identifier: "bg")
-            background.backgroundColor = NSExpression(forConstantValue: UIColor(brandHex: "#FFFDFB") ?? UIColor.white)
-            style.addLayer(background)
+            // Use light blue to make it obvious the map is rendering
+            background.backgroundColor = NSExpression(forConstantValue: UIColor(brandHex: "#E8F2F6") ?? UIColor(red: 0.91, green: 0.95, blue: 0.96, alpha: 1.0))
+            if let firstLayer = style.layers.first {
+                style.insertLayer(background, below: firstLayer)
+            } else {
+                style.addLayer(background)
+            }
         }
 
         if didFallbackToOfflineStyle {
