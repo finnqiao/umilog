@@ -253,11 +253,12 @@ public final class MapVC: UIViewController, MLNMapViewDelegate, UIGestureRecogni
         if style.layer(withIdentifier: "site-cluster") == nil {
             let cluster = MLNCircleStyleLayer(identifier: "site-cluster", source: siteSource)
             cluster.predicate = NSPredicate(format: "cluster == YES")
-            cluster.circleColor = NSExpression(forConstantValue: clusterFillColor)
-            cluster.circleStrokeColor = NSExpression(forConstantValue: accentColor)
-            cluster.circleStrokeWidth = NSExpression(forConstantValue: 1.0)
-            cluster.circleRadius = NSExpression(forConstantValue: 18)
+            cluster.circleColor = NSExpression(forConstantValue: UIColor.orange)  // Bright orange for visibility
+            cluster.circleStrokeColor = NSExpression(forConstantValue: UIColor.red)
+            cluster.circleStrokeWidth = NSExpression(forConstantValue: 3.0)  // Thicker stroke
+            cluster.circleRadius = NSExpression(forConstantValue: 30)  // Larger clusters
             style.addLayer(cluster)
+            logger.log("layer_added: site-cluster")
         }
 
         if style.layer(withIdentifier: "site-cluster-count") == nil {
@@ -276,10 +277,11 @@ public final class MapVC: UIViewController, MLNMapViewDelegate, UIGestureRecogni
             let sites = MLNSymbolStyleLayer(identifier: "site-layer", source: siteSource)
             sites.predicate = NSPredicate(format: "cluster != YES")
             sites.iconImageName = NSExpression(forConstantValue: "site-placeholder")
-            sites.iconScale = NSExpression(forConstantValue: 0.9)
+            sites.iconScale = NSExpression(forConstantValue: 1.5)  // Much larger for visibility
             sites.iconAllowsOverlap = NSExpression(forConstantValue: true)
             sites.iconIgnoresPlacement = NSExpression(forConstantValue: true)
             style.addLayer(sites)
+            logger.log("layer_added: site-layer")
         }
 
         if style.layer(withIdentifier: "site-selected") == nil {
@@ -350,9 +352,20 @@ public final class MapVC: UIViewController, MLNMapViewDelegate, UIGestureRecogni
 
     private func registerPlaceholderIcon(in style: MLNStyle) {
         if style.image(forName: "site-placeholder") != nil { return }
-        if let image = UIImage(systemName: "mappin.circle.fill")?.withTintColor(accentColor, renderingMode: .alwaysOriginal) {
-            style.setImage(image, forName: "site-placeholder")
+        // Create a larger, more visible marker for debugging
+        let size = CGSize(width: 40, height: 40)
+        let renderer = UIGraphicsImageRenderer(size: size)
+        let image = renderer.image { ctx in
+            // Draw a bright red circle
+            UIColor.red.setFill()
+            ctx.cgContext.fillEllipse(in: CGRect(origin: .zero, size: size))
+            // Draw white border
+            UIColor.white.setStroke()
+            ctx.cgContext.setLineWidth(3)
+            ctx.cgContext.strokeEllipse(in: CGRect(origin: .zero, size: size).insetBy(dx: 1.5, dy: 1.5))
         }
+        style.setImage(image, forName: "site-placeholder")
+        logger.log("icon_registered: site-placeholder")
     }
 
     private func ensureBaseLayers(in style: MLNStyle) {
