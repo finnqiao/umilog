@@ -102,6 +102,119 @@ public enum DatabaseMigrator {
             try db.create(index: "idx_sightings_species", on: "sightings", columns: ["speciesId"])
         }
         
+        // MARK: - v3: Tags, Search, Indexes
+        migrator.registerMigration("v3_tags_search_indexes") { db in
+            // Add tags column to sites
+            try db.alter(table: "sites") { t in
+                t.add(column: "tags", .text).notNull().defaults(to: "[]")
+            }
+            
+            // Site tags normalization table for fast tag filtering
+            try db.create(table: "site_tags") { t in
+                t.column("site_id", .text).notNull()
+                    .references("sites", onDelete: .cascade)
+                t.column("tag", .text).notNull()
+                t.primaryKey(["site_id", "tag"], onConflict: .replace)
+            }
+            try db.create(index: "idx_site_tags_tag", on: "site_tags", columns: ["tag"])
+            
+            // Add core indexes for filtering
+            try db.create(index: "idx_sites_difficulty", on: "sites", columns: ["difficulty"])
+            try db.create(index: "idx_sites_type", on: "sites", columns: ["type"])
+            try db.create(index: "idx_sites_lat_lon", on: "sites", columns: ["latitude", "longitude"])
+            
+            // Rebuild FTS to include tags and more fields
+            try db.drop(virtualTable: "sites_fts")
+            try db.create(virtualTable: "sites_fts", using: FTS5()) { t in
+                t.column("name")
+                t.column("region")
+                t.column("location")
+                t.column("tags")
+                t.column("description")
+                // Note: content table synchronization would require triggers
+                // For now, manual FTS rebuild in seeder via INSERT INTO sites_fts(sites_fts) VALUES('rebuild')
+            }
+        }
+        
+        // MARK: - v4: Facets, Media, Shops, Materialized Filters
+        migrator.registerMigration("v4_facets_media_shops_filters") { db in
+            // Site facets (precomputed attributes)
+            try db.create(table: "site_facets") { t in
+                t.column("site_id", .text).primaryKey()
+                    .references("sites", onDelete: .cascade)
+                t.column("difficulty", .text).notNull()
+                t.column("entry_modes", .text).notNull().defaults(to: "[]")
+                t.column("notable_features", .text).notNull().defaults(to: "[]")
+                t.column("visibility_mean", .double)
+                t.column("temp_mean", .double)
+                t.column("seasonality_json", .text).defaults(to: "{}")
+                t.column("shop_count", .integer).notNull().defaults(to: 0)
+                t.column("image_asset_ids", .text).notNull().defaults(to: "[]")
+                t.column("has_current", .integer).notNull().defaults(to: 0)
+                t.column("min_depth", .double)
+                t.column("max_depth", .double)
+                t.column("is_beginner", .integer).notNull().defaults(to: 0)
+                t.column("is_advanced", .integer).notNull().defaults(to: 0)
+                t.column("updated_at", .datetime).notNull().defaults(sql: "CURRENT_TIMESTAMP")
+            }
+            try db.create(index: "idx_site_facets_difficulty", on: "site_facets", columns: ["difficulty"])
+            try db.create(index: "idx_site_facets_has_current", on: "site_facets", columns: ["has_current"])
+            
+            // Site media (licensed photos/videos)
+            try db.create(table: "site_media") { t in
+                t.column("id", .text).primaryKey()
+                t.column("site_id", .text).notNull()
+                    .references("sites", onDelete: .cascade)
+                t.column("kind", .text).notNull()  // "photo" or "video"
+                t.column("url", .text).notNull()
+                t.column("width", .integer)
+                t.column("height", .integer)
+                t.column("license", .text)  // e.g., "CC-BY-4.0"
+                t.column("attribution", .text)
+                t.column("source_url", .text)
+                t.column("sha256", .text)
+                t.column("is_redistributable", .integer).notNull().defaults(to: 1)
+            }
+            try db.create(index: "idx_site_media_site", on: "site_media", columns: ["site_id"])
+            
+            // Dive shops/centers
+            try db.create(table: "dive_shops") { t in
+                t.column("id", .text).primaryKey()
+                t.column("name", .text).notNull()
+                t.column("country", .text)
+                t.column("region", .text)
+                t.column("area", .text)
+                t.column("latitude", .double)
+                t.column("longitude", .double)
+                t.column("website", .text)
+                t.column("phone", .text)
+                t.column("email", .text)
+                t.column("services", .text).notNull().defaults(to: "[]")
+                t.column("license", .text)
+                t.column("source_url", .text)
+            }
+            
+            // Site-shop associations
+            try db.create(table: "site_shops") { t in
+                t.column("site_id", .text).notNull()
+                    .references("sites", onDelete: .cascade)
+                t.column("shop_id", .text).notNull()
+                    .references("dive_shops", onDelete: .cascade)
+                t.column("distance_km", .double)
+                t.primaryKey(["site_id", "shop_id"], onConflict: .replace)
+            }
+            
+            // Materialized filter counts (precomputed for instant chips)
+            try db.create(table: "site_filters_materialized") { t in
+                t.column("region", .text)
+                t.column("area", .text)
+                t.column("facet", .text).notNull()  // "tag", "difficulty", "feature", "entry"
+                t.column("value", .text).notNull()  // e.g., "wreck", "beginner"
+                t.column("count", .integer).notNull()
+                t.primaryKey(["region", "area", "facet", "value"], onConflict: .replace)
+            }
+        }
+        
         // Run migrations
         try migrator.migrate(writer)
     }
