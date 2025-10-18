@@ -26,11 +26,11 @@ from typing import Dict, List, Any, Optional
 SEED_DATA_DIR = os.getenv('SEED_DATA_DIR', 'Resources/SeedData')
 OUTPUT_DIR = os.getenv('OUTPUT_DIR', '.')
 
-# Expected seed files - use maximum available version
+# Expected seed files - REAL SITES ONLY (no synthetic data)
 FILES = {
-    'sites': f'{SEED_DATA_DIR}/sites_expanded_500plus.json',  # 450 sites (validated)
-    'dives': f'{SEED_DATA_DIR}/dive_logs_expanded_1500plus.json',  # 1585 dives
-    'sightings': f'{SEED_DATA_DIR}/sightings_expanded_5000plus.json',  # 4733 sightings
+    'sites': f'{SEED_DATA_DIR}/sites_real_merged.json',  # 1161 REAL sites from Wikidata + OSM
+    'dives': f'{SEED_DATA_DIR}/dive_logs_real_sites.json',  # 2876 realistic dives
+    'sightings': f'{SEED_DATA_DIR}/sightings_real_sites.json',  # 7186 sightings
 }
 
 # Fallback versions if max not available
