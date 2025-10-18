@@ -20,6 +20,7 @@ public struct DiveSite: Codable, Identifiable, Hashable {
     public let wishlist: Bool
     public let visitedCount: Int
     public let createdAt: Date
+    public let tags: [String]  // v3: Wildlife, features, conditions, activities, characteristics
     
     /// Computed property for MapKit compatibility
     public var coordinate: CLLocationCoordinate2D {
@@ -42,6 +43,7 @@ public struct DiveSite: Codable, Identifiable, Hashable {
         description: String? = nil,
         wishlist: Bool = false,
         visitedCount: Int = 0,
+        tags: [String] = [],
         createdAt: Date = Date()
     ) {
         self.id = id
@@ -59,6 +61,7 @@ public struct DiveSite: Codable, Identifiable, Hashable {
         self.description = description
         self.wishlist = wishlist
         self.visitedCount = visitedCount
+        self.tags = tags
         self.createdAt = createdAt
     }
     
@@ -98,6 +101,7 @@ extension DiveSite: FetchableRecord, PersistableRecord {
         static let description = Column(CodingKeys.description)
         static let wishlist = Column(CodingKeys.wishlist)
         static let visitedCount = Column(CodingKeys.visitedCount)
+        static let tags = Column(CodingKeys.tags)
         static let createdAt = Column(CodingKeys.createdAt)
     }
 }
