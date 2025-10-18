@@ -36,9 +36,12 @@ public struct UnderwaterThemeView<Content: View>: View {
             content
                 .environment(\.waterTransitionEnabled, true)
         }
-        .task { @MainActor in
+        .onAppear {
             logger.log("UnderwaterThemeView started")
-            withAnimation { t = 1 }
+            // Defer animation to avoid state mutation during render
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
+                withAnimation { t = 1 }
+            }
         }
     }
     private var oceanBackground: some View {

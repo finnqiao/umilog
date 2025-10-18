@@ -317,8 +317,16 @@ public final class MapVC: UIViewController, MLNMapViewDelegate, UIGestureRecogni
             sites.iconScale = NSExpression(forConstantValue: 1.5)  // Much larger for visibility
             sites.iconAllowsOverlap = NSExpression(forConstantValue: true)
             sites.iconIgnoresPlacement = NSExpression(forConstantValue: true)
+            sites.isVisible = true  // Explicitly set visibility
             style.addLayer(sites)
-            logger.log("layer_added: site-layer")
+            logger.log("layer_added: site-layer - visibility=\(sites.isVisible, privacy: .public)")
+            
+            // Verify layer was added
+            if let addedLayer = style.layer(withIdentifier: "site-layer") as? MLNSymbolStyleLayer {
+                logger.log("layer_verified: site-layer exists - visible=\(addedLayer.isVisible, privacy: .public)")
+            } else {
+                logger.error("layer_failed: site-layer not found after adding")
+            }
         }
 
         if style.layer(withIdentifier: "site-selected") == nil {
@@ -341,8 +349,12 @@ public final class MapVC: UIViewController, MLNMapViewDelegate, UIGestureRecogni
     }
 
     private func updateAnnotationsIfReady() {
-        guard styleIsReady, let siteSource else { return }
+        guard styleIsReady, let siteSource else {
+            logger.log("updateAnnotationsIfReady: NOT READY styleReady=\(self.styleIsReady, privacy: .public) hasSource=\(self.siteSource != nil, privacy: .public)")
+            return
+        }
 
+        logger.log("updateAnnotationsIfReady: updating \(self.annotations.count, privacy: .public) annotations")
         pendingStyleWork?.cancel()
         let work = DispatchWorkItem { [weak self] in
             guard let self else { return }
@@ -361,6 +373,7 @@ public final class MapVC: UIViewController, MLNMapViewDelegate, UIGestureRecogni
             }
             let collection = MLNShapeCollectionFeature(shapes: features)
             siteSource.shape = collection
+            logger.log("source_updated: \(features.count, privacy: .public) features in collection")
 
             self.logger.log("annotations_applied count=\(self.annotations.count, privacy: .public)")
             if let first = self.annotations.first {
