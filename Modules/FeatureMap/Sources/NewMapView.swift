@@ -110,8 +110,12 @@ public struct NewMapView: View {
             }
             .task {
                 await viewModel.loadSites()
-                await viewModel.refreshVisibleSites(in: mapRegion)
-                focusMap(on: viewModel.filteredSites)
+                // Wait a bit then focus on all sites to center map
+                try? await Task.sleep(nanoseconds: 100_000_000)
+                focusMap(on: viewModel.sites)
+                if !viewModel.sites.isEmpty {
+                    await viewModel.refreshVisibleSites(in: mapRegion)
+                }
             }
             .accessibilityElement(children: .contain)
             .accessibilitySortPriority(1)
@@ -777,11 +781,14 @@ class MapViewModel: ObservableObject {
     @Published var visibleSites: [DiveSite] = []
     
     var filteredSites: [DiveSite] {
-        visibleSites.filter { site in
+        let filtered = visibleSites.filter { site in
             // Region filter
             if let region = selectedRegion, site.region != region.name { return false }
-            // Area filter
-            if let area = selectedArea, parseAreaCountry(site.location).area != area.name { return false }
+            // Area filter  
+            if let area = selectedArea {
+                let (siteArea, _) = parseAreaCountry(site.location)
+                if siteArea != area.name { return false }
+            }
             // Mode filters
             if mode == .myMap {
                 switch statusFilter {
@@ -798,6 +805,7 @@ class MapViewModel: ObservableObject {
                 }
             }
         }
+        return filtered
     }
     
     var visitedCount: Int {
