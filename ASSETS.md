@@ -63,32 +63,66 @@
 ## 🗺️ Data Sources
 
 ### Dive Sites Database
-- **Source**: OpenDiveSites + Custom curation
-- **License**: CC BY-SA 4.0
-- **Attribution**: "Dive site data from OpenDiveSites community"
-- **Files**: `Resources/SeedData/sites_seed.json`
-- **Size**: ~5MB compressed
 
-### Species Data
+#### Current (v1) - 24 Sites ✅
+- **Files**: 
+  - `Resources/SeedData/sites_seed.json` (9 core sites)
+  - `Resources/SeedData/sites_extended.json` (15 additional)
+- **Regions**: Red Sea (4), Caribbean (3), Southeast Asia (8), Pacific (5), Mediterranean (4)
+- **Sources**: OpenDiveSites, Wikidata, Wikivoyage, manual curation
+- **License**: CC BY-SA 4.0 (OpenDiveSites), CC0 (Wikidata), CC-BY-SA 3.0 (Wikivoyage)
+- **Attribution**: "Dive site data from OpenDiveSites, Wikidata, and Wikivoyage contributors"
+- **Size**: ~150KB uncompressed
 
-#### Fish Species
-- **Source**: FishBase.org
-- **License**: CC BY-NC 3.0
-- **Attribution**: "Froese, R. and D. Pauly. Editors. 2024. FishBase."
-- **API**: Not used (offline dataset)
-- **Files**: `Resources/SeedData/species_fish.json`
+#### Sprint Target - 100–150 Sites 🎯
+- **File**: `Resources/SeedData/curated_sites.json`
+- **Regional Distribution**:
+  - Red Sea: 20–25 (Egypt, Sudan, Jordan, Israel)
+  - Caribbean: 25–30 (Mexico, Belize, Cayman, BVI, Bahamas)
+  - Southeast Asia: 25–30 (Thailand, Indonesia, Philippines, Malaysia)
+  - Pacific: 15–20 (Australia GBR, Fiji, Palau, PNG, Hawaii)
+  - Mediterranean: 10–15 (Malta, Greece, Croatia, France, Italy)
+  - Indian Ocean + Other: 13–20 (Maldives, Japan, cenotes)
+- **Sources**: 
+  - Wikidata SPARQL (CC0 - Public Domain)
+  - OpenStreetMap Overpass API (ODbL - Open Database License)
+  - Wikivoyage (CC-BY-SA 3.0)
+  - OBIS species aggregates (Various, store only derived stats)
+  - Government tourism boards (CC-BY where available)
+- **Fields per site**: 
+  - Core: id, name, region, area, country, lat, lon, description
+  - Metadata: min_depth, max_depth, avg_temp, avg_visibility, difficulty, type
+  - Tags: 2–5 from controlled taxonomy (sharks, wreck, drift, etc.)
+  - Facets: entry_modes, notable_features, seasonality, shop_count
+  - Media: 1+ licensed images (CC-BY preferred, Wikimedia Commons)
+  - Provenance: source URLs, licenses, retrieved_at
+- **Size estimate**: ~800KB–1MB uncompressed
 
-#### Marine Life (Non-Fish)
-- **Source**: SeaLifeBase.org
-- **License**: CC BY-NC 3.0
-- **Attribution**: "Palomares, M.L.D. and D. Pauly. Editors. 2024. SeaLifeBase."
-- **Files**: `Resources/SeedData/species_marine.json`
+#### Future (v2) - 10,000+ Sites 🚀
+- Backend-generated tiles served via CDN
+- Incremental updates via ULID-based diffs
+- Always offline-capable with bundled "Open Core" (150–500 sites)
 
-#### Regional Species Lists
-- **Caribbean**: REEF.org survey data (permission pending)
-- **Indo-Pacific**: Compiled from field guides (fair use)
-- **Mediterranean**: Custom curation
-- **Red Sea**: Custom curation
+### Wildlife Species
+
+#### Current - 35 Species ✅
+- **File**: `Resources/SeedData/species_catalog.json`
+- **Categories**: Fish (28), Reptiles (2), Mammals (3), Invertebrates (2)
+- **Rarity levels**: Common, Uncommon, Rare, VeryRare
+- **Regional distribution**: Red Sea, Caribbean, Southeast Asia, Pacific, Mediterranean
+- **Fields**: id, name, scientific_name, category, rarity, regions (array), imageUrl
+- **Sources**:
+  - FishBase.org (CC BY-NC 3.0) - used as reference, not direct scrape
+  - SeaLifeBase.org (CC BY-NC 3.0) - used as reference
+  - WoRMS (World Register of Marine Species) - taxonomy validation
+  - Manual curation from dive guides
+- **Attribution**: "Species taxonomy validated against WoRMS and FishBase"
+- **Size**: ~15KB uncompressed
+
+#### Future Expansion (Optional)
+- Expand to 100–150 species with regional checklists
+- OBIS aggregates for site-specific diversity hints
+- Store only derived stats, not raw occurrence data
 
 ## 🛠️ Third-Party Libraries
 
@@ -242,6 +276,73 @@ Include: "Contains data from OpenDiveSites, FishBase, and SeaLifeBase"
 - JSON: Minified for production
 - Compression: gzip for seed data
 - Chunking: Species by region (~3MB each)
+
+## 🏷️ Tag Taxonomy & Facets
+
+### Controlled Tag Vocabulary
+To ensure consistent filtering and search, all site tags must come from this controlled vocabulary:
+
+#### Wildlife Tags
+Sharks, rays, turtles, dolphins, whales, whale-sharks, mantas, hammerheads, octopus, nudibranchs, macro, pelagics, reef-fish, schools
+
+#### Feature Tags  
+Wreck, reef, wall, drift, cave, cavern, cenote, pinnacle, arch, chimney, canyon, sinkhole, blue-hole, kelp, seagrass
+
+#### Condition Tags
+Current, deep, shallow, night, technical, cold, warm, clear, murky, surge, thermocline
+
+#### Activity Tags
+Photography, penetration, snorkeling, shore-entry, boat-only, liveaboard, freediving
+
+#### Characteristic Tags
+Beginner-friendly, advanced-only, iconic, remote, seasonal, protected, training, certification
+
+### Site Facets (Schema v4)
+Precomputed attributes for instant filtering:
+- **difficulty**: beginner | intermediate | advanced
+- **entry_modes**: ["boat", "shore", "liveaboard"]
+- **notable_features**: subset of feature tags
+- **visibility_mean**: meters (e.g., 25.0)
+- **temp_mean**: Celsius (e.g., 27.0)
+- **seasonality_json**: {"peakMonths": ["Mar", "Apr", "May"]}
+- **has_current**: boolean
+- **min_depth** / **max_depth**: meters
+- **shop_count**: number of nearby dive centers
+- **is_beginner** / **is_advanced**: boolean hints for badges
+
+### Materialized Filters
+Precomputed counts for filter chips (stored in site_filters_materialized):
+- By region: "Red Sea: Beginner (12), Wreck (8), Sharks (15)"
+- By area: "Sharm el-Sheikh: Drift (5), Deep (3)"
+- Global: "All Sites: Reef (45), Cave (12), Liveaboard (8)"
+
+## 📂 Seed Data Files
+
+### Current Files (v1)
+- `sites_seed.json` - 9 core sites
+- `sites_extended.json` - 15 additional sites  
+- `sites_extended2.json` - potential expansion (not yet loaded)
+- `sites_wikidata.json` - scraped from Wikidata (not yet loaded)
+- `species_catalog.json` - 35 marine species
+- `dive_logs_mock.json` - 3 completed dives
+- `sightings_mock.json` - 19 wildlife sightings
+
+### Sprint Files (v2)
+- `curated_sites.json` - 100–150 master list with all metadata
+- `dive_logs_extended.json` - 25 total dives (adds 22)
+- `sightings_extended.json` - 60–75 total sightings (adds 40–55)
+- `facets/global.json` - precomputed filter counts
+- `provenance/attribution.json` - per-source licensing notes
+- `scraped/` - raw scraper outputs (not loaded by app)
+  - `wikidata_sites.json`
+  - `wikivoyage_sites.json`
+  - `osm_sites.json`
+  - `scraped_sites.json` (merged, pre-QA)
+
+### Future Files (v3+)
+- Regional tiles: `tiles/{region}/{area}.json`
+- Incremental diffs: `diffs/{ulid}.json`
+- Open Core bundle: `open_core_v{version}.json`
 
 ## 🔄 Update Log
 

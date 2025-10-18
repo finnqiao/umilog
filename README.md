@@ -6,8 +6,18 @@
 
 UmiLog (海ログ – "sea log") reduces friction before and after a dive. The map is the home, logging is a short guided flow, and everything works offline with optional end‑to‑end encrypted backup.
 
-## ✨ What’s New (2025)
+## ✨ What's New (2025)
 
+### Current Sprint 🎯 (Oct 2025)
+**Curated Site Expansion**: Scaling from 24 → 100–150 world-class dive sites
+- Schema v3–v4: Tags, full-text search (FTS5), facets, media, shops
+- Comprehensive scraping from Wikidata, OpenStreetMap, Wikivoyage, OBIS
+- Performance-first: Viewport queries < 200ms, cold start < 2s, memory < 50MB
+- Controlled tag taxonomy for consistent filtering
+- 25 dive logs + 60–75 wildlife sightings for realistic testing
+- World-scale roadmap: Path to 10,000+ sites defined
+
+### Completed Features ✅
 - Map‑first IA with two modes: My Map and Explore
 - Regions → Areas → Sites tiering with bottom‑sheet details
 - Middle tab triggers the Logging Wizard (overlay FAB removed)
@@ -16,7 +26,7 @@ UmiLog (海ログ – "sea log") reduces friction before and after a dive. The m
 - Wildlife Pokédex with species search and sightings
 - History with KPI tiles, grouped cards, and quick actions
 - Profile with stats, achievements, and Cloud backup controls
-- NEW: Underwater theme with glossy, watery transitions and animated ocean overlays (toggle in AppState)
+- Underwater theme with glossy, watery transitions and animated ocean overlays (toggle in AppState)
 
 ## 🧭 Information Architecture
 
@@ -80,7 +90,7 @@ Drop screenshots in docs/screens/ and reference them here (filenames are example
 ### Map engine (default: MapLibre)
 - The default map engine is MapLibre Native (DiveMap) with GeoJSON runtime sources and clustering.
 - Fallback: MapKit (NewMapView) remains available for testing.
-- Style: Resources/Maps/dive_light.json (v8 minimal)
+- Style: Resources/Maps/umilog_min.json (v8 minimal, vector-only)
 - Data: Resources/Maps/sites.geojson, shops.geojson
 - Package: MapLibre via SPM (maplibre-gl-native-distribution)
 
@@ -123,15 +133,28 @@ xcodebuild test -workspace UmiLog.xcworkspace -scheme UmiLog -destination 'platf
 - Wishlist from Explore ≤ 2 taps (double‑tap pin or swipe)
 - My Map vs Explore recognition ≥ 90% (hallway test)
 
-## 🗺️ Roadmap (phased)
+## 🗄️ Roadmap (phased)
 
-- Phase 0 – Foundations: tokens, remove overlay nav ✅
-- Phase 1 – Map IA: segmented modes, chips, tier tabs, bottom sheets ✅
-- Phase 2 – Logging & History: 4‑step wizard, KPI history, bulk export (CSV)
-- Phase 3 – Wildlife: Pokédex, sightings attach to dives
-- Phase 4 – Backfill & Polish: backfill flow, Explore filters sorting, a11y
+### Shipped ✅
+- Phase 0 – Foundations: tokens, remove overlay nav
+- Phase 1 – Map IA: segmented modes, chips, tier tabs, bottom sheets
+- Phase 1.5 – Logging & History: 4‑step wizard, KPI history
+- Phase 1.5 – Wildlife: Pokédex, sightings attach to dives
 
-Non‑goals this pass: QR sign‑off, shop stamps, computer imports
+### In Progress 🎯
+- **Phase 1.8 – Data Expansion**: 100–150 curated sites with tags, facets, search (7–10 days)
+  - Schema migrations v3–v4
+  - Scraping infrastructure (Wikidata, OSM, Wikivoyage, OBIS)
+  - Performance validation (< 2s cold start, < 200ms queries)
+
+### Next Up 🔜
+- Phase 2 – Tag Filtering UI: Multi-select chips for tags, difficulty, features
+- Phase 3 – Backfill & Polish: backfill flow, Explore filters/sorting, a11y
+- Phase 4 – Export & Sync: CSV export, CloudKit sync, backup/restore
+- Phase 5 – World-Scale: Backend service, 10,000+ sites, automated pipeline
+
+### Non‑goals (MVP)
+QR sign‑off, shop stamps, dive computer imports, social sharing
 
 ## 🤝 Contributing
 

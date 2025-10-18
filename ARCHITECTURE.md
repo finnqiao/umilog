@@ -54,21 +54,53 @@ Tabs: Map · History · Log (FAB) · Wildlife · Profile
 
 ## Data Layer
 
-Tables (minimum to ship):
-- Region(id, name, bounds)
-- Area(id, region_id, name, bounds)
-- Site(id, area_id, name, lat, lon, tags, typicals)
-- Dive(id, site_id, date, start_time, max_depth, bottom_time, pressures, conditions, notes, status)
-- ListState(site_id, state: visited|wishlist|planned)
-- Species(id, names, rarity, regions)
-- Sighting(dive_id, species_id, count)
-- UIState(mode, tier, filters, lastVisitedIDs)
+### Schema v2 (Current) ✅
+Tables:
+- **sites**: id, name, location, lat, lon, region, avg_depth, max_depth, avg_temp, avg_visibility, difficulty, type, description, wishlist, visitedCount, createdAt
+- **dives**: id, site_id, date, start_time, end_time, max_depth, avg_depth, bottom_time, start_pressure, end_pressure, temperature, visibility, current, conditions, notes, instructor_name, instructor_number, signed, createdAt, updatedAt
+- **list_state**: site_id, state (visited|wishlist|planned)
+- **species**: id, name, scientific_name, category, rarity, regions (JSON array), imageUrl
+- **sightings**: id, dive_id, species_id, count, notes, createdAt
+- **ui_state**: mode, tier, filters, lastVisitedIDs
 
-Repositories:
-- DiveRepository, SiteRepository, SpeciesRepository, SightingRepository, ListStateRepository, UIStateRepository
+### Schema v3 (Sprint) 🎯 Tags + Search
+New/modified tables:
+- **sites**: + tags TEXT (JSON array)
+- **site_tags**: site_id, tag (normalized for filtering)
+  - PRIMARY KEY (site_id, tag)
+  - INDEX on tag
+- **site_fts**: FTS5 virtual table (name, region, area, country, tags, description)
+  - Triggers maintain sync with sites table
 
-SiteRepository additions:
-- fetchInBounds(minLat: Double, maxLat: Double, minLon: Double, maxLon: Double) → [DiveSite] for viewport‑bounded map queries
+Indexes added:
+- idx_sites_region ON sites(region)
+- idx_sites_difficulty ON sites(difficulty)
+- idx_sites_type ON sites(type)
+- idx_sites_lat_lon ON sites(latitude, longitude)
+- idx_site_tags_tag ON site_tags(tag)
+
+### Schema v4 (Sprint) 🎯 Facets + Media
+New tables:
+- **site_facets**: site_id (PK), difficulty, entry_modes (JSON), notable_features (JSON), visibility_mean, temp_mean, seasonality_json, shop_count, image_asset_ids (JSON), has_current, min_depth, max_depth, is_beginner, is_advanced, updated_at
+- **site_media**: id, site_id, kind (photo|video), url, width, height, license, attribution, source_url, sha256, is_redistributable
+- **dive_shops**: id, name, country, region, area, lat, lon, website, phone, email, services (JSON), license, source_url
+- **site_shops**: site_id, shop_id, distance_km (junction table)
+- **site_filters_materialized**: region, area, facet, value, count
+  - PRIMARY KEY (region, area, facet, value)
+  - Precomputed for instant filter chips
+
+### Repositories
+- **DiveRepository**: CRUD + getAllDives, getDivesForSite
+- **SiteRepository**: 
+  - fetchInBounds(bounds, filters, limit) → [DiveSiteLite]
+  - fetchDetails(siteId) → SiteDetail (with facets, media, tags)
+  - fetchByTag(tag) → [DiveSiteLite]
+  - searchSites(query, limit) → [DiveSiteLite] (FTS5)
+  - facetCounts(region?, area?) → [MaterializedFilter]
+- **SpeciesRepository**: search, popular, fetchAll
+- **SightingRepository**: CRUD + fetchForDive
+- **ListStateRepository**: CRUD + toggleWishlist
+- **UIStateRepository**: persist/restore map state
 
 ### SpeciesRepository
 
@@ -119,14 +151,36 @@ All operations are idempotent and crash‑safe; partial failures roll back.
 
 ## Performance
 
-- WAL mode, prepared statements, and batch inserts
-- FTS5 indexes for site/species search
-### Map: viewport‑bounded queries (SiteRepository.fetchInBounds), pin clustering, and lazy sheet content
+### Database Optimization
+- **WAL mode**: Write-ahead logging for concurrent reads
+- **Prepared statements**: All queries use GRDB's type-safe query builders
+- **Batch inserts**: Seed data loaded in single transaction
+- **Indexes**: Spatial (lat/lon), categorical (region, difficulty, type), text (FTS5)
+- **Deferred FTS**: Temporarily disable triggers during bulk load, rebuild with `INSERT INTO site_fts(site_fts) VALUES('rebuild')`
 
-- MapLibre path (default):
-  - Stable clustering via MKMapView with clusteringIdentifier; cluster tap zooms into members; annotation updates are diffed to prevent jitter.
-- MapKit path (fallback):
-  - New DiveMap module using MapLibre Native. Minimal v8 style (dive_light.json) + runtime GeoJSON sources (sites, shops) with clustering layers and counts. Selection halo prepared; custom Metal water layer planned.
+### Query Strategy
+- **Viewport-first**: Always constrain by lat/lon bounding box before other filters
+- **Lightweight payloads**: Map uses SiteLite (id, name, lat, lon, difficulty, type); full SiteDetail fetched on selection
+- **Tag filtering**: Use site_tags EXISTS subquery (fast with index) instead of JSON LIKE
+- **Facet counts**: Read from site_filters_materialized (precomputed nightly or on seed)
+- **Search**: FTS5 across name/region/area/country/tags/description with relevance ranking
+
+### Performance Budgets
+- Cold start with 150 sites: **< 2s**
+- Viewport query (≤50 sites): **< 200ms**
+- Full site detail load: **< 100ms**
+- Memory baseline: **< 50MB**
+- FTS5 search: **< 100ms**
+
+### Map Rendering
+- **MapLibre** (default):
+  - DiveMap module renders `umilog_min.json` style (vector tiles)
+  - Runtime GeoJSON sources for sites with clustering
+  - Pins react to filter state
+  - Clusters zoom on tap
+  - Offline fallback if tiles fail
+- **MapKit** (fallback):
+  - Legacy `NewMapView` wrapper for regression testing
 
 ## Telemetry (privacy‑preserving)
 
@@ -138,6 +192,59 @@ Events: mode/tier/filter selections, pin→sheet opens, Log CTA CTR, wizard step
 - UI: map → sheet → wizard happy paths, offline scenarios
 - Performance: write latency, search response, cold start
 
+## Site Data Pipeline (Future: World-Scale)
+
+### Phase 2: 10,000+ Sites (6–12 months)
+
+**Infrastructure**:
+- Backend: FastAPI or Cloudflare Workers
+- Database: PostgreSQL 15+ with PostGIS extension
+- Jobs: GitHub Actions (weekly scrapes) or Prefect Cloud
+- Storage: S3/GCS for artifacts, CDN for JSON tiles
+
+**Automated Pipeline**:
+1. **Data acquisition** (weekly):
+   - Wikidata SPARQL queries (dive sites, coordinates, depth)
+   - OpenStreetMap Overpass API (sport=diving nodes)
+   - Wikivoyage scraper (regional dive articles)
+   - OBIS API (species diversity aggregates per site buffer)
+   - Government/NGO open data portals (when available)
+
+2. **Deduplication**:
+   - H3 spatial bucketing (resolution 9–10, ~250m)
+   - ST_ClusterDBSCAN within buckets (250m threshold)
+   - Jaro–Winkler name similarity ≥ 0.92
+   - Prefer open-licensed sources; store lineage
+
+3. **Quality assurance**:
+   - Validate coordinates in water (not on land)
+   - Sanity checks: depth 5–130m, visibility 3–60m, temp 0–35°C
+   - Flag outliers for manual review
+   - License compliance per source
+
+4. **Materialization** (nightly):
+   - Rebuild site_filters_materialized
+   - Regenerate FTS indexes
+   - Export regional JSON tiles
+   - Generate ULID-based diffs for incremental sync
+
+**App Integration**:
+- Bundle "Open Core" with 150–500 curated sites (always offline-capable)
+- Optional monthly background sync for tile updates
+- User control: opt-in for large datasets
+- Maintain performance budgets: cold start < 2s, queries < 200ms
+
+**Scaling Targets**:
+- 10,000+ dive sites across 100+ countries
+- 500+ species with regional checklists
+- 2,000+ dive centers/shops
+- 10,000+ CC-licensed images from Wikimedia Commons
+
+**Licensing**:
+- Open Core: CC0/CC-BY/ODbL sources only (redistributable)
+- Enriched services: Non-redistributable overlays (MPAs, reefs) via API
+- Auto-generate attribution files per source
+
 ---
 
-Last Updated: October 2025
+Last Updated: October 2025 – v3–v4 schema sprint active

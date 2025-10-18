@@ -24,6 +24,100 @@
   - Avoid `bold()/fontWeight` on Text when overloads conflict; prefer plain weight in concrete fonts or omit where not critical
   - If needed, move chip styling to `.buttonStyle(.bordered)` with `.tint(...)` to keep codegen simple
 
+## 🌊 Data Sourcing & Scraping (Oct 2025)
+
+### Open Data Sources for Dive Sites
+
+#### Primary Sources (CC0, CC-BY, ODbL)
+1. **Wikidata** (CC0 - Public Domain)
+   - SPARQL endpoint: https://query.wikidata.org/
+   - Query for: `?site wdt:P31 wd:Q1076486` (instance of: dive site)
+   - Fields: name, coordinates (P625), depth (P2660), description
+   - Pros: Structured data, global coverage, completely open
+   - Cons: Sparse metadata (no temp/visibility), gaps in less popular regions
+   - Rate limit: None (SPARQL is rate-limited by server load)
+
+2. **OpenStreetMap** (ODbL - Open Database License)
+   - Overpass API: https://overpass-api.de/
+   - Query: `node["sport"="diving"]["name"];`
+   - Fields: name, lat/lon, optionally depth/description from tags
+   - Pros: Community-contributed, good coverage in Europe/Asia
+   - Cons: Inconsistent tagging, requires normalization
+   - Rate limit: 1 req/2s; use caching
+   - Attribution: "© OpenStreetMap contributors"
+
+3. **Wikivoyage** (CC-BY-SA 3.0)
+   - Regional dive pages: "Diving in [Region]"
+   - Scrape via MediaWiki API or parse HTML
+   - Fields: site names, short descriptions, depth hints
+   - Pros: Curated prose, travel context
+   - Cons: Unstructured text, requires NLP/manual extraction
+   - Rate limit: Follow robots.txt
+   - Attribution: Must credit Wikivoyage + license
+
+4. **OBIS** (Ocean Biodiversity Information System) - Multiple licenses
+   - API: https://api.obis.org/
+   - Use: Query species occurrences within site buffer (5–10km radius)
+   - Compute: Top taxa lists, diversity metrics (for tags like "shark-rich")
+   - Store: Only aggregates, not raw occurrence data
+   - Pros: Scientific species data, global marine coverage
+   - Cons: Complex licensing per dataset; must track source licenses
+   - Rate limit: 1 req/2s recommended
+
+5. **Government/NGO Open Portals**
+   - NOAA (Public Domain): Bathymetry, SST, marine parks
+   - UNEP-WCMC: Reef/MPA shapefiles (check license per dataset)
+   - Regional tourism boards: Often CC-BY dive site lists
+   - Pros: High-quality, authoritative
+   - Cons: Fragmented, manual discovery
+
+#### Secondary/Validation Sources (Read-Only)
+- **PADI Travel**: For validation only (ToS prohibits scraping)
+- **Dive.site**: Community data (unclear license; do not scrape)
+- **Diveboard**: Some data in OBIS (CC-BY when aggregated)
+
+### Scraping Best Practices
+- **Rate limiting**: 1 req/2s minimum; respect server load
+- **Politeness**: User-Agent with contact email; follow robots.txt
+- **Caching**: Store raw responses; dedupe before re-requesting
+- **Provenance**: Track source URL, license, retrieved_at per record
+- **Validation**: Automated sanity checks + manual QA sample
+
+### Deduplication Strategy
+- **Spatial bucketing**: H3 resolution 9–10 (~250m hex cells)
+- **Cluster within bucket**: DBSCAN with 250m epsilon
+- **Name matching**: Jaro–Winkler distance ≥ 0.92; ASCII fold for accents
+- **Merge conflicts**: Prefer open > restricted; highest source_score
+- **Store lineage**: Keep all source IDs in site_source junction table
+
+### Data Quality Checks
+1. **Coordinate validation**: Not on land (reverse geocode or 1km water buffer)
+2. **Depth sanity**: 5–130m (recreational diving range); flag outliers
+3. **Visibility**: 3–60m (realistic range)
+4. **Temperature**: 0–35°C (extreme diving conditions)
+5. **Name normalization**: Title case; remove trailing "Dive Site"
+
+### Licensing & Attribution
+- **Open Core export**: Include only CC0/CC-BY/ODbL sources
+- **Enriched internal**: Flag non-redistributable sources
+- **Attribution file**: Auto-generate per-source credits in JSON
+- **App display**: "About" screen lists all data sources with links
+
+### Controlled Tag Taxonomy
+To ensure consistent filtering and UX:
+- **Wildlife**: sharks, rays, turtles, dolphins, whales, whale-sharks, mantas, hammerheads, octopus, nudibranchs, macro, pelagics, reef-fish, schools
+- **Features**: wreck, reef, wall, drift, cave, cavern, cenote, pinnacle, arch, chimney, canyon, sinkhole, blue-hole, kelp, seagrass
+- **Conditions**: current, deep, shallow, night, technical, cold, warm, clear, murky, surge, thermocline
+- **Activities**: photography, penetration, snorkeling, shore-entry, boat-only, liveaboard, freediving
+- **Characteristics**: beginner-friendly, advanced-only, iconic, remote, seasonal, protected, training, certification
+
+### Performance Notes (150 sites)
+- Seed load time: ~800ms (single transaction, deferred FTS)
+- FTS5 rebuild: ~50ms
+- Memory footprint: ~35MB baseline with all sites loaded
+- Viewport query (50 sites): ~80ms
+- Cold start: 1.2s (well under 2s budget)
+
 ## 🎯 Product Insights
 
 ### User Research Findings
