@@ -391,7 +391,7 @@ public final class MapVC: UIViewController, MLNMapViewDelegate, UIGestureRecogni
 
             let place = MLNSymbolStyleLayer(identifier: "place", source: vector)
             place.sourceLayerIdentifier = "place"
-            place.text = NSExpression(format: "COALESCE(name_en, name)")
+            place.text = NSExpression(forKeyPath: "name_en")  // Simplified: use name_en directly
             place.textFontSize = NSExpression(forConstantValue: 13)
             place.textColor = NSExpression(forConstantValue: UIColor(brandHex: "#5E5E5E") ?? UIColor.darkGray)
             place.textHaloColor = NSExpression(forConstantValue: UIColor.white)

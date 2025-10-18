@@ -29,7 +29,7 @@ struct ContentView: View {
     @State private var showingWizard = false
     
     var body: some View {
-        Group {
+        ZStack {
             if appState.underwaterThemeEnabled {
                 UnderwaterThemeView { tabs }
                     .wateryTransition()
@@ -39,8 +39,11 @@ struct ContentView: View {
         }
         .onChange(of: selectedTab) { newTab in
             if newTab == .log {
-                showingWizard = true
-                DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) { selectedTab = .map }
+                Task { @MainActor in
+                    showingWizard = true
+                    try? await Task.sleep(nanoseconds: 100_000_000) // 0.1s
+                    selectedTab = .map
+                }
             }
         }
         .sheet(isPresented: $showingWizard) {
