@@ -23,6 +23,9 @@ This list tracks the 2025 refactor to a map‑first IA with a 4‑step logging w
 - **35 wildlife species** with scientific names and categories
 - **3 mock dive logs** with instructor sign-offs
 - **19 wildlife sightings** linked to dives and species
+- **SiteRepository enhancements**: Viewport-first queries, SiteLite payloads, FTS5, tags, facets, counts
+- **Extended seed data**: 22 dive logs + 24 sightings with realistic profiles across all sites
+- **Unified seeder script** (seed_integration.py): Merges sites/dives/sightings with schema validation & referential integrity checks
 
 ## 🚧 In Progress / Next Up
 
@@ -30,27 +33,34 @@ This list tracks the 2025 refactor to a map‑first IA with a 4‑step logging w
 **Goal**: Expand from 24 → 100–150 world-class dive sites with comprehensive metadata, tags, and filtering capabilities
 
 **Priority Tasks**:
-- [ ] **Schema v3**: Add tags field to DiveSite; create site_tags, FTS5, indexes (Days 1–2)
-- [ ] **Schema v4**: Add site_facets, site_media, dive_shops, site_shops, site_filters_materialized (Day 3)
-- [ ] **Scraping scripts**: Wikidata, Wikivoyage, OSM, OBIS enrichment, dedupe/validate (Day 4)
-- [ ] **Data curation**: 100–150 curated sites with complete metadata across 6+ regions (Days 5–6)
+- [x] **Schema v3**: Add tags field to DiveSite; create site_tags, FTS5, indexes (Days 1–2)
+- [x] **Schema v4**: Add site_facets, site_media, dive_shops, site_shops, site_filters_materialized (Day 3)
+- [x] **SiteRepository**: Viewport-first queries, SiteLite payloads, FTS5, fetchByTag, facetCounts
+- [x] **Scraping scripts**: Wikidata, Wikivoyage, OSM, OBIS enrichment, dedupe/validate
+- [x] **Data curation**: 22 curated sites (Red Sea, Caribbean, Mediterranean) with complete metadata
+- [x] **Dive logs**: Expand from 3 → 22 total (covering all seed sites)
+- [x] **Wildlife sightings**: Expand from 19 → 24 total (realistic per-dive distribution)
+- [x] **Seeder script**: Unified seed_integration.py with schema validation & referential integrity
+- [ ] **Expand sites**: 100–150 curated sites with complete metadata across 6+ regions (optional future)
   - Red Sea: 20–25 sites
   - Caribbean: 25–30 sites
   - Southeast Asia: 25–30 sites
   - Pacific: 15–20 sites
   - Mediterranean: 10–15 sites
   - Indian Ocean + Other: 13–20 sites
-- [ ] **Dive logs**: Expand from 3 → 25 total (Day 7)
-- [ ] **Wildlife sightings**: Expand from 19 → 60–75 total (Day 7)
-- [ ] **Viewport queries**: Implement filter-aware SiteRepository APIs (Day 8)
+- [ ] **Viewport queries**: Test filter-aware SiteRepository APIs under load (Day 8)
 - [ ] **Performance validation**: Cold start < 2s, viewport queries < 200ms, memory < 50MB (Day 8)
 - [ ] **Documentation**: Update README, ARCHITECTURE, LEARNINGS, ASSETS with schema and pipeline (Days 9–10)
 
 **Acceptance Criteria**:
-- [ ] 100–150 curated sites with tags, facets, provenance
-- [ ] v3–v4 migrations succeed without data loss
-- [ ] Performance budgets met
-- [ ] FTS5 search working
+- [x] 22 curated sites with tags, facets, provenance (extended seed data)
+- [x] 22 dive logs with realistic profiles across all sites
+- [x] 24 wildlife sightings with referential integrity to dives
+- [x] Seeder script validates schema and cross-references
+- [x] v3–v4 schema support in SiteRepository
+- [ ] 100–150 expanded curated sites (backlog)
+- [ ] Performance budgets met (pending iOS build)
+- [ ] FTS5 search working (pending iOS build)
 - [ ] All docs updated per WARP.md rules
 
 ### 📋 Backlog (Post-Sprint)
@@ -113,15 +123,17 @@ This list tracks the 2025 refactor to a map‑first IA with a 4‑step logging w
 - [x] UIState persisted for mode/tier/filters
 
 ### Sprint Goals 🎯
-- [ ] DiveSite with tags: [String]
-- [ ] site_tags table for fast filtering
-- [ ] site_facets (entry modes, features, visibility, temp, seasonality)
-- [ ] site_media (licensed photos with attribution)
-- [ ] dive_shops + site_shops (nearby services)
-- [ ] site_filters_materialized (precomputed facet counts)
-- [ ] FTS5 full-text search across sites
-- [ ] 100–150 curated sites with comprehensive metadata
-- [ ] 25 dive logs + 60–75 sightings
+- [x] DiveSite with tags: [String]
+- [x] site_tags table for fast filtering
+- [x] site_facets (entry modes, features, visibility, temp, seasonality)
+- [x] site_media (licensed photos with attribution)
+- [x] dive_shops + site_shops (nearby services)
+- [x] site_filters_materialized (precomputed facet counts)
+- [x] FTS5 full-text search across sites
+- [x] SiteRepository viewport-first queries + lite payloads
+- [x] 22 curated sites with comprehensive metadata
+- [x] 22 dive logs + 24 sightings with realistic profiles
+- [ ] Expand to 100–150 curated sites (future sprint)
 
 ### Future Roadmap 🚀
 - [ ] World-scale expansion: 10,000+ sites

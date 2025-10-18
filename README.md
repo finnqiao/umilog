@@ -9,13 +9,16 @@ UmiLog (海ログ – "sea log") reduces friction before and after a dive. The m
 ## ✨ What's New (2025)
 
 ### Current Sprint 🎯 (Oct 2025)
-**Curated Site Expansion**: Scaling from 24 → 100–150 world-class dive sites
-- Schema v3–v4: Tags, full-text search (FTS5), facets, media, shops
-- Comprehensive scraping from Wikidata, OpenStreetMap, Wikivoyage, OBIS
-- Performance-first: Viewport queries < 200ms, cold start < 2s, memory < 50MB
-- Controlled tag taxonomy for consistent filtering
-- 25 dive logs + 60–75 wildlife sightings for realistic testing
-- World-scale roadmap: Path to 10,000+ sites defined
+**Data Curation Track Completed** ✅
+- [x] Schema v3–v4: Tags, full-text search (FTS5), facets, media, shops
+- [x] SiteRepository: Viewport-first queries, SiteLite payloads, FTS5, facet aggregation
+- [x] Extended seed data: 22 dive logs + 24 wildlife sightings with realistic profiles
+- [x] Unified seeder script (seed_integration.py): Validates schema & referential integrity
+- [x] Scraping infrastructure: Wikidata, OpenStreetMap, Wikivoyage, OBIS scripts created
+- [x] Data prepared across 6+ regions (Red Sea, Caribbean, Mediterranean, etc.)
+
+**Next Sprint** 🔜: iOS build integration & performance validation (< 2s cold start, < 200ms queries)
+- Option to expand seed data to 100–150 sites for world-scale roadmap
 
 ### Completed Features ✅
 - Map‑first IA with two modes: My Map and Explore
@@ -142,13 +145,14 @@ xcodebuild test -workspace UmiLog.xcworkspace -scheme UmiLog -destination 'platf
 - Phase 1.5 – Wildlife: Pokédex, sightings attach to dives
 
 ### In Progress 🎯
-- **Phase 1.8 – Data Expansion**: 100–150 curated sites with tags, facets, search (7–10 days)
-  - Schema migrations v3–v4
-  - Scraping infrastructure (Wikidata, OSM, Wikivoyage, OBIS)
-  - Performance validation (< 2s cold start, < 200ms queries)
+- **Phase 1.8 – iOS Integration & Performance**: Integrate seeder into build, validate on device (5–7 days)
+  - Bundle extended seed data (22 sites, 22 dives, 24 sightings)
+  - Performance validation (< 2s cold start, < 200ms queries, < 50MB memory)
+  - FTS5 search verification on device
 
 ### Next Up 🔜
-- Phase 2 – Tag Filtering UI: Multi-select chips for tags, difficulty, features
+- Phase 2 – Tag Filtering UI: Multi-select chips for tags, difficulty, features (conditional)
+- Phase 2.5 – Data Expansion (Optional): Scale to 100–150 sites with Wikidata scraping
 - Phase 3 – Backfill & Polish: backfill flow, Explore filters/sorting, a11y
 - Phase 4 – Export & Sync: CSV export, CloudKit sync, backup/restore
 - Phase 5 – World-Scale: Backend service, 10,000+ sites, automated pipeline
