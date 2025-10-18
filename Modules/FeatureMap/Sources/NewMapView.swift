@@ -9,8 +9,8 @@ public struct NewMapView: View {
     private let useMapLibre: Bool
     @StateObject private var viewModel = MapViewModel()
     @State private var mapRegion = MKCoordinateRegion(
-        center: CLLocationCoordinate2D(latitude: 27.7833, longitude: 34.3167),
-        span: MKCoordinateSpan(latitudeDelta: 2.0, longitudeDelta: 2.0)
+        center: CLLocationCoordinate2D(latitude: 0, longitude: 0),
+        span: MKCoordinateSpan(latitudeDelta: 120, longitudeDelta: 180)
     )
     @State private var selectedSite: DiveSite?
     @State private var showingSiteDetail = false
@@ -20,13 +20,12 @@ public struct NewMapView: View {
     
     public init(useMapLibre: Bool = true) {
         self.useMapLibre = useMapLibre
-        print("[DEBUG] NewMapView init: useMapLibre=\(useMapLibre)")
     }
     
     private var primaryColor: Color { viewModel.mode == .explore ? .purple : .oceanBlue }
     private var mapLibreAnnotations: [DiveMapAnnotation] {
         let selectedId = selectedSite?.id
-        return viewModel.visibleSites.map { site in
+        return viewModel.filteredSites.map { site in
             let kind: DiveMapAnnotation.Kind = site.type == .wreck ? .wreck : .site
             return DiveMapAnnotation(
                 id: site.id,
@@ -38,203 +37,433 @@ public struct NewMapView: View {
             )
         }
     }
+
+    private func focusMap(on sites: [DiveSite], singleSpan: Double = 4.0) {
+        guard !sites.isEmpty else { return }
+        if sites.count == 1, let site = sites.first {
+            mapRegion = MKCoordinateRegion(
+                center: CLLocationCoordinate2D(latitude: site.latitude, longitude: site.longitude),
+                span: MKCoordinateSpan(latitudeDelta: singleSpan, longitudeDelta: singleSpan)
+            )
+            return
+        }
+
+        let latitudes = sites.map { $0.latitude }
+        let longitudes = sites.map { $0.longitude }
+        guard let minLat = latitudes.min(), let maxLat = latitudes.max(),
+              let minLon = longitudes.min(), let maxLon = longitudes.max() else { return }
+
+        let center = CLLocationCoordinate2D(
+            latitude: (minLat + maxLat) / 2.0,
+            longitude: (minLon + maxLon) / 2.0
+        )
+        let latSpan = max(abs(maxLat - minLat) * 1.4, 6.0)
+        let lonSpan = max(abs(maxLon - minLon) * 1.4, 6.0)
+        mapRegion = MKCoordinateRegion(
+            center: center,
+            span: MKCoordinateSpan(latitudeDelta: latSpan, longitudeDelta: lonSpan)
+        )
+    }
     private var diveMapCamera: DiveMapCamera {
-        DiveMapCamera(center: mapRegion.center, zoomLevel: 4.8)
+        let span = mapRegion.span
+        let normalizedLatitude = max(span.latitudeDelta, 1.0)
+        let denominator = 30.0
+        let baseZoom = 8.0 - log2(normalizedLatitude / denominator)
+        let approxZoom = max(1.5, min(14.0, baseZoom))
+        return DiveMapCamera(center: mapRegion.center, zoomLevel: approxZoom)
     }
     
     public var body: some View {
+        mapView
+            .tint(primaryColor)
+            .navigationTitle("Map")
+            .navigationBarTitleDisplayMode(.large)
+            .toolbar {
+                toolbarItems
+            }
+            .sheet(isPresented: $showingSiteDetail) {
+                siteDetailSheet
+            }
+            .sheet(isPresented: $showSearch) {
+                searchSheet
+            }
+            .sheet(isPresented: $showFilters) {
+                filterSheet
+            }
+            .onChange(of: viewModel.selectedRegion) {
+                focusMap(on: viewModel.filteredSites)
+            }
+            .onChange(of: viewModel.selectedArea) {
+                focusMap(on: viewModel.filteredSites)
+            }
+            .onChange(of: viewModel.statusFilter) {
+                focusMap(on: viewModel.filteredSites)
+            }
+            .onChange(of: viewModel.exploreFilter) {
+                focusMap(on: viewModel.filteredSites)
+            }
+            .onChange(of: selectedSite) {
+                if let selectedSite {
+                    focusMap(on: [selectedSite])
+                }
+            }
+            .task {
+                await viewModel.loadSites()
+                await viewModel.refreshVisibleSites(in: mapRegion)
+                focusMap(on: viewModel.filteredSites)
+            }
+            .accessibilityElement(children: .contain)
+            .accessibilitySortPriority(1)
+    }
+    
+    // MARK: - View Components
+    
+    private var mapView: some View {
         ZStack(alignment: .bottom) {
+            mapLayer
+            overlayControls
+        }
+    }
+    
+    private var mapLayer: some View {
+        Group {
             if useMapLibre {
-                let _ = print("[DEBUG] Rendering DiveMapView with \(mapLibreAnnotations.count) annotations")
-                DiveMapView(
-                    annotations: mapLibreAnnotations,
-                    initialCamera: diveMapCamera,
-                    onSelect: { siteId in
-                        if let site = viewModel.sites.first(where: { $0.id == siteId }) {
-                            selectedSite = site
-                            showingSiteDetail = true
-                        }
-                    },
-                    onRegionChange: { viewport in
-                        viewModel.scheduleRefreshVisibleSites(bounds: MapBounds(viewport: viewport))
-                    }
-                )
-                .ignoresSafeArea()
+                mapLibreView
             } else {
-                MapClusterView(
-                    annotations: viewModel.visibleSites.map { s in
-                        SiteAnnotation(
-                            id: s.id,
-                            coordinate: CLLocationCoordinate2D(latitude: s.latitude, longitude: s.longitude),
-                            title: s.name,
-                            subtitle: s.location,
-                            visited: s.visitedCount > 0,
-                            wishlist: s.wishlist)
-                    },
-                    onSelect: { siteId in
-                        if let s = viewModel.sites.first(where: { $0.id == siteId }) {
-                            selectedSite = s
-                            showingSiteDetail = true
-                        }
-                    },
-                    onRegionChange: { region in
-                        viewModel.scheduleRefreshVisibleSites(in: region)
-                    },
-                    center: mapRegion.center
-                )
-                .ignoresSafeArea()
+                mapKitView
             }
-            
-            // Top controls: only Mode segmented control at top
-            VStack(spacing: 0) {
-                HStack {
-                    Picker("Mode", selection: $viewModel.mode) {
-                        Text("My Map").tag(MapMode.myMap)
-                        Text("Explore").tag(MapMode.explore)
-                    }
-                    .pickerStyle(.segmented)
-                    .onChange(of: viewModel.mode) { _ in
-                        Haptics.soft()
-                    }
+        }
+    }
+    
+    private var mapLibreView: some View {
+        DiveMapView(
+            annotations: mapLibreAnnotations,
+            initialCamera: diveMapCamera,
+            onSelect: { siteId in
+                if let site = viewModel.sites.first(where: { $0.id == siteId }) {
+                    selectedSite = site
+                    showingSiteDetail = true
                 }
-                .padding(.horizontal, 16)
+            },
+            onRegionChange: { viewport in
+                viewModel.scheduleRefreshVisibleSites(bounds: MapBounds(viewport: viewport))
+            }
+        )
+        .ignoresSafeArea()
+    }
+    
+    private var mapKitView: some View {
+        MapClusterView(
+            annotations: mapKitAnnotations,
+            onSelect: { siteId in
+                if let s = viewModel.sites.first(where: { $0.id == siteId }) {
+                    selectedSite = s
+                    showingSiteDetail = true
+                }
+            },
+            onRegionChange: { region in
+                viewModel.scheduleRefreshVisibleSites(in: region)
+            },
+            center: mapRegion.center
+        )
+        .ignoresSafeArea()
+    }
+    
+    private var mapKitAnnotations: [SiteAnnotation] {
+        viewModel.visibleSites.map { s in
+            SiteAnnotation(
+                id: s.id,
+                coordinate: CLLocationCoordinate2D(latitude: s.latitude, longitude: s.longitude),
+                title: s.name,
+                subtitle: s.location,
+                visited: s.visitedCount > 0,
+                wishlist: s.wishlist
+            )
+        }
+    }
+    
+    private var overlayControls: some View {
+        VStack(spacing: 0) {
+            topControls
+            Spacer()
+            bottomSheet
+        }
+    }
+    
+    private var topControls: some View {
+        HStack {
+            Picker("Mode", selection: $viewModel.mode) {
+                Text("My Map").tag(MapMode.myMap)
+                Text("Explore").tag(MapMode.explore)
+            }
+            .pickerStyle(.segmented)
+            .onChange(of: viewModel.mode) {
+                Haptics.soft()
+            }
+        }
+        .padding(.horizontal, 16)
+        .padding(.top, 8)
+    }
+    
+    private var bottomSheet: some View {
+        VStack(spacing: 12) {
+            BreadcrumbHeader(viewModel: viewModel)
                 .padding(.top, 8)
-                Spacer()
-
-                // Bottom contextual sheet
-                VStack(spacing: 12) {
-                    // Breadcrumb header + counts
-                    BreadcrumbHeader(viewModel: viewModel)
-                        .padding(.top, 8)
-                        .padding(.horizontal, 16)
-
-                    // Filter chips inside sheet (contextual)
-                    ScrollView(.horizontal, showsIndicators: false) {
-                        HStack(spacing: 8) {
-                            if viewModel.mode == .myMap {
-                                FilterChip(title: "Visited (\(viewModel.visitedCount))", isSelected: viewModel.statusFilter == .visited, action: {
-                                    withAnimation(.spring(response: 0.25)) {
-                                        viewModel.statusFilter = .visited
-                                        viewModel.tier = .sites
-                                        viewModel.selectedRegion = nil
-                                        viewModel.selectedArea = nil
-                                    }
-                                    Haptics.tap()
-                                }, primaryColor: primaryColor)
-                                FilterChip(title: "Wishlist (\(viewModel.wishlistCount))", isSelected: viewModel.statusFilter == .wishlist, action: {
-                                    withAnimation(.spring(response: 0.25)) {
-                                        viewModel.statusFilter = .wishlist
-                                        viewModel.tier = .sites
-                                        viewModel.selectedRegion = nil
-                                        viewModel.selectedArea = nil
-                                    }
-                                    Haptics.tap()
-                                }, primaryColor: primaryColor)
-                                FilterChip(title: "Planned (\(viewModel.plannedCount))", isSelected: viewModel.statusFilter == .planned, action: {
-                                    withAnimation(.spring(response: 0.25)) {
-                                        viewModel.statusFilter = .planned
-                                        viewModel.tier = .sites
-                                        viewModel.selectedRegion = nil
-                                        viewModel.selectedArea = nil
-                                    }
-                                    Haptics.tap()
-                                }, primaryColor: primaryColor)
-                            } else {
-                                FilterChip(title: "All", isSelected: viewModel.exploreFilter == .all, action: {
-                                    withAnimation(.spring(response: 0.25)) { viewModel.exploreFilter = .all; viewModel.tier = .sites; viewModel.selectedRegion = nil; viewModel.selectedArea = nil }
-                                    Haptics.tap()
-                                }, primaryColor: primaryColor)
-                                FilterChip(title: "Nearby", isSelected: viewModel.exploreFilter == .nearby, action: {
-                                    withAnimation(.spring(response: 0.25)) { viewModel.exploreFilter = .nearby; viewModel.tier = .sites; viewModel.selectedRegion = nil; viewModel.selectedArea = nil }
-                                    Haptics.tap()
-                                }, primaryColor: primaryColor)
-                                FilterChip(title: "Popular", isSelected: viewModel.exploreFilter == .popular, action: {
-                                    withAnimation(.spring(response: 0.25)) { viewModel.exploreFilter = .popular; viewModel.tier = .sites; viewModel.selectedRegion = nil; viewModel.selectedArea = nil }
-                                    Haptics.tap()
-                                }, primaryColor: primaryColor)
-                                FilterChip(title: "Beginner", isSelected: viewModel.exploreFilter == .beginner, action: {
-                                    withAnimation(.spring(response: 0.25)) { viewModel.exploreFilter = .beginner; viewModel.tier = .sites; viewModel.selectedRegion = nil; viewModel.selectedArea = nil }
-                                    Haptics.tap()
-                                }, primaryColor: primaryColor)
-                                // Additional chips (stubs)
-                                FilterChip(title: "Wrecks", isSelected: false, action: {}, primaryColor: primaryColor)
-                                FilterChip(title: "Cave", isSelected: false, action: {}, primaryColor: primaryColor)
-                                FilterChip(title: "Nitrox", isSelected: false, action: {}, primaryColor: primaryColor)
-                            }
-                        }
-                        .padding(.horizontal, 16)
-                    }
-                    .padding(.vertical, 4)
-
-                    // Contextual list based on tier
-                    Group {
-                        switch viewModel.tier {
-                        case .regions:
-                            RegionsListView(
-                                regions: viewModel.regions,
-                                selectedRegion: $viewModel.selectedRegion,
-                                onRegionTap: { region in
-                                    withAnimation(.spring(response: 0.25)) {
-                                        viewModel.selectedRegion = region
-                                        viewModel.selectedArea = nil
-                                        viewModel.tier = .areas
-                                    }
-                                    Haptics.tap()
-                                }
-                            )
-                            .frame(maxHeight: 260)
-                        case .areas:
-                            AreasListView(areas: viewModel.areasInSelectedRegion, onAreaTap: { area in
-                                withAnimation(.spring(response: 0.25)) {
-                                    viewModel.selectedArea = area
-                                    viewModel.tier = .sites
-                                }
-                                Haptics.tap()
-                            })
-                                .frame(maxHeight: 260)
-                        case .sites:
-                            SitesListView(sites: viewModel.filteredSites, onSiteTap: { site in
-                                Haptics.soft()
-                                selectedSite = site
-                                showingSiteDetail = true
-                            })
-                            .frame(maxHeight: 260)
-                        }
-                    }
+                .padding(.horizontal, 16)
+            
+            filterChipsScrollView
+            
+            tierContentView
+        }
+        .background(.ultraThinMaterial)
+        .cornerRadius(20, corners: [.topLeft, .topRight])
+    }
+    
+    private var filterChipsScrollView: some View {
+        ScrollView(.horizontal, showsIndicators: false) {
+            HStack(spacing: 8) {
+                if viewModel.mode == .myMap {
+                    myMapFilterChips
+                } else {
+                    exploreFilterChips
                 }
-                .background(.ultraThinMaterial)
-                .cornerRadius(20, corners: [.topLeft, .topRight])
+            }
+            .padding(.horizontal, 16)
+        }
+        .padding(.vertical, 4)
+    }
+    
+    @ViewBuilder
+    private var myMapFilterChips: some View {
+        visitedFilterChip
+        wishlistFilterChip
+        plannedFilterChip
+    }
+    
+    private var visitedFilterChip: some View {
+        FilterChip(
+            title: "Visited (\(viewModel.visitedCount))",
+            isSelected: viewModel.statusFilter == .visited,
+            action: {
+                withAnimation(.spring(response: 0.25)) {
+                    viewModel.statusFilter = .visited
+                    viewModel.tier = .sites
+                    viewModel.selectedRegion = nil
+                    viewModel.selectedArea = nil
+                }
+                Haptics.tap()
+            },
+            primaryColor: primaryColor
+        )
+    }
+    
+    private var wishlistFilterChip: some View {
+        FilterChip(
+            title: "Wishlist (\(viewModel.wishlistCount))",
+            isSelected: viewModel.statusFilter == .wishlist,
+            action: {
+                withAnimation(.spring(response: 0.25)) {
+                    viewModel.statusFilter = .wishlist
+                    viewModel.tier = .sites
+                    viewModel.selectedRegion = nil
+                    viewModel.selectedArea = nil
+                }
+                Haptics.tap()
+            },
+            primaryColor: primaryColor
+        )
+    }
+    
+    private var plannedFilterChip: some View {
+        FilterChip(
+            title: "Planned (\(viewModel.plannedCount))",
+            isSelected: viewModel.statusFilter == .planned,
+            action: {
+                withAnimation(.spring(response: 0.25)) {
+                    viewModel.statusFilter = .planned
+                    viewModel.tier = .sites
+                    viewModel.selectedRegion = nil
+                    viewModel.selectedArea = nil
+                }
+                Haptics.tap()
+            },
+            primaryColor: primaryColor
+        )
+    }
+    
+    @ViewBuilder
+    private var exploreFilterChips: some View {
+        allFilterChip
+        nearbyFilterChip
+        popularFilterChip
+        beginnerFilterChip
+        staticFilterChips
+    }
+    
+    private var allFilterChip: some View {
+        FilterChip(
+            title: "All",
+            isSelected: viewModel.exploreFilter == .all,
+            action: {
+                withAnimation(.spring(response: 0.25)) {
+                    viewModel.exploreFilter = .all
+                    viewModel.tier = .sites
+                    viewModel.selectedRegion = nil
+                    viewModel.selectedArea = nil
+                }
+                Haptics.tap()
+            },
+            primaryColor: primaryColor
+        )
+    }
+    
+    private var nearbyFilterChip: some View {
+        FilterChip(
+            title: "Nearby",
+            isSelected: viewModel.exploreFilter == .nearby,
+            action: {
+                withAnimation(.spring(response: 0.25)) {
+                    viewModel.exploreFilter = .nearby
+                    viewModel.tier = .sites
+                    viewModel.selectedRegion = nil
+                    viewModel.selectedArea = nil
+                }
+                Haptics.tap()
+            },
+            primaryColor: primaryColor
+        )
+    }
+    
+    private var popularFilterChip: some View {
+        FilterChip(
+            title: "Popular",
+            isSelected: viewModel.exploreFilter == .popular,
+            action: {
+                withAnimation(.spring(response: 0.25)) {
+                    viewModel.exploreFilter = .popular
+                    viewModel.tier = .sites
+                    viewModel.selectedRegion = nil
+                    viewModel.selectedArea = nil
+                }
+                Haptics.tap()
+            },
+            primaryColor: primaryColor
+        )
+    }
+    
+    private var beginnerFilterChip: some View {
+        FilterChip(
+            title: "Beginner",
+            isSelected: viewModel.exploreFilter == .beginner,
+            action: {
+                withAnimation(.spring(response: 0.25)) {
+                    viewModel.exploreFilter = .beginner
+                    viewModel.tier = .sites
+                    viewModel.selectedRegion = nil
+                    viewModel.selectedArea = nil
+                }
+                Haptics.tap()
+            },
+            primaryColor: primaryColor
+        )
+    }
+    
+    private var staticFilterChips: some View {
+        Group {
+            FilterChip(title: "Wrecks", isSelected: false, action: {}, primaryColor: primaryColor)
+            FilterChip(title: "Cave", isSelected: false, action: {}, primaryColor: primaryColor)
+            FilterChip(title: "Nitrox", isSelected: false, action: {}, primaryColor: primaryColor)
+        }
+    }
+    
+    private var tierContentView: some View {
+        Group {
+            switch viewModel.tier {
+            case .regions:
+                RegionsListView(
+                    regions: viewModel.regions,
+                    selectedRegion: $viewModel.selectedRegion,
+                    onRegionTap: handleRegionTap
+                )
+                .frame(maxHeight: 260)
+            case .areas:
+                AreasListView(
+                    areas: viewModel.areasInSelectedRegion,
+                    onAreaTap: handleAreaTap
+                )
+                .frame(maxHeight: 260)
+            case .sites:
+                SitesListView(
+                    sites: viewModel.filteredSites,
+                    onSiteTap: handleSiteTap
+                )
+                .frame(maxHeight: 260)
             }
         }
-        .tint(primaryColor)
-        .navigationTitle("Map")
-        .navigationBarTitleDisplayMode(.large)
-        .toolbar {
-            ToolbarItem(placement: .topBarTrailing) { Button(action: { showSearch = true; Haptics.soft() }) { Image(systemName: "magnifyingglass") } }
-            ToolbarItem(placement: .topBarTrailing) { Button(action: { showFilters = true; Haptics.soft() }) { Image(systemName: "line.3.horizontal.decrease.circle") } }
-        }
-        .sheet(isPresented: $showingSiteDetail) {
-            if let site = selectedSite {
-                SiteDetailSheet(site: site, mode: viewModel.mode)
+    }
+    
+    @ToolbarContentBuilder
+    private var toolbarItems: some ToolbarContent {
+        ToolbarItem(placement: .topBarTrailing) {
+            Button(action: { showSearch = true; Haptics.soft() }) {
+                Image(systemName: "magnifyingglass")
             }
         }
-        .sheet(isPresented: $showSearch) {
-            SearchSheet(searchText: $searchText, sites: viewModel.sites) { site in
-                selectedSite = site
-                showingSiteDetail = true
-                showSearch = false
+        ToolbarItem(placement: .topBarTrailing) {
+            Button(action: { showFilters = true; Haptics.soft() }) {
+                Image(systemName: "line.3.horizontal.decrease.circle")
             }
         }
-        .sheet(isPresented: $showFilters) {
-            FilterSheet(mode: $viewModel.mode, statusFilter: $viewModel.statusFilter, exploreFilter: $viewModel.exploreFilter, onDismiss: { showFilters = false })
-                .presentationDetents([.medium])
+    }
+    
+    @ViewBuilder
+    private var siteDetailSheet: some View {
+        if let site = selectedSite {
+            SiteDetailSheet(site: site, mode: viewModel.mode)
         }
-        .task {
-            await viewModel.loadSites()
-            await viewModel.refreshVisibleSites(in: mapRegion)
+    }
+    
+    private var searchSheet: some View {
+        SearchSheet(searchText: $searchText, sites: viewModel.sites) { site in
+            selectedSite = site
+            showingSiteDetail = true
+            showSearch = false
         }
-        .accessibilityElement(children: .contain)
-        .accessibilitySortPriority(1)
+    }
+    
+    private var filterSheet: some View {
+        FilterSheet(
+            mode: $viewModel.mode,
+            statusFilter: $viewModel.statusFilter,
+            exploreFilter: $viewModel.exploreFilter,
+            onDismiss: { showFilters = false }
+        )
+        .presentationDetents([.medium])
+    }
+    
+    // MARK: - Action Handlers
+    
+    private func handleRegionTap(_ region: Region) {
+        withAnimation(.spring(response: 0.25)) {
+            viewModel.selectedRegion = region
+            viewModel.selectedArea = nil
+            viewModel.tier = .areas
+        }
+        Haptics.tap()
+    }
+    
+    private func handleAreaTap(_ area: Area) {
+        withAnimation(.spring(response: 0.25)) {
+            viewModel.selectedArea = area
+            viewModel.tier = .sites
+        }
+        Haptics.tap()
+    }
+    
+    private func handleSiteTap(_ site: DiveSite) {
+        Haptics.soft()
+        selectedSite = site
+        showingSiteDetail = true
     }
 }
 
@@ -637,7 +866,13 @@ class MapViewModel: ObservableObject {
                 minLon: bounds.minLongitude,
                 maxLon: bounds.maxLongitude
             )
-            await MainActor.run { self.visibleSites = boxSites }
+            await MainActor.run {
+                if boxSites.isEmpty {
+                    self.visibleSites = self.sites
+                } else {
+                    self.visibleSites = boxSites
+                }
+            }
         } catch {
             print("Failed to fetch box sites: \(error)")
         }
@@ -662,14 +897,14 @@ enum Tier {
     case regions, areas, sites
 }
 
-struct Region: Identifiable {
+struct Region: Identifiable, Equatable {
     let id: String
     let name: String
     let totalSites: Int
     let visitedCount: Int
 }
 
-struct Area: Identifiable {
+struct Area: Identifiable, Equatable {
     let id: String
     let name: String
     let country: String
@@ -753,7 +988,9 @@ struct FilterSheet: View {
                         Text("My Map").tag(MapMode.myMap)
                         Text("Explore").tag(MapMode.explore)
                     }.pickerStyle(.segmented)
-                    .onChange(of: mode) { _ in Haptics.soft() }
+                    .onChange(of: mode) {
+                        Haptics.soft()
+                    }
                 }
                 
                 if mode == .myMap {
@@ -763,7 +1000,9 @@ struct FilterSheet: View {
                             Text("Wishlist").tag(StatusFilter.wishlist)
                             Text("Planned").tag(StatusFilter.planned)
                         }.pickerStyle(.segmented)
-                        .onChange(of: statusFilter) { _ in Haptics.tap() }
+                        .onChange(of: statusFilter) {
+                            Haptics.tap()
+                        }
                     }
                 } else {
                     Section("Explore Filter") {
@@ -773,7 +1012,9 @@ struct FilterSheet: View {
                             Text("Popular").tag(ExploreFilter.popular)
                             Text("Beginner").tag(ExploreFilter.beginner)
                         }.pickerStyle(.segmented)
-                        .onChange(of: exploreFilter) { _ in Haptics.tap() }
+                        .onChange(of: exploreFilter) {
+                            Haptics.tap()
+                        }
                     }
                 }
             }

@@ -82,17 +82,22 @@ public final class MapVC: UIViewController, MLNMapViewDelegate, UIGestureRecogni
     private let fallbackBackground = UIView()
     private let logger = Logger(subsystem: "app.umilog", category: "DiveMap")
     private let accentColor = UIColor(brandHex: "#F26A3D") ?? UIColor(red: 0.95, green: 0.42, blue: 0.24, alpha: 1.0)
-    private lazy var stopFillColor = accentColor.withAlphaComponent(0.18)
+    private lazy var clusterFillColor = accentColor.withAlphaComponent(0.18)
     private var didFallbackToOfflineStyle = false
     private lazy var primaryStyleURL: URL? = Bundle.main.url(forResource: "umilog_min", withExtension: "json")
     private lazy var offlineStyleURL: URL? = Bundle.main.url(forResource: "dive_offline", withExtension: "json")
     private var hasAttemptedPrimarySwitch = false
-    private let vectorTileTemplates = ["https://demotiles.maplibre.org/tiles/{z}/{x}/{y}.pbf"]
+    private let vectorTileTemplates = ["https://demotiles.maplibre.org/tiles/tiles/{z}/{x}/{y}.pbf"]
 
     // Runtime callbacks
     public var onSelectAnnotation: ((String) -> Void)?
     public var onRegionChange: ((DiveMapViewport) -> Void)?
-    public var initialCamera: DiveMapCamera?
+    public var initialCamera: DiveMapCamera? {
+        didSet {
+            guard let camera = initialCamera, map != nil else { return }
+            setCamera(camera, animated: true)
+        }
+    }
 
     // Data model
     public var annotations: [DiveMapAnnotation] = [] {
@@ -100,14 +105,11 @@ public final class MapVC: UIViewController, MLNMapViewDelegate, UIGestureRecogni
     }
 
     private var styleIsReady = false
-    private var stopsSource: MLNShapeSource?
-    private var routeSource: MLNShapeSource?
+    private var siteSource: MLNShapeSource?
     private var pendingStyleWork: DispatchWorkItem?
 
     public override func viewDidLoad() {
         super.viewDidLoad()
-        print("[DEBUG] MapVC viewDidLoad started")
-
         // Placeholder background while style loads
         fallbackBackground.backgroundColor = UIColor(red: 0.91, green: 0.95, blue: 0.96, alpha: 1.0)
         view.addSubview(fallbackBackground)
@@ -147,13 +149,17 @@ public final class MapVC: UIViewController, MLNMapViewDelegate, UIGestureRecogni
         logger.log("camera_set lat=\(camera.center.latitude, privacy: .public) lon=\(camera.center.longitude, privacy: .public) zoom=\(camera.zoomLevel, privacy: .public)")
 
         logger.log("style_initial style=\(initialURL.lastPathComponent, privacy: .public) offline=\(self.didFallbackToOfflineStyle, privacy: .public)")
-        // Disabled auto-switching to avoid complexity: attemptSwitchToPrimaryStyleIfNeeded()
+        attemptSwitchToPrimaryStyleIfNeeded()
     }
 
     public override func viewDidLayoutSubviews() {
         super.viewDidLayoutSubviews()
         fallbackBackground.frame = view.bounds
         map?.frame = view.bounds
+    }
+
+    public func setCamera(_ camera: DiveMapCamera, animated: Bool) {
+        map.setCenter(camera.center, zoomLevel: camera.zoomLevel, animated: animated)
     }
 
     // MARK: - Runtime Updates
@@ -190,10 +196,15 @@ public final class MapVC: UIViewController, MLNMapViewDelegate, UIGestureRecogni
 
     @objc private func handleMapTap(_ gesture: UITapGestureRecognizer) {
         let point = gesture.location(in: map)
-        let identifiers: Set<String> = ["stop-num", "stop-circle"]
+        let identifiers: Set<String> = ["site-layer", "site-cluster"]
         let features = map.visibleFeatures(at: point, styleLayerIdentifiers: identifiers)
 
         guard let feature = features.first else { return }
+
+        if let isCluster = feature.attribute(forKey: "cluster") as? NSNumber, isCluster.boolValue {
+            zoomIntoCluster(at: point)
+            return
+        }
 
         if let id = feature.attribute(forKey: "id") as? String {
             logger.log("feature_selected id=\(id, privacy: .public)")
@@ -214,64 +225,79 @@ public final class MapVC: UIViewController, MLNMapViewDelegate, UIGestureRecogni
     }
 
     private func ensureDataSources(in style: MLNStyle) {
-        if stopsSource == nil, let existingStops = style.source(withIdentifier: "stops") as? MLNShapeSource {
-            stopsSource = existingStops
-        }
-        if routeSource == nil, let existingRoute = style.source(withIdentifier: "route") as? MLNShapeSource {
-            routeSource = existingRoute
+        if siteSource == nil, let existingSites = style.source(withIdentifier: "sites") as? MLNShapeSource {
+            siteSource = existingSites
         }
 
-        if stopsSource == nil {
+        if siteSource == nil {
             let empty = MLNShapeCollectionFeature(shapes: [])
-            let stops = MLNShapeSource(identifier: "stops", shape: empty, options: nil)
-            style.addSource(stops)
-            stopsSource = stops
-            logger.log("source_added: stops")
-        }
-
-        if routeSource == nil {
-            let empty = MLNShapeCollectionFeature(shapes: [])
-            let route = MLNShapeSource(identifier: "route", shape: empty, options: nil)
-            style.addSource(route)
-            routeSource = route
-            logger.log("source_added: route")
+            let sites = MLNShapeSource(identifier: "sites", shape: empty, options: [
+                .clustered: true as NSNumber,
+                .clusterRadius: 48 as NSNumber,
+                .maximumZoomLevelForClustering: 10 as NSNumber
+            ])
+            style.addSource(sites)
+            siteSource = sites
+            logger.log("source_added: sites")
         }
     }
 
     private func ensureOverlayLayers(in style: MLNStyle) {
-        if style.layer(withIdentifier: "route-line") == nil, let routeSource {
-            let line = MLNLineStyleLayer(identifier: "route-line", source: routeSource)
-            line.lineColor = NSExpression(forConstantValue: accentColor)
-            line.lineWidth = NSExpression(forConstantValue: 3.0)
-            line.lineJoin = NSExpression(forConstantValue: "round")
-            line.lineCap = NSExpression(forConstantValue: "round")
-            style.addLayer(line)
+        guard let siteSource else { return }
+
+        if style.layer(withIdentifier: "site-cluster") == nil {
+            let cluster = MLNCircleStyleLayer(identifier: "site-cluster", source: siteSource)
+            cluster.predicate = NSPredicate(format: "cluster == YES")
+            cluster.circleColor = NSExpression(forConstantValue: clusterFillColor)
+            cluster.circleStrokeColor = NSExpression(forConstantValue: accentColor)
+            cluster.circleStrokeWidth = NSExpression(forConstantValue: 1.0)
+            cluster.circleRadius = NSExpression(forConstantValue: 18)
+            style.addLayer(cluster)
         }
 
-        if style.layer(withIdentifier: "stop-circle") == nil, let stopsSource {
-            let circle = MLNCircleStyleLayer(identifier: "stop-circle", source: stopsSource)
-            circle.circleColor = NSExpression(forConstantValue: stopFillColor)
-            circle.circleStrokeColor = NSExpression(forConstantValue: accentColor)
-            circle.circleStrokeWidth = NSExpression(forConstantValue: 1.0)
-            circle.circleRadius = NSExpression(forConstantValue: 16)
-            style.addLayer(circle)
+        if style.layer(withIdentifier: "site-cluster-count") == nil {
+            let count = MLNSymbolStyleLayer(identifier: "site-cluster-count", source: siteSource)
+            count.predicate = NSPredicate(format: "cluster == YES")
+            count.text = NSExpression(format: "CAST(point_count, 'NSString')")
+            count.textColor = NSExpression(forConstantValue: UIColor.white)
+            count.textFontSize = NSExpression(forConstantValue: 12)
+            count.textFontNames = NSExpression(forConstantValue: ["HelveticaNeue-Bold"])
+            count.textAllowsOverlap = NSExpression(forConstantValue: true)
+            style.addLayer(count)
         }
 
-        if style.layer(withIdentifier: "stop-num") == nil, let stopsSource {
-            let num = MLNSymbolStyleLayer(identifier: "stop-num", source: stopsSource)
-            num.text = NSExpression(format: "CAST(n, 'NSString')")
-            num.textColor = NSExpression(forConstantValue: UIColor.white)
-            num.textFontSize = NSExpression(forConstantValue: 12)
-            num.textHaloColor = NSExpression(forConstantValue: accentColor)
-            num.textHaloWidth = NSExpression(forConstantValue: 1.0)
-            num.textAllowsOverlap = NSExpression(forConstantValue: true)
-            num.textFontNames = NSExpression(forConstantValue: ["HelveticaNeue-Bold"])
-            style.addLayer(num)
+        if style.layer(withIdentifier: "site-layer") == nil {
+            registerPlaceholderIcon(in: style)
+            let sites = MLNSymbolStyleLayer(identifier: "site-layer", source: siteSource)
+            sites.predicate = NSPredicate(format: "cluster != YES")
+            sites.iconImageName = NSExpression(forConstantValue: "site-placeholder")
+            sites.iconScale = NSExpression(forConstantValue: 0.9)
+            sites.iconAllowsOverlap = NSExpression(forConstantValue: true)
+            sites.iconIgnoresPlacement = NSExpression(forConstantValue: true)
+            style.addLayer(sites)
+        }
+
+        if style.layer(withIdentifier: "site-selected") == nil {
+            registerPlaceholderIcon(in: style)
+            let selected = MLNSymbolStyleLayer(identifier: "site-selected", source: siteSource)
+            selected.predicate = NSPredicate(format: "selected == 1 && cluster != YES")
+            selected.iconImageName = NSExpression(forConstantValue: "site-placeholder")
+            selected.iconScale = NSExpression(forConstantValue: 1.2)
+            selected.iconAllowsOverlap = NSExpression(forConstantValue: true)
+            selected.iconIgnoresPlacement = NSExpression(forConstantValue: true)
+            selected.iconColor = NSExpression(forConstantValue: accentColor)
+            style.addLayer(selected)
         }
     }
 
+    private func zoomIntoCluster(at point: CGPoint) {
+        let coordinate = map.convert(point, toCoordinateFrom: map)
+        let targetZoom = min(map.zoomLevel + 1.5, map.maximumZoomLevel)
+        map.setCenter(coordinate, zoomLevel: targetZoom, animated: true)
+    }
+
     private func updateAnnotationsIfReady() {
-        guard styleIsReady, let stopsSource else { return }
+        guard styleIsReady, let siteSource else { return }
 
         pendingStyleWork?.cancel()
         let work = DispatchWorkItem { [weak self] in
@@ -290,12 +316,7 @@ public final class MapVC: UIViewController, MLNMapViewDelegate, UIGestureRecogni
                 return feature
             }
             let collection = MLNShapeCollectionFeature(shapes: features)
-            stopsSource.shape = collection
-
-            // Disable route drawing - we want individual dive site badges, not connected routes
-            if let routeSource {
-                routeSource.shape = nil // Always empty - no route lines
-            }
+            siteSource.shape = collection
 
             self.logger.log("annotations_applied count=\(self.annotations.count, privacy: .public)")
             if let first = self.annotations.first {
@@ -322,13 +343,65 @@ public final class MapVC: UIViewController, MLNMapViewDelegate, UIGestureRecogni
 
     // MARK: - Minimal Base & Overlays
 
+    private func registerPlaceholderIcon(in style: MLNStyle) {
+        if style.image(forName: "site-placeholder") != nil { return }
+        if let image = UIImage(systemName: "mappin.circle.fill")?.withTintColor(accentColor, renderingMode: .alwaysOriginal) {
+            style.setImage(image, forName: "site-placeholder")
+        }
+    }
+
     private func ensureBaseLayers(in style: MLNStyle) {
-        // Style JSON now contains clean CARTO Light raster tiles
-        // Just verify the source exists
-        if style.source(withIdentifier: "carto-light") != nil {
-            logger.log("base_layers_verified: carto-light source found")
-        } else {
-            logger.warning("base_layers_missing: carto-light source not found in style")
+        if style.layer(withIdentifier: "bg") == nil {
+            let background = MLNBackgroundStyleLayer(identifier: "bg")
+            background.backgroundColor = NSExpression(forConstantValue: UIColor(brandHex: "#FFFDFB") ?? UIColor.white)
+            style.addLayer(background)
+        }
+
+        if didFallbackToOfflineStyle {
+            logger.log("base_layers_skip_remote")
+            return
+        }
+
+        if style.source(withIdentifier: "openmap") == nil {
+            let options: [MLNTileSourceOption: Any] = [
+                .minimumZoomLevel: 0,
+                .maximumZoomLevel: 14
+            ]
+            let vector = MLNVectorTileSource(identifier: "openmap", tileURLTemplates: vectorTileTemplates, options: options)
+            style.addSource(vector)
+            logger.log("source_added: openmap")
+
+            let water = MLNFillStyleLayer(identifier: "water", source: vector)
+            water.sourceLayerIdentifier = "water"
+            water.fillColor = NSExpression(forConstantValue: UIColor(brandHex: "#E8F2F6") ?? UIColor(red: 0.91, green: 0.95, blue: 0.96, alpha: 1.0))
+            style.addLayer(water)
+
+            let road = MLNLineStyleLayer(identifier: "major-road", source: vector)
+            road.sourceLayerIdentifier = "transportation"
+            road.predicate = NSPredicate(format: "class IN %@", ["motorway", "trunk", "primary"])
+            road.lineColor = NSExpression(forConstantValue: UIColor(brandHex: "#E0DEDB") ?? UIColor(white: 0.88, alpha: 1.0))
+            road.lineWidth = NSExpression(forConstantValue: 1.2)
+            style.addLayer(road)
+
+            let admin = MLNLineStyleLayer(identifier: "admin", source: vector)
+            admin.sourceLayerIdentifier = "boundary"
+            admin.lineColor = NSExpression(forConstantValue: UIColor(brandHex: "#ECEAE7") ?? UIColor(white: 0.92, alpha: 1.0))
+            admin.lineWidth = NSExpression(forConstantValue: 0.6)
+            style.addLayer(admin)
+
+            let place = MLNSymbolStyleLayer(identifier: "place", source: vector)
+            place.sourceLayerIdentifier = "place"
+            place.text = NSExpression(format: "COALESCE(name_en, name)")
+            place.textFontSize = NSExpression(forConstantValue: 13)
+            place.textColor = NSExpression(forConstantValue: UIColor(brandHex: "#5E5E5E") ?? UIColor.darkGray)
+            place.textHaloColor = NSExpression(forConstantValue: UIColor.white)
+            place.textHaloWidth = NSExpression(forConstantValue: 1)
+            style.addLayer(place)
+
+            let poi = MLNSymbolStyleLayer(identifier: "poi", source: vector)
+            poi.sourceLayerIdentifier = "poi"
+            poi.isVisible = false
+            style.addLayer(poi)
         }
     }
 

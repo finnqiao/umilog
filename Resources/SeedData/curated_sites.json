@@ -1,0 +1,3032 @@
+{
+  "version": "1.0",
+  "source": "Wikidata + Manual Curation",
+  "license": "CC0",
+  "count": 72,
+  "sites": [
+    {
+      "id": "wiki_site_000",
+      "name": "National Sport Center Tel Aviv",
+      "region": "Red Sea",
+      "area": "Israel",
+      "country": "Israel",
+      "latitude": 32.104873,
+      "longitude": 34.822463,
+      "type": "reef",
+      "description": "sports venue",
+      "minDepth": 25,
+      "maxDepth": 40,
+      "difficulty": "intermediate",
+      "tags": [
+        "deep"
+      ],
+      "facets": {
+        "entry_modes": [
+          "boat"
+        ],
+        "notable_features": [
+          "deep"
+        ],
+        "visibility_mean": 25,
+        "temp_mean": 26,
+        "seasonality_json": {
+          "peakMonths": []
+        },
+        "has_current": false,
+        "shop_count": 1
+      },
+      "media": [],
+      "provenance": {
+        "sources": [
+          {
+            "name": "Wikidata",
+            "url": "http://www.wikidata.org/entity/Q863824",
+            "license": "CC0"
+          }
+        ]
+      }
+    },
+    {
+      "id": "wiki_site_001",
+      "name": "Romema Arena",
+      "region": "Red Sea",
+      "area": "Israel",
+      "country": "Israel",
+      "latitude": 32.787672,
+      "longitude": 34.997078,
+      "type": "reef",
+      "description": "sports arena in Haifa",
+      "minDepth": 25,
+      "maxDepth": 40,
+      "difficulty": "intermediate",
+      "tags": [
+        "deep"
+      ],
+      "facets": {
+        "entry_modes": [
+          "boat"
+        ],
+        "notable_features": [
+          "deep"
+        ],
+        "visibility_mean": 25,
+        "temp_mean": 26,
+        "seasonality_json": {
+          "peakMonths": []
+        },
+        "has_current": false,
+        "shop_count": 1
+      },
+      "media": [],
+      "provenance": {
+        "sources": [
+          {
+            "name": "Wikidata",
+            "url": "http://www.wikidata.org/entity/Q2900856",
+            "license": "CC0"
+          }
+        ]
+      }
+    },
+    {
+      "id": "wiki_site_002",
+      "name": "Estadio GNP Seguros",
+      "region": "Caribbean",
+      "area": "Mexico",
+      "country": "Mexico",
+      "latitude": 19.404889,
+      "longitude": -99.095944,
+      "type": "reef",
+      "description": "Mexico City multipurpose venue",
+      "minDepth": 25,
+      "maxDepth": 40,
+      "difficulty": "intermediate",
+      "tags": [
+        "deep"
+      ],
+      "facets": {
+        "entry_modes": [
+          "boat"
+        ],
+        "notable_features": [
+          "deep"
+        ],
+        "visibility_mean": 25,
+        "temp_mean": 26,
+        "seasonality_json": {
+          "peakMonths": []
+        },
+        "has_current": false,
+        "shop_count": 1
+      },
+      "media": [],
+      "provenance": {
+        "sources": [
+          {
+            "name": "Wikidata",
+            "url": "http://www.wikidata.org/entity/Q1347689",
+            "license": "CC0"
+          }
+        ]
+      }
+    },
+    {
+      "id": "wiki_site_003",
+      "name": "Fernando Montes de Oca Fencing Hall",
+      "region": "Caribbean",
+      "area": "Mexico",
+      "country": "Mexico",
+      "latitude": 19.40759531,
+      "longitude": -99.09155533,
+      "type": "reef",
+      "description": "Mexico City arena",
+      "minDepth": 25,
+      "maxDepth": 40,
+      "difficulty": "intermediate",
+      "tags": [
+        "deep"
+      ],
+      "facets": {
+        "entry_modes": [
+          "boat"
+        ],
+        "notable_features": [
+          "deep"
+        ],
+        "visibility_mean": 25,
+        "temp_mean": 26,
+        "seasonality_json": {
+          "peakMonths": []
+        },
+        "has_current": false,
+        "shop_count": 1
+      },
+      "media": [],
+      "provenance": {
+        "sources": [
+          {
+            "name": "Wikidata",
+            "url": "http://www.wikidata.org/entity/Q1406768",
+            "license": "CC0"
+          }
+        ]
+      }
+    },
+    {
+      "id": "wiki_site_004",
+      "name": "A.O. Shirley Recreation Ground",
+      "region": "Caribbean",
+      "area": "British Virgin Islands",
+      "country": "British Virgin Islands",
+      "latitude": 18.426388888,
+      "longitude": -64.620833333,
+      "type": "reef",
+      "description": "sports venue",
+      "minDepth": 25,
+      "maxDepth": 40,
+      "difficulty": "intermediate",
+      "tags": [
+        "deep"
+      ],
+      "facets": {
+        "entry_modes": [
+          "boat"
+        ],
+        "notable_features": [
+          "deep"
+        ],
+        "visibility_mean": 25,
+        "temp_mean": 26,
+        "seasonality_json": {
+          "peakMonths": []
+        },
+        "has_current": false,
+        "shop_count": 1
+      },
+      "media": [],
+      "provenance": {
+        "sources": [
+          {
+            "name": "Wikidata",
+            "url": "http://www.wikidata.org/entity/Q278390",
+            "license": "CC0"
+          }
+        ]
+      }
+    },
+    {
+      "id": "wiki_site_005",
+      "name": "Club de Yates",
+      "region": "Caribbean",
+      "area": "Mexico",
+      "country": "Mexico",
+      "latitude": 16.83765855,
+      "longitude": -99.90484267,
+      "type": "reef",
+      "description": "sports venue",
+      "minDepth": 25,
+      "maxDepth": 40,
+      "difficulty": "intermediate",
+      "tags": [
+        "deep"
+      ],
+      "facets": {
+        "entry_modes": [
+          "boat"
+        ],
+        "notable_features": [
+          "deep"
+        ],
+        "visibility_mean": 25,
+        "temp_mean": 26,
+        "seasonality_json": {
+          "peakMonths": []
+        },
+        "has_current": false,
+        "shop_count": 1
+      },
+      "media": [],
+      "provenance": {
+        "sources": [
+          {
+            "name": "Wikidata",
+            "url": "http://www.wikidata.org/entity/Q966973",
+            "license": "CC0"
+          }
+        ]
+      }
+    },
+    {
+      "id": "wiki_site_006",
+      "name": "Alberca Ol\u00edmpica Francisco M\u00e1rquez",
+      "region": "Caribbean",
+      "area": "Mexico",
+      "country": "Mexico",
+      "latitude": 19.35892729,
+      "longitude": -99.15479243,
+      "type": "reef",
+      "description": "Mexico City Sports Venue",
+      "minDepth": 25,
+      "maxDepth": 40,
+      "difficulty": "intermediate",
+      "tags": [
+        "deep"
+      ],
+      "facets": {
+        "entry_modes": [
+          "boat"
+        ],
+        "notable_features": [
+          "deep"
+        ],
+        "visibility_mean": 25,
+        "temp_mean": 26,
+        "seasonality_json": {
+          "peakMonths": []
+        },
+        "has_current": false,
+        "shop_count": 1
+      },
+      "media": [],
+      "provenance": {
+        "sources": [
+          {
+            "name": "Wikidata",
+            "url": "http://www.wikidata.org/entity/Q2484285",
+            "license": "CC0"
+          }
+        ]
+      }
+    },
+    {
+      "id": "wiki_site_007",
+      "name": "Estadio General \u00c1ngel Flores",
+      "region": "Caribbean",
+      "area": "Mexico",
+      "country": "Mexico",
+      "latitude": 24.798514,
+      "longitude": -107.389483,
+      "type": "reef",
+      "description": "stadium in Culiac\u00e1n, Mexico",
+      "minDepth": 25,
+      "maxDepth": 40,
+      "difficulty": "intermediate",
+      "tags": [
+        "deep"
+      ],
+      "facets": {
+        "entry_modes": [
+          "boat"
+        ],
+        "notable_features": [
+          "deep"
+        ],
+        "visibility_mean": 25,
+        "temp_mean": 26,
+        "seasonality_json": {
+          "peakMonths": []
+        },
+        "has_current": false,
+        "shop_count": 1
+      },
+      "media": [],
+      "provenance": {
+        "sources": [
+          {
+            "name": "Wikidata",
+            "url": "http://www.wikidata.org/entity/Q5400240",
+            "license": "CC0"
+          }
+        ]
+      }
+    },
+    {
+      "id": "wiki_site_008",
+      "name": "Estadio Manuel \"Cicl\u00f3n\" Echeverr\u00eda",
+      "region": "Caribbean",
+      "area": "Mexico",
+      "country": "Mexico",
+      "latitude": 27.062778,
+      "longitude": -109.4513,
+      "type": "reef",
+      "description": "stadium in Navojoa, Sonora, Mexico",
+      "minDepth": 25,
+      "maxDepth": 40,
+      "difficulty": "intermediate",
+      "tags": [
+        "deep"
+      ],
+      "facets": {
+        "entry_modes": [
+          "boat"
+        ],
+        "notable_features": [
+          "deep"
+        ],
+        "visibility_mean": 25,
+        "temp_mean": 26,
+        "seasonality_json": {
+          "peakMonths": []
+        },
+        "has_current": false,
+        "shop_count": 1
+      },
+      "media": [],
+      "provenance": {
+        "sources": [
+          {
+            "name": "Wikidata",
+            "url": "http://www.wikidata.org/entity/Q5400348",
+            "license": "CC0"
+          }
+        ]
+      }
+    },
+    {
+      "id": "wiki_site_009",
+      "name": "Estadio Nelson Barrera",
+      "region": "Caribbean",
+      "area": "Mexico",
+      "country": "Mexico",
+      "latitude": 19.845797,
+      "longitude": -90.516906,
+      "type": "reef",
+      "description": "stadium in Campeche, Mexico",
+      "minDepth": 25,
+      "maxDepth": 40,
+      "difficulty": "intermediate",
+      "tags": [
+        "deep"
+      ],
+      "facets": {
+        "entry_modes": [
+          "boat"
+        ],
+        "notable_features": [
+          "deep"
+        ],
+        "visibility_mean": 25,
+        "temp_mean": 26,
+        "seasonality_json": {
+          "peakMonths": []
+        },
+        "has_current": false,
+        "shop_count": 1
+      },
+      "media": [],
+      "provenance": {
+        "sources": [
+          {
+            "name": "Wikidata",
+            "url": "http://www.wikidata.org/entity/Q5400429",
+            "license": "CC0"
+          }
+        ]
+      }
+    },
+    {
+      "id": "wiki_site_010",
+      "name": "Estadio Revoluci\u00f3n",
+      "region": "Caribbean",
+      "area": "Mexico",
+      "country": "Mexico",
+      "latitude": 25.539575,
+      "longitude": -103.429178,
+      "type": "reef",
+      "description": "sports arena in Coahuila, Mexico",
+      "minDepth": 25,
+      "maxDepth": 40,
+      "difficulty": "intermediate",
+      "tags": [
+        "deep"
+      ],
+      "facets": {
+        "entry_modes": [
+          "boat"
+        ],
+        "notable_features": [
+          "deep"
+        ],
+        "visibility_mean": 25,
+        "temp_mean": 26,
+        "seasonality_json": {
+          "peakMonths": []
+        },
+        "has_current": false,
+        "shop_count": 1
+      },
+      "media": [],
+      "provenance": {
+        "sources": [
+          {
+            "name": "Wikidata",
+            "url": "http://www.wikidata.org/entity/Q5400470",
+            "license": "CC0"
+          }
+        ]
+      }
+    },
+    {
+      "id": "wiki_site_011",
+      "name": "Estadio Teodoro Mariscal",
+      "region": "Caribbean",
+      "area": "Mexico",
+      "country": "Mexico",
+      "latitude": 23.2358723,
+      "longitude": -106.4323417,
+      "type": "reef",
+      "description": "stadium in Mazatl\u00e1n, M\u00e9xico",
+      "minDepth": 25,
+      "maxDepth": 40,
+      "difficulty": "intermediate",
+      "tags": [
+        "deep"
+      ],
+      "facets": {
+        "entry_modes": [
+          "boat"
+        ],
+        "notable_features": [
+          "deep"
+        ],
+        "visibility_mean": 25,
+        "temp_mean": 26,
+        "seasonality_json": {
+          "peakMonths": []
+        },
+        "has_current": false,
+        "shop_count": 1
+      },
+      "media": [],
+      "provenance": {
+        "sources": [
+          {
+            "name": "Wikidata",
+            "url": "http://www.wikidata.org/entity/Q5400508",
+            "license": "CC0"
+          }
+        ]
+      }
+    },
+    {
+      "id": "wiki_site_012",
+      "name": "Estadio Tlaquepaque",
+      "region": "Caribbean",
+      "area": "Mexico",
+      "country": "Mexico",
+      "latitude": 20.634481,
+      "longitude": -103.299937,
+      "type": "reef",
+      "description": "Mexican rugby stadium",
+      "minDepth": 25,
+      "maxDepth": 40,
+      "difficulty": "intermediate",
+      "tags": [
+        "deep"
+      ],
+      "facets": {
+        "entry_modes": [
+          "boat"
+        ],
+        "notable_features": [
+          "deep"
+        ],
+        "visibility_mean": 25,
+        "temp_mean": 26,
+        "seasonality_json": {
+          "peakMonths": []
+        },
+        "has_current": false,
+        "shop_count": 1
+      },
+      "media": [],
+      "provenance": {
+        "sources": [
+          {
+            "name": "Wikidata",
+            "url": "http://www.wikidata.org/entity/Q5400512",
+            "license": "CC0"
+          }
+        ]
+      }
+    },
+    {
+      "id": "wiki_site_013",
+      "name": "Estadio Wilfrido Massieu",
+      "region": "Caribbean",
+      "area": "Mexico",
+      "country": "Mexico",
+      "latitude": 19.501944,
+      "longitude": -99.138611,
+      "type": "reef",
+      "description": "stadium in Mexico City, Mexico",
+      "minDepth": 25,
+      "maxDepth": 40,
+      "difficulty": "intermediate",
+      "tags": [
+        "deep"
+      ],
+      "facets": {
+        "entry_modes": [
+          "boat"
+        ],
+        "notable_features": [
+          "deep"
+        ],
+        "visibility_mean": 25,
+        "temp_mean": 26,
+        "seasonality_json": {
+          "peakMonths": []
+        },
+        "has_current": false,
+        "shop_count": 1
+      },
+      "media": [],
+      "provenance": {
+        "sources": [
+          {
+            "name": "Wikidata",
+            "url": "http://www.wikidata.org/entity/Q5400534",
+            "license": "CC0"
+          }
+        ]
+      }
+    },
+    {
+      "id": "wiki_site_014",
+      "name": "Estadio de B\u00e9isbol Hermanos Serd\u00e1n",
+      "region": "Caribbean",
+      "area": "Mexico",
+      "country": "Mexico",
+      "latitude": 19.075358,
+      "longitude": -98.1649,
+      "type": "reef",
+      "description": "stadium in Puebla, Mexico",
+      "minDepth": 25,
+      "maxDepth": 40,
+      "difficulty": "intermediate",
+      "tags": [
+        "deep"
+      ],
+      "facets": {
+        "entry_modes": [
+          "boat"
+        ],
+        "notable_features": [
+          "deep"
+        ],
+        "visibility_mean": 25,
+        "temp_mean": 26,
+        "seasonality_json": {
+          "peakMonths": []
+        },
+        "has_current": false,
+        "shop_count": 1
+      },
+      "media": [],
+      "provenance": {
+        "sources": [
+          {
+            "name": "Wikidata",
+            "url": "http://www.wikidata.org/entity/Q5400543",
+            "license": "CC0"
+          }
+        ]
+      }
+    },
+    {
+      "id": "wiki_site_015",
+      "name": "Forum de Mundo Imperial",
+      "region": "Caribbean",
+      "area": "Mexico",
+      "country": "Mexico",
+      "latitude": 16.77083333,
+      "longitude": -99.77277778,
+      "type": "reef",
+      "description": "indoor arena in the port of Acapulco, Mexico",
+      "minDepth": 25,
+      "maxDepth": 40,
+      "difficulty": "intermediate",
+      "tags": [
+        "deep"
+      ],
+      "facets": {
+        "entry_modes": [
+          "boat"
+        ],
+        "notable_features": [
+          "deep"
+        ],
+        "visibility_mean": 25,
+        "temp_mean": 26,
+        "seasonality_json": {
+          "peakMonths": []
+        },
+        "has_current": false,
+        "shop_count": 1
+      },
+      "media": [],
+      "provenance": {
+        "sources": [
+          {
+            "name": "Wikidata",
+            "url": "http://www.wikidata.org/entity/Q5473096",
+            "license": "CC0"
+          }
+        ]
+      }
+    },
+    {
+      "id": "wiki_site_016",
+      "name": "Frome Sports Club",
+      "region": "Caribbean",
+      "area": "Jamaica",
+      "country": "Jamaica",
+      "latitude": 18.296,
+      "longitude": -78.1499,
+      "type": "reef",
+      "description": "multi-use stadium in Savanna-la-Mar, Jamaica",
+      "minDepth": 25,
+      "maxDepth": 40,
+      "difficulty": "intermediate",
+      "tags": [
+        "deep"
+      ],
+      "facets": {
+        "entry_modes": [
+          "boat"
+        ],
+        "notable_features": [
+          "deep"
+        ],
+        "visibility_mean": 25,
+        "temp_mean": 26,
+        "seasonality_json": {
+          "peakMonths": []
+        },
+        "has_current": false,
+        "shop_count": 1
+      },
+      "media": [],
+      "provenance": {
+        "sources": [
+          {
+            "name": "Wikidata",
+            "url": "http://www.wikidata.org/entity/Q5505738",
+            "license": "CC0"
+          }
+        ]
+      }
+    },
+    {
+      "id": "wiki_site_017",
+      "name": "Q1799023",
+      "region": "Caribbean",
+      "area": "Mexico",
+      "country": "Mexico",
+      "latitude": 19.485912,
+      "longitude": -99.239502,
+      "type": "reef",
+      "description": "",
+      "minDepth": 25,
+      "maxDepth": 40,
+      "difficulty": "intermediate",
+      "tags": [
+        "deep"
+      ],
+      "facets": {
+        "entry_modes": [
+          "boat"
+        ],
+        "notable_features": [
+          "deep"
+        ],
+        "visibility_mean": 25,
+        "temp_mean": 26,
+        "seasonality_json": {
+          "peakMonths": []
+        },
+        "has_current": false,
+        "shop_count": 1
+      },
+      "media": [],
+      "provenance": {
+        "sources": [
+          {
+            "name": "Wikidata",
+            "url": "http://www.wikidata.org/entity/Q1799023",
+            "license": "CC0"
+          }
+        ]
+      }
+    },
+    {
+      "id": "wiki_site_018",
+      "name": "Kuala Lumpur Badminton Stadium",
+      "region": "Southeast Asia",
+      "area": "Malaysia",
+      "country": "Malaysia",
+      "latitude": 3.119444444,
+      "longitude": 101.7275,
+      "type": "reef",
+      "description": "sports arena",
+      "minDepth": 25,
+      "maxDepth": 40,
+      "difficulty": "intermediate",
+      "tags": [
+        "deep"
+      ],
+      "facets": {
+        "entry_modes": [
+          "boat"
+        ],
+        "notable_features": [
+          "deep"
+        ],
+        "visibility_mean": 25,
+        "temp_mean": 26,
+        "seasonality_json": {
+          "peakMonths": []
+        },
+        "has_current": false,
+        "shop_count": 1
+      },
+      "media": [],
+      "provenance": {
+        "sources": [
+          {
+            "name": "Wikidata",
+            "url": "http://www.wikidata.org/entity/Q1554267",
+            "license": "CC0"
+          }
+        ]
+      }
+    },
+    {
+      "id": "wiki_site_019",
+      "name": "Smart Araneta Coliseum",
+      "region": "Southeast Asia",
+      "area": "Philippines",
+      "country": "Philippines",
+      "latitude": 14.620556,
+      "longitude": 121.053333,
+      "type": "reef",
+      "description": "indoor multi-purpose sports arena located in the Cubao area of Quezon City, Philippines",
+      "minDepth": 25,
+      "maxDepth": 40,
+      "difficulty": "intermediate",
+      "tags": [
+        "deep"
+      ],
+      "facets": {
+        "entry_modes": [
+          "boat"
+        ],
+        "notable_features": [
+          "deep"
+        ],
+        "visibility_mean": 25,
+        "temp_mean": 26,
+        "seasonality_json": {
+          "peakMonths": []
+        },
+        "has_current": false,
+        "shop_count": 1
+      },
+      "media": [],
+      "provenance": {
+        "sources": [
+          {
+            "name": "Wikidata",
+            "url": "http://www.wikidata.org/entity/Q625986",
+            "license": "CC0"
+          }
+        ]
+      }
+    },
+    {
+      "id": "wiki_site_020",
+      "name": "Pattaya Exhibition and Convention Hall",
+      "region": "Southeast Asia",
+      "area": "Thailand",
+      "country": "Thailand",
+      "latitude": 12.92448,
+      "longitude": 100.862507,
+      "type": "reef",
+      "description": "architectural structure",
+      "minDepth": 25,
+      "maxDepth": 40,
+      "difficulty": "intermediate",
+      "tags": [
+        "deep"
+      ],
+      "facets": {
+        "entry_modes": [
+          "boat"
+        ],
+        "notable_features": [
+          "deep"
+        ],
+        "visibility_mean": 25,
+        "temp_mean": 26,
+        "seasonality_json": {
+          "peakMonths": []
+        },
+        "has_current": false,
+        "shop_count": 1
+      },
+      "media": [],
+      "provenance": {
+        "sources": [
+          {
+            "name": "Wikidata",
+            "url": "http://www.wikidata.org/entity/Q931405",
+            "license": "CC0"
+          }
+        ]
+      }
+    },
+    {
+      "id": "wiki_site_021",
+      "name": "IMPACT, Muang Thong Thani",
+      "region": "Southeast Asia",
+      "area": "Thailand",
+      "country": "Thailand",
+      "latitude": 13.91326944,
+      "longitude": 100.54795278,
+      "type": "reef",
+      "description": "arena, exhibition and convention center in Thailand",
+      "minDepth": 25,
+      "maxDepth": 40,
+      "difficulty": "intermediate",
+      "tags": [
+        "deep"
+      ],
+      "facets": {
+        "entry_modes": [
+          "boat"
+        ],
+        "notable_features": [
+          "deep"
+        ],
+        "visibility_mean": 25,
+        "temp_mean": 26,
+        "seasonality_json": {
+          "peakMonths": []
+        },
+        "has_current": false,
+        "shop_count": 1
+      },
+      "media": [],
+      "provenance": {
+        "sources": [
+          {
+            "name": "Wikidata",
+            "url": "http://www.wikidata.org/entity/Q1996947",
+            "license": "CC0"
+          }
+        ]
+      }
+    },
+    {
+      "id": "wiki_site_022",
+      "name": "Axiata Arena",
+      "region": "Southeast Asia",
+      "area": "Malaysia",
+      "country": "Malaysia",
+      "latitude": 3.053736111,
+      "longitude": 101.693555555,
+      "type": "reef",
+      "description": "sports arena in Kuala Lumpur, Malaysia",
+      "minDepth": 25,
+      "maxDepth": 40,
+      "difficulty": "intermediate",
+      "tags": [
+        "deep"
+      ],
+      "facets": {
+        "entry_modes": [
+          "boat"
+        ],
+        "notable_features": [
+          "deep"
+        ],
+        "visibility_mean": 25,
+        "temp_mean": 26,
+        "seasonality_json": {
+          "peakMonths": []
+        },
+        "has_current": false,
+        "shop_count": 1
+      },
+      "media": [],
+      "provenance": {
+        "sources": [
+          {
+            "name": "Wikidata",
+            "url": "http://www.wikidata.org/entity/Q2326215",
+            "license": "CC0"
+          }
+        ]
+      }
+    },
+    {
+      "id": "wiki_site_023",
+      "name": "PhilSports Arena",
+      "region": "Southeast Asia",
+      "area": "Philippines",
+      "country": "Philippines",
+      "latitude": 14.5775,
+      "longitude": 121.066111,
+      "type": "reef",
+      "description": "sports venue",
+      "minDepth": 25,
+      "maxDepth": 40,
+      "difficulty": "intermediate",
+      "tags": [
+        "deep"
+      ],
+      "facets": {
+        "entry_modes": [
+          "boat"
+        ],
+        "notable_features": [
+          "deep"
+        ],
+        "visibility_mean": 25,
+        "temp_mean": 26,
+        "seasonality_json": {
+          "peakMonths": []
+        },
+        "has_current": false,
+        "shop_count": 1
+      },
+      "media": [],
+      "provenance": {
+        "sources": [
+          {
+            "name": "Wikidata",
+            "url": "http://www.wikidata.org/entity/Q2616959",
+            "license": "CC0"
+          }
+        ]
+      }
+    },
+    {
+      "id": "wiki_site_024",
+      "name": "Blue Eagle Gym",
+      "region": "Southeast Asia",
+      "area": "Philippines",
+      "country": "Philippines",
+      "latitude": 14.635,
+      "longitude": 121.075278,
+      "type": "reef",
+      "description": "Gymnasium",
+      "minDepth": 25,
+      "maxDepth": 40,
+      "difficulty": "intermediate",
+      "tags": [
+        "deep"
+      ],
+      "facets": {
+        "entry_modes": [
+          "boat"
+        ],
+        "notable_features": [
+          "deep"
+        ],
+        "visibility_mean": 25,
+        "temp_mean": 26,
+        "seasonality_json": {
+          "peakMonths": []
+        },
+        "has_current": false,
+        "shop_count": 1
+      },
+      "media": [],
+      "provenance": {
+        "sources": [
+          {
+            "name": "Wikidata",
+            "url": "http://www.wikidata.org/entity/Q4929085",
+            "license": "CC0"
+          }
+        ]
+      }
+    },
+    {
+      "id": "wiki_site_025",
+      "name": "Filoil EcoOil Centre",
+      "region": "Southeast Asia",
+      "area": "Philippines",
+      "country": "Philippines",
+      "latitude": 14.605574,
+      "longitude": 121.032914,
+      "type": "reef",
+      "description": "sports venue in San Juan, Philippines",
+      "minDepth": 25,
+      "maxDepth": 40,
+      "difficulty": "intermediate",
+      "tags": [
+        "deep"
+      ],
+      "facets": {
+        "entry_modes": [
+          "boat"
+        ],
+        "notable_features": [
+          "deep"
+        ],
+        "visibility_mean": 25,
+        "temp_mean": 26,
+        "seasonality_json": {
+          "peakMonths": []
+        },
+        "has_current": false,
+        "shop_count": 1
+      },
+      "media": [],
+      "provenance": {
+        "sources": [
+          {
+            "name": "Wikidata",
+            "url": "http://www.wikidata.org/entity/Q5449194",
+            "license": "CC0"
+          }
+        ]
+      }
+    },
+    {
+      "id": "wiki_site_026",
+      "name": "Sydney Olympic Park Aquatic Centre",
+      "region": "Pacific",
+      "area": "Australia",
+      "country": "Australia",
+      "latitude": -33.8503,
+      "longitude": 151.069,
+      "type": "reef",
+      "description": "Sports venue in Sydney, Australia",
+      "minDepth": 25,
+      "maxDepth": 40,
+      "difficulty": "intermediate",
+      "tags": [
+        "deep"
+      ],
+      "facets": {
+        "entry_modes": [
+          "boat"
+        ],
+        "notable_features": [
+          "deep"
+        ],
+        "visibility_mean": 25,
+        "temp_mean": 26,
+        "seasonality_json": {
+          "peakMonths": []
+        },
+        "has_current": false,
+        "shop_count": 1
+      },
+      "media": [],
+      "provenance": {
+        "sources": [
+          {
+            "name": "Wikidata",
+            "url": "http://www.wikidata.org/entity/Q1058641",
+            "license": "CC0"
+          }
+        ]
+      }
+    },
+    {
+      "id": "wiki_site_027",
+      "name": "Caversham Airfield",
+      "region": "Pacific",
+      "area": "Australia",
+      "country": "Australia",
+      "latitude": -31.8378,
+      "longitude": 115.974,
+      "type": "reef",
+      "description": "American WWII airfield in Caversham, Australia. Used by US Navy for air support only during WWII.",
+      "minDepth": 25,
+      "maxDepth": 40,
+      "difficulty": "intermediate",
+      "tags": [
+        "cave"
+      ],
+      "facets": {
+        "entry_modes": [
+          "boat"
+        ],
+        "notable_features": [
+          "cave"
+        ],
+        "visibility_mean": 25,
+        "temp_mean": 26,
+        "seasonality_json": {
+          "peakMonths": []
+        },
+        "has_current": false,
+        "shop_count": 1
+      },
+      "media": [],
+      "provenance": {
+        "sources": [
+          {
+            "name": "Wikidata",
+            "url": "http://www.wikidata.org/entity/Q1961218",
+            "license": "CC0"
+          }
+        ]
+      }
+    },
+    {
+      "id": "wiki_site_028",
+      "name": "Prince Charles Park",
+      "region": "Pacific",
+      "area": "Fiji",
+      "country": "Fiji",
+      "latitude": -17.80222222,
+      "longitude": 177.42083333,
+      "type": "reef",
+      "description": "stadium in Nadi, Fiji",
+      "minDepth": 25,
+      "maxDepth": 40,
+      "difficulty": "intermediate",
+      "tags": [
+        "deep"
+      ],
+      "facets": {
+        "entry_modes": [
+          "boat"
+        ],
+        "notable_features": [
+          "deep"
+        ],
+        "visibility_mean": 25,
+        "temp_mean": 26,
+        "seasonality_json": {
+          "peakMonths": []
+        },
+        "has_current": false,
+        "shop_count": 1
+      },
+      "media": [],
+      "provenance": {
+        "sources": [
+          {
+            "name": "Wikidata",
+            "url": "http://www.wikidata.org/entity/Q2059500",
+            "license": "CC0"
+          }
+        ]
+      }
+    },
+    {
+      "id": "wiki_site_029",
+      "name": "Melbourne Park",
+      "region": "Pacific",
+      "area": "Australia",
+      "country": "Australia",
+      "latitude": -37.822669444,
+      "longitude": 144.98005,
+      "type": "reef",
+      "description": "sporting complex in Melbourne, Victoria, Australia",
+      "minDepth": 25,
+      "maxDepth": 40,
+      "difficulty": "intermediate",
+      "tags": [
+        "deep"
+      ],
+      "facets": {
+        "entry_modes": [
+          "boat"
+        ],
+        "notable_features": [
+          "deep"
+        ],
+        "visibility_mean": 25,
+        "temp_mean": 26,
+        "seasonality_json": {
+          "peakMonths": []
+        },
+        "has_current": false,
+        "shop_count": 1
+      },
+      "media": [],
+      "provenance": {
+        "sources": [
+          {
+            "name": "Wikidata",
+            "url": "http://www.wikidata.org/entity/Q2228393",
+            "license": "CC0"
+          }
+        ]
+      }
+    },
+    {
+      "id": "wiki_site_030",
+      "name": "Sydney Olympic Park Tennis Centre",
+      "region": "Pacific",
+      "area": "Australia",
+      "country": "Australia",
+      "latitude": -33.855,
+      "longitude": 151.072222,
+      "type": "reef",
+      "description": "Australian tennis venue",
+      "minDepth": 25,
+      "maxDepth": 40,
+      "difficulty": "intermediate",
+      "tags": [
+        "deep"
+      ],
+      "facets": {
+        "entry_modes": [
+          "boat"
+        ],
+        "notable_features": [
+          "deep"
+        ],
+        "visibility_mean": 25,
+        "temp_mean": 26,
+        "seasonality_json": {
+          "peakMonths": []
+        },
+        "has_current": false,
+        "shop_count": 1
+      },
+      "media": [],
+      "provenance": {
+        "sources": [
+          {
+            "name": "Wikidata",
+            "url": "http://www.wikidata.org/entity/Q2759057",
+            "license": "CC0"
+          }
+        ]
+      }
+    },
+    {
+      "id": "wiki_site_031",
+      "name": "Empire Ballpark",
+      "region": "Pacific",
+      "area": "Australia",
+      "country": "Australia",
+      "latitude": -32.058333,
+      "longitude": 115.936667,
+      "type": "reef",
+      "description": "baseball park in Perth, Western Australia",
+      "minDepth": 25,
+      "maxDepth": 40,
+      "difficulty": "intermediate",
+      "tags": [
+        "deep"
+      ],
+      "facets": {
+        "entry_modes": [
+          "boat"
+        ],
+        "notable_features": [
+          "deep"
+        ],
+        "visibility_mean": 25,
+        "temp_mean": 26,
+        "seasonality_json": {
+          "peakMonths": []
+        },
+        "has_current": false,
+        "shop_count": 1
+      },
+      "media": [],
+      "provenance": {
+        "sources": [
+          {
+            "name": "Wikidata",
+            "url": "http://www.wikidata.org/entity/Q2886684",
+            "license": "CC0"
+          }
+        ]
+      }
+    },
+    {
+      "id": "wiki_site_032",
+      "name": "Baxter Field",
+      "region": "Pacific",
+      "area": "Australia",
+      "country": "Australia",
+      "latitude": -28.82159,
+      "longitude": 153.271524,
+      "type": "reef",
+      "description": "baseball field in Lismore, New South Wales",
+      "minDepth": 25,
+      "maxDepth": 40,
+      "difficulty": "intermediate",
+      "tags": [
+        "deep"
+      ],
+      "facets": {
+        "entry_modes": [
+          "boat"
+        ],
+        "notable_features": [
+          "deep"
+        ],
+        "visibility_mean": 25,
+        "temp_mean": 26,
+        "seasonality_json": {
+          "peakMonths": []
+        },
+        "has_current": false,
+        "shop_count": 1
+      },
+      "media": [],
+      "provenance": {
+        "sources": [
+          {
+            "name": "Wikidata",
+            "url": "http://www.wikidata.org/entity/Q4873845",
+            "license": "CC0"
+          }
+        ]
+      }
+    },
+    {
+      "id": "wiki_site_033",
+      "name": "Belmont Park Racecourse",
+      "region": "Pacific",
+      "area": "Australia",
+      "country": "Australia",
+      "latitude": -31.9436,
+      "longitude": 115.891,
+      "type": "reef",
+      "description": "horse racing venue in Perth, Western Australia",
+      "minDepth": 25,
+      "maxDepth": 40,
+      "difficulty": "intermediate",
+      "tags": [
+        "deep"
+      ],
+      "facets": {
+        "entry_modes": [
+          "boat"
+        ],
+        "notable_features": [
+          "deep"
+        ],
+        "visibility_mean": 25,
+        "temp_mean": 26,
+        "seasonality_json": {
+          "peakMonths": []
+        },
+        "has_current": false,
+        "shop_count": 1
+      },
+      "media": [],
+      "provenance": {
+        "sources": [
+          {
+            "name": "Wikidata",
+            "url": "http://www.wikidata.org/entity/Q4884405",
+            "license": "CC0"
+          }
+        ]
+      }
+    },
+    {
+      "id": "wiki_site_034",
+      "name": "Bicentennial Park South",
+      "region": "Pacific",
+      "area": "Australia",
+      "country": "Australia",
+      "latitude": -33.963889,
+      "longitude": 151.144444,
+      "type": "reef",
+      "description": "football stadium in Rockdale, Australia",
+      "minDepth": 25,
+      "maxDepth": 40,
+      "difficulty": "intermediate",
+      "tags": [
+        "deep"
+      ],
+      "facets": {
+        "entry_modes": [
+          "boat"
+        ],
+        "notable_features": [
+          "deep"
+        ],
+        "visibility_mean": 25,
+        "temp_mean": 26,
+        "seasonality_json": {
+          "peakMonths": []
+        },
+        "has_current": false,
+        "shop_count": 1
+      },
+      "media": [],
+      "provenance": {
+        "sources": [
+          {
+            "name": "Wikidata",
+            "url": "http://www.wikidata.org/entity/Q4903567",
+            "license": "CC0"
+          }
+        ]
+      }
+    },
+    {
+      "id": "wiki_site_035",
+      "name": "Dolphin Oval",
+      "region": "Pacific",
+      "area": "Australia",
+      "country": "Australia",
+      "latitude": -27.218889,
+      "longitude": 153.097222,
+      "type": "reef",
+      "description": "stadium in Kippa-Ring, Queensland, Australia",
+      "minDepth": 25,
+      "maxDepth": 40,
+      "difficulty": "intermediate",
+      "tags": [
+        "deep"
+      ],
+      "facets": {
+        "entry_modes": [
+          "boat"
+        ],
+        "notable_features": [
+          "deep"
+        ],
+        "visibility_mean": 25,
+        "temp_mean": 26,
+        "seasonality_json": {
+          "peakMonths": []
+        },
+        "has_current": false,
+        "shop_count": 1
+      },
+      "media": [],
+      "provenance": {
+        "sources": [
+          {
+            "name": "Wikidata",
+            "url": "http://www.wikidata.org/entity/Q5289641",
+            "license": "CC0"
+          }
+        ]
+      }
+    },
+    {
+      "id": "wiki_site_036",
+      "name": "Dorrien Gardens",
+      "region": "Pacific",
+      "area": "Australia",
+      "country": "Australia",
+      "latitude": -31.938889,
+      "longitude": 115.855,
+      "type": "reef",
+      "description": "sports ground in West Perth, Western Australia",
+      "minDepth": 25,
+      "maxDepth": 40,
+      "difficulty": "intermediate",
+      "tags": [
+        "deep"
+      ],
+      "facets": {
+        "entry_modes": [
+          "boat"
+        ],
+        "notable_features": [
+          "deep"
+        ],
+        "visibility_mean": 25,
+        "temp_mean": 26,
+        "seasonality_json": {
+          "peakMonths": []
+        },
+        "has_current": false,
+        "shop_count": 1
+      },
+      "media": [],
+      "provenance": {
+        "sources": [
+          {
+            "name": "Wikidata",
+            "url": "http://www.wikidata.org/entity/Q5298747",
+            "license": "CC0"
+          }
+        ]
+      }
+    },
+    {
+      "id": "wiki_site_037",
+      "name": "Eagle Farm Racecourse",
+      "region": "Pacific",
+      "area": "Australia",
+      "country": "Australia",
+      "latitude": -27.4277,
+      "longitude": 153.067,
+      "type": "reef",
+      "description": "heritage listed horse racing venue in Brisbane, Queensland, Australia",
+      "minDepth": 25,
+      "maxDepth": 40,
+      "difficulty": "intermediate",
+      "tags": [
+        "deep"
+      ],
+      "facets": {
+        "entry_modes": [
+          "boat"
+        ],
+        "notable_features": [
+          "deep"
+        ],
+        "visibility_mean": 25,
+        "temp_mean": 26,
+        "seasonality_json": {
+          "peakMonths": []
+        },
+        "has_current": false,
+        "shop_count": 1
+      },
+      "media": [],
+      "provenance": {
+        "sources": [
+          {
+            "name": "Wikidata",
+            "url": "http://www.wikidata.org/entity/Q5325079",
+            "license": "CC0"
+          }
+        ]
+      }
+    },
+    {
+      "id": "wiki_site_038",
+      "name": "Earl Park, Arncliffe",
+      "region": "Pacific",
+      "area": "Australia",
+      "country": "Australia",
+      "latitude": -33.935532,
+      "longitude": 151.146217,
+      "type": "reef",
+      "description": "previous sports field in Sydney, Australia",
+      "minDepth": 25,
+      "maxDepth": 40,
+      "difficulty": "intermediate",
+      "tags": [
+        "deep"
+      ],
+      "facets": {
+        "entry_modes": [
+          "boat"
+        ],
+        "notable_features": [
+          "deep"
+        ],
+        "visibility_mean": 25,
+        "temp_mean": 26,
+        "seasonality_json": {
+          "peakMonths": []
+        },
+        "has_current": false,
+        "shop_count": 1
+      },
+      "media": [],
+      "provenance": {
+        "sources": [
+          {
+            "name": "Wikidata",
+            "url": "http://www.wikidata.org/entity/Q5326039",
+            "license": "CC0"
+          }
+        ]
+      }
+    },
+    {
+      "id": "wiki_site_039",
+      "name": "East Fremantle Oval",
+      "region": "Pacific",
+      "area": "Australia",
+      "country": "Australia",
+      "latitude": -32.045833,
+      "longitude": 115.768611,
+      "type": "reef",
+      "description": "Australian football ground in East Fremantle",
+      "minDepth": 25,
+      "maxDepth": 40,
+      "difficulty": "intermediate",
+      "tags": [
+        "deep"
+      ],
+      "facets": {
+        "entry_modes": [
+          "boat"
+        ],
+        "notable_features": [
+          "deep"
+        ],
+        "visibility_mean": 25,
+        "temp_mean": 26,
+        "seasonality_json": {
+          "peakMonths": []
+        },
+        "has_current": false,
+        "shop_count": 1
+      },
+      "media": [],
+      "provenance": {
+        "sources": [
+          {
+            "name": "Wikidata",
+            "url": "http://www.wikidata.org/entity/Q5328393",
+            "license": "CC0"
+          }
+        ]
+      }
+    },
+    {
+      "id": "wiki_site_040",
+      "name": "Forshaw Park",
+      "region": "Pacific",
+      "area": "Australia",
+      "country": "Australia",
+      "latitude": -34.024444,
+      "longitude": 151.111389,
+      "type": "reef",
+      "description": "rugby stadium in Sylvania Waters, New South Wales, Australia",
+      "minDepth": 25,
+      "maxDepth": 40,
+      "difficulty": "intermediate",
+      "tags": [
+        "deep"
+      ],
+      "facets": {
+        "entry_modes": [
+          "boat"
+        ],
+        "notable_features": [
+          "deep"
+        ],
+        "visibility_mean": 25,
+        "temp_mean": 26,
+        "seasonality_json": {
+          "peakMonths": []
+        },
+        "has_current": false,
+        "shop_count": 1
+      },
+      "media": [],
+      "provenance": {
+        "sources": [
+          {
+            "name": "Wikidata",
+            "url": "http://www.wikidata.org/entity/Q5470597",
+            "license": "CC0"
+          }
+        ]
+      }
+    },
+    {
+      "id": "wiki_site_041",
+      "name": "Frankston Park",
+      "region": "Pacific",
+      "area": "Australia",
+      "country": "Australia",
+      "latitude": -38.14708,
+      "longitude": 145.12042,
+      "type": "reef",
+      "description": "Australian football ground",
+      "minDepth": 25,
+      "maxDepth": 40,
+      "difficulty": "intermediate",
+      "tags": [
+        "deep"
+      ],
+      "facets": {
+        "entry_modes": [
+          "boat"
+        ],
+        "notable_features": [
+          "deep"
+        ],
+        "visibility_mean": 25,
+        "temp_mean": 26,
+        "seasonality_json": {
+          "peakMonths": []
+        },
+        "has_current": false,
+        "shop_count": 1
+      },
+      "media": [],
+      "provenance": {
+        "sources": [
+          {
+            "name": "Wikidata",
+            "url": "http://www.wikidata.org/entity/Q5492263",
+            "license": "CC0"
+          }
+        ]
+      }
+    },
+    {
+      "id": "wiki_site_042",
+      "name": "Frankston Park",
+      "region": "Pacific",
+      "area": "Australia",
+      "country": "Australia",
+      "latitude": -38.142222,
+      "longitude": 145.120278,
+      "type": "reef",
+      "description": "Australian football ground",
+      "minDepth": 25,
+      "maxDepth": 40,
+      "difficulty": "intermediate",
+      "tags": [
+        "deep"
+      ],
+      "facets": {
+        "entry_modes": [
+          "boat"
+        ],
+        "notable_features": [
+          "deep"
+        ],
+        "visibility_mean": 25,
+        "temp_mean": 26,
+        "seasonality_json": {
+          "peakMonths": []
+        },
+        "has_current": false,
+        "shop_count": 1
+      },
+      "media": [],
+      "provenance": {
+        "sources": [
+          {
+            "name": "Wikidata",
+            "url": "http://www.wikidata.org/entity/Q5492263",
+            "license": "CC0"
+          }
+        ]
+      }
+    },
+    {
+      "id": "wiki_site_043",
+      "name": "Stadio Nicola Ceravolo",
+      "region": "Mediterranean",
+      "area": "Italy",
+      "country": "Italy",
+      "latitude": 38.919722,
+      "longitude": 16.587778,
+      "type": "reef",
+      "description": "football stadium",
+      "minDepth": 25,
+      "maxDepth": 40,
+      "difficulty": "intermediate",
+      "tags": [
+        "deep"
+      ],
+      "facets": {
+        "entry_modes": [
+          "boat"
+        ],
+        "notable_features": [
+          "deep"
+        ],
+        "visibility_mean": 25,
+        "temp_mean": 26,
+        "seasonality_json": {
+          "peakMonths": []
+        },
+        "has_current": false,
+        "shop_count": 1
+      },
+      "media": [],
+      "provenance": {
+        "sources": [
+          {
+            "name": "Wikidata",
+            "url": "http://www.wikidata.org/entity/Q1059142",
+            "license": "CC0"
+          }
+        ]
+      }
+    },
+    {
+      "id": "wiki_site_044",
+      "name": "Stade Jules Deschaseaux",
+      "region": "Mediterranean",
+      "area": "France",
+      "country": "France",
+      "latitude": 49.50185,
+      "longitude": 0.1712,
+      "type": "reef",
+      "description": "football stadium",
+      "minDepth": 25,
+      "maxDepth": 40,
+      "difficulty": "intermediate",
+      "tags": [
+        "deep"
+      ],
+      "facets": {
+        "entry_modes": [
+          "boat"
+        ],
+        "notable_features": [
+          "deep"
+        ],
+        "visibility_mean": 25,
+        "temp_mean": 26,
+        "seasonality_json": {
+          "peakMonths": []
+        },
+        "has_current": false,
+        "shop_count": 1
+      },
+      "media": [],
+      "provenance": {
+        "sources": [
+          {
+            "name": "Wikidata",
+            "url": "http://www.wikidata.org/entity/Q1059879",
+            "license": "CC0"
+          }
+        ]
+      }
+    },
+    {
+      "id": "wiki_site_045",
+      "name": "Roazhon Park",
+      "region": "Mediterranean",
+      "area": "France",
+      "country": "France",
+      "latitude": 48.10743,
+      "longitude": -1.71282,
+      "type": "reef",
+      "description": "football stadium in Rennes, France",
+      "minDepth": 25,
+      "maxDepth": 40,
+      "difficulty": "intermediate",
+      "tags": [
+        "deep"
+      ],
+      "facets": {
+        "entry_modes": [
+          "boat"
+        ],
+        "notable_features": [
+          "deep"
+        ],
+        "visibility_mean": 25,
+        "temp_mean": 26,
+        "seasonality_json": {
+          "peakMonths": []
+        },
+        "has_current": false,
+        "shop_count": 1
+      },
+      "media": [],
+      "provenance": {
+        "sources": [
+          {
+            "name": "Wikidata",
+            "url": "http://www.wikidata.org/entity/Q1121760",
+            "license": "CC0"
+          }
+        ]
+      }
+    },
+    {
+      "id": "wiki_site_046",
+      "name": "Stade Francis Le Basser",
+      "region": "Mediterranean",
+      "area": "France",
+      "country": "France",
+      "latitude": 48.08387,
+      "longitude": -0.75351,
+      "type": "reef",
+      "description": "football stadium",
+      "minDepth": 25,
+      "maxDepth": 40,
+      "difficulty": "intermediate",
+      "tags": [
+        "deep"
+      ],
+      "facets": {
+        "entry_modes": [
+          "boat"
+        ],
+        "notable_features": [
+          "deep"
+        ],
+        "visibility_mean": 25,
+        "temp_mean": 26,
+        "seasonality_json": {
+          "peakMonths": []
+        },
+        "has_current": false,
+        "shop_count": 1
+      },
+      "media": [],
+      "provenance": {
+        "sources": [
+          {
+            "name": "Wikidata",
+            "url": "http://www.wikidata.org/entity/Q1128228",
+            "license": "CC0"
+          }
+        ]
+      }
+    },
+    {
+      "id": "wiki_site_047",
+      "name": "Stade Gabriel Montpied",
+      "region": "Mediterranean",
+      "area": "France",
+      "country": "France",
+      "latitude": 45.81584,
+      "longitude": 3.12162,
+      "type": "reef",
+      "description": "stadium in Clermont-Ferrand, France",
+      "minDepth": 25,
+      "maxDepth": 40,
+      "difficulty": "intermediate",
+      "tags": [
+        "deep"
+      ],
+      "facets": {
+        "entry_modes": [
+          "boat"
+        ],
+        "notable_features": [
+          "deep"
+        ],
+        "visibility_mean": 25,
+        "temp_mean": 26,
+        "seasonality_json": {
+          "peakMonths": []
+        },
+        "has_current": false,
+        "shop_count": 1
+      },
+      "media": [],
+      "provenance": {
+        "sources": [
+          {
+            "name": "Wikidata",
+            "url": "http://www.wikidata.org/entity/Q1128263",
+            "license": "CC0"
+          }
+        ]
+      }
+    },
+    {
+      "id": "wiki_site_048",
+      "name": "Stade Robert Diochon",
+      "region": "Mediterranean",
+      "area": "France",
+      "country": "France",
+      "latitude": 49.411106407,
+      "longitude": 1.070777714,
+      "type": "reef",
+      "description": "football stadium",
+      "minDepth": 25,
+      "maxDepth": 40,
+      "difficulty": "intermediate",
+      "tags": [
+        "deep"
+      ],
+      "facets": {
+        "entry_modes": [
+          "boat"
+        ],
+        "notable_features": [
+          "deep"
+        ],
+        "visibility_mean": 25,
+        "temp_mean": 26,
+        "seasonality_json": {
+          "peakMonths": []
+        },
+        "has_current": false,
+        "shop_count": 1
+      },
+      "media": [],
+      "provenance": {
+        "sources": [
+          {
+            "name": "Wikidata",
+            "url": "http://www.wikidata.org/entity/Q1128618",
+            "license": "CC0"
+          }
+        ]
+      }
+    },
+    {
+      "id": "wiki_site_049",
+      "name": "Alexandreio Melathron",
+      "region": "Mediterranean",
+      "area": "Greece",
+      "country": "Greece",
+      "latitude": 40.626897,
+      "longitude": 22.957219,
+      "type": "reef",
+      "description": "arena in Thessaloniki, Greece",
+      "minDepth": 25,
+      "maxDepth": 40,
+      "difficulty": "intermediate",
+      "tags": [
+        "deep"
+      ],
+      "facets": {
+        "entry_modes": [
+          "boat"
+        ],
+        "notable_features": [
+          "deep"
+        ],
+        "visibility_mean": 25,
+        "temp_mean": 26,
+        "seasonality_json": {
+          "peakMonths": []
+        },
+        "has_current": false,
+        "shop_count": 1
+      },
+      "media": [],
+      "provenance": {
+        "sources": [
+          {
+            "name": "Wikidata",
+            "url": "http://www.wikidata.org/entity/Q1131605",
+            "license": "CC0"
+          }
+        ]
+      }
+    },
+    {
+      "id": "wiki_site_050",
+      "name": "Stade de l'Ill",
+      "region": "Mediterranean",
+      "area": "France",
+      "country": "France",
+      "latitude": 47.736376,
+      "longitude": 7.32183,
+      "type": "reef",
+      "description": "stadium in Mulhouse, France",
+      "minDepth": 25,
+      "maxDepth": 40,
+      "difficulty": "intermediate",
+      "tags": [
+        "deep"
+      ],
+      "facets": {
+        "entry_modes": [
+          "boat"
+        ],
+        "notable_features": [
+          "deep"
+        ],
+        "visibility_mean": 25,
+        "temp_mean": 26,
+        "seasonality_json": {
+          "peakMonths": []
+        },
+        "has_current": false,
+        "shop_count": 1
+      },
+      "media": [],
+      "provenance": {
+        "sources": [
+          {
+            "name": "Wikidata",
+            "url": "http://www.wikidata.org/entity/Q1133481",
+            "license": "CC0"
+          }
+        ]
+      }
+    },
+    {
+      "id": "wiki_site_051",
+      "name": "Stade Ange Casanova",
+      "region": "Mediterranean",
+      "area": "France",
+      "country": "France",
+      "latitude": 41.95138,
+      "longitude": 8.77204,
+      "type": "reef",
+      "description": "football stadium",
+      "minDepth": 25,
+      "maxDepth": 40,
+      "difficulty": "intermediate",
+      "tags": [
+        "deep"
+      ],
+      "facets": {
+        "entry_modes": [
+          "boat"
+        ],
+        "notable_features": [
+          "deep"
+        ],
+        "visibility_mean": 25,
+        "temp_mean": 26,
+        "seasonality_json": {
+          "peakMonths": []
+        },
+        "has_current": false,
+        "shop_count": 1
+      },
+      "media": [],
+      "provenance": {
+        "sources": [
+          {
+            "name": "Wikidata",
+            "url": "http://www.wikidata.org/entity/Q1134861",
+            "license": "CC0"
+          }
+        ]
+      }
+    },
+    {
+      "id": "wiki_site_052",
+      "name": "Palasport Fondo Patti",
+      "region": "Mediterranean",
+      "area": "Italy",
+      "country": "Italy",
+      "latitude": 38.191388888,
+      "longitude": 13.3175,
+      "type": "reef",
+      "description": "sports arena in Palermo, Italy",
+      "minDepth": 25,
+      "maxDepth": 40,
+      "difficulty": "intermediate",
+      "tags": [
+        "deep"
+      ],
+      "facets": {
+        "entry_modes": [
+          "boat"
+        ],
+        "notable_features": [
+          "deep"
+        ],
+        "visibility_mean": 25,
+        "temp_mean": 26,
+        "seasonality_json": {
+          "peakMonths": []
+        },
+        "has_current": false,
+        "shop_count": 1
+      },
+      "media": [],
+      "provenance": {
+        "sources": [
+          {
+            "name": "Wikidata",
+            "url": "http://www.wikidata.org/entity/Q1145215",
+            "license": "CC0"
+          }
+        ]
+      }
+    },
+    {
+      "id": "wiki_site_053",
+      "name": "T\u00eate Rousse Hut",
+      "region": "Mediterranean",
+      "area": "France",
+      "country": "France",
+      "latitude": 45.85491,
+      "longitude": 6.81751,
+      "type": "reef",
+      "description": "building",
+      "minDepth": 25,
+      "maxDepth": 40,
+      "difficulty": "intermediate",
+      "tags": [
+        "deep"
+      ],
+      "facets": {
+        "entry_modes": [
+          "boat"
+        ],
+        "notable_features": [
+          "deep"
+        ],
+        "visibility_mean": 25,
+        "temp_mean": 26,
+        "seasonality_json": {
+          "peakMonths": []
+        },
+        "has_current": false,
+        "shop_count": 1
+      },
+      "media": [],
+      "provenance": {
+        "sources": [
+          {
+            "name": "Wikidata",
+            "url": "http://www.wikidata.org/entity/Q1152206",
+            "license": "CC0"
+          }
+        ]
+      }
+    },
+    {
+      "id": "wiki_site_054",
+      "name": "La Meilleraie",
+      "region": "Mediterranean",
+      "area": "France",
+      "country": "France",
+      "latitude": 47.05794444,
+      "longitude": -0.89637222,
+      "type": "reef",
+      "description": "architectural structure",
+      "minDepth": 25,
+      "maxDepth": 40,
+      "difficulty": "intermediate",
+      "tags": [
+        "deep"
+      ],
+      "facets": {
+        "entry_modes": [
+          "boat"
+        ],
+        "notable_features": [
+          "deep"
+        ],
+        "visibility_mean": 25,
+        "temp_mean": 26,
+        "seasonality_json": {
+          "peakMonths": []
+        },
+        "has_current": false,
+        "shop_count": 1
+      },
+      "media": [],
+      "provenance": {
+        "sources": [
+          {
+            "name": "Wikidata",
+            "url": "http://www.wikidata.org/entity/Q1164904",
+            "license": "CC0"
+          }
+        ]
+      }
+    },
+    {
+      "id": "wiki_site_055",
+      "name": "Stade Pierre-Fabre",
+      "region": "Mediterranean",
+      "area": "France",
+      "country": "France",
+      "latitude": 43.61092,
+      "longitude": 2.25271,
+      "type": "reef",
+      "description": "stadium in Castres, France",
+      "minDepth": 25,
+      "maxDepth": 40,
+      "difficulty": "intermediate",
+      "tags": [
+        "deep"
+      ],
+      "facets": {
+        "entry_modes": [
+          "boat"
+        ],
+        "notable_features": [
+          "deep"
+        ],
+        "visibility_mean": 25,
+        "temp_mean": 26,
+        "seasonality_json": {
+          "peakMonths": []
+        },
+        "has_current": false,
+        "shop_count": 1
+      },
+      "media": [],
+      "provenance": {
+        "sources": [
+          {
+            "name": "Wikidata",
+            "url": "http://www.wikidata.org/entity/Q1164917",
+            "license": "CC0"
+          }
+        ]
+      }
+    },
+    {
+      "id": "wiki_site_056",
+      "name": "Stade de Penvillers",
+      "region": "Mediterranean",
+      "area": "France",
+      "country": "France",
+      "latitude": 48.00892,
+      "longitude": -4.09923,
+      "type": "reef",
+      "description": "football stadium",
+      "minDepth": 25,
+      "maxDepth": 40,
+      "difficulty": "intermediate",
+      "tags": [
+        "deep"
+      ],
+      "facets": {
+        "entry_modes": [
+          "boat"
+        ],
+        "notable_features": [
+          "deep"
+        ],
+        "visibility_mean": 25,
+        "temp_mean": 26,
+        "seasonality_json": {
+          "peakMonths": []
+        },
+        "has_current": false,
+        "shop_count": 1
+      },
+      "media": [],
+      "provenance": {
+        "sources": [
+          {
+            "name": "Wikidata",
+            "url": "http://www.wikidata.org/entity/Q1167942",
+            "license": "CC0"
+          }
+        ]
+      }
+    },
+    {
+      "id": "wiki_site_057",
+      "name": "Pointe de la Torche",
+      "region": "Mediterranean",
+      "area": "France",
+      "country": "France",
+      "latitude": 47.83666667,
+      "longitude": -4.35444444,
+      "type": "reef",
+      "description": "Promontory in Finist\u00e8re, France",
+      "minDepth": 25,
+      "maxDepth": 40,
+      "difficulty": "intermediate",
+      "tags": [
+        "deep"
+      ],
+      "facets": {
+        "entry_modes": [
+          "boat"
+        ],
+        "notable_features": [
+          "deep"
+        ],
+        "visibility_mean": 25,
+        "temp_mean": 26,
+        "seasonality_json": {
+          "peakMonths": []
+        },
+        "has_current": false,
+        "shop_count": 1
+      },
+      "media": [],
+      "provenance": {
+        "sources": [
+          {
+            "name": "Wikidata",
+            "url": "http://www.wikidata.org/entity/Q1250285",
+            "license": "CC0"
+          }
+        ]
+      }
+    },
+    {
+      "id": "wiki_site_058",
+      "name": "Galolhu National Stadium",
+      "region": "Indian Ocean",
+      "area": "Maldives",
+      "country": "Maldives",
+      "latitude": 4.174083333,
+      "longitude": 73.513083333,
+      "type": "reef",
+      "description": "stadium",
+      "minDepth": 25,
+      "maxDepth": 40,
+      "difficulty": "intermediate",
+      "tags": [
+        "deep"
+      ],
+      "facets": {
+        "entry_modes": [
+          "boat"
+        ],
+        "notable_features": [
+          "deep"
+        ],
+        "visibility_mean": 25,
+        "temp_mean": 26,
+        "seasonality_json": {
+          "peakMonths": []
+        },
+        "has_current": false,
+        "shop_count": 1
+      },
+      "media": [],
+      "provenance": {
+        "sources": [
+          {
+            "name": "Wikidata",
+            "url": "http://www.wikidata.org/entity/Q1557921",
+            "license": "CC0"
+          }
+        ]
+      }
+    },
+    {
+      "id": "wiki_site_059",
+      "name": "Galolhu National Stadium",
+      "region": "Indian Ocean",
+      "area": "Maldives",
+      "country": "Maldives",
+      "latitude": 4.1684,
+      "longitude": 73.5368,
+      "type": "reef",
+      "description": "stadium",
+      "minDepth": 25,
+      "maxDepth": 40,
+      "difficulty": "intermediate",
+      "tags": [
+        "deep"
+      ],
+      "facets": {
+        "entry_modes": [
+          "boat"
+        ],
+        "notable_features": [
+          "deep"
+        ],
+        "visibility_mean": 25,
+        "temp_mean": 26,
+        "seasonality_json": {
+          "peakMonths": []
+        },
+        "has_current": false,
+        "shop_count": 1
+      },
+      "media": [],
+      "provenance": {
+        "sources": [
+          {
+            "name": "Wikidata",
+            "url": "http://www.wikidata.org/entity/Q1557921",
+            "license": "CC0"
+          }
+        ]
+      }
+    },
+    {
+      "id": "wiki_site_060",
+      "name": "Mahinda Rajapaksa International Cricket Stadium",
+      "region": "Indian Ocean",
+      "area": "Sri Lanka",
+      "country": "Sri Lanka",
+      "latitude": 6.356389,
+      "longitude": 81.026389,
+      "type": "reef",
+      "description": "cricket stadium in Sri Lanka",
+      "minDepth": 25,
+      "maxDepth": 40,
+      "difficulty": "intermediate",
+      "tags": [
+        "deep"
+      ],
+      "facets": {
+        "entry_modes": [
+          "boat"
+        ],
+        "notable_features": [
+          "deep"
+        ],
+        "visibility_mean": 25,
+        "temp_mean": 26,
+        "seasonality_json": {
+          "peakMonths": []
+        },
+        "has_current": false,
+        "shop_count": 1
+      },
+      "media": [],
+      "provenance": {
+        "sources": [
+          {
+            "name": "Wikidata",
+            "url": "http://www.wikidata.org/entity/Q1684285",
+            "license": "CC0"
+          }
+        ]
+      }
+    },
+    {
+      "id": "wiki_site_061",
+      "name": "Delhi University Stadium",
+      "region": "Indian Ocean",
+      "area": "India",
+      "country": "India",
+      "latitude": 28.6909873,
+      "longitude": 77.2141236,
+      "type": "reef",
+      "description": "rugby stadium in Delhi University, India",
+      "minDepth": 25,
+      "maxDepth": 40,
+      "difficulty": "intermediate",
+      "tags": [
+        "deep"
+      ],
+      "facets": {
+        "entry_modes": [
+          "boat"
+        ],
+        "notable_features": [
+          "deep"
+        ],
+        "visibility_mean": 25,
+        "temp_mean": 26,
+        "seasonality_json": {
+          "peakMonths": []
+        },
+        "has_current": false,
+        "shop_count": 1
+      },
+      "media": [],
+      "provenance": {
+        "sources": [
+          {
+            "name": "Wikidata",
+            "url": "http://www.wikidata.org/entity/Q5253833",
+            "license": "CC0"
+          }
+        ]
+      }
+    },
+    {
+      "id": "wiki_site_062",
+      "name": "Spodek",
+      "region": "Other",
+      "area": "Poland",
+      "country": "Poland",
+      "latitude": 50.266111,
+      "longitude": 19.025278,
+      "type": "reef",
+      "description": "event venue in Katowice",
+      "minDepth": 25,
+      "maxDepth": 40,
+      "difficulty": "intermediate",
+      "tags": [
+        "deep"
+      ],
+      "facets": {
+        "entry_modes": [
+          "boat"
+        ],
+        "notable_features": [
+          "deep"
+        ],
+        "visibility_mean": 25,
+        "temp_mean": 26,
+        "seasonality_json": {
+          "peakMonths": []
+        },
+        "has_current": false,
+        "shop_count": 1
+      },
+      "media": [],
+      "provenance": {
+        "sources": [
+          {
+            "name": "Wikidata",
+            "url": "http://www.wikidata.org/entity/Q1051683",
+            "license": "CC0"
+          }
+        ]
+      }
+    },
+    {
+      "id": "wiki_site_063",
+      "name": "Olympia Eisstadion Innsbruck",
+      "region": "Other",
+      "area": "Austria",
+      "country": "Austria",
+      "latitude": 47.25694444,
+      "longitude": 11.40972222,
+      "type": "reef",
+      "description": "speed skating venue in Innsbruck, Tyrol, Austria",
+      "minDepth": 25,
+      "maxDepth": 40,
+      "difficulty": "intermediate",
+      "tags": [
+        "deep"
+      ],
+      "facets": {
+        "entry_modes": [
+          "boat"
+        ],
+        "notable_features": [
+          "deep"
+        ],
+        "visibility_mean": 25,
+        "temp_mean": 26,
+        "seasonality_json": {
+          "peakMonths": []
+        },
+        "has_current": false,
+        "shop_count": 1
+      },
+      "media": [],
+      "provenance": {
+        "sources": [
+          {
+            "name": "Wikidata",
+            "url": "http://www.wikidata.org/entity/Q1053761",
+            "license": "CC0"
+          }
+        ]
+      }
+    },
+    {
+      "id": "wiki_site_064",
+      "name": "Tokyo Metropolitan Gymnasium",
+      "region": "Other",
+      "area": "Japan",
+      "country": "Japan",
+      "latitude": 35.679722,
+      "longitude": 139.7125,
+      "type": "reef",
+      "description": "sports arena",
+      "minDepth": 25,
+      "maxDepth": 40,
+      "difficulty": "intermediate",
+      "tags": [
+        "deep"
+      ],
+      "facets": {
+        "entry_modes": [
+          "boat"
+        ],
+        "notable_features": [
+          "deep"
+        ],
+        "visibility_mean": 25,
+        "temp_mean": 26,
+        "seasonality_json": {
+          "peakMonths": []
+        },
+        "has_current": false,
+        "shop_count": 1
+      },
+      "media": [],
+      "provenance": {
+        "sources": [
+          {
+            "name": "Wikidata",
+            "url": "http://www.wikidata.org/entity/Q1066903",
+            "license": "CC0"
+          }
+        ]
+      }
+    },
+    {
+      "id": "wiki_site_065",
+      "name": "Chess City",
+      "region": "Other",
+      "area": "Russia",
+      "country": "Russia",
+      "latitude": 46.296667,
+      "longitude": 44.2975,
+      "type": "reef",
+      "description": "chess venue in Elisa, Russia",
+      "minDepth": 25,
+      "maxDepth": 40,
+      "difficulty": "intermediate",
+      "tags": [
+        "deep"
+      ],
+      "facets": {
+        "entry_modes": [
+          "boat"
+        ],
+        "notable_features": [
+          "deep"
+        ],
+        "visibility_mean": 25,
+        "temp_mean": 26,
+        "seasonality_json": {
+          "peakMonths": []
+        },
+        "has_current": false,
+        "shop_count": 1
+      },
+      "media": [],
+      "provenance": {
+        "sources": [
+          {
+            "name": "Wikidata",
+            "url": "http://www.wikidata.org/entity/Q1070617",
+            "license": "CC0"
+          }
+        ]
+      }
+    },
+    {
+      "id": "wiki_site_066",
+      "name": "Soldier Hollow",
+      "region": "Other",
+      "area": "United States",
+      "country": "United States",
+      "latitude": 40.4792,
+      "longitude": -111.497,
+      "type": "reef",
+      "description": "ski and biathlon venue in Wasatch Mountain State Park in Wasatch County, Utah, United States",
+      "minDepth": 25,
+      "maxDepth": 40,
+      "difficulty": "intermediate",
+      "tags": [
+        "deep"
+      ],
+      "facets": {
+        "entry_modes": [
+          "boat"
+        ],
+        "notable_features": [
+          "deep"
+        ],
+        "visibility_mean": 25,
+        "temp_mean": 26,
+        "seasonality_json": {
+          "peakMonths": []
+        },
+        "has_current": false,
+        "shop_count": 1
+      },
+      "media": [],
+      "provenance": {
+        "sources": [
+          {
+            "name": "Wikidata",
+            "url": "http://www.wikidata.org/entity/Q1111563",
+            "license": "CC0"
+          }
+        ]
+      }
+    },
+    {
+      "id": "wiki_site_067",
+      "name": "Congress Centrum Suhl",
+      "region": "Other",
+      "area": "Germany",
+      "country": "Germany",
+      "latitude": 50.61027778,
+      "longitude": 10.68777778,
+      "type": "reef",
+      "description": "multi-purpose hall in Suhl, Thuringia, Germany",
+      "minDepth": 25,
+      "maxDepth": 40,
+      "difficulty": "intermediate",
+      "tags": [
+        "deep"
+      ],
+      "facets": {
+        "entry_modes": [
+          "boat"
+        ],
+        "notable_features": [
+          "deep"
+        ],
+        "visibility_mean": 25,
+        "temp_mean": 26,
+        "seasonality_json": {
+          "peakMonths": []
+        },
+        "has_current": false,
+        "shop_count": 1
+      },
+      "media": [],
+      "provenance": {
+        "sources": [
+          {
+            "name": "Wikidata",
+            "url": "http://www.wikidata.org/entity/Q1125845",
+            "license": "CC0"
+          }
+        ]
+      }
+    },
+    {
+      "id": "wiki_site_068",
+      "name": "K\u0151b\u00e1nya cellar system",
+      "region": "Other",
+      "area": "Hungary",
+      "country": "Hungary",
+      "latitude": 47.485,
+      "longitude": 19.137222,
+      "type": "reef",
+      "description": "network of tunnels under the 10th district of Budapest",
+      "minDepth": 25,
+      "maxDepth": 40,
+      "difficulty": "intermediate",
+      "tags": [
+        "deep"
+      ],
+      "facets": {
+        "entry_modes": [
+          "boat"
+        ],
+        "notable_features": [
+          "deep"
+        ],
+        "visibility_mean": 25,
+        "temp_mean": 26,
+        "seasonality_json": {
+          "peakMonths": []
+        },
+        "has_current": false,
+        "shop_count": 1
+      },
+      "media": [],
+      "provenance": {
+        "sources": [
+          {
+            "name": "Wikidata",
+            "url": "http://www.wikidata.org/entity/Q1126598",
+            "license": "CC0"
+          }
+        ]
+      }
+    },
+    {
+      "id": "wiki_site_069",
+      "name": "Earls Court Exhibition Centre",
+      "region": "Other",
+      "area": "United Kingdom",
+      "country": "United Kingdom",
+      "latitude": 51.488888888,
+      "longitude": -0.197777777,
+      "type": "reef",
+      "description": "exhibition, conference and events venue in London, England",
+      "minDepth": 25,
+      "maxDepth": 40,
+      "difficulty": "intermediate",
+      "tags": [
+        "deep"
+      ],
+      "facets": {
+        "entry_modes": [
+          "boat"
+        ],
+        "notable_features": [
+          "deep"
+        ],
+        "visibility_mean": 25,
+        "temp_mean": 26,
+        "seasonality_json": {
+          "peakMonths": []
+        },
+        "has_current": false,
+        "shop_count": 1
+      },
+      "media": [],
+      "provenance": {
+        "sources": [
+          {
+            "name": "Wikidata",
+            "url": "http://www.wikidata.org/entity/Q1130746",
+            "license": "CC0"
+          }
+        ]
+      }
+    },
+    {
+      "id": "wiki_site_070",
+      "name": "Norfolk Scope",
+      "region": "Other",
+      "area": "United States",
+      "country": "United States",
+      "latitude": 36.8533,
+      "longitude": -76.2867,
+      "type": "reef",
+      "description": "multi-purpose hall complex in Norfolk, Virginia, United States",
+      "minDepth": 25,
+      "maxDepth": 40,
+      "difficulty": "intermediate",
+      "tags": [
+        "deep"
+      ],
+      "facets": {
+        "entry_modes": [
+          "boat"
+        ],
+        "notable_features": [
+          "deep"
+        ],
+        "visibility_mean": 25,
+        "temp_mean": 26,
+        "seasonality_json": {
+          "peakMonths": []
+        },
+        "has_current": false,
+        "shop_count": 1
+      },
+      "media": [],
+      "provenance": {
+        "sources": [
+          {
+            "name": "Wikidata",
+            "url": "http://www.wikidata.org/entity/Q1131230",
+            "license": "CC0"
+          }
+        ]
+      }
+    },
+    {
+      "id": "wiki_site_071",
+      "name": "Recreation Ground",
+      "region": "Other",
+      "area": "United Kingdom",
+      "country": "United Kingdom",
+      "latitude": 51.381625,
+      "longitude": -2.354843,
+      "type": "reef",
+      "description": "sports venue",
+      "minDepth": 25,
+      "maxDepth": 40,
+      "difficulty": "intermediate",
+      "tags": [
+        "deep"
+      ],
+      "facets": {
+        "entry_modes": [
+          "boat"
+        ],
+        "notable_features": [
+          "deep"
+        ],
+        "visibility_mean": 25,
+        "temp_mean": 26,
+        "seasonality_json": {
+          "peakMonths": []
+        },
+        "has_current": false,
+        "shop_count": 1
+      },
+      "media": [],
+      "provenance": {
+        "sources": [
+          {
+            "name": "Wikidata",
+            "url": "http://www.wikidata.org/entity/Q1134754",
+            "license": "CC0"
+          }
+        ]
+      }
+    }
+  ]
+}

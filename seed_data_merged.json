@@ -1,5 +1,220 @@
 {
   "version": "1.0",
+  "generated_at": "2025-10-18T13:48:42Z",
+  "stats": {
+    "site_count": 9,
+    "dive_count": 22,
+    "sighting_count": 24
+  },
+  "sites": [
+    {
+      "id": "site_shark_yolanda",
+      "name": "Shark & Yolanda Reef",
+      "region": "Red Sea",
+      "area": "Sharm el-Sheikh",
+      "country": "Egypt",
+      "latitude": 27.7833,
+      "longitude": 34.3167,
+      "averageDepth": 18.0,
+      "maxDepth": 30.0,
+      "averageTemp": 26.0,
+      "averageVisibility": 30.0,
+      "difficulty": "Advanced",
+      "type": "Reef",
+      "description": "Famous for shark encounters and the sunken Yolanda cargo",
+      "tags": [
+        "sharks",
+        "wreck",
+        "drift"
+      ],
+      "wishlist": false,
+      "visitedCount": 1
+    },
+    {
+      "id": "site_ras_mohammed",
+      "name": "Ras Mohammed",
+      "region": "Red Sea",
+      "area": "Sharm el-Sheikh",
+      "country": "Egypt",
+      "latitude": 27.7319,
+      "longitude": 34.2333,
+      "averageDepth": 25.0,
+      "maxDepth": 32.0,
+      "averageTemp": 25.0,
+      "averageVisibility": 25.0,
+      "difficulty": "Advanced",
+      "type": "Reef",
+      "description": "Incredible wall dive with soft corals and strong current",
+      "tags": [
+        "wall",
+        "corals",
+        "current"
+      ],
+      "wishlist": false,
+      "visitedCount": 1
+    },
+    {
+      "id": "site_blue_hole",
+      "name": "Blue Hole Dahab",
+      "region": "Red Sea",
+      "area": "Dahab",
+      "country": "Egypt",
+      "latitude": 28.5644,
+      "longitude": 34.5239,
+      "averageDepth": 60.0,
+      "maxDepth": 110.0,
+      "averageTemp": 24.0,
+      "averageVisibility": 40.0,
+      "difficulty": "Advanced",
+      "type": "Sinkhole",
+      "description": "Famous vertical drop, requires deep diving certification",
+      "tags": [
+        "deep",
+        "arch",
+        "technical"
+      ],
+      "wishlist": false,
+      "visitedCount": 0
+    },
+    {
+      "id": "site_cozumel_palancar",
+      "name": "Palancar Reef",
+      "region": "Caribbean",
+      "area": "Cozumel",
+      "country": "Mexico",
+      "latitude": 20.3353,
+      "longitude": -87.0303,
+      "averageDepth": 18.0,
+      "maxDepth": 25.0,
+      "averageTemp": 28.0,
+      "averageVisibility": 35.0,
+      "difficulty": "Beginner",
+      "type": "Reef",
+      "description": "Stunning coral formations and clear water, drift dive",
+      "tags": [
+        "drift",
+        "corals",
+        "turtles"
+      ],
+      "wishlist": false,
+      "visitedCount": 0
+    },
+    {
+      "id": "site_great_blue_hole",
+      "name": "Great Blue Hole",
+      "region": "Caribbean",
+      "area": "Belize",
+      "country": "Belize",
+      "latitude": 17.3167,
+      "longitude": -87.5353,
+      "averageDepth": 40.0,
+      "maxDepth": 124.0,
+      "averageTemp": 27.0,
+      "averageVisibility": 50.0,
+      "difficulty": "Advanced",
+      "type": "Sinkhole",
+      "description": "World-famous marine sinkhole with stalactites",
+      "tags": [
+        "deep",
+        "geological",
+        "sharks"
+      ],
+      "wishlist": false,
+      "visitedCount": 0
+    },
+    {
+      "id": "site_bvi_rhone",
+      "name": "RMS Rhone Wreck",
+      "region": "Caribbean",
+      "area": "British Virgin Islands",
+      "country": "BVI",
+      "latitude": 18.4342,
+      "longitude": -64.5658,
+      "averageDepth": 15.0,
+      "maxDepth": 24.0,
+      "averageTemp": 28.0,
+      "averageVisibility": 25.0,
+      "difficulty": "Beginner",
+      "type": "Wreck",
+      "description": "Historic shipwreck from 1867, marine life sanctuary",
+      "tags": [
+        "wreck",
+        "history",
+        "fish"
+      ],
+      "wishlist": false,
+      "visitedCount": 0
+    },
+    {
+      "id": "site_malta_blue_grotto",
+      "name": "Blue Grotto",
+      "region": "Mediterranean",
+      "area": "Malta",
+      "country": "Malta",
+      "latitude": 35.8217,
+      "longitude": 14.4533,
+      "averageDepth": 20.0,
+      "maxDepth": 40.0,
+      "averageTemp": 22.0,
+      "averageVisibility": 40.0,
+      "difficulty": "Intermediate",
+      "type": "Cave",
+      "description": "Spectacular underwater caverns with blue light effects",
+      "tags": [
+        "caves",
+        "caverns",
+        "light"
+      ],
+      "wishlist": false,
+      "visitedCount": 0
+    },
+    {
+      "id": "site_gozo_azure_window",
+      "name": "Blue Hole Gozo",
+      "region": "Mediterranean",
+      "area": "Gozo",
+      "country": "Malta",
+      "latitude": 36.0556,
+      "longitude": 14.1906,
+      "averageDepth": 15.0,
+      "maxDepth": 60.0,
+      "averageTemp": 21.0,
+      "averageVisibility": 35.0,
+      "difficulty": "Intermediate",
+      "type": "Chimney",
+      "description": "Vertical chimney opening to open sea",
+      "tags": [
+        "chimney",
+        "geological",
+        "arch"
+      ],
+      "wishlist": false,
+      "visitedCount": 0
+    },
+    {
+      "id": "site_french_riviera_lerins",
+      "name": "Lerins Islands",
+      "region": "Mediterranean",
+      "area": "Cannes",
+      "country": "France",
+      "latitude": 43.5083,
+      "longitude": 7.0417,
+      "averageDepth": 20.0,
+      "maxDepth": 35.0,
+      "averageTemp": 20.0,
+      "averageVisibility": 20.0,
+      "difficulty": "Beginner",
+      "type": "Reef",
+      "description": "Rocky reefs with groupers and octopus",
+      "tags": [
+        "reef",
+        "octopus",
+        "groupers"
+      ],
+      "wishlist": false,
+      "visitedCount": 0
+    }
+  ],
   "dives": [
     {
       "id": "dive_ext_001",
@@ -484,6 +699,200 @@
       "signed": false,
       "createdAt": "2024-08-05T17:00:00Z",
       "updatedAt": "2024-08-05T17:00:00Z"
+    }
+  ],
+  "sightings": [
+    {
+      "id": "sight_ext_001",
+      "diveId": "dive_ext_001",
+      "speciesId": "species_coral_grouper",
+      "count": 5,
+      "notes": "School in coral",
+      "createdAt": "2024-09-15T10:00:00Z"
+    },
+    {
+      "id": "sight_ext_002",
+      "diveId": "dive_ext_001",
+      "speciesId": "species_whitetip_reef_shark",
+      "count": 1,
+      "notes": "Resting on sand",
+      "createdAt": "2024-09-15T10:00:00Z"
+    },
+    {
+      "id": "sight_ext_003",
+      "diveId": "dive_ext_002",
+      "speciesId": "species_spotted_eagle_ray",
+      "count": 3,
+      "notes": "Graceful swimmers",
+      "createdAt": "2024-09-16T16:00:00Z"
+    },
+    {
+      "id": "sight_ext_004",
+      "diveId": "dive_ext_002",
+      "speciesId": "species_manta_ray",
+      "count": 1,
+      "notes": "Feeding at surface",
+      "createdAt": "2024-09-16T16:00:00Z"
+    },
+    {
+      "id": "sight_ext_005",
+      "diveId": "dive_ext_003",
+      "speciesId": "species_green_turtle",
+      "count": 2,
+      "notes": "Grazing on seagrass",
+      "createdAt": "2024-08-20T12:00:00Z"
+    },
+    {
+      "id": "sight_ext_006",
+      "diveId": "dive_ext_004",
+      "speciesId": "species_whale_shark",
+      "count": 1,
+      "notes": "Passing through area",
+      "createdAt": "2024-07-10T10:00:00Z"
+    },
+    {
+      "id": "sight_ext_007",
+      "diveId": "dive_ext_005",
+      "speciesId": "species_octopus",
+      "count": 2,
+      "notes": "Hiding in rocks",
+      "createdAt": "2024-06-05T18:00:00Z"
+    },
+    {
+      "id": "sight_ext_008",
+      "diveId": "dive_ext_006",
+      "speciesId": "species_green_turtle",
+      "count": 3,
+      "notes": "Multiple turtles",
+      "createdAt": "2024-09-22T10:30:00Z"
+    },
+    {
+      "id": "sight_ext_009",
+      "diveId": "dive_ext_007",
+      "speciesId": "species_moray_eel",
+      "count": 4,
+      "notes": "Various sizes",
+      "createdAt": "2024-05-12T15:30:00Z"
+    },
+    {
+      "id": "sight_ext_010",
+      "diveId": "dive_ext_008",
+      "speciesId": "species_lionfish",
+      "count": 6,
+      "notes": "Patrolling reef",
+      "createdAt": "2024-04-28T10:00:00Z"
+    },
+    {
+      "id": "sight_ext_011",
+      "diveId": "dive_ext_009",
+      "speciesId": "species_scalloped_hammerhead",
+      "count": 8,
+      "notes": "School passing by",
+      "createdAt": "2024-09-25T09:00:00Z"
+    },
+    {
+      "id": "sight_ext_012",
+      "diveId": "dive_ext_010",
+      "speciesId": "species_great_hammerhead",
+      "count": 1,
+      "notes": "Rare encounter",
+      "createdAt": "2024-03-15T14:30:00Z"
+    },
+    {
+      "id": "sight_ext_013",
+      "diveId": "dive_ext_011",
+      "speciesId": "species_hawksbill_turtle",
+      "count": 1,
+      "notes": "Feeding turtle",
+      "createdAt": "2024-08-30T16:30:00Z"
+    },
+    {
+      "id": "sight_ext_014",
+      "diveId": "dive_ext_012",
+      "speciesId": "species_grey_reef_shark",
+      "count": 2,
+      "notes": "Curious sharks",
+      "createdAt": "2024-07-22T12:00:00Z"
+    },
+    {
+      "id": "sight_ext_015",
+      "diveId": "dive_ext_013",
+      "speciesId": "species_stingray",
+      "count": 3,
+      "notes": "Bottom dwellers",
+      "createdAt": "2024-02-10T11:00:00Z"
+    },
+    {
+      "id": "sight_ext_016",
+      "diveId": "dive_ext_014",
+      "speciesId": "species_coral_grouper",
+      "count": 4,
+      "notes": "Breeding pair visible",
+      "createdAt": "2024-09-28T09:45:00Z"
+    },
+    {
+      "id": "sight_ext_017",
+      "diveId": "dive_ext_015",
+      "speciesId": "species_napoleon_wrasse",
+      "count": 1,
+      "notes": "Impressive large male",
+      "createdAt": "2024-06-18T16:45:00Z"
+    },
+    {
+      "id": "sight_ext_018",
+      "diveId": "dive_ext_016",
+      "speciesId": "species_great_barracuda",
+      "count": 2,
+      "notes": "Patrolling hunters",
+      "createdAt": "2024-01-05T13:15:00Z"
+    },
+    {
+      "id": "sight_ext_019",
+      "diveId": "dive_ext_017",
+      "speciesId": "species_manta_ray",
+      "count": 2,
+      "notes": "Multiple gliding",
+      "createdAt": "2024-10-01T08:30:00Z"
+    },
+    {
+      "id": "sight_ext_020",
+      "diveId": "dive_ext_018",
+      "speciesId": "species_octopus",
+      "count": 1,
+      "notes": "Well camouflaged",
+      "createdAt": "2024-05-29T11:45:00Z"
+    },
+    {
+      "id": "sight_ext_021",
+      "diveId": "dive_ext_019",
+      "speciesId": "species_bottlenose_dolphin",
+      "count": 4,
+      "notes": "Playful pod",
+      "createdAt": "2024-04-12T16:00:00Z"
+    },
+    {
+      "id": "sight_ext_022",
+      "diveId": "dive_ext_020",
+      "speciesId": "species_green_turtle",
+      "count": 1,
+      "notes": "Resting on reef",
+      "createdAt": "2024-09-10T10:15:00Z"
+    },
+    {
+      "id": "sight_ext_023",
+      "diveId": "dive_ext_021",
+      "speciesId": "species_whitetip_reef_shark",
+      "count": 2,
+      "notes": "Hunting small fish",
+      "createdAt": "2024-03-28T12:45:00Z"
+    },
+    {
+      "id": "sight_ext_024",
+      "diveId": "dive_ext_022",
+      "speciesId": "species_lionfish",
+      "count": 3,
+      "notes": "Different sizes",
+      "createdAt": "2024-08-05T17:00:00Z"
     }
   ]
 }
