@@ -124,7 +124,7 @@ public enum DatabaseMigrator {
             try db.create(index: "idx_sites_lat_lon", on: "sites", columns: ["latitude", "longitude"])
             
             // Rebuild FTS to include tags and more fields
-            try db.drop(virtualTable: "sites_fts")
+            try db.execute(sql: "DROP TABLE IF EXISTS sites_fts")
             try db.create(virtualTable: "sites_fts", using: FTS5()) { t in
                 t.column("name")
                 t.column("region")
