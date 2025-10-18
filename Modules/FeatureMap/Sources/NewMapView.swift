@@ -25,7 +25,8 @@ public struct NewMapView: View {
     private var primaryColor: Color { viewModel.mode == .explore ? .purple : .oceanBlue }
     private var mapLibreAnnotations: [DiveMapAnnotation] {
         let selectedId = selectedSite?.id
-        return viewModel.filteredSites.map { site in
+        let sitesToShow = viewModel.filteredSites.isEmpty ? viewModel.sites : viewModel.filteredSites
+        return sitesToShow.map { site in
             let kind: DiveMapAnnotation.Kind = site.type == .wreck ? .wreck : .site
             return DiveMapAnnotation(
                 id: site.id,
@@ -867,14 +868,15 @@ class MapViewModel: ObservableObject {
                 maxLon: bounds.maxLongitude
             )
             await MainActor.run {
-                if boxSites.isEmpty {
-                    self.visibleSites = self.sites
-                } else {
-                    self.visibleSites = boxSites
-                }
+                // Always show sites in visible bounds, fall back to all if empty
+                self.visibleSites = boxSites.isEmpty ? self.sites : boxSites
             }
         } catch {
             print("Failed to fetch box sites: \(error)")
+            // On error, show all sites
+            await MainActor.run {
+                self.visibleSites = self.sites
+            }
         }
     }
 }
