@@ -56,6 +56,18 @@ targets:
         buildPhase: resources
       - path: Resources/SeedData/sites_wikidata.json
         buildPhase: resources
+      - path: Resources/SeedData/optimized/tiles/manifest.json
+        buildPhase: resources
+      - path: Resources/SeedData/optimized/tiles/australia-pacific-islands.json
+        buildPhase: resources
+      - path: Resources/SeedData/optimized/tiles/caribbean-atlantic.json
+        buildPhase: resources
+      - path: Resources/SeedData/optimized/tiles/mediterranean.json
+        buildPhase: resources
+      - path: Resources/SeedData/optimized/tiles/north-atlantic-arctic.json
+        buildPhase: resources
+      - path: Resources/SeedData/optimized/tiles/red-sea-indian-ocean.json
+        buildPhase: resources
     dependencies:
       - target: UmiDesignSystem
       - target: UmiCoreKit

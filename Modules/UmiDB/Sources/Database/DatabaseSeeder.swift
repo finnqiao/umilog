@@ -60,7 +60,14 @@ public enum DatabaseSeeder {
     private static func seedSites() throws {
         Self.logger.log("  📍 Loading dive sites...")
         
-        // Load multiple optional site files
+        // Try to load from optimized regional tiles first
+        if try loadOptimizedTiles() {
+            return  // Successfully loaded from tiles
+        }
+        
+        // Fall back to legacy multi-file loading
+        Self.logger.log("  ℹ️ Optimized tiles not found; falling back to legacy seed files")
+        
         let primary = try loadJSON("sites_seed", as: SitesSeedFile.self)
         let ext1 = optionalJSON("sites_extended", as: SitesSeedFile.self)
         let ext2 = optionalJSON("sites_extended2", as: SitesSeedFile.self)
@@ -84,6 +91,80 @@ public enum DatabaseSeeder {
         
         let regionCount = Set(sites.map { $0.region }).count
         Self.logger.log("  ✅ Loaded \\(sites.count, privacy: .public) sites across \\(regionCount, privacy: .public) regions")
+    }
+    
+    /// Loads optimized regional tiles from manifest
+    private static func loadOptimizedTiles() throws -> Bool {
+        Self.logger.log("  🗂️ Attempting to load optimized regional tiles...")
+        
+        guard let manifestUrl = Bundle.main.url(
+            forResource: "manifest",
+            withExtension: "json",
+            subdirectory: "optimized/tiles"
+        ) else {
+            Self.logger.log("  ℹ️ No manifest found in optimized/tiles")
+            return false
+        }
+        
+        let manifestData = try Data(contentsOf: manifestUrl)
+        let manifest = try JSONDecoder().decode(TileManifest.self, from: manifestData)
+        
+        let db = AppDatabase.shared
+        var totalSites = 0
+        var loadedRegions = 0
+        
+        // Load each regional tile
+        for tile in manifest.tiles {
+            guard let tileUrl = Bundle.main.url(
+                forResource: tile.name.replacingOccurrences(of: ".json", with: ""),
+                withExtension: "json",
+                subdirectory: "optimized/tiles"
+            ) else {
+                Self.logger.warning("  ⚠️ Tile not found: \\(tile.name, privacy: .public)")
+                continue
+            }
+            
+            let tileData = try Data(contentsOf: tileUrl)
+            let tileFile = try JSONDecoder().decode(RegionalTile.self, from: tileData)
+            
+            // Convert and insert sites from this tile
+            let sites = tileFile.sites.map { convertOptimizedSiteToModel($0) }
+            try db.siteRepository.createMany(sites)
+            
+            totalSites += sites.count
+            loadedRegions += 1
+            
+            Self.logger.log("  ✅ Loaded tile \\(tile.region, privacy: .public): \\(sites.count, privacy: .public) sites")
+        }
+        
+        if totalSites > 0 {
+            Self.logger.log("  ✅ Loaded \\(totalSites, privacy: .public) sites from \\(loadedRegions, privacy: .public) regional tiles")
+            return true
+        }
+        
+        return false
+    }
+    
+    /// Convert optimized site format to DiveSite model
+    private static func convertOptimizedSiteToModel(_ optimized: OptimizedSite) -> DiveSite {
+        return DiveSite(
+            id: optimized.id,
+            name: optimized.name,
+            location: [optimized.country].compactMap { $0 }.joined(separator: ", "),
+            latitude: optimized.latitude,
+            longitude: optimized.longitude,
+            region: optimized.region,
+            averageDepth: Double(optimized.maxDepth) * 0.7,  // Estimate average as 70% of max
+            maxDepth: Double(optimized.maxDepth),
+            averageTemp: 0,  // Not available in optimized format
+            averageVisibility: 0,  // Not available in optimized format
+            difficulty: .intermediate,  // Default; can be enhanced later
+            type: .reef,  // Default; can be inferred from description
+            description: optimized.description ?? "",
+            wishlist: optimized.wishlist,
+            visitedCount: optimized.visitedCount,
+            createdAt: Date()
+        )
     }
     
     private static func convertToSite(_ json: SiteSeedData) -> DiveSite {
@@ -468,4 +549,61 @@ private struct SightingSeedData: Decodable {
     let count: Int
     let notes: String?
     let createdAt: String
+}
+
+// MARK: - Optimized Tile Structures
+
+private struct TileManifest: Decodable {
+    let version: String
+    let generated_at: String
+    let tiles: [TileMetadata]
+    let summary: TileSummary
+}
+
+private struct TileMetadata: Decodable {
+    let name: String
+    let region: String
+    let count: Int
+    let size_uncompressed_kb: Double
+    let size_compressed_kb: Double
+    let bounds: GeographicBounds?
+}
+
+private struct GeographicBounds: Decodable {
+    let min_lat: Double
+    let max_lat: Double
+    let min_lon: Double
+    let max_lon: Double
+    let center_lat: Double
+    let center_lon: Double
+}
+
+private struct TileSummary: Decodable {
+    let total_sites: Int
+    let total_regions: Int
+    let total_size_uncompressed_mb: Double
+    let total_size_compressed_mb: Double
+}
+
+private struct RegionalTile: Decodable {
+    let region: String
+    let sites: [OptimizedSite]
+    let metadata: TileMetadata?
+}
+
+private struct OptimizedSite: Decodable {
+    let id: String
+    let name: String
+    let latitude: Double
+    let longitude: Double
+    let country: String?
+    let region: String
+    let description: String?
+    let maxDepth: Int
+    let source: String
+    let license: String
+    let verified: Bool
+    let createdAt: String
+    let wishlist: Bool
+    let visitedCount: Int
 }
