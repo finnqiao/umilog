@@ -66,10 +66,16 @@ OBSERVATION_NOTES = [
 ]
 
 def load_sites() -> List[Dict]:
-    """Load the expanded sites."""
-    with open("../../Resources/SeedData/sites_expanded_200plus.json") as f:
-        data = json.load(f)
-    return data["sites"]
+    """Load the expanded sites (prefer 500+ version)."""
+    try:
+        with open("../../Resources/SeedData/sites_expanded_500plus.json") as f:
+            data = json.load(f)
+            return data["sites"]
+    except:
+        # Fallback to 225 sites version
+        with open("../../Resources/SeedData/sites_expanded_200plus.json") as f:
+            data = json.load(f)
+            return data["sites"]
 
 def generate_dive_logs(sites: List[Dict]) -> tuple[List[Dict], List[Dict]]:
     """Generate realistic dive logs and sightings for all sites."""
@@ -80,9 +86,9 @@ def generate_dive_logs(sites: List[Dict]) -> tuple[List[Dict], List[Dict]]:
     dive_id = 1
     sighting_id = 1
     
-    # Generate 3-5 dives per site
+    # Generate 3-4 dives per site (realistic history)
     for site_idx, site in enumerate(sites):
-        num_dives = random.randint(3, 5)
+        num_dives = random.randint(3, 4)
         
         for dive_num in range(num_dives):
             # Spread dives throughout the year
@@ -194,10 +200,10 @@ def main():
         "dives": dives
     }
     
-    with open("../../Resources/SeedData/dive_logs_expanded_900plus.json", "w") as f:
+    with open("../../Resources/SeedData/dive_logs_expanded_1500plus.json", "w") as f:
         json.dump(dives_output, f, indent=2)
     
-    print(f"📁 Dive logs saved to dive_logs_expanded_900plus.json")
+    print(f"📁 Dive logs saved to dive_logs_expanded_1500plus.json")
     
     # Save sightings
     sightings_output = {
@@ -208,10 +214,10 @@ def main():
         "sightings": sightings
     }
     
-    with open("../../Resources/SeedData/sightings_expanded_1500plus.json", "w") as f:
+    with open("../../Resources/SeedData/sightings_expanded_5000plus.json", "w") as f:
         json.dump(sightings_output, f, indent=2)
     
-    print(f"📁 Sightings saved to sightings_expanded_1500plus.json")
+    print(f"📁 Sightings saved to sightings_expanded_5000plus.json")
     
     # Print statistics
     print("\n📊 Statistics:")

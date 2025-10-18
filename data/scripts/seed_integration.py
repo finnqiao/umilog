@@ -26,18 +26,18 @@ from typing import Dict, List, Any, Optional
 SEED_DATA_DIR = os.getenv('SEED_DATA_DIR', 'Resources/SeedData')
 OUTPUT_DIR = os.getenv('OUTPUT_DIR', '.')
 
-# Expected seed files - can use expanded versions
+# Expected seed files - use maximum available version
 FILES = {
+    'sites': f'{SEED_DATA_DIR}/sites_expanded_500plus.json',  # 450 sites (validated)
+    'dives': f'{SEED_DATA_DIR}/dive_logs_expanded_1500plus.json',  # 1585 dives
+    'sightings': f'{SEED_DATA_DIR}/sightings_expanded_5000plus.json',  # 4733 sightings
+}
+
+# Fallback versions if max not available
+FILES_FALLBACK = {
     'sites': f'{SEED_DATA_DIR}/sites_expanded_200plus.json',  # 225 sites
     'dives': f'{SEED_DATA_DIR}/dive_logs_expanded_900plus.json',  # 888 dives
     'sightings': f'{SEED_DATA_DIR}/sightings_expanded_1500plus.json',  # 2746 sightings
-}
-
-# Fallback to original smaller files if expanded not available
-FILES_FALLBACK = {
-    'sites': f'{SEED_DATA_DIR}/sites_seed.json',
-    'dives': f'{SEED_DATA_DIR}/dive_logs_extended.json',
-    'sightings': f'{SEED_DATA_DIR}/sightings_extended.json',
 }
 
 
