@@ -244,12 +244,21 @@ public final class MapVC: UIViewController, MLNMapViewDelegate, UIGestureRecogni
         guard let feature = features.first else { return }
 
         if let isCluster = feature.attribute(forKey: "cluster") as? NSNumber, isCluster.boolValue {
+            if let count = feature.attribute(forKey: "point_count") as? NSNumber {
+                logger.log("cluster_tapped count=\(count.intValue, privacy: .public)")
+                UIAccessibility.post(notification: .announcement, argument: "\(count) sites in this cluster")
+            }
             zoomIntoCluster(at: point)
             return
         }
 
         if let id = feature.attribute(forKey: "id") as? String {
             logger.log("feature_selected id=\(id, privacy: .public)")
+            
+            // Announce selection for VoiceOver accessibility
+            let announcement = "Dive site selected"
+            UIAccessibility.post(notification: .announcement, argument: announcement)
+            
             if let onSelectAnnotation {
                 DispatchQueue.main.async {
                     onSelectAnnotation(id)
@@ -290,12 +299,27 @@ public final class MapVC: UIViewController, MLNMapViewDelegate, UIGestureRecogni
         if style.layer(withIdentifier: "site-cluster") == nil {
             let cluster = MLNCircleStyleLayer(identifier: "site-cluster", source: siteSource)
             cluster.predicate = NSPredicate(format: "cluster == YES")
-            cluster.circleColor = NSExpression(forConstantValue: UIColor.orange)  // Bright orange for visibility
-            cluster.circleStrokeColor = NSExpression(forConstantValue: UIColor.red)
-            cluster.circleStrokeWidth = NSExpression(forConstantValue: 3.0)  // Thicker stroke
-            cluster.circleRadius = NSExpression(forConstantValue: 30)  // Larger clusters
+            
+            // Enhanced cluster styling with strong visual feedback
+            cluster.circleColor = NSExpression(forConstantValue: UIColor(red: 1.0, green: 0.8, blue: 0.2, alpha: 1.0))
+            cluster.circleStrokeColor = NSExpression(forConstantValue: UIColor(red: 1.0, green: 0.6, blue: 0.0, alpha: 1.0))
+            cluster.circleStrokeWidth = NSExpression(forConstantValue: 2.5)
+            
+            // Zoom-responsive cluster radius for better visibility
+            cluster.circleRadius = NSExpression(format: "
+                TERNARY(
+                    $zoomLevel > 8,
+                    25,
+                    TERNARY(
+                        $zoomLevel > 5,
+                        35,
+                        40
+                    )
+                )
+            ")
+            cluster.isVisible = true
             style.addLayer(cluster)
-            logger.log("layer_added: site-cluster")
+            logger.log("layer_added: site-cluster with zoom-responsive expressions")
         }
 
         if style.layer(withIdentifier: "site-cluster-count") == nil {
@@ -314,12 +338,24 @@ public final class MapVC: UIViewController, MLNMapViewDelegate, UIGestureRecogni
             let sites = MLNSymbolStyleLayer(identifier: "site-layer", source: siteSource)
             sites.predicate = NSPredicate(format: "cluster != YES")
             sites.iconImageName = NSExpression(forConstantValue: "site-placeholder")
-            sites.iconScale = NSExpression(forConstantValue: 1.5)  // Much larger for visibility
+            
+            // Zoom-responsive icon scaling for better visibility
+            sites.iconScale = NSExpression(format: "
+                TERNARY(
+                    $zoomLevel > 8,
+                    1.2,
+                    TERNARY(
+                        $zoomLevel > 5,
+                        1.5,
+                        1.8
+                    )
+                )
+            ")
             sites.iconAllowsOverlap = NSExpression(forConstantValue: true)
             sites.iconIgnoresPlacement = NSExpression(forConstantValue: true)
             sites.isVisible = true  // Explicitly set visibility
             style.addLayer(sites)
-            logger.log("layer_added: site-layer - visibility=\(sites.isVisible, privacy: .public)")
+            logger.log("layer_added: site-layer with zoom-responsive scaling")
             
             // Verify layer was added
             if let addedLayer = style.layer(withIdentifier: "site-layer") as? MLNSymbolStyleLayer {
@@ -351,6 +387,12 @@ public final class MapVC: UIViewController, MLNMapViewDelegate, UIGestureRecogni
     private func updateAnnotationsIfReady() {
         guard styleIsReady, let siteSource else {
             logger.log("updateAnnotationsIfReady: NOT READY styleReady=\(self.styleIsReady, privacy: .public) hasSource=\(self.siteSource != nil, privacy: .public)")
+            logger.log("  → style layers: \(self.map?.style?.layers.count ?? 0, privacy: .public), sources: \(self.map?.style?.sources.count ?? 0, privacy: .public)")
+            return
+        }
+
+        guard !annotations.isEmpty else {
+            logger.warning("updateAnnotationsIfReady: No annotations to apply!")
             return
         }
 
@@ -402,20 +444,45 @@ public final class MapVC: UIViewController, MLNMapViewDelegate, UIGestureRecogni
 
     private func registerPlaceholderIcon(in style: MLNStyle) {
         if style.image(forName: "site-placeholder") != nil { return }
-        // Create a larger, more visible marker for debugging
-        let size = CGSize(width: 40, height: 40)
+        
+        // Create a distinctive marker with better visibility and dark mode support
+        let size = CGSize(width: 50, height: 50)
         let renderer = UIGraphicsImageRenderer(size: size)
         let image = renderer.image { ctx in
-            // Draw a bright red circle
-            UIColor.red.setFill()
-            ctx.cgContext.fillEllipse(in: CGRect(origin: .zero, size: size))
-            // Draw white border
-            UIColor.white.setStroke()
-            ctx.cgContext.setLineWidth(3)
-            ctx.cgContext.strokeEllipse(in: CGRect(origin: .zero, size: size).insetBy(dx: 1.5, dy: 1.5))
+            let rect = CGRect(origin: .zero, size: size)
+            let center = CGPoint(x: size.width / 2, y: size.height / 2)
+            let radius = size.width / 2
+            
+            // Choose colors based on interface style
+            let isDarkMode = UITraitCollection.current.userInterfaceStyle == .dark
+            let mainColor = UIColor(red: 0.2, green: 0.6, blue: 0.9, alpha: 1.0)
+            let accentColor = UIColor(red: 0.1, green: 0.4, blue: 0.8, alpha: 1.0)
+            let shadowColor = isDarkMode ? UIColor.white.withAlphaComponent(0.15) : UIColor.black.withAlphaComponent(0.2)
+            
+            // Draw outer glow shadow
+            shadowColor.setFill()
+            ctx.cgContext.fillEllipse(in: CGRect(
+                x: center.x - radius - 2,
+                y: center.y - radius - 2,
+                width: radius * 2 + 4,
+                height: radius * 2 + 4
+            ))
+            
+            // Draw main circle (bright blue for dive theme)
+            mainColor.setFill()
+            ctx.cgContext.fillEllipse(in: rect)
+            
+            // Draw accent circle
+            accentColor.setStroke()
+            ctx.cgContext.setLineWidth(2)
+            ctx.cgContext.strokeEllipse(in: rect.insetBy(dx: 2, dy: 2))
+            
+            // Draw white inner circle
+            UIColor.white.setFill()
+            ctx.cgContext.fillEllipse(in: rect.insetBy(dx: 8, dy: 8))
         }
         style.setImage(image, forName: "site-placeholder")
-        logger.log("icon_registered: site-placeholder")
+        logger.log("icon_registered: site-placeholder (color-accessible theme)")
     }
 
     private func ensureBaseLayers(in style: MLNStyle) {

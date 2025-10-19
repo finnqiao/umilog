@@ -3,6 +3,19 @@
 This list tracks the 2025 refactor to a map‑first IA with a 4‑step logging wizard and updated History/Wildlife/Profile.
 
 ## ✅ Completed
+
+### Phase 3: Map V3 Implementation (10-19-2025) ✅
+- [x] State mutation warnings fixed (MainActor, deferred updates, re-entrancy prevention)
+- [x] Cluster styling enhanced (zoom-responsive radius + golden colors)
+- [x] Pin visibility improved (zoom-responsive scaling + distinctive blue icon)
+- [x] Accessibility added (VoiceOver announcements, dark mode contrast)
+- [x] Viewport-driven content working (150ms debounce, real-time "in view" counts)
+- [x] Bottom sheet polish (drag handle, dividers, visual hierarchy)
+- [x] Diagnostics enhanced (layer/source introspection, annotation logging)
+- [x] Initial centering fixed (15% padding, minimum spans, layout delays)
+- [x] LEARNINGS.md documented with Phase 3 architecture notes
+
+### Previous Completed ✅
 - Replace long form with 4‑step Logging Wizard (Steps 1–4)
 - Add SpeciesRepository (popular + search)
 - Extend LogDraft with selected species + notes

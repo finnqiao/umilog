@@ -17,6 +17,11 @@ public struct NewMapView: View {
     @State private var showSearch = false
     @State private var showFilters = false
     @State private var searchText = ""
+    @State private var showLayers = false
+    
+    // V3 scope and entity tabs
+    @State private var scope: Scope = .saved
+    @State private var entityTab: EntityTab = .sites
     
     public init(useMapLibre: Bool = true) {
         self.useMapLibre = useMapLibre
@@ -58,8 +63,14 @@ public struct NewMapView: View {
             latitude: (minLat + maxLat) / 2.0,
             longitude: (minLon + maxLon) / 2.0
         )
-        let latSpan = max(abs(maxLat - minLat) * 1.4, 6.0)
-        let lonSpan = max(abs(maxLon - minLon) * 1.4, 6.0)
+        
+        // Add padding for better visibility, ensure minimum span
+        let latRange = maxLat - minLat
+        let lonRange = maxLon - minLon
+        let padding = 0.15  // 15% padding on each side
+        let latSpan = max(latRange * (1.0 + padding * 2), 5.0)
+        let lonSpan = max(lonRange * (1.0 + padding * 2), 8.0)
+        
         mapRegion = MKCoordinateRegion(
             center: center,
             span: MKCoordinateSpan(latitudeDelta: latSpan, longitudeDelta: lonSpan)
@@ -109,11 +120,19 @@ public struct NewMapView: View {
                 }
             }
             .task {
+                // Load sites and center map - called once on appear
                 await viewModel.loadSites()
-                // Wait a bit then focus on all sites to center map
-                try? await Task.sleep(nanoseconds: 100_000_000)
-                focusMap(on: viewModel.sites)
-                if !viewModel.sites.isEmpty {
+                
+                // Small delay to ensure view is laid out
+                try? await Task.sleep(nanoseconds: 50_000_000)
+                
+                // Center map on all sites after loading
+                let sitesToCenter = await MainActor.run { viewModel.sites }
+                if !sitesToCenter.isEmpty {
+                    focusMap(on: sitesToCenter)
+                    
+                    // Refresh visible sites based on current map viewport
+                    try? await Task.sleep(nanoseconds: 100_000_000)
                     await viewModel.refreshVisibleSites(in: mapRegion)
                 }
             }
@@ -128,6 +147,7 @@ public struct NewMapView: View {
             mapLayer
             overlayControls
         }
+        .overlay(alignment: .top) { topPill }
     }
     
     private var mapLayer: some View {
@@ -190,39 +210,92 @@ public struct NewMapView: View {
     
     private var overlayControls: some View {
         VStack(spacing: 0) {
-            topControls
             Spacer()
             bottomSheet
         }
     }
     
-    private var topControls: some View {
-        HStack {
-            Picker("Mode", selection: $viewModel.mode) {
-                Text("My Map").tag(MapMode.myMap)
-                Text("Explore").tag(MapMode.explore)
+    // V3 Top Pill: search + filters + layers
+    private var topPill: some View {
+        HStack(spacing: 10) {
+            HStack(spacing: 8) {
+                Image(systemName: "magnifyingglass").foregroundStyle(.secondary)
+                Text(searchText.isEmpty ? "Search sites, shops" : searchText)
+                    .foregroundStyle(searchText.isEmpty ? .secondary : .primary)
+                    .lineLimit(1)
             }
-            .pickerStyle(.segmented)
-            .onChange(of: viewModel.mode) {
-                Haptics.soft()
+            .contentShape(RoundedRectangle(cornerRadius: 16))
+            .onTapGesture { showSearch = true }
+            
+            Button(action: { showFilters = true; Haptics.soft() }) {
+                Image(systemName: "line.3.horizontal.decrease.circle")
+            }
+            
+            Button(action: { showLayers = true; Haptics.soft() }) {
+                Image(systemName: "circle.grid.2x2")
             }
         }
+        .font(.system(size: 15, weight: .regular))
+        .padding(.horizontal, 14)
+        .padding(.vertical, 10)
+        .background(.ultraThinMaterial, in: Capsule())
+        .padding(.top, 10)
         .padding(.horizontal, 16)
-        .padding(.top, 8)
     }
     
     private var bottomSheet: some View {
-        VStack(spacing: 12) {
-            BreadcrumbHeader(viewModel: viewModel)
-                .padding(.top, 8)
+        VStack(spacing: 0) {
+            // Drag handle
+            VStack {
+                RoundedRectangle(cornerRadius: 2.5)
+                    .fill(Color.secondary.opacity(0.5))
+                    .frame(width: 40, height: 5)
+            }
+            .frame(maxWidth: .infinity)
+            .padding(.vertical, 12)
+            
+            VStack(spacing: 12) {
+                // Header with scope + entity tabs and result count
+                HStack {
+                    Picker("Scope", selection: $scope) {
+                        Text("Saved").tag(Scope.saved)
+                        Text("Discover").tag(Scope.discover)
+                    }
+                    .pickerStyle(.segmented)
+                    .frame(maxWidth: 150)
+                    
+                    Spacer()
+                    
+                    VStack(alignment: .trailing, spacing: 2) {
+                        Text("In view")
+                            .font(.caption2)
+                            .foregroundStyle(.secondary)
+                        Text("\(viewModel.filteredSites.count)")
+                            .font(.headline)
+                            .foregroundStyle(primaryColor)
+                    }
+                }
                 .padding(.horizontal, 16)
-            
-            filterChipsScrollView
-            
-            tierContentView
+                
+                Picker("Entity", selection: $entityTab) {
+                    Text("Sites").tag(EntityTab.sites)
+                    Text("Shops").tag(EntityTab.shops)
+                }
+                .pickerStyle(.segmented)
+                .padding(.horizontal, 16)
+                
+                filterChipsScrollView
+                
+                Divider()
+                    .padding(.vertical, 8)
+                    .padding(.horizontal, 16)
+                
+                tierContentView
+            }
         }
         .background(.ultraThinMaterial)
         .cornerRadius(20, corners: [.topLeft, .topRight])
+        .transition(.move(edge: .bottom))
     }
     
     private var filterChipsScrollView: some View {
@@ -829,14 +902,22 @@ class MapViewModel: ObservableObject {
     }
 
     func loadSites() async {
-        loading = true
-        defer { loading = false }
+        defer {
+            DispatchQueue.main.async { [weak self] in
+                self?.loading = false
+            }
+        }
+        
+        await MainActor.run {
+            self.loading = true
+        }
+        
         let siteRepo = SiteRepository(database: AppDatabase.shared)
         do {
-            sites = try siteRepo.fetchAll()
-            let regionNames = Set(sites.map { $0.region })
-            regions = regionNames.map { name in
-                let regionSites = sites.filter { $0.region == name }
+            let fetchedSites = try siteRepo.fetchAll()
+            let regionNames = Set(fetchedSites.map { $0.region })
+            let computedRegions = regionNames.map { name in
+                let regionSites = fetchedSites.filter { $0.region == name }
                 return Region(
                     id: name,
                     name: name,
@@ -844,8 +925,19 @@ class MapViewModel: ObservableObject {
                     visitedCount: regionSites.filter { $0.visitedCount > 0 }.count
                 )
             }.sorted { $0.name < $1.name }
+            
+            await MainActor.run {
+                self.sites = fetchedSites
+                self.regions = computedRegions
+                // Initialize visible sites to all sites
+                self.visibleSites = fetchedSites
+            }
         } catch {
             print("Failed to load sites: \(error)")
+            await MainActor.run {
+                self.sites = []
+                self.regions = []
+            }
         }
     }
     
@@ -876,15 +968,21 @@ class MapViewModel: ObservableObject {
                 minLon: bounds.minLongitude,
                 maxLon: bounds.maxLongitude
             )
+            let sitesToShow = boxSites.isEmpty ? self.sites : boxSites
+            
             await MainActor.run {
-                // Always show sites in visible bounds, fall back to all if empty
-                self.visibleSites = boxSites.isEmpty ? self.sites : boxSites
+                // Only update if the result is actually different to avoid unnecessary re-renders
+                if sitesToShow.count != self.visibleSites.count || !sitesToShow.elementsEqual(self.visibleSites, by: { $0.id == $1.id }) {
+                    self.visibleSites = sitesToShow
+                }
             }
         } catch {
             print("Failed to fetch box sites: \(error)")
             // On error, show all sites
             await MainActor.run {
-                self.visibleSites = self.sites
+                if self.visibleSites.count != self.sites.count {
+                    self.visibleSites = self.sites
+                }
             }
         }
     }
@@ -1034,6 +1132,10 @@ struct FilterSheet: View {
         }
     }
 }
+
+// MARK: - V3 Enums
+enum Scope { case saved, discover }
+enum EntityTab { case sites, shops }
 
 #Preview {
     NewMapView()

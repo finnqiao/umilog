@@ -4,6 +4,61 @@
 
 ## 🔎 Latest Learnings (Oct 2025)
 
+### Phase 3: Map Implementation & V3 UX (10-19-2025)
+
+**Map Architecture Evolution**:
+Migrated from basic MapKit annotations to MapLibre-powered clustering and viewport-driven data loading:
+
+1. **State Management Refactor**:
+   - Removed direct state mutations in `@ObservedObject` during view updates
+   - Implemented `@MainActor` annotation on `MapViewModel` for thread-safe operations
+   - Added strict data flow: computed `filteredSites` property derives from `visibleSites` + filters
+   - Deferred state updates with `DispatchQueue.main.async` to avoid re-entrancy issues
+   - Result: Eliminated SwiftUI "Modified state during update" warnings
+
+2. **Clustering & Pin Visibility**:
+   - Implemented zoom-responsive cluster radius expressions (40px at zoom < 5, 25px at zoom > 8)
+   - Enhanced individual site pins with zoom-responsive scaling (1.8x at low zoom, 1.2x at high zoom)
+   - Created distinctive blue placeholder icon with white inner circle, dark shadow, and high contrast
+   - Added VoiceOver announcements for cluster taps ("X sites in this cluster") and pin selections
+   - Result: Clusters now clearly visible at all zoom levels; no overlapping pin ambiguity
+
+3. **Viewport-Driven Content**:
+   - `scheduleRefreshVisibleSites` debounces viewport changes (150ms) to prevent excessive queries
+   - `refreshVisibleSites` compares new results against cached state; only updates if IDs differ
+   - Bottom sheet now displays real-time "In view" count, updated on map pans
+   - Result: Smooth map interactions without jarring list updates
+
+4. **Initial Centering & Layout**:
+   - Fixed centering logic to apply 15% padding on all sides of bounding box
+   - Enforces minimum lat/lon spans (5.0 and 8.0 respectively) to avoid over-zooming
+   - Task initialization waits for view layout (50ms) before centering to ensure map frame is ready
+   - Result: Map always centers on dataset on launch; no more off-screen or overly-zoomed views
+
+5. **Accessibility & Dark Mode**:
+   - Icon colors adapt to `UITraitCollection.userInterfaceStyle`
+   - Added UIAccessibility announcements for cluster and pin taps
+   - Bottom sheet includes visual hierarchy with drag handle, dividers, and color-coded counts
+   - Result: VoiceOver users can navigate map; dark mode users see appropriate contrast
+
+6. **Enhanced Diagnostics**:
+   - Added style layer and source introspection logs on failure
+   - Tracks annotation count on each update; logs first annotation for coordinate verification
+   - Monitors state readiness (styleReady, hasSource) before attempting updates
+   - Result: Can now quickly diagnose why annotations aren't rendering
+
+**Bottom Sheet Improvements**:
+- Added visual drag handle (40pt rounded rect) for clarity
+- Segmented control and entity tabs now side-by-side with result count
+- Divider separates chrome from content list
+- Responsive grid chips with active state colors
+- Seamless transition animation on mount
+
+**Known Issues & Workarounds**:
+- MapLibre offline fallback sometimes takes 4–12s; added retry logic after primary failure
+- Cluster expansion requires manual zoom (no auto-zoom-to-fit cluster); acceptable UX
+- Pin taps work reliably only when clusters not overlapping; spacing enforced by zoom-responsive radius
+
 ### Phase 2: Dataset Optimization (10-18-2025)
 
 **Pipeline Architecture**:
