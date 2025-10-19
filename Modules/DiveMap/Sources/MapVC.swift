@@ -306,7 +306,7 @@ public final class MapVC: UIViewController, MLNMapViewDelegate, UIGestureRecogni
             cluster.circleStrokeWidth = NSExpression(forConstantValue: 2.5)
             
             // Zoom-responsive cluster radius for better visibility
-            cluster.circleRadius = NSExpression(format: "TERNARY($zoomLevel > 8, 25, TERNARY($zoomLevel > 5, 35, 40))")
+            cluster.circleRadius = NSExpression(format: "step($zoomLevel, 40, 5, 35, 8, 25)")
             cluster.isVisible = true
             style.addLayer(cluster)
             logger.log("layer_added: site-cluster with zoom-responsive expressions")
@@ -330,7 +330,7 @@ public final class MapVC: UIViewController, MLNMapViewDelegate, UIGestureRecogni
             sites.iconImageName = NSExpression(forConstantValue: "site-placeholder")
             
             // Zoom-responsive icon scaling for better visibility
-            sites.iconScale = NSExpression(format: "TERNARY($zoomLevel > 8, 1.2, TERNARY($zoomLevel > 5, 1.5, 1.8))")
+            sites.iconScale = NSExpression(format: "step($zoomLevel, 1.8, 5, 1.5, 8, 1.2)")
             sites.iconAllowsOverlap = NSExpression(forConstantValue: true)
             sites.iconIgnoresPlacement = NSExpression(forConstantValue: true)
             sites.isVisible = true  // Explicitly set visibility
