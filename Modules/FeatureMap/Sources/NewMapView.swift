@@ -248,7 +248,7 @@ public struct NewMapView: View {
             // Drag handle
             VStack {
                 RoundedRectangle(cornerRadius: 2.5)
-                    .fill(Color.secondary.opacity(0.5))
+                    .fill(SwiftUI.Color.secondary.opacity(0.5))
                     .frame(width: 40, height: 5)
             }
             .frame(maxWidth: .infinity)
