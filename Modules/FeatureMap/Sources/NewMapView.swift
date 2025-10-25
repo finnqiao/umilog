@@ -151,13 +151,8 @@ public struct NewMapView: View {
     }
     
     private var mapLayer: some View {
-        Group {
-            if useMapLibre {
-                mapLibreView
-            } else {
-                mapKitView
-            }
-        }
+        // Always use MapLibre for consistent underwater theme
+        mapLibreView
     }
     
     private var mapLibreView: some View {
@@ -212,6 +207,8 @@ public struct NewMapView: View {
         VStack(spacing: 0) {
             Spacer()
             bottomSheet
+                .presentationDetents([.height(120), .medium, .large])
+                .presentationDragIndicator(.visible)
         }
     }
     
