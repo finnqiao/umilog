@@ -84,7 +84,7 @@ public final class MapVC: UIViewController, MLNMapViewDelegate, UIGestureRecogni
     private let accentColor = UIColor(brandHex: "#F26A3D") ?? UIColor(red: 0.95, green: 0.42, blue: 0.24, alpha: 1.0)
     private lazy var clusterFillColor = accentColor.withAlphaComponent(0.18)
     private var didFallbackToOfflineStyle = false
-    private lazy var primaryStyleURL: URL? = Bundle.main.url(forResource: "umilog_min", withExtension: "json")
+    private lazy var primaryStyleURL: URL? = Bundle.main.url(forResource: "umilog_underwater", withExtension: "json")
     private lazy var offlineStyleURL: URL? = Bundle.main.url(forResource: "dive_offline", withExtension: "json")
     private var hasAttemptedPrimarySwitch = false
     private let vectorTileTemplates = ["https://demotiles.maplibre.org/tiles/tiles/{z}/{x}/{y}.pbf"]
