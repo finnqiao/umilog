@@ -40,6 +40,8 @@ targets:
         buildPhase: resources
       - path: Resources/Maps/umilog_min.json
         buildPhase: resources
+      - path: Resources/Maps/umilog_underwater.json
+        buildPhase: resources
       - path: Resources/Maps/sites.geojson
         buildPhase: resources
       - path: Resources/Maps/shops.geojson
