@@ -1,13 +1,43 @@
 import SwiftUI
 
 public extension Color {
-    // MARK: - Brand Colors
+    // MARK: - Underwater Palette (Dark-first)
     
-    /// Ocean Blue - Primary actions, water/depth indicators
+    /// Deep ocean blue for primary actions, buttons, active chips
     static let oceanBlue = Color(hex: "2563EB")
     
-    /// Teal - Depth metrics, water temp
-    static let diveTeal = Color(hex: "0D9488")
+    /// Water background - deep blue used in map style and overlays
+    static let waterDeep = Color(hex: "0a1628")
+    
+    /// Water accent - lighter blue for water elements
+    static let waterAccent = Color(hex: "0d3e5e")
+    
+    // MARK: - Status Colors (Teal = Logged, Amber = Planned)
+    
+    /// Teal for "Logged" status - sites/areas that have been dived
+    static let statusLogged = Color(hex: "14b8a6")
+    
+    /// Amber for "Planned" status - sites/areas planned for future dives
+    static let statusPlanned = Color(hex: "f59e0b")
+    
+    /// Blue for "Saved" status - sites/areas saved to wishlist
+    static let statusSaved = Color(hex: "3b82f6")
+    
+    // MARK: - Difficulty Colors (for site pins)
+    
+    /// Beginner difficulty - calm blue
+    static let difficultyBeginner = Color(hex: "3b82f6")
+    
+    /// Intermediate difficulty - warning orange
+    static let difficultyIntermediate = Color(hex: "f97316")
+    
+    /// Advanced difficulty - alert red
+    static let difficultyAdvanced = Color(hex: "dc2626")
+    
+    // MARK: - Legacy Colors (keeping for backward compatibility)
+    
+    /// Teal - Depth metrics, water temp (alias for statusLogged)
+    static var diveTeal: Color { statusLogged }
     
     /// Sea Green - Success states, sites visited
     static let seaGreen = Color(hex: "16A34A")
@@ -20,14 +50,14 @@ public extension Color {
     
     // MARK: - Semantic Colors
     
-    /// Primary action color
+    /// Primary action color (buttons, CTAs)
     static var primary: Color {
         oceanBlue
     }
     
     /// Secondary color for depth/water metrics
     static var secondary: Color {
-        diveTeal
+        statusLogged
     }
     
     // MARK: - Helper

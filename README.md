@@ -1,68 +1,89 @@
-# 🌊 UmiLog - iOS Dive Log App (Map‑first)
+# 🌊 UmiLog — iOS Dive Log App (Explore → Plan → Dive → Relive)
 
-> A zero‑friction, offline‑first dive log with a map‑first IA, guided logging wizard, and a tidy history. Built to make casual logging fast, trustworthy, and fun.
+> An image-first dive app that transforms how divers explore, plan trips, log dives offline, and relive underwater memories. Built on area-first navigation, contextual logging, and the underwater theme.
 
-## 🎯 Vision
+## 🎯 North Star & Jobs to be Done
 
-UmiLog (海ログ – "sea log") reduces friction before and after a dive. The map is the home, logging is a short guided flow, and everything works offline with optional end‑to‑end encrypted backup.
+**North Star**: Explore → Plan → Dive → Relive
 
-## ✨ What's New (2025)
+Divers need to:
+1. **Explore**: Visually scan and discover dive areas and sites by season/conditions
+2. **Plan**: Safely pick suitable sites, save favorites, and download for offline access
+3. **Dive**: Start logging instantly when near a known site, offline
+4. **Relive**: Browse a beautiful timeline of logged dives with imagery and wildlife memories
 
-### Phase 2: Dataset Optimization & Integration ✅ COMPLETE (Oct 2025)
-**Production-Ready Seeding System**
-- [x] Quality filter & cleanup: 1,120 sites (96.5% retention from 1,161)
-- [x] Regional tile optimization: 390KB → 29KB (92.5% compression)
-- [x] iOS integration: Tile-based seeding with legacy fallback
-- [x] Performance validation: 1.34ms load (1,492x faster than target)
-- [x] Comprehensive testing: Swift + Python benchmark suites
-- [x] Documentation: DATASET_MANIFEST.md, SEEDING_QUICKREF.md
+UmiLog (海ログ – "sea log") serves all four by being area-first, image-forward, offline-first, and contextually aware.
 
-**Dataset Overview:**
-- 1,120 dive sites (Red Sea 735, Mediterranean 212, Caribbean 165)
-- 2,775 dive logs + 6,934 wildlife sightings (all validated)
-- 100% data quality: zero invalid coordinates, licenses CC0/ODbL
-- Sources: Wikidata + OpenStreetMap (filtered for dive relevance)
+## ✨ 2025 Refactor Status
 
-**Performance Results:**
-- Cold start: 1.34ms (vs 2,000ms target) - 1,492x faster ✅
-- Memory: 0.32MB (vs 100MB target) - 312x under budget ✅
-- Throughput: 770K sites/sec JSON parsing ✅
+### Completed Infrastructure ✅
+- [x] Optimized dataset seeding (1,120 sites, 1.34ms load, 100% data quality)
+- [x] Viewport-driven queries; debounce and bottom-sheet "in view" counts
+- [x] Underwater Theme baseline (glassy cards, watery transitions, subtle overlays)
+- [x] 4-step Logging Wizard (fast-path save after Step 2)
+- [x] Species catalog + sightings; WizardSaver transactionally persists data
+- [x] MapLibre as default map engine (MapKit fallback for compatibility)
 
-**Next Sprint** 🔜: iOS build integration & real-device testing
-
-### Completed Features ✅
-- Map‑first IA with two modes: My Map and Explore
-- Regions → Areas → Sites tiering with bottom‑sheet details
-- Middle tab triggers the Logging Wizard (overlay FAB removed)
-- Viewport‑based map pin loading for performance; clustering remains enabled
-- 4‑step Logging Wizard with validation and fast‑path save after Step 2
-- Wildlife Pokédex with species search and sightings
-- History with KPI tiles, grouped cards, and quick actions
-- Profile with stats, achievements, and Cloud backup controls
-- Underwater theme with glossy, watery transitions and animated ocean overlays (toggle in AppState)
+### Current Phase: Design Refactor (In Progress)
+Replacing map-first + My Map/Explore with **area-first + Discover/In-Area + My Dive Sites**.
+See [TODO.md](TODO.md) for detailed Phases 1–8 breakdown.
 
 ## 🧭 Information Architecture
 
-Tabs: Map · History · Log · Wildlife · Profile
+**Tabs**: Map · History · Log · Wildlife · Profile
 
-- My Map: Visited • Wishlist • Planned
-- Explore: All • Nearby • Popular • Beginner
-- Tiering across both: Regions · Areas · Sites
-- Details use bottom sheets that snap at 24% / 58% / 92%
+**Scopes & Tiers**:
+- **Discover** (default in Map tab): Shows **Areas in view**; narrow by chips (Near me, Beginner, Wrecks, Big animals, Season, Entry, Depth, Current, Viz)
+- **In-Area**: Tapping an Area shows **Sites in view**; Back to Areas pill to return
+- **My Dive Sites** (scope in Map tab): Timeline | Saved | Planned (image-first, no separate History tab)
+- Tiering: **Regions → Areas → Sites** (with bottom sheets snapping at 24% / 58% / 92%)
 
-## 🧩 Logging Wizard
+**Top Overlays** (Map tab):
+- One **Search pill** (query areas and sites)
+- One **Filters & Layers icon** (opens modal with two tabs: Filters and Dive Lens)
+- **Chips row** visible only in Discover scope
 
-1) Site & Time – date/time prefilled; site picker half‑sheet with nearby + search + “Add new”
-2) Depth & Duration – large numeric pickers with unit toggles and guardrails
-3) Air & Conditions – chips for gas, temperature, visibility, current (optional with sensible defaults)
-4) Wildlife & Notes – species search with chips and free‑text notes
+**Sheet Headers**:
+- Areas: "Discover · Areas in view: N · Sort ▾ [Follow map ⌖]"
+- In-Area: "AreaName · Sites in view: M · Sort ▾ [Follow map ⌖]"
+- Counts are tappable (zoom-to-fit); Follow-map toggles list↔viewport sync
 
-- Persistent review bar shows essentials; Save enabled after Step 2
-- On save, the Wizard persists Dive + Sighting rows and updates site list state
+## 🇦 Cards & Contextual Logging
 
-## 🗺️ Site Details Card
+**Area Card** (16:9 image):
+- Full-width hero image with title overlay
+- Subline: country, site count, status pill (Logged/Saved/Planned)
+- Secondary: best months · visibility · temperature
+- Utility bar (bottom-right): Save · Download · Plan
+- Tap card → **Enter Area** (zoom-to-bounds, show sites, hide area pins)
 
-Bottom‑sheet or full‑screen detail follows the “Grand Bazaar” pattern: hero image header, title, quick‑facts chips (Max depth · Avg temp · Visibility · Type), description, difficulty, and a prominent “Log Dive at <Site>” CTA. Wishlist is primary in Explore; Log is primary in My Map.
+**Site Card** (3:2 image):
+- Image + title, locality, difficulty · depth · viz/temp tags, species dots
+- Tap card → **Open Site** (show detail, Start a dive CTA)
+- Swipe right → **Quick Log** (fast-path to Wizard)
+- Trailing overflow → Save · Directions
+
+**Contextual Logging**:
+- **Start a dive** button appears when within ~150m of a known site in the active area
+- Remove per-card Log buttons; promote via Start a dive CTA on site detail
+- **Quick Log** via site-card swipe (start Wizard mid-card)
+- **4-step Wizard**: Site & Time → Depth & Duration (fast-path save) → Air & Conditions → Wildlife & Notes
+
+## 🌋 State Signposting & Underwater Theme
+
+**In-Area State**:
+- "Back to Areas" pill appears under overlays when in an area
+- Area pins hidden; only sites for the active area render
+- Back tap or pill restores previous camera and area pins
+
+**Underwater Theme**:
+- **Dark-first**: Deep blue water, muted land, subdued labels
+- **Action blues**: Primary actions (buttons, active chips) in bright ocean blue
+- **Status colors**: Teal for "Logged"; Amber for "Planned"
+- **AA contrast**: Scrims over imagery; ensure all text readable
+- **MapLibre style alignment**: Water/land/labels/pins rendered in underwater palette
+- **Glassy UI**: `.wateryCardStyle()` ultraThinMaterial with subtle highlight stroke
+- **Smooth transitions**: `.wateryTransition()` for push/pop animations
 
 ## 🏗️ Architecture (high‑level)
 
@@ -77,10 +98,34 @@ Key components added in this refactor:
 - LogDraft model extended with selected species and notes
 - WizardSaver to persist Dive, Sighting, and site visited/wishlist state and to broadcast refresh notifications
 
-## 📊 History & Profile
+## 🞠 Pins & Map Rendering
 
-- History: KPI tiles (Dives, Bottom Time, Max Depth), grouped by day, cards with editable chips, quick actions (Duplicate, Create template, PDF), multi‑select (Export | Send for sign‑off | Delete)
-- Profile: Certification header, stats tiles, achievements, Cloud backup toggle with last sync, data controls (Import CSV/UDDF, Export all, Backfill), Face ID lock
+**Area Pins**:
+- Capsule rings with label "Name · count"
+- Color by status: Logged (teal), Saved (blue), Planned (amber)
+- Subtle glow and pulse on select; grow when zoomed
+
+**Site Pins**:
+- Small circles colored by difficulty (blue beginner, orange intermediate, red advanced)
+- Tiny entry glyph overlay (shore, boat, liveaboard)
+- Render only inside an active area (hidden in Discover scope)
+
+**Map Engine**:
+- MapLibre Native (DiveMap) with GeoJSON runtime sources and clustering
+- Fallback: MapKit (NewMapView) for compatibility
+- Style: `Resources/Maps/umilog_underwater.json` (v8 minimal, underwater palette)
+
+## 📊 History & Profile (My Dive Sites)
+
+**Timeline** (was History):
+- Image-forward log cards; tap → open full log
+- Share and quick actions (Duplicate, PDF, Sign-off)
+- Multi-select toolbar for bulk export/send
+
+**Saved & Planned**:
+- Same image-first cards as Discover/In-Area
+- Tap → enter area or open site
+- Quick manage status
 
 ## 📸 Screens
 
@@ -178,29 +223,25 @@ xcodebuild test -workspace UmiLog.xcworkspace -scheme UmiLog -destination 'platf
 - Wishlist from Explore ≤ 2 taps (double‑tap pin or swipe)
 - My Map vs Explore recognition ≥ 90% (hallway test)
 
-## 🗄️ Roadmap (phased)
+## 🗣️ Roadmap
 
-### Shipped ✅
-- Phase 0 – Foundations: tokens, remove overlay nav
-- Phase 1 – Map IA: segmented modes, chips, tier tabs, bottom sheets
-- Phase 1.5 – Logging & History: 4‑step wizard, KPI history
-- Phase 1.5 – Wildlife: Pokédex, sightings attach to dives
+**Current Sprint**: Design Refactor (Phases 1–8)
+- Phase 1: Explore (Discover scope, chips, Search pill, Filters & Layers modal)
+- Phase 2: Dive (Contextual Start a dive, Quick Log via swipe)
+- Phase 3: Plan (Card utilities, offline packs, date assignment)
+- Phase 4: Relive (My Dive Sites scope with Timeline, Saved, Planned)
+- Phase 5: Search & Dive Lens (Grouped results, wildlife filtering)
+- Phase 6: Underwater Theme & Pins (Palette alignment, pin styles)
+- Phase 7: Performance & Accessibility (BlurHash, Reduce Motion, VoiceOver)
+- Phase 8: Guidance & States (Coach marks, empty states)
 
-### In Progress 🎯
-- **Phase 1.8 – iOS Integration & Performance**: Integrate seeder into build, validate on device (5–7 days)
-  - Bundle extended seed data (22 sites, 22 dives, 24 sightings)
-  - Performance validation (< 2s cold start, < 200ms queries, < 50MB memory)
-  - FTS5 search verification on device
+See [TODO.md](TODO.md) and [ARCHITECTURE.md](ARCHITECTURE.md) for detailed breakdown.
 
-### Next Up 🔜
-- Phase 2 – Tag Filtering UI: Multi-select chips for tags, difficulty, features (conditional)
-- Phase 2.5 – Data Expansion (Optional): Scale to 100–150 sites with Wikidata scraping
-- Phase 3 – Backfill & Polish: backfill flow, Explore filters/sorting, a11y
-- Phase 4 – Export & Sync: CSV export, CloudKit sync, backup/restore
-- Phase 5 – World-Scale: Backend service, 10,000+ sites, automated pipeline
-
-### Non‑goals (MVP)
-QR sign‑off, shop stamps, dive computer imports, social sharing
+**Future Sprints**:
+- World-scale expansion (10,000+ sites)
+- Backend service (FastAPI/Cloudflare Workers)
+- Automated data pipeline (Wikidata + OSM weekly scrapes)
+- Community contributions + QA workflows
 
 ## 🤝 Contributing
 
