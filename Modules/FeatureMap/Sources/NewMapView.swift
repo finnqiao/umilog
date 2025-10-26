@@ -4,6 +4,7 @@ import UmiDB
 import FeatureLiveLog
 import UmiDesignSystem
 import DiveMap
+import UmiCoreKit
 
 struct MapLayerSettings: Equatable {
     var showUnderwaterGlow: Bool = true
@@ -941,6 +942,24 @@ class MapViewModel: ObservableObject {
     @Published var loading: Bool = false
     @Published var visibleSites: [DiveSite] = []
     
+    private var wishlistObserver: NSObjectProtocol?
+    
+    init() {
+        wishlistObserver = NotificationCenter.default.addObserver(
+            forName: .wishlistUpdated,
+            object: nil,
+            queue: .main
+        ) { [weak self] notification in
+            self?.applyWishlistUpdate(notification)
+        }
+    }
+    
+    deinit {
+        if let wishlistObserver {
+            NotificationCenter.default.removeObserver(wishlistObserver)
+        }
+    }
+    
     var filteredSites: [DiveSite] {
         let filtered = visibleSites.filter { site in
             // Region filter
@@ -987,6 +1006,22 @@ class MapViewModel: ObservableObject {
         let groups = Dictionary(grouping: regionSites) { parseAreaCountry($0.location).area }
         return groups.map { Area(id: $0.key, name: $0.key, country: parseAreaCountry($0.value.first!.location).country, siteCount: $0.value.count) }
             .sorted { $0.name < $1.name }
+    }
+    
+    private func applyWishlistUpdate(_ notification: Notification) {
+        guard let siteId = notification.object as? String else { return }
+        let repository = SiteRepository(database: AppDatabase.shared)
+        do {
+            guard let updatedSite = try repository.fetch(id: siteId) else { return }
+            if let index = sites.firstIndex(where: { $0.id == siteId }) {
+                sites[index] = updatedSite
+            }
+            if let index = visibleSites.firstIndex(where: { $0.id == siteId }) {
+                visibleSites[index] = updatedSite
+            }
+        } catch {
+            print("❌ Failed to refresh wishlist state: \(error)")
+        }
     }
 
     func loadSites() async {

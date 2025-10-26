@@ -1,16 +1,22 @@
 import SwiftUI
 import UmiDB
 import FeatureLiveLog
+import UmiDesignSystem
+import UmiCoreKit
 
 public struct SiteDetailSheet: View {
     let site: DiveSite
     let mode: MapMode
     @Environment(\.dismiss) private var dismiss
     @State private var showingWizard = false
+    @State private var isWishlist: Bool
+    @State private var isUpdatingWishlist = false
+    @State private var wishlistError: String?
     
     init(site: DiveSite, mode: MapMode) {
         self.site = site
         self.mode = mode
+        _isWishlist = State(initialValue: site.wishlist)
     }
     
     public var body: some View {
@@ -94,21 +100,28 @@ public struct SiteDetailSheet: View {
                             }
                             .padding(.horizontal, 16)
                         } else {
-                            Button(action: {
-                                // TODO: Add to wishlist
-                            }) {
+                            Button(action: toggleWishlist) {
                                 HStack {
-                                    Image(systemName: "star.fill")
-                                    Text("Add to Wishlist")
+                                    Image(systemName: isWishlist ? "star.slash.fill" : "star.fill")
+                                    Text(isWishlist ? "Remove from Wishlist" : "Add to Wishlist")
                                 }
                                 .font(.headline)
                                 .foregroundStyle(.white)
                                 .frame(maxWidth: .infinity)
                                 .padding()
-                                .background(Color.yellow)
+                                .background(isWishlist ? Color.gray.opacity(0.6) : Color.yellow)
                                 .cornerRadius(16)
+                                .overlay {
+                                    if isUpdatingWishlist {
+                                        ProgressView()
+                                            .progressViewStyle(.circular)
+                                            .scaleEffect(0.9)
+                                            .tint(.white)
+                                    }
+                                }
                             }
                             .padding(.horizontal, 16)
+                            .disabled(isUpdatingWishlist)
                         }
                     }
                     .padding(.vertical, 16)
@@ -127,6 +140,14 @@ public struct SiteDetailSheet: View {
         .sheet(isPresented: $showingWizard) {
             LiveLogWizardView(initialSite: site)
         }
+        .alert("Wishlist Error", isPresented: Binding(
+            get: { wishlistError != nil },
+            set: { if !$0 { wishlistError = nil } }
+        )) {
+            Button("OK", role: .cancel) { wishlistError = nil }
+        } message: {
+            Text(wishlistError ?? "")
+        }
     }
     
     private func difficultyColor(_ difficulty: String) -> Color {
@@ -135,6 +156,36 @@ public struct SiteDetailSheet: View {
         case "intermediate": return .orange
         case "advanced": return .red
         default: return .gray
+        }
+    }
+    
+    private func toggleWishlist() {
+        guard !isUpdatingWishlist else { return }
+        isUpdatingWishlist = true
+        let targetId = site.id
+        let currentWishlist = isWishlist
+        
+        Task.detached {
+            do {
+                let repository = SiteRepository(database: AppDatabase.shared)
+                try repository.toggleWishlist(siteId: targetId)
+                let newValue = !currentWishlist
+                await MainActor.run {
+                    self.isWishlist = newValue
+                    self.isUpdatingWishlist = false
+                    Haptics.soft()
+                    NotificationCenter.default.post(
+                        name: .wishlistUpdated,
+                        object: targetId,
+                        userInfo: ["wishlist": newValue]
+                    )
+                }
+            } catch {
+                await MainActor.run {
+                    self.isUpdatingWishlist = false
+                    self.wishlistError = "Couldn't update wishlist. Please try again."
+                }
+            }
         }
     }
 }
