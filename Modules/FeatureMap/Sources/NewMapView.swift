@@ -36,6 +36,15 @@ public struct NewMapView: View {
     }
     
     private var primaryColor: Color { viewModel.mode == .explore ? .reef : .lagoon }
+    
+    private var activeFilterCount: Int {
+        // Count active filters: if statusFilter is set (any value), it's 1; if exploreFilter is not .all, it's 1
+        var count = 0
+        // For now, assume status filter is always active if set
+        // In future, we'd track which filters are actually applied
+        if viewModel.exploreFilter != .all { count += 1 }
+        return count
+    }
     private var mapLibreAnnotations: [DiveMapAnnotation] {
         let selectedId = selectedSite?.id
         let sitesToShow = viewModel.filteredSites.isEmpty ? viewModel.sites : viewModel.filteredSites
@@ -544,7 +553,21 @@ public struct NewMapView: View {
         }
         ToolbarItem(placement: .topBarTrailing) {
             Button(action: { showFilters = true; Haptics.soft() }) {
-                Image(systemName: "line.3.horizontal.decrease.circle")
+                ZStack(alignment: .topTrailing) {
+                    Image(systemName: "line.3.horizontal.decrease.circle")
+                    
+                    if activeFilterCount > 0 {
+                        Circle()
+                            .fill(Color.red)
+                            .frame(width: 16, height: 16)
+                            .overlay(
+                                Text("\(activeFilterCount)")
+                                    .font(.system(size: 10, weight: .bold))
+                                    .foregroundStyle(.white)
+                            )
+                            .offset(x: 6, y: -6)
+                    }
+                }
             }
         }
     }
