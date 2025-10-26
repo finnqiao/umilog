@@ -26,6 +26,13 @@ public struct DiveHistoryView: View {
                         } label: {
                             DiveHistoryRow(dive: dive, site: viewModel.getSite(for: dive))
                         }
+                        .swipeActions(edge: .trailing) {
+                            Button(role: .destructive) {
+                                viewModel.deleteDive(dive)
+                            } label: {
+                                Label("Delete", systemImage: "trash")
+                            }
+                        }
                     }
                 }
                 .listStyle(.plain)

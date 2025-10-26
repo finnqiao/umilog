@@ -83,4 +83,15 @@ public class DiveHistoryViewModel: ObservableObject {
     public func refresh() async {
         await loadData()
     }
+    
+    public func deleteDive(_ dive: DiveLog) {
+        Task {
+            do {
+                try database.diveRepository.delete(id: dive.id)
+                await loadData()
+            } catch {
+                print("❌ Error deleting dive: \(error)")
+            }
+        }
+    }
 }
