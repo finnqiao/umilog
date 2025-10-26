@@ -8,6 +8,7 @@ import FeatureSites
 import FeatureSettings
 import UmiDesignSystem
 import UmiDB
+import UmiLocationKit
 import os
 
 @main
@@ -123,6 +124,7 @@ class AppState: ObservableObject {
     private static let underwaterThemeDefaultsKey = "app.umilog.preferences.underwaterThemeEnabled"
     private let defaults: UserDefaults
     private let logger = Logger(subsystem: "app.umilog", category: "AppState")
+    private let geofenceManager = GeofenceManager.shared
     
     init(defaults: UserDefaults = .standard) {
         self.defaults = defaults
@@ -130,6 +132,12 @@ class AppState: ObservableObject {
         self.underwaterThemeEnabled = storedThemeEnabled
         // Initialize app state
         logger.log("AppState init, underwaterThemeEnabled=\\(self.underwaterThemeEnabled, privacy: .public), useMapLibre=\\(self.useMapLibre, privacy: .public)")
+        
+        // Setup notification categories for geofencing
+        geofenceManager.setupNotificationCategories()
+        
+        // Start geofence monitoring
+        geofenceManager.startMonitoring()
         
         // Seed database with test data on first launch
         Task {
