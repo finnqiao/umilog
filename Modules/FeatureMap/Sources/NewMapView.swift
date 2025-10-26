@@ -803,13 +803,16 @@ struct RegionRow: View {
             Circle()
                 .fill(region.visitedCount > 0 ? Color.oceanBlue : Color.gray.opacity(0.3))
                 .frame(width: 8, height: 8)
+                .accessibilityLabel(region.visitedCount > 0 ? "Visited" : "Not visited")
             
             VStack(alignment: .leading, spacing: 2) {
                 Text(region.name)
                     .font(.body)
+                    .accessibilityLabel("Region: \(region.name)")
                 Text("\(region.visitedCount)/\(region.totalSites) visited")
                     .font(.caption)
                     .foregroundStyle(SwiftUI.Color(UIColor.secondaryLabel))
+                    .accessibilityLabel("\(region.visitedCount) of \(region.totalSites) sites visited")
             }
             
             Spacer()
@@ -818,10 +821,12 @@ struct RegionRow: View {
                 Image(systemName: "star.fill")
                     .foregroundStyle(.yellow)
                     .font(.caption)
+                    .accessibilityLabel("Has visited sites")
             }
         }
         .padding(.horizontal, 16)
         .padding(.vertical, 8)
+        .accessibilityElement(children: .combine)
     }
 }
 
@@ -859,21 +864,34 @@ struct SitesListView: View {
 struct SiteRow: View {
     let site: DiveSite
     
+    var statusLabel: String {
+        if site.visitedCount > 0 {
+            return "Logged, \(site.visitedCount) dive(s)"
+        } else if site.wishlist {
+            return "Wishlist"
+        } else {
+            return "Not visited"
+        }
+    }
+    
     var body: some View {
         HStack(spacing: 12) {
             // Status indicator
             Circle()
                 .fill(site.visitedCount > 0 ? Color.oceanBlue : (site.wishlist ? Color.yellow : Color.gray.opacity(0.3)))
                 .frame(width: 8, height: 8)
+                .accessibilityLabel(statusLabel)
             
             VStack(alignment: .leading, spacing: 4) {
                 Text(site.name)
                     .font(.body)
                     .fontWeight(.medium)
+                    .accessibilityLabel("Site: \(site.name)")
                 
                 Text(site.location)
                     .font(.caption)
                     .foregroundStyle(SwiftUI.Color(UIColor.secondaryLabel))
+                    .accessibilityLabel("Location: \(site.location)")
                 
                 // Quick facts chips
                 HStack(spacing: 6) {
@@ -881,6 +899,7 @@ struct SiteRow: View {
                     QuickFactChip(text: "Max \(Int(site.maxDepth))m")
                     QuickFactChip(text: "\(Int(site.averageTemp))°C")
                 }
+                .accessibilityLabel("\(site.difficulty.rawValue) difficulty, maximum depth \(Int(site.maxDepth)) meters, average temperature \(Int(site.averageTemp)) degrees")
             }
             
             Spacer()
@@ -895,9 +914,11 @@ struct SiteRow: View {
                     .background(Color.oceanBlue)
                     .cornerRadius(20)
             }
+            .accessibilityLabel("Log dive at \(site.name)")
         }
         .padding(.horizontal, 16)
         .padding(.vertical, 12)
+        .accessibilityElement(children: .combine)
     }
 }
 
