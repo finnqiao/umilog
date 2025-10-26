@@ -701,6 +701,8 @@ struct FilterChip: View {
         }
         .buttonStyle(.plain)
         .shadow(color: isSelected ? primaryColor.opacity(0.25) : .clear, radius: 6, y: 3)
+        .accessibilityLabel(title)
+        .accessibilityHint(isSelected ? "Filter active" : "Tap to activate filter")
     }
 }
 
@@ -748,16 +750,20 @@ struct AreasListView: View {
                 HStack {
                     VStack(alignment: .leading) {
                         Text(area.name).font(.body)
+                            .accessibilityLabel("Area: \(area.name)")
                         Text("\(area.country) · \(area.siteCount) sites")
                             .font(.caption).foregroundStyle(SwiftUI.Color(UIColor.secondaryLabel))
+                            .accessibilityLabel("Located in \(area.country) with \(area.siteCount) dive sites")
                     }
                     Spacer()
                     Image(systemName: "chevron.right").foregroundStyle(.secondary)
+                        .accessibilityLabel("Open area")
                 }
                 .contentShape(Rectangle())
                 .onTapGesture { onAreaTap(area) }
                 .padding(.horizontal, 16)
                 .padding(.vertical, 10)
+                .accessibilityElement(children: .combine)
             }
         }}
     }
@@ -932,6 +938,7 @@ struct QuickFactChip: View {
             .padding(.vertical, 4)
             .background(Color.gray.opacity(0.15))
             .cornerRadius(8)
+            .accessibilityLabel(text)
     }
 }
 
