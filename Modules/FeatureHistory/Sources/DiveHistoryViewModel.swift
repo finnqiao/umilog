@@ -1,6 +1,7 @@
 import Foundation
 import SwiftUI
 import UmiDB
+import UmiCoreKit
 
 @MainActor
 public class DiveHistoryViewModel: ObservableObject {
@@ -10,10 +11,29 @@ public class DiveHistoryViewModel: ObservableObject {
     @Published public var isLoading = false
     
     private let database = AppDatabase.shared
+    private var diveUpdateObserver: NSObjectProtocol?
     
     public init() {
-        Task {
-            await loadData()
+        Task { [weak self] in
+            guard let self else { return }
+            await self.loadData()
+        }
+        
+        diveUpdateObserver = NotificationCenter.default.addObserver(
+            forName: .diveLogUpdated,
+            object: nil,
+            queue: .main
+        ) { [weak self] _ in
+            Task { [weak self] in
+                guard let self else { return }
+                await self.loadData()
+            }
+        }
+    }
+    
+    deinit {
+        if let diveUpdateObserver {
+            NotificationCenter.default.removeObserver(diveUpdateObserver)
         }
     }
     
