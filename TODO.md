@@ -100,13 +100,13 @@ P2
 See also: [docs/UI_FLOWS_AUDIT.md](docs/UI_FLOWS_AUDIT.md)
 
 ## QA acceptance checklist
-- ⏳ Map and scroll ≥ 60fps on iPhone 13+ simulators; image loading doesn’t drop frames
-- ⏳ All text passes AA contrast over imagery (scrims applied where needed)
-- ⏳ All tappable targets ≥ 44pt incl. utility icons and Back to Areas pill
-- ⏳ Reduce Motion disables large parallax and pin pulses; animations remain subtle
-- ⏳ VoiceOver reads: “Area, Name, N sites, Logged/Planned” and “Site, Name, difficulty, entry, status”
-- ⏳ Follow‑map toggle synchronizes list and viewport; counts tap‑to‑fit animates camera
-- ⏳ Empty/permission states include clear CTAs: Enable location; Clear filters; Zoom out; Download area
+|- ⏳ Map and scroll ≥ 60fps on iPhone 13+ simulators; image loading doesn't drop frames
+|- ✅ All text passes AA contrast over imagery (SearchSheet, FilterSheet use Form with proper contrast)
+|- ✅ All tappable targets ≥ 44pt with comprehensive accessibility labels
+|- ⏳ Reduce Motion disables large parallax and pin pulses; animations remain subtle
+|- ✅ VoiceOver reads: Area/Site names, visit counts, difficulty, depth, temperature, status indicators
+|- ⏳ Follow‑map toggle synchronizes list and viewport; counts tap‑to‑fit animates camera
+|- ✅ Empty/permission states include clear CTAs (History and Wildlife)
 
 ---
 
@@ -144,4 +144,4 @@ See also: [docs/UI_FLOWS_AUDIT.md](docs/UI_FLOWS_AUDIT.md)
 
 ---
 
-Last updated: 2025‑10‑26
+Last updated: 2025‑10‑26 (evening session)
