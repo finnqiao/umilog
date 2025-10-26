@@ -390,7 +390,6 @@ public final class MapVC: UIViewController, MLNMapViewDelegate, UIGestureRecogni
                 circle.circleOpacity = NSExpression(forConstantValue: 0.96)
                 circle.circleStrokeColor = NSExpression(forConstantValue: abyss)
                 circle.circleStrokeWidth = NSExpression(forConstantValue: 1.8)
-                circle.iconAllowsOverlap = NSExpression(forConstantValue: true)
                 if let ref = lastLayer {
                     style.insertLayer(circle, above: ref)
                 } else {
