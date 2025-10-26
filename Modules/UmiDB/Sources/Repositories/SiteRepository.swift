@@ -122,14 +122,24 @@ public final class SiteRepository {
                                                    sanitizedQuery, limit])
             
             return sites.map { row in
-                SiteLite(
+                // Parse tags from JSON array string
+                let tagsString = row["tags"] as? String ?? "[]"
+                let tags: [String]
+                if let data = tagsString.data(using: .utf8),
+                   let decoded = try? JSONDecoder().decode([String].self, from: data) {
+                    tags = Array(decoded.prefix(3))
+                } else {
+                    tags = []
+                }
+                
+                return SiteLite(
                     id: row["id"],
                     name: row["name"],
                     latitude: row["latitude"],
                     longitude: row["longitude"],
                     difficulty: row["difficulty"],
                     type: row["type"],
-                    tags: (row["tags"] as String).split(separator: ",").prefix(3).map(String.init),
+                    tags: tags,
                     region: row["region"],
                     visitedCount: row["visitedCount"],
                     wishlist: row["wishlist"]
@@ -158,14 +168,24 @@ public final class SiteRepository {
                                         arguments: [sanitizedPrefix, limit])
             
             return sites.map { row in
-                SiteLite(
+                // Parse tags from JSON array string
+                let tagsString = row["tags"] as? String ?? "[]"
+                let tags: [String]
+                if let data = tagsString.data(using: .utf8),
+                   let decoded = try? JSONDecoder().decode([String].self, from: data) {
+                    tags = Array(decoded.prefix(3))
+                } else {
+                    tags = []
+                }
+                
+                return SiteLite(
                     id: row["id"],
                     name: row["name"],
                     latitude: row["latitude"],
                     longitude: row["longitude"],
                     difficulty: row["difficulty"],
                     type: row["type"],
-                    tags: (row["tags"] as String).split(separator: ",").prefix(3).map(String.init),
+                    tags: tags,
                     region: row["region"],
                     visitedCount: row["visitedCount"],
                     wishlist: row["wishlist"]
