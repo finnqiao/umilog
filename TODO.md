@@ -83,7 +83,7 @@ P0
 - [ ] Define and document permission flows (Location, Notifications) — Owner: TBD
 - ✅ UnderwaterTheme shared state and persistence spec
 - ✅ Map Layers: decide hide vs implement v1; document UX
-- [ ] LocationService wiring plan for user location and “nearby” — Owner: TBD
+- [ ] LocationService wiring plan for user location and "nearby" — Owner: TBD
 
 P1
 - [ ] Filter pipeline spec + persistence (FeatureMap) — Owner: TBD
@@ -92,9 +92,10 @@ P1
 - [ ] Search data sources and indexing (FTS) plan — Owner: TBD
 
 P2
-- [ ] Wildlife data wiring and species index UX — Owner: TBD
+- ✅ Wildlife data wiring and species index UX (WildlifeView)
 - [ ] Profile IA (settings/sync) and action specs — Owner: TBD
 - ✅ Wishlist spec on Site detail
+- ✅ Profile stats loading from database
 
 See also: [docs/UI_FLOWS_AUDIT.md](docs/UI_FLOWS_AUDIT.md)
 
@@ -143,4 +144,4 @@ See also: [docs/UI_FLOWS_AUDIT.md](docs/UI_FLOWS_AUDIT.md)
 
 ---
 
-Last updated: 2025‑10‑25
+Last updated: 2025‑10‑26
