@@ -28,6 +28,26 @@ UmiLog (海ログ – "sea log") serves all four by being area-first, image-forw
 Replacing map-first + My Map/Explore with **area-first + Discover/In-Area + My Dive Sites**.
 See [TODO.md](TODO.md) for detailed Phases 1–8 breakdown.
 
+## ✅ What’s functional right now
+
+- Map tab (V3): MapLibre default with MapKit fallback, Regions → Areas → Sites bottom sheet, search and filter sheets
+- Site Detail sheet: opens the 4-step Live Log Wizard
+- Logging: Live Log Wizard saves dives + sightings and updates visited counts (center tab triggers wizard)
+- History: Dive list with search and dive detail view
+
+Not yet complete (see audit): Layers panel, filter persistence/nearby behavior, Quick Log entry wiring, Wildlife tab data wiring, Profile actions and Underwater Theme persistence.
+
+See the full audit: [docs/UI_FLOWS_AUDIT.md](docs/UI_FLOWS_AUDIT.md)
+
+### Historical docs
+
+Archived project status documents are in `docs/archive/`:
+- DEVELOPMENT_STATUS.md
+- PHASE_3_STATUS.md
+- PHASE_3_INTEGRATION_COMPLETE.md
+- DATA_CURATION_SUMMARY.md
+- DATA_EXPANSION_COMPLETE.md
+
 ## 🧭 Information Architecture
 
 **Tabs**: Map · History · Log · Wildlife · Profile

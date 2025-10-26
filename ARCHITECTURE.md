@@ -22,6 +22,24 @@ Tabs: Map · History · Log (FAB) · Wildlife · Profile
 - My Map surfaces owned pins (Visited/Wishlist/Planned)
 - Explore shows all pins; muted for non‑selected filters
 
+### Current Navigation & Modules (2025-10)
+
+- App shell and tabs: `UmiLog/UmiLogApp.swift` (UnderwaterThemeView wrapper; center tab presents LiveLogWizardView)
+- Map & sheets: `Modules/FeatureMap/Sources/NewMapView.swift`, `Modules/FeatureMap/Sources/SiteDetailSheet.swift`, `Modules/FeatureMap/Sources/SearchSheet.swift`, `Modules/FeatureMap/Sources/FilterSheet.swift`
+- Map engines: MapLibre wrapper `Modules/DiveMap/Sources/*`, MapKit fallback `Modules/FeatureMap/Sources/MapClusterView.swift`
+- History: `Modules/FeatureHistory/Sources/*`
+- Logging: `Modules/FeatureLiveLog/Sources/LiveLogWizardView.swift`, `Modules/FeatureLiveLog/Sources/QuickLogView.swift`
+- Wildlife: `Modules/FeatureMap/Sources/WildlifeView.swift`
+- Profile: `Modules/FeatureMap/Sources/ProfileView.swift`
+- Location/Geofencing: `Modules/UmiLocationKit/Sources/LocationService.swift`, `Modules/UmiLocationKit/Sources/GeofenceManager.swift`
+- Data layer: `Modules/UmiDB/Sources/*` (migrations, repositories, seeder)
+
+### Map Styles & Seed Assets
+
+- Map styles: `Resources/Maps/umilog_underwater.json`, `Resources/Maps/dive_offline.json`, `Resources/Maps/umilog_min.json`
+- Seed tiles (preferred): `Resources/SeedData/optimized/tiles/manifest.json` and regional tiles (`*.json`)
+- Legacy seeds (fallback): `Resources/SeedData/sites_seed.json`, `Resources/SeedData/sites_extended.json`, etc.
+
 ## High‑Level System
 
 ```

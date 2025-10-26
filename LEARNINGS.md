@@ -4,6 +4,13 @@
 
 ## 🔎 Latest Learnings (Oct 2025)
 
+### Cross-links to TODO triage
+- Map V3 filters/layers persistence → TODO P1 (Filter pipeline spec + persistence)
+- History live updates via NotificationCenter → TODO P0 (History auto-refresh on .diveLogUpdated)
+- Permissions sequencing (Location/Notifications) → TODO P0 (Define permission flows)
+- Underwater Theme binding/persistence → TODO P0 (Shared state + persistence spec)
+- Quick Log entry decision → TODO P1 (Entry integration)
+
 ### Phase 3: Map Implementation & V3 UX (10-19-2025)
 
 **Map Architecture Evolution**:

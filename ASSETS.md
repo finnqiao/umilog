@@ -4,6 +4,17 @@
 
 ## 📱 App Icons & Design
 
+### Map & Data Assets — references
+- Map styles bundled:
+  - `Resources/Maps/umilog_underwater.json`
+  - `Resources/Maps/dive_offline.json`
+  - `Resources/Maps/umilog_min.json`
+- Seed tiles (preferred): `Resources/SeedData/optimized/tiles/manifest.json` and regional tiles under `Resources/SeedData/optimized/tiles/*.json`
+- Legacy seed files (fallbacks used by DatabaseSeeder):
+  - `Resources/SeedData/sites_seed.json`
+  - `Resources/SeedData/sites_extended.json`
+  - `Resources/SeedData/species_catalog.json`, `Resources/SeedData/dive_logs_mock.json`, `Resources/SeedData/sightings_mock.json`
+
 ### Design Tokens & UI Patterns (Map‑first)
 - Grid: 8pt; Insets: 16pt; Min tap: 44pt
 - Corner radius: 16–20

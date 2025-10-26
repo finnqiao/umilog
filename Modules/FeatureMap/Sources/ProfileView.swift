@@ -1,6 +1,7 @@
 import SwiftUI
 import UmiDB
 import UmiDesignSystem
+import GRDB
 
 public struct ProfileView: View {
     @StateObject private var viewModel = ProfileViewModel()
@@ -116,7 +117,7 @@ public struct ProfileView: View {
                             .font(.body)
                         Spacer()
                         Toggle("", isOn: underwaterThemeBinding ?? .constant(true))
-                            .onChange(of: underwaterThemeBinding?.wrappedValue ?? true) { _ in
+                            .onChange(of: underwaterThemeBinding?.wrappedValue ?? true) {
                                 Haptics.soft()
                             }
                     }
@@ -256,17 +257,57 @@ struct ActionRow: View {
 
 @MainActor
 class ProfileViewModel: ObservableObject {
-    @Published var totalDives: Int = 2
-    @Published var maxDepth: Int = 32
-    @Published var sitesVisited: Int = 2
-    @Published var speciesCount: Int = 5
-    @Published var totalBottomTime: String = "1h 35m"
+    @Published var totalDives: Int = 0
+    @Published var maxDepth: Int = 0
+    @Published var sitesVisited: Int = 0
+    @Published var speciesCount: Int = 0
+    @Published var totalBottomTime: String = "0h 0m"
+    
+    private let diveRepository = DiveRepository(database: AppDatabase.shared)
+    private let database = AppDatabase.shared
     
     init() {
         loadStats()
     }
     
     func loadStats() {
-        // TODO: Load from database
+        Task {
+            do {
+                let stats = try diveRepository.calculateStats()
+                await updateStats(stats)
+            } catch {
+                // Use zero/default values on error
+                print("Error loading dive stats: \(error)")
+            }
+        }
+    }
+    
+    @MainActor
+    private func updateStats(_ stats: DiveStats) {
+        self.totalDives = stats.totalDives
+        self.maxDepth = Int(stats.maxDepth)
+        self.sitesVisited = stats.sitesVisited
+        self.totalBottomTime = formatBottomTime(seconds: stats.totalBottomTime)
+        
+        // Load species count from sightings
+        Task {
+            do {
+                let uniqueSpeciesCount = try database.read { db in
+                    let row = try Row.fetchOne(db, sql: "SELECT COUNT(DISTINCT speciesId) as count FROM sightings")
+                    return row?["count"] as? Int ?? 0
+                }
+                await MainActor.run {
+                    self.speciesCount = uniqueSpeciesCount
+                }
+            } catch {
+                print("Error loading species count: \(error)")
+            }
+        }
+    }
+    
+    private func formatBottomTime(seconds: Int) -> String {
+        let hours = seconds / 3600
+        let minutes = (seconds % 3600) / 60
+        return "\(hours)h \(minutes)m"
     }
 }
