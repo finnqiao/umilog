@@ -27,16 +27,27 @@ public struct NewMapView: View {
         self.useMapLibre = useMapLibre
     }
     
-    private var primaryColor: Color { viewModel.mode == .explore ? .purple : .oceanBlue }
+    private var primaryColor: Color { viewModel.mode == .explore ? .reef : .lagoon }
     private var mapLibreAnnotations: [DiveMapAnnotation] {
         let selectedId = selectedSite?.id
         let sitesToShow = viewModel.filteredSites.isEmpty ? viewModel.sites : viewModel.filteredSites
         return sitesToShow.map { site in
             let kind: DiveMapAnnotation.Kind = site.type == .wreck ? .wreck : .site
+            let status: DiveMapAnnotation.Status
+            if site.visitedCount > 0 {
+                status = .logged
+            } else if site.wishlist {
+                status = .saved
+            } else {
+                status = .baseline
+            }
+            let difficulty = DiveMapAnnotation.Difficulty(rawValue: site.difficulty.rawValue) ?? .other
             return DiveMapAnnotation(
                 id: site.id,
                 coordinate: CLLocationCoordinate2D(latitude: site.latitude, longitude: site.longitude),
                 kind: kind,
+                status: status,
+                difficulty: difficulty,
                 visited: site.visitedCount > 0,
                 wishlist: site.wishlist,
                 isSelected: selectedId == site.id
@@ -151,8 +162,15 @@ public struct NewMapView: View {
     }
     
     private var mapLayer: some View {
-        // Always use MapLibre for consistent underwater theme
-        mapLibreView
+        ZStack {
+            if useMapLibre {
+                mapLibreView
+            } else {
+                mapKitView
+            }
+            UnderwaterGlowOverlay()
+                .allowsHitTesting(false)
+        }
     }
     
     private var mapLibreView: some View {
@@ -216,9 +234,10 @@ public struct NewMapView: View {
     private var topPill: some View {
         HStack(spacing: 10) {
             HStack(spacing: 8) {
-                Image(systemName: "magnifyingglass").foregroundStyle(.secondary)
+                Image(systemName: "magnifyingglass")
+                    .foregroundStyle(Color.mist)
                 Text(searchText.isEmpty ? "Search sites, shops" : searchText)
-                    .foregroundStyle(searchText.isEmpty ? .secondary : .primary)
+                    .foregroundStyle(searchText.isEmpty ? Color.mist : Color.foam)
                     .lineLimit(1)
             }
             .contentShape(RoundedRectangle(cornerRadius: 16))
@@ -226,72 +245,90 @@ public struct NewMapView: View {
             
             Button(action: { showFilters = true; Haptics.soft() }) {
                 Image(systemName: "line.3.horizontal.decrease.circle")
+                    .foregroundStyle(Color.foam)
             }
+            .buttonStyle(.plain)
             
             Button(action: { showLayers = true; Haptics.soft() }) {
                 Image(systemName: "circle.grid.2x2")
+                    .foregroundStyle(Color.foam)
             }
+            .buttonStyle(.plain)
         }
         .font(.system(size: 15, weight: .regular))
         .padding(.horizontal, 14)
         .padding(.vertical, 10)
-        .background(.ultraThinMaterial, in: Capsule())
+        .background(
+            Capsule()
+                .fill(Color.glass)
+                .overlay(
+                    Capsule()
+                        .stroke(Color.kelp.opacity(0.35), lineWidth: 1)
+                )
+        )
         .padding(.top, 10)
         .padding(.horizontal, 16)
     }
     
     private var bottomSheet: some View {
         VStack(spacing: 0) {
-            // Drag handle
-            VStack {
-                RoundedRectangle(cornerRadius: 2.5)
-                    .fill(Color(UIColor.secondaryLabel).opacity(0.5))
-                    .frame(width: 40, height: 5)
-            }
-            .frame(maxWidth: .infinity)
-            .padding(.vertical, 12)
-            
-            VStack(spacing: 12) {
-                // Header with scope + entity tabs and result count
+            Capsule()
+                .fill(Color.kelp.opacity(0.35))
+                .frame(width: 44, height: 5)
+                .padding(.top, 12)
+                .padding(.bottom, 4)
+
+            VStack(spacing: 16) {
                 HStack {
                     Picker("Scope", selection: $scope) {
                         Text("Saved").tag(Scope.saved)
                         Text("Discover").tag(Scope.discover)
                     }
                     .pickerStyle(.segmented)
-                    .frame(maxWidth: 150)
-                    
+                    .tint(Color.lagoon)
+                    .frame(maxWidth: 200)
+
                     Spacer()
-                    
+
                     VStack(alignment: .trailing, spacing: 2) {
                         Text("In view")
                             .font(.caption2)
-                            .foregroundStyle(.secondary)
+                            .foregroundStyle(Color.mist)
                         Text("\(viewModel.filteredSites.count)")
                             .font(.headline)
-                            .foregroundStyle(primaryColor)
+                            .foregroundStyle(Color.foam)
                     }
                 }
                 .padding(.horizontal, 16)
-                
+
                 Picker("Entity", selection: $entityTab) {
                     Text("Sites").tag(EntityTab.sites)
                     Text("Shops").tag(EntityTab.shops)
                 }
                 .pickerStyle(.segmented)
+                .tint(Color.lagoon)
                 .padding(.horizontal, 16)
-                
+
                 filterChipsScrollView
-                
+
                 Divider()
-                    .padding(.vertical, 8)
+                    .background(Color.clear)
+                    .overlay(Color.kelp.opacity(0.4))
                     .padding(.horizontal, 16)
-                
+
                 tierContentView
             }
+            .padding(.bottom, 20)
         }
-        .background(.ultraThinMaterial)
-        .cornerRadius(20, corners: [.topLeft, .topRight])
+        .foregroundStyle(Color.foam)
+        .background(
+            RoundedRectangle(cornerRadius: 24, style: .continuous)
+                .fill(Color.midnight.opacity(0.95))
+                .overlay(
+                    RoundedRectangle(cornerRadius: 24, style: .continuous)
+                        .stroke(Color.kelp.opacity(0.45), lineWidth: 1)
+                )
+        )
         .transition(.move(edge: .bottom))
     }
     
@@ -507,17 +544,34 @@ public struct NewMapView: View {
         }
     }
     
-    private var filterSheet: some View {
-        FilterSheet(
-            mode: $viewModel.mode,
-            statusFilter: $viewModel.statusFilter,
-            exploreFilter: $viewModel.exploreFilter,
+private var filterSheet: some View {
+    FilterSheet(
+        mode: $viewModel.mode,
+        statusFilter: $viewModel.statusFilter,
+        exploreFilter: $viewModel.exploreFilter,
             onDismiss: { showFilters = false }
         )
         .presentationDetents([.medium])
+}
+
+private struct UnderwaterGlowOverlay: View {
+    @Environment(\.colorScheme) private var colorScheme
+
+    var body: some View {
+        LinearGradient(
+            colors: [
+                Color(white: 0.03, opacity: colorScheme == .dark ? 0.95 : 0.7),
+                Color(white: 0.02, opacity: colorScheme == .dark ? 0.85 : 0.55)
+            ],
+            startPoint: .top,
+            endPoint: .bottom
+        )
+        .blendMode(.softLight)
+        .ignoresSafeArea()
     }
-    
-    // MARK: - Action Handlers
+}
+
+// MARK: - Action Handlers
     
     private func handleRegionTap(_ region: Region) {
         withAnimation(.spring(response: 0.25)) {
@@ -584,9 +638,21 @@ struct FilterChip: View {
     var body: some View {
         Button(action: action) {
             Text(title)
+                .font(.system(size: 13, weight: .semibold))
+                .foregroundStyle(isSelected ? Color.foam : Color.mist)
+                .padding(.horizontal, 14)
+                .padding(.vertical, 8)
+                .background(
+                    Capsule()
+                        .fill(isSelected ? primaryColor.opacity(0.95) : Color.glass)
+                )
+                .overlay(
+                    Capsule()
+                        .stroke(isSelected ? primaryColor.opacity(0.9) : Color.kelp.opacity(0.4), lineWidth: 1)
+                )
         }
-        .buttonStyle(.bordered)
-        .tint(isSelected ? primaryColor : Color.gray.opacity(0.4))
+        .buttonStyle(.plain)
+        .shadow(color: isSelected ? primaryColor.opacity(0.25) : .clear, radius: 6, y: 3)
     }
 }
 
@@ -599,21 +665,21 @@ struct BreadcrumbHeader: View {
             // Breadcrumb
             HStack(spacing: 6) {
                 Text("Regions")
-                    .foregroundStyle(viewModel.tier == .regions ? Color.oceanBlue : SwiftUI.Color(UIColor.label))
+                    .foregroundStyle(viewModel.tier == .regions ? Color.lagoon : Color.mist)
                     .onTapGesture { viewModel.tier = .regions }
-                Text("›").foregroundStyle(.secondary)
+                Text("›").foregroundStyle(Color.mist.opacity(0.6))
                 Text(viewModel.selectedRegion?.name ?? "Areas")
-                    .foregroundStyle(viewModel.tier == .areas ? Color.oceanBlue : SwiftUI.Color(UIColor.secondaryLabel))
+                    .foregroundStyle(viewModel.tier == .areas ? Color.lagoon : Color.mist)
                     .onTapGesture { if viewModel.selectedRegion != nil { viewModel.tier = .areas } }
-                Text("›").foregroundStyle(.secondary)
+                Text("›").foregroundStyle(Color.mist.opacity(0.6))
                 Text("Sites")
-                    .foregroundStyle(viewModel.tier == .sites ? Color.oceanBlue : SwiftUI.Color(UIColor.secondaryLabel))
+                    .foregroundStyle(viewModel.tier == .sites ? Color.lagoon : Color.mist)
             }
             Spacer()
             // Counts
             Text(countText)
-                .font(SwiftUI.Font.system(.caption, design: .default))
-                .foregroundStyle(SwiftUI.Color(UIColor.secondaryLabel))
+                .font(.caption)
+                .foregroundStyle(Color.mist)
         }
     }
     private var countText: String {

@@ -9,9 +9,26 @@ public struct DiveMapAnnotation: Identifiable {
         case wreck
     }
 
+    public enum Status: String {
+        case logged = "Logged"
+        case saved = "Saved"
+        case planned = "Planned"
+        case baseline = "Default"
+    }
+
+    public enum Difficulty: String {
+        case beginner = "Beginner"
+        case intermediate = "Intermediate"
+        case advanced = "Advanced"
+        case expert = "Expert"
+        case other = "Other"
+    }
+
     public let id: String
     public let coordinate: CLLocationCoordinate2D
     public let kind: Kind
+    public let status: Status
+    public let difficulty: Difficulty
     public let visited: Bool
     public let wishlist: Bool
     public let isSelected: Bool
@@ -20,6 +37,8 @@ public struct DiveMapAnnotation: Identifiable {
         id: String,
         coordinate: CLLocationCoordinate2D,
         kind: Kind,
+        status: Status,
+        difficulty: Difficulty,
         visited: Bool,
         wishlist: Bool,
         isSelected: Bool
@@ -27,6 +46,8 @@ public struct DiveMapAnnotation: Identifiable {
         self.id = id
         self.coordinate = coordinate
         self.kind = kind
+        self.status = status
+        self.difficulty = difficulty
         self.visited = visited
         self.wishlist = wishlist
         self.isSelected = isSelected
@@ -37,6 +58,8 @@ extension DiveMapAnnotation: Equatable {
     public static func == (lhs: DiveMapAnnotation, rhs: DiveMapAnnotation) -> Bool {
         lhs.id == rhs.id &&
         lhs.kind == rhs.kind &&
+        lhs.status == rhs.status &&
+        lhs.difficulty == rhs.difficulty &&
         lhs.visited == rhs.visited &&
         lhs.wishlist == rhs.wishlist &&
         lhs.isSelected == rhs.isSelected &&
@@ -81,8 +104,6 @@ public final class MapVC: UIViewController, MLNMapViewDelegate, UIGestureRecogni
     private var map: MLNMapView!
     private let fallbackBackground = UIView()
     private let logger = Logger(subsystem: "app.umilog", category: "DiveMap")
-    private let accentColor = UIColor(brandHex: "#F26A3D") ?? UIColor(red: 0.95, green: 0.42, blue: 0.24, alpha: 1.0)
-    private lazy var clusterFillColor = accentColor.withAlphaComponent(0.18)
     private var didFallbackToOfflineStyle = false
     private lazy var primaryStyleURL: URL? = Bundle.main.url(forResource: "umilog_underwater", withExtension: "json")
     private lazy var offlineStyleURL: URL? = Bundle.main.url(forResource: "dive_offline", withExtension: "json")
@@ -296,65 +317,102 @@ public final class MapVC: UIViewController, MLNMapViewDelegate, UIGestureRecogni
     private func ensureOverlayLayers(in style: MLNStyle) {
         guard let siteSource else { return }
 
+        let lagoon = UIColor(brandHex: "#2D7FBF") ?? UIColor(red: 0.18, green: 0.5, blue: 0.75, alpha: 1.0)
+        let saved = UIColor(brandHex: "#60A5FA") ?? UIColor(red: 0.38, green: 0.65, blue: 0.98, alpha: 1.0)
+        let planned = UIColor(brandHex: "#F59E0B") ?? UIColor(red: 0.96, green: 0.62, blue: 0.04, alpha: 1.0)
+        let reef = UIColor(brandHex: "#5EEAD4") ?? UIColor(red: 0.37, green: 0.92, blue: 0.83, alpha: 1.0)
+        let abyss = UIColor(brandHex: "#0A0F1F") ?? UIColor(red: 0.04, green: 0.06, blue: 0.12, alpha: 1.0)
+
         if style.layer(withIdentifier: "site-cluster") == nil {
             let cluster = MLNCircleStyleLayer(identifier: "site-cluster", source: siteSource)
             cluster.predicate = NSPredicate(format: "cluster == YES")
-            
-            // Enhanced cluster styling with strong visual feedback
-            cluster.circleColor = NSExpression(forConstantValue: UIColor(red: 1.0, green: 0.8, blue: 0.2, alpha: 1.0))
-            cluster.circleStrokeColor = NSExpression(forConstantValue: UIColor(red: 1.0, green: 0.6, blue: 0.0, alpha: 1.0))
-            cluster.circleStrokeWidth = NSExpression(forConstantValue: 2.5)
-            
-            // Cluster radius - use constant value (can add zoom-responsive later via style JSON)
-            cluster.circleRadius = NSExpression(forConstantValue: 35)
+            cluster.circleColor = NSExpression(forConstantValue: lagoon.withAlphaComponent(0.22))
+            cluster.circleStrokeColor = NSExpression(forConstantValue: lagoon.withAlphaComponent(0.75))
+            cluster.circleStrokeWidth = NSExpression(forConstantValue: 2.0)
+            cluster.circleRadius = NSExpression(forConstantValue: 28)
             cluster.isVisible = true
             style.addLayer(cluster)
-            logger.log("layer_added: site-cluster with zoom-responsive expressions")
         }
 
         if style.layer(withIdentifier: "site-cluster-count") == nil {
             let count = MLNSymbolStyleLayer(identifier: "site-cluster-count", source: siteSource)
             count.predicate = NSPredicate(format: "cluster == YES")
             count.text = NSExpression(format: "CAST(point_count, 'NSString')")
-            count.textColor = NSExpression(forConstantValue: UIColor.white)
+            count.textColor = NSExpression(forConstantValue: UIColor(brandHex: "#E6ECF4") ?? UIColor.white)
             count.textFontSize = NSExpression(forConstantValue: 12)
             count.textFontNames = NSExpression(forConstantValue: ["HelveticaNeue-Bold"])
             count.textAllowsOverlap = NSExpression(forConstantValue: true)
             style.addLayer(count)
         }
 
-        if style.layer(withIdentifier: "site-layer") == nil {
-            registerPlaceholderIcon(in: style)
-            let sites = MLNSymbolStyleLayer(identifier: "site-layer", source: siteSource)
-            sites.predicate = NSPredicate(format: "cluster != YES")
-            sites.iconImageName = NSExpression(forConstantValue: "site-placeholder")
-            
-            // Icon scale - use constant value (can add zoom-responsive later via style JSON)
-            sites.iconScale = NSExpression(forConstantValue: 1.5)
-            sites.iconAllowsOverlap = NSExpression(forConstantValue: true)
-            sites.iconIgnoresPlacement = NSExpression(forConstantValue: true)
-            sites.isVisible = true  // Explicitly set visibility
-            style.addLayer(sites)
-            logger.log("layer_added: site-layer with zoom-responsive scaling")
-            
-            // Verify layer was added
-            if let addedLayer = style.layer(withIdentifier: "site-layer") as? MLNSymbolStyleLayer {
-                logger.log("layer_verified: site-layer exists - visible=\(addedLayer.isVisible, privacy: .public)")
-            } else {
-                logger.error("layer_failed: site-layer not found after adding")
+        // Status glows
+        let glowSpecs: [(String, NSPredicate, UIColor)] = [
+            ("site-glow-logged", NSPredicate(format: "cluster != YES AND status == %@", DiveMapAnnotation.Status.logged.rawValue), lagoon.withAlphaComponent(0.28)),
+            ("site-glow-saved", NSPredicate(format: "cluster != YES AND status == %@", DiveMapAnnotation.Status.saved.rawValue), saved.withAlphaComponent(0.26)),
+            ("site-glow-planned", NSPredicate(format: "cluster != YES AND status == %@", DiveMapAnnotation.Status.planned.rawValue), planned.withAlphaComponent(0.28)),
+            ("site-glow-default", NSPredicate(format: "cluster != YES AND (status == %@ OR status == NULL)", DiveMapAnnotation.Status.baseline.rawValue), lagoon.withAlphaComponent(0.22))
+        ]
+
+        var insertionReference: MLNStyleLayer? = style.layer(withIdentifier: "site-cluster-count")
+        for spec in glowSpecs {
+            if style.layer(withIdentifier: spec.0) == nil {
+                let glow = MLNCircleStyleLayer(identifier: spec.0, source: siteSource)
+                glow.predicate = spec.1
+                glow.circleColor = NSExpression(forConstantValue: spec.2)
+                glow.circleRadius = NSExpression(forConstantValue: 32)
+                glow.circleBlur = NSExpression(forConstantValue: 12)
+                glow.circleOpacity = NSExpression(forConstantValue: 1.0)
+                if let ref = insertionReference {
+                    style.insertLayer(glow, above: ref)
+                } else {
+                    style.addLayer(glow)
+                }
+                insertionReference = glow
+            }
+        }
+
+        // Difficulty fills
+        let difficultySpecs: [(String, NSPredicate, UIColor)] = [
+            ("site-layer-beginner", NSPredicate(format: "cluster != YES AND difficulty == %@", DiveMapAnnotation.Difficulty.beginner.rawValue), UIColor(brandHex: "#3DDC97") ?? UIColor(red: 0.24, green: 0.86, blue: 0.59, alpha: 1.0)),
+            ("site-layer-intermediate", NSPredicate(format: "cluster != YES AND difficulty == %@", DiveMapAnnotation.Difficulty.intermediate.rawValue), saved),
+            ("site-layer-advanced", NSPredicate(format: "cluster != YES AND difficulty == %@", DiveMapAnnotation.Difficulty.advanced.rawValue), UIColor(brandHex: "#FBBF24") ?? UIColor(red: 0.98, green: 0.75, blue: 0.14, alpha: 1.0)),
+            ("site-layer-expert", NSPredicate(format: "cluster != YES AND difficulty == %@", DiveMapAnnotation.Difficulty.expert.rawValue), UIColor(brandHex: "#EF4444") ?? UIColor(red: 0.94, green: 0.27, blue: 0.27, alpha: 1.0)),
+            ("site-layer-default", NSPredicate(format: "cluster != YES AND (difficulty == %@ OR difficulty == NULL)", DiveMapAnnotation.Difficulty.other.rawValue), lagoon)
+        ]
+
+        var lastLayer: MLNStyleLayer? = insertionReference
+        for spec in difficultySpecs {
+            if style.layer(withIdentifier: spec.0) == nil {
+                let circle = MLNCircleStyleLayer(identifier: spec.0, source: siteSource)
+                circle.predicate = spec.1
+                circle.circleColor = NSExpression(forConstantValue: spec.2)
+                circle.circleRadius = NSExpression(forConstantValue: 9)
+                circle.circleOpacity = NSExpression(forConstantValue: 0.96)
+                circle.circleStrokeColor = NSExpression(forConstantValue: abyss)
+                circle.circleStrokeWidth = NSExpression(forConstantValue: 1.8)
+                circle.iconAllowsOverlap = NSExpression(forConstantValue: true)
+                if let ref = lastLayer {
+                    style.insertLayer(circle, above: ref)
+                } else {
+                    style.addLayer(circle)
+                }
+                lastLayer = circle
             }
         }
 
         if style.layer(withIdentifier: "site-selected") == nil {
-            registerPlaceholderIcon(in: style)
-            let selected = MLNSymbolStyleLayer(identifier: "site-selected", source: siteSource)
+            let selected = MLNCircleStyleLayer(identifier: "site-selected", source: siteSource)
             selected.predicate = NSPredicate(format: "selected == 1 && cluster != YES")
-            selected.iconImageName = NSExpression(forConstantValue: "site-placeholder")
-            selected.iconScale = NSExpression(forConstantValue: 1.2)
-            selected.iconAllowsOverlap = NSExpression(forConstantValue: true)
-            selected.iconIgnoresPlacement = NSExpression(forConstantValue: true)
-            selected.iconColor = NSExpression(forConstantValue: accentColor)
-            style.addLayer(selected)
+            selected.circleColor = NSExpression(forConstantValue: reef.withAlphaComponent(0.85))
+            selected.circleRadius = NSExpression(forConstantValue: 14)
+            selected.circleOpacity = NSExpression(forConstantValue: 0.9)
+            selected.circleStrokeColor = NSExpression(forConstantValue: lagoon)
+            selected.circleStrokeWidth = NSExpression(forConstantValue: 2.0)
+            if let ref = lastLayer {
+                style.insertLayer(selected, above: ref)
+            } else {
+                style.addLayer(selected)
+            }
         }
     }
 
@@ -371,11 +429,6 @@ public final class MapVC: UIViewController, MLNMapViewDelegate, UIGestureRecogni
             return
         }
 
-        guard !annotations.isEmpty else {
-            logger.warning("updateAnnotationsIfReady: No annotations to apply!")
-            return
-        }
-
         logger.log("updateAnnotationsIfReady: updating \(self.annotations.count, privacy: .public) annotations")
         pendingStyleWork?.cancel()
         let work = DispatchWorkItem { [weak self] in
@@ -386,6 +439,8 @@ public final class MapVC: UIViewController, MLNMapViewDelegate, UIGestureRecogni
                 feature.attributes = [
                     "id": annotation.id,
                     "kind": annotation.kind.rawValue,
+                    "status": annotation.status.rawValue,
+                    "difficulty": annotation.difficulty.rawValue,
                     "visited": annotation.visited ? 1 : 0,
                     "wishlist": annotation.wishlist ? 1 : 0,
                     "selected": annotation.isSelected ? 1 : 0,
@@ -398,6 +453,7 @@ public final class MapVC: UIViewController, MLNMapViewDelegate, UIGestureRecogni
             logger.log("source_updated: \(features.count, privacy: .public) features in collection")
 
             self.logger.log("annotations_applied count=\(self.annotations.count, privacy: .public)")
+
             if let first = self.annotations.first {
                 self.logger.log("annotations_first id=\(first.id, privacy: .public) lat=\(first.coordinate.latitude, privacy: .public) lon=\(first.coordinate.longitude, privacy: .public)")
             }
@@ -422,56 +478,12 @@ public final class MapVC: UIViewController, MLNMapViewDelegate, UIGestureRecogni
 
     // MARK: - Minimal Base & Overlays
 
-    private func registerPlaceholderIcon(in style: MLNStyle) {
-        if style.image(forName: "site-placeholder") != nil { return }
-        
-        // Create a distinctive marker with better visibility and dark mode support
-        let size = CGSize(width: 50, height: 50)
-        let renderer = UIGraphicsImageRenderer(size: size)
-        let image = renderer.image { ctx in
-            let rect = CGRect(origin: .zero, size: size)
-            let center = CGPoint(x: size.width / 2, y: size.height / 2)
-            let radius = size.width / 2
-            
-            // Choose colors based on interface style
-            let isDarkMode = UITraitCollection.current.userInterfaceStyle == .dark
-            let mainColor = UIColor(red: 0.2, green: 0.6, blue: 0.9, alpha: 1.0)
-            let accentColor = UIColor(red: 0.1, green: 0.4, blue: 0.8, alpha: 1.0)
-            let shadowColor = isDarkMode ? UIColor.white.withAlphaComponent(0.15) : UIColor.black.withAlphaComponent(0.2)
-            
-            // Draw outer glow shadow
-            shadowColor.setFill()
-            ctx.cgContext.fillEllipse(in: CGRect(
-                x: center.x - radius - 2,
-                y: center.y - radius - 2,
-                width: radius * 2 + 4,
-                height: radius * 2 + 4
-            ))
-            
-            // Draw main circle (bright blue for dive theme)
-            mainColor.setFill()
-            ctx.cgContext.fillEllipse(in: rect)
-            
-            // Draw accent circle
-            accentColor.setStroke()
-            ctx.cgContext.setLineWidth(2)
-            ctx.cgContext.strokeEllipse(in: rect.insetBy(dx: 2, dy: 2))
-            
-            // Draw white inner circle
-            UIColor.white.setFill()
-            ctx.cgContext.fillEllipse(in: rect.insetBy(dx: 8, dy: 8))
-        }
-        style.setImage(image, forName: "site-placeholder")
-        logger.log("icon_registered: site-placeholder (color-accessible theme)")
-    }
-
     private func ensureBaseLayers(in style: MLNStyle) {
         // The style JSON already has raster tiles configured
         // Just ensure our background is below them
         if style.layer(withIdentifier: "umi-bg") == nil {
             let background = MLNBackgroundStyleLayer(identifier: "umi-bg")
-            // Light ocean blue background as fallback
-            background.backgroundColor = NSExpression(forConstantValue: UIColor(brandHex: "#E8F2F6") ?? UIColor(red: 0.91, green: 0.95, blue: 0.96, alpha: 1.0))
+            background.backgroundColor = NSExpression(forConstantValue: UIColor(brandHex: "#0A0F1F") ?? UIColor(red: 0.04, green: 0.06, blue: 0.12, alpha: 1.0))
             // Insert below all other layers as base
             if let firstLayer = style.layers.first {
                 style.insertLayer(background, below: firstLayer)

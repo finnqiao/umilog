@@ -6,10 +6,6 @@
     "maputnik:optimized": true
   },
   "sources": {
-    "osm-data": {
-      "type": "vector",
-      "url": "https://tile.openstreetmap.org/data/planet.mbtiles"
-    },
     "carto-dark": {
       "type": "raster",
       "tiles": [
@@ -21,16 +17,36 @@
       "minzoom": 0,
       "maxzoom": 18,
       "attribution": "© OpenStreetMap contributors, © CARTO"
+    },
+    "water-overlay": {
+      "type": "geojson",
+      "data": {
+        "type": "FeatureCollection",
+        "features": []
+      }
+    },
+    "dive-areas": {
+      "type": "geojson",
+      "data": {
+        "type": "FeatureCollection",
+        "features": []
+      }
+    },
+    "dive-sites": {
+      "type": "geojson",
+      "data": {
+        "type": "FeatureCollection",
+        "features": []
+      }
     }
   },
-  "sprite": "",
   "glyphs": "https://fonts.openmaptiles.org/{fontstack}/{range}.pbf",
   "layers": [
     {
       "id": "background",
       "type": "background",
       "paint": {
-        "background-color": "#0a1628"
+        "background-color": "#0A0F1F"
       }
     },
     {
@@ -41,175 +57,171 @@
       "maxzoom": 18,
       "paint": {
         "raster-opacity": 0.9,
-        "raster-brightness-min": -0.1,
-        "raster-brightness-max": 0.8,
-        "raster-saturation": -0.3
+        "raster-brightness-min": 0.25,
+        "raster-brightness-max": 1.25,
+        "raster-contrast": 0.45,
+        "raster-saturation": -0.35,
+        "raster-hue-rotate": -8
       }
     },
     {
       "id": "water-overlay",
       "type": "fill",
-      "source": {
-        "type": "geojson",
-        "data": {
-          "type": "FeatureCollection",
-          "features": []
-        }
-      },
+      "source": "water-overlay",
       "paint": {
-        "fill-color": "#0d3e5e",
-        "fill-opacity": 0.25
+        "fill-color": "#0D2239",
+        "fill-opacity": 0.3
       }
     },
     {
       "id": "dive-area-circle",
       "type": "circle",
-      "source": {
-        "type": "geojson",
-        "data": {
-          "type": "FeatureCollection",
-          "features": []
-        }
-      },
+      "source": "dive-areas",
       "paint": {
         "circle-radius": [
           "interpolate",
           ["linear"],
           ["zoom"],
-          5, 40,
-          8, 25,
-          15, 12
+          5,
+          40,
+          8,
+          25,
+          15,
+          12
         ],
         "circle-color": [
           "match",
           ["get", "status"],
-          "Logged", "#14b8a6",
-          "Saved", "#3b82f6",
-          "Planned", "#f59e0b",
-          "#6366f1"
+          "Logged",
+          "#2D7FBF",
+          "Saved",
+          "#60A5FA",
+          "Planned",
+          "#F59E0B",
+          "Default",
+          "#1E4B7A",
+          "#1E4B7A"
         ],
-        "circle-opacity": 0.9,
+        "circle-opacity": 0.85,
         "circle-stroke-width": 2,
-        "circle-stroke-color": "#ffffff",
-        "circle-stroke-opacity": 0.6
+        "circle-stroke-color": "#0A0F1F",
+        "circle-stroke-opacity": 0.9
       }
     },
     {
       "id": "dive-area-glow",
       "type": "circle",
-      "source": {
-        "type": "geojson",
-        "data": {
-          "type": "FeatureCollection",
-          "features": []
-        }
-      },
+      "source": "dive-areas",
       "paint": {
         "circle-radius": [
           "interpolate",
           ["linear"],
           ["zoom"],
-          5, 50,
-          8, 35,
-          15, 18
+          5,
+          50,
+          8,
+          35,
+          15,
+          18
         ],
         "circle-color": [
           "match",
           ["get", "status"],
-          "Logged", "#14b8a6",
-          "Saved", "#3b82f6",
-          "Planned", "#f59e0b",
-          "#6366f1"
+          "Logged",
+          "rgba(45,127,191,0.25)",
+          "Saved",
+          "rgba(96,165,250,0.25)",
+          "Planned",
+          "rgba(245,158,11,0.28)",
+          "Default",
+          "rgba(45,127,191,0.22)",
+          "rgba(30,75,122,0.22)"
         ],
-        "circle-opacity": 0.15,
-        "circle-blur": 4
-      ]
+        "circle-opacity": 0.35,
+        "circle-blur": 6
+      }
     },
     {
       "id": "dive-site-circle",
       "type": "circle",
-      "source": {
-        "type": "geojson",
-        "data": {
-          "type": "FeatureCollection",
-          "features": []
-        }
-      },
+      "source": "dive-sites",
       "paint": {
         "circle-radius": [
           "interpolate",
           ["linear"],
           ["zoom"],
-          8, 8,
-          12, 10,
-          15, 12
+          8,
+          8,
+          12,
+          10,
+          15,
+          12
         ],
         "circle-color": [
           "match",
           ["get", "difficulty"],
-          "Beginner", "#3b82f6",
-          "Intermediate", "#f97316",
-          "Advanced", "#dc2626",
-          "#6366f1"
+          "Beginner",
+          "#3DDC97",
+          "Intermediate",
+          "#60A5FA",
+          "Advanced",
+          "#FBBF24",
+          "Expert",
+          "#EF4444",
+          "#2D7FBF"
         ],
-        "circle-opacity": 0.95,
+        "circle-opacity": 0.96,
         "circle-stroke-width": [
           "interpolate",
           ["linear"],
           ["zoom"],
-          8, 1.5,
-          15, 2
+          8,
+          1.8,
+          15,
+          2.4
         ],
-        "circle-stroke-color": "#ffffff",
-        "circle-stroke-opacity": 0.8
+        "circle-stroke-color": "#0A0F1F",
+        "circle-stroke-opacity": 0.95
       }
     },
     {
       "id": "dive-site-label",
       "type": "symbol",
-      "source": {
-        "type": "geojson",
-        "data": {
-          "type": "FeatureCollection",
-          "features": []
-        }
-      },
+      "source": "dive-sites",
       "layout": {
         "text-field": ["get", "name"],
         "text-size": [
           "interpolate",
           ["linear"],
           ["zoom"],
-          10, 10,
-          15, 12
+          10,
+          10,
+          15,
+          12
         ],
         "text-offset": [0, 1.5],
         "text-anchor": "top",
         "text-font": ["Open Sans Semibold", "Arial Unicode MS Bold"]
       },
       "paint": {
-        "text-color": "#ffffff",
-        "text-halo-color": "#000000",
-        "text-halo-width": 1,
+        "text-color": "#E6ECF4",
+        "text-halo-color": "#09111D",
+        "text-halo-width": 0.5,
         "text-opacity": [
           "interpolate",
           ["linear"],
           ["zoom"],
-          10, 0,
-          12, 1
+          10,
+          0,
+          12,
+          1
         ]
       }
     },
     {
       "id": "area-count-label",
       "type": "symbol",
-      "source": {
-        "type": "geojson",
-        "data": {
-          "type": "FeatureCollection",
-          "features": []
-        }
-      },
+      "source": "dive-areas",
       "layout": {
         "text-field": ["get", "count"],
         "text-size": 14,
@@ -218,13 +230,15 @@
         "text-justify": "center"
       },
       "paint": {
-        "text-color": "#ffffff",
+        "text-color": "#E6ECF4",
         "text-opacity": [
           "interpolate",
           ["linear"],
           ["zoom"],
-          5, 0,
-          8, 1
+          5,
+          0,
+          8,
+          1
         ]
       }
     }

@@ -1,67 +1,57 @@
 import SwiftUI
 
 public extension Color {
-    // MARK: - Underwater Palette (Dark-first)
-    
-    /// Deep ocean blue for primary actions, buttons, active chips
-    static let oceanBlue = Color(hex: "2563EB")
-    
-    /// Water background - deep blue used in map style and overlays
-    static let waterDeep = Color(hex: "0a1628")
-    
-    /// Water accent - lighter blue for water elements
-    static let waterAccent = Color(hex: "0d3e5e")
-    
-    // MARK: - Status Colors (Teal = Logged, Amber = Planned)
-    
-    /// Teal for "Logged" status - sites/areas that have been dived
-    static let statusLogged = Color(hex: "14b8a6")
-    
-    /// Amber for "Planned" status - sites/areas planned for future dives
-    static let statusPlanned = Color(hex: "f59e0b")
-    
-    /// Blue for "Saved" status - sites/areas saved to wishlist
-    static let statusSaved = Color(hex: "3b82f6")
-    
-    // MARK: - Difficulty Colors (for site pins)
-    
-    /// Beginner difficulty - calm blue
-    static let difficultyBeginner = Color(hex: "3b82f6")
-    
-    /// Intermediate difficulty - warning orange
-    static let difficultyIntermediate = Color(hex: "f97316")
-    
-    /// Advanced difficulty - alert red
-    static let difficultyAdvanced = Color(hex: "dc2626")
-    
-    // MARK: - Legacy Colors (keeping for backward compatibility)
-    
-    /// Teal - Depth metrics, water temp (alias for statusLogged)
-    static var diveTeal: Color { statusLogged }
-    
-    /// Sea Green - Success states, sites visited
+    // MARK: - Core Underwater Palette (Dark-first)
+    static let abyss = Color(hex: "0A0F1F")
+    static let midnight = Color(hex: "0D2239")
+    static let trench = Color(hex: "132A45")
+    static let ocean = Color(hex: "1E4B7A")
+    static let lagoon = Color(hex: "2D7FBF")
+    static let reef = Color(hex: "5EEAD4")
+    static let amber = Color(hex: "F59E0B")
+    static let danger = Color(hex: "EF4444")
+    static let foam = Color(hex: "E6ECF4")
+    static let mist = Color(hex: "95A3B8")
+    static let kelp = Color(hex: "1B3353")
+    static let glass = Color(.sRGB, red: 8.0/255.0, green: 13.0/255.0, blue: 25.0/255.0, opacity: 0.62)
+
+    // MARK: - Core Underwater Palette (Light)
+    static let sand = Color(hex: "F3F8FF")
+    static let shore = Color(hex: "EAF4FF")
+    static let drift = Color(hex: "D7E9FB")
+    static let ocean600 = Color(hex: "1E4B7A")
+    static let lagoon500 = Color(hex: "2D7FBF")
+    static let foam900 = Color(hex: "0B1220")
+    static let mist700 = Color(hex: "586174")
+
+    // MARK: - Status & Difficulty Colors
+    static let statusLogged = reef
+    static let statusSaved = Color(hex: "60A5FA")
+    static let statusPlanned = amber
+    static let statusDanger = danger
+
+    static let difficultyBeginner = Color(hex: "3DDC97")
+    static let difficultyIntermediate = Color(hex: "60A5FA")
+    static let difficultyAdvanced = Color(hex: "FBBF24")
+    static let difficultyExpert = danger
+
+    // MARK: - Legacy Aliases
+    static let oceanBlue = lagoon
+    static var diveTeal: Color { reef }
     static let seaGreen = Color(hex: "16A34A")
-    
-    /// Purple - Wildlife, specialty indicators
     static let divePurple = Color(hex: "9333EA")
-    
-    /// Coral Red - Warnings, required fields
-    static let coralRed = Color(hex: "DC2626")
-    
-    // MARK: - Semantic Colors
-    
-    /// Primary action color (buttons, CTAs)
-    static var primary: Color {
-        oceanBlue
-    }
-    
-    /// Secondary color for depth/water metrics
-    static var secondary: Color {
-        statusLogged
-    }
-    
+    static let coralRed = danger
+    static let waterDeep = midnight
+    static let waterAccent = ocean
+
+    // MARK: - Semantic Helpers
+    static var primary: Color { lagoon }
+    static var secondary: Color { reef }
+
+    static var textPrimaryOnDark: Color { foam }
+    static var textSecondaryOnDark: Color { mist }
+
     // MARK: - Helper
-    
     init(hex: String) {
         let hex = hex.trimmingCharacters(in: CharacterSet.alphanumerics.inverted)
         var int: UInt64 = 0
@@ -91,11 +81,11 @@ public extension Color {
 #Preview("Color Palette") {
     VStack(spacing: 16) {
         Group {
-            ColorSwatch(color: .oceanBlue, name: "Ocean Blue")
-            ColorSwatch(color: .diveTeal, name: "Dive Teal")
-            ColorSwatch(color: .seaGreen, name: "Sea Green")
-            ColorSwatch(color: .divePurple, name: "Dive Purple")
-            ColorSwatch(color: .coralRed, name: "Coral Red")
+            ColorSwatch(color: .lagoon, name: "Lagoon")
+            ColorSwatch(color: .reef, name: "Reef")
+            ColorSwatch(color: .amber, name: "Amber")
+            ColorSwatch(color: .mist, name: "Mist")
+            ColorSwatch(color: .glass, name: "Glass")
         }
     }
     .padding()
@@ -104,13 +94,13 @@ public extension Color {
 private struct ColorSwatch: View {
     let color: Color
     let name: String
-    
+
     var body: some View {
         HStack {
             RoundedRectangle(cornerRadius: 8)
                 .fill(color)
                 .frame(width: 60, height: 60)
-            
+
             VStack(alignment: .leading) {
                 Text(name)
                     .font(.headline)
@@ -118,7 +108,7 @@ private struct ColorSwatch: View {
                     .font(.caption)
                     .foregroundStyle(.secondary)
             }
-            
+
             Spacer()
         }
         .padding()
