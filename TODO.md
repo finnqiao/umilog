@@ -86,10 +86,10 @@ P0
 - [ ] LocationService wiring plan for user location and "nearby" — Owner: TBD
 
 P1
-- [ ] Filter pipeline spec + persistence (FeatureMap) — Owner: TBD
+- ✅ Filter pipeline spec + persistence (MapViewModel + UserDefaults)
 - ✅ Quick Log entry integration decision (entry point spec)
-- [ ] GeofenceManager policy and registration spec — Owner: TBD
-- [ ] Search data sources and indexing (FTS) plan — Owner: TBD
+- ✅ GeofenceManager policy and registration spec (AppState integration)
+- ✅ Search data sources and indexing (FTS5 with weighted ranking + prefix matching)
 
 P2
 - ✅ Wildlife data wiring and species index UX (WildlifeView)
@@ -144,4 +144,4 @@ See also: [docs/UI_FLOWS_AUDIT.md](docs/UI_FLOWS_AUDIT.md)
 
 ---
 
-Last updated: 2025‑10‑26 (evening session)
+Last updated: 2025‑10‑27 (P1 features complete: Filter persistence, GeofenceManager, FTS search)
