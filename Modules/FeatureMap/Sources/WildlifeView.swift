@@ -1,7 +1,9 @@
 import SwiftUI
 import UmiDB
+import GRDB
 
 public struct WildlifeView: View {
+    @StateObject private var viewModel = WildlifeViewModel()
     @State private var searchText = ""
     @State private var scope: WildlifeScope = .allTime
     
@@ -24,14 +26,37 @@ public struct WildlifeView: View {
             }
             .background(Color(.systemGroupedBackground))
             
-            // Placeholder content
+            // Species grid
             ScrollView {
-                LazyVGrid(columns: [GridItem(.adaptive(minimum: 160), spacing: 16)], spacing: 16) {
-                    ForEach(0..<6) { index in
-                        SpeciesCard(name: "Species \(index + 1)", seen: index % 2 == 0)
+                if viewModel.filteredSpecies.isEmpty {
+                    VStack(spacing: 12) {
+                        Image(systemName: "fish")
+                            .font(.system(size: 48))
+                            .foregroundStyle(.secondary)
+                        Text("No species found")
+                            .font(.headline)
+                        Text(searchText.isEmpty ? "Start logging dives to see wildlife" : "No matches for '\(searchText)'")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
                     }
+                    .frame(maxWidth: .infinity)
+                    .padding(40)
+                } else {
+                    LazyVGrid(columns: [GridItem(.adaptive(minimum: 160), spacing: 16)], spacing: 16) {
+                        ForEach(viewModel.filteredSpecies) { species in
+                            SpeciesCard(
+                                name: species.name,
+                                scientificName: species.scientificName,
+                                seen: viewModel.sightingCounts[species.id] ?? 0 > 0,
+                                sightingCount: viewModel.sightingCounts[species.id] ?? 0
+                            )
+                        }
+                    }
+                    .padding(16)
                 }
-                .padding(16)
+            }
+            .onChange(of: searchText) { newValue in
+                viewModel.search(newValue)
             }
         }
         .navigationTitle("Wildlife")
@@ -59,7 +84,9 @@ struct ScopeChip: View {
 
 struct SpeciesCard: View {
     let name: String
+    let scientificName: String
     let seen: Bool
+    let sightingCount: Int
     
     var body: some View {
         VStack(spacing: 8) {
@@ -76,10 +103,18 @@ struct SpeciesCard: View {
             Text(name)
                 .font(SwiftUI.Font.subheadline)
                 .fontWeight(.medium)
+                .lineLimit(2)
+                .multilineTextAlignment(.center)
+            
+            Text(scientificName)
+                .font(.caption2)
+                .foregroundStyle(.secondary)
+                .italic()
+                .lineLimit(1)
             
             if seen {
-                Text("Seen 3x")
-                    .font(SwiftUI.Font.caption2)
+                Text("Seen \(sightingCount)x")
+                    .font(.caption2)
                     .foregroundStyle(.secondary)
                     .padding(.horizontal, 8)
                     .padding(.vertical, 4)
@@ -90,6 +125,85 @@ struct SpeciesCard: View {
         .padding()
         .background(Color(.secondarySystemGroupedBackground))
         .cornerRadius(16)
+    }
+}
+
+@MainActor
+class WildlifeViewModel: ObservableObject {
+    @Published var allSpecies: [WildlifeSpecies] = []
+    @Published var filteredSpecies: [WildlifeSpecies] = []
+    @Published var sightingCounts: [String: Int] = [:]
+    
+    private let speciesRepository = SpeciesRepository(database: AppDatabase.shared)
+    private let database = AppDatabase.shared
+    
+    init() {
+        loadSpecies()
+    }
+    
+    func loadSpecies() {
+        Task {
+            do {
+                let species = try speciesRepository.fetchAll()
+                await updateSpecies(species)
+                await loadSightingCounts()
+            } catch {
+                print("Error loading species: \(error)")
+            }
+        }
+    }
+    
+    func search(_ query: String) {
+        if query.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+            filteredSpecies = allSpecies
+        } else {
+            Task {
+                do {
+                    let results = try speciesRepository.search(query)
+                    await MainActor.run {
+                        self.filteredSpecies = results
+                    }
+                } catch {
+                    print("Error searching species: \(error)")
+                    await MainActor.run {
+                        self.filteredSpecies = []
+                    }
+                }
+            }
+        }
+    }
+    
+    @MainActor
+    private func updateSpecies(_ species: [WildlifeSpecies]) {
+        self.allSpecies = species
+        self.filteredSpecies = species
+    }
+    
+    @MainActor
+    private func loadSightingCounts() {
+        Task {
+            do {
+                let counts = try database.read { db in
+                    var result: [String: Int] = [:]
+                    let rows = try Row.fetchAll(
+                        db,
+                        sql: "SELECT speciesId, COUNT(*) as count FROM sightings GROUP BY speciesId"
+                    )
+                    for row in rows {
+                        if let speciesId = row["speciesId"] as? String,
+                           let count = row["count"] as? Int {
+                            result[speciesId] = count
+                        }
+                    }
+                    return result
+                }
+                await MainActor.run {
+                    self.sightingCounts = counts
+                }
+            } catch {
+                print("Error loading sighting counts: \(error)")
+            }
+        }
     }
 }
 
