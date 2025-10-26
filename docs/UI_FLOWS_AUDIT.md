@@ -1,6 +1,6 @@
-# UI Flows Audit (2025-10-26)
+# UI Flows Audit (2025-10-26, updated 2025-10-26)
 
-Purpose: document the current functional UI flows, known issues, and incomplete areas for the iOS app. This is documentation-only; no code changes.
+Purpose: document the current functional UI flows, known issues, and completed improvements. This audit tracks implementation status and known gaps.
 
 Legend
 - Functional now: works today based on code paths
@@ -14,13 +14,15 @@ Legend
 Overview
 - Map-first tab using MapLibre (DiveMap) with MapKit fallback; bottom sheet tiers Regions → Areas → Sites; search and filters sheets.
 Functional now
-- MapLibre rendering with clustering and viewport-driven refresh; MapKit fallback available.
-- Bottom sheet navigation across regions/areas/sites with counts and chips.
-- SearchSheet and FilterSheet present; basic search works; filter UI toggles update view model.
+- ✅ MapLibre rendering with clustering and viewport-driven refresh; MapKit fallback available
+- ✅ Bottom sheet navigation across regions/areas/sites with counts and chips
+- ✅ SearchSheet and FilterSheet present; basic search works; filter UI toggles update view model
+- ✅ Active filter count badge on filter icon (red badge with count)
+- ✅ Comprehensive VoiceOver labels on RegionRow and SiteRow for accessibility
 Problems/Risks
-- Layers button toggles a flag; no layers panel implemented.
-- Some filters are stubs (nearby/planned true-returns); filter state not persisted.
-- User-location/permissions not wired; “nearby” behavior unspecified.
+- Layers button toggles a flag; no layers panel implemented
+- Some filters are stubs (nearby/planned true-returns); filter state not persisted
+- User-location/permissions not wired; "nearby" behavior unspecified
 Incomplete/Missing
 - Layers panel UX; full filter pipeline + persistence; location permission flow and user-location indicator.
 Key files
@@ -68,11 +70,14 @@ Owner: TBD
 Overview
 - Browse logged dives, search, and view details.
 Functional now
-- Dive list with searchable text; detail view with stats; manual refresh.
+- ✅ Dive list with searchable text; detail view with stats; manual refresh
+- ✅ Auto-refresh upon new log save (notification observed)
+- ✅ Swipe-to-delete action for dive logs
+- ✅ Empty state when no dives logged
 Problems/Risks
-- No auto-refresh upon new log save (notification not observed).
+- None identified
 Incomplete/Missing
-- Sorting/filtering; edit/delete flows; richer empty states.
+- Sorting/filtering; bulk operations; export flows
 Key files
 - Modules/FeatureHistory/Sources/DiveHistoryView.swift
 - Modules/FeatureHistory/Sources/DiveHistoryViewModel.swift
@@ -99,13 +104,17 @@ Owner: TBD
 
 6) Wildlife
 Overview
-- Wildlife tab/cards.
+- Wildlife tab/cards with species catalog and sighting tracking.
 Functional now
-- Placeholder grid renders mock cards.
+- ✅ Species grid loads from SpeciesRepository
+- ✅ Sighting counts queried from database
+- ✅ Search functionality using SpeciesRepository.search()
+- ✅ Species cards display actual data with sighting counts
+- ✅ Empty state when no species sighted
 Problems/Risks
-- No data wiring to sightings/species; search does not reflect DB.
+- None identified
 Incomplete/Missing
-- Species index, filters, linkage to logged sightings, media.
+- Media/images for species; species filtering by rarity/category
 Key files
 - Modules/FeatureMap/Sources/WildlifeView.swift
 Next actions
@@ -116,11 +125,13 @@ Owner: TBD
 Overview
 - Stats tiles, achievements placeholders, developer toggles.
 Functional now
-- Static stats tiles; developer section shows Underwater Theme toggle control UI.
+- ✅ Live stats tiles loading from database (total dives, max depth, sites visited, species count)
+- ✅ Developer section with Underwater Theme toggle (persisted in UserDefaults)
+- ✅ Map engine toggle (MapLibre vs MapKit) in developer section
 Problems/Risks
-- Underwater Theme toggle uses environment binding not provided by root AppState; no persistence.
+- Theme persistence fixed; map engine preference not fully wired to AppState
 Incomplete/Missing
-- Actual settings, backups/sync, theme persistence.
+- Actual settings, backups/sync, additional developer options
 Key files
 - Modules/FeatureMap/Sources/ProfileView.swift
 - Modules/UmiDesignSystem/Sources/Underwater/UnderwaterTheme.swift
