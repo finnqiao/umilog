@@ -26,7 +26,7 @@ See also: README.md, ARCHITECTURE.md, ASSETS.md, LEARNINGS.md
 ## Phase 2 — Dive: Contextual logging
 - ⏳ Contextual Start a dive action when within ~150m of a known site in the active area
 - ⏳ Site-card swipe right → Quick Log
-- ⏳ Remove per-card Log buttons; promote Start a dive on site detail
+- ✅ Remove per-card Log buttons; promote Start a dive on site detail (Quick Log entry offered from Log tab)
 
 ## Phase 3 — Plan & Offline
 - ⏳ Card utilities: Save / Download / Plan (on area and site)
@@ -75,6 +75,28 @@ See also: README.md, ARCHITECTURE.md, ASSETS.md, LEARNINGS.md
 10. ⏳ QA: 60fps map + scroll, AA contrast, 44pt targets, Respect Reduce Motion, VoiceOver labels
 
 ---
+
+## Triage board (UI Flows)
+
+P0
+- ✅ History auto-refresh on `.diveLogUpdated` (FeatureHistory)
+- [ ] Define and document permission flows (Location, Notifications) — Owner: TBD
+- ✅ UnderwaterTheme shared state and persistence spec
+- ✅ Map Layers: decide hide vs implement v1; document UX
+- [ ] LocationService wiring plan for user location and “nearby” — Owner: TBD
+
+P1
+- [ ] Filter pipeline spec + persistence (FeatureMap) — Owner: TBD
+- ✅ Quick Log entry integration decision (entry point spec)
+- [ ] GeofenceManager policy and registration spec — Owner: TBD
+- [ ] Search data sources and indexing (FTS) plan — Owner: TBD
+
+P2
+- [ ] Wildlife data wiring and species index UX — Owner: TBD
+- [ ] Profile IA (settings/sync) and action specs — Owner: TBD
+- ✅ Wishlist spec on Site detail
+
+See also: [docs/UI_FLOWS_AUDIT.md](docs/UI_FLOWS_AUDIT.md)
 
 ## QA acceptance checklist
 - ⏳ Map and scroll ≥ 60fps on iPhone 13+ simulators; image loading doesn’t drop frames
