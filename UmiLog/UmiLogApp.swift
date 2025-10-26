@@ -1,3 +1,4 @@
+import Foundation
 import SwiftUI
 import FeatureMap
 import FeatureHome
@@ -36,6 +37,7 @@ struct ContentView: View {
                 tabs
             }
         }
+        .environment(\.underwaterThemeBinding, underwaterThemeBinding)
         .onChange(of: selectedTab) { newTab in
             if newTab == .log {
                 Task { @MainActor in
@@ -53,6 +55,13 @@ struct ContentView: View {
 }
 
 private extension ContentView {
+    var underwaterThemeBinding: Binding<Bool> {
+        Binding(
+            get: { appState.underwaterThemeEnabled },
+            set: { appState.underwaterThemeEnabled = $0 }
+        )
+    }
+
     @ViewBuilder var tabs: some View {
         TabView(selection: $selectedTab) {
             NavigationStack {
@@ -96,11 +105,21 @@ enum Tab: Hashable {
 class AppState: ObservableObject {
     @Published var isAuthenticated: Bool = false
     @Published var requiresFaceID: Bool = false
-    @Published var underwaterThemeEnabled: Bool = true
+    @Published var underwaterThemeEnabled: Bool {
+        didSet {
+            guard oldValue != underwaterThemeEnabled else { return }
+            defaults.set(underwaterThemeEnabled, forKey: Self.underwaterThemeDefaultsKey)
+        }
+    }
     @Published var useMapLibre: Bool = true  // MapLibre is the default map engine; set false for MapKit fallback
+    private static let underwaterThemeDefaultsKey = "app.umilog.preferences.underwaterThemeEnabled"
+    private let defaults: UserDefaults
     private let logger = Logger(subsystem: "app.umilog", category: "AppState")
     
-    init() {
+    init(defaults: UserDefaults = .standard) {
+        self.defaults = defaults
+        let storedThemeEnabled = defaults.object(forKey: Self.underwaterThemeDefaultsKey) as? Bool ?? true
+        self.underwaterThemeEnabled = storedThemeEnabled
         // Initialize app state
         logger.log("AppState init, underwaterThemeEnabled=\\(self.underwaterThemeEnabled, privacy: .public), useMapLibre=\\(self.useMapLibre, privacy: .public)")
         
