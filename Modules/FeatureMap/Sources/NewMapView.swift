@@ -5,6 +5,13 @@ import FeatureLiveLog
 import UmiDesignSystem
 import DiveMap
 
+struct MapLayerSettings: Equatable {
+    var showUnderwaterGlow: Bool = true
+    var showClusters: Bool = true
+    var showStatusGlows: Bool = true
+    var colorByDifficulty: Bool = true
+}
+
 public struct NewMapView: View {
     private let useMapLibre: Bool
     @StateObject private var viewModel = MapViewModel()
@@ -113,6 +120,9 @@ public struct NewMapView: View {
             .sheet(isPresented: $showFilters) {
                 filterSheet
             }
+            .sheet(isPresented: $showLayers) {
+                layersSheet
+            }
             .onChange(of: viewModel.selectedRegion) {
                 focusMap(on: viewModel.filteredSites)
             }
@@ -168,8 +178,10 @@ public struct NewMapView: View {
             } else {
                 mapKitView
             }
-            UnderwaterGlowOverlay()
-                .allowsHitTesting(false)
+            if viewModel.layerSettings.showUnderwaterGlow {
+                UnderwaterGlowOverlay()
+                    .allowsHitTesting(false)
+            }
         }
     }
     
@@ -177,6 +189,11 @@ public struct NewMapView: View {
         DiveMapView(
             annotations: mapLibreAnnotations,
             initialCamera: diveMapCamera,
+            layerSettings: DiveMapLayerSettings(
+                showClusters: viewModel.layerSettings.showClusters,
+                showStatusGlows: viewModel.layerSettings.showStatusGlows,
+                colorByDifficulty: viewModel.layerSettings.colorByDifficulty
+            ),
             onSelect: { siteId in
                 if let site = viewModel.sites.first(where: { $0.id == siteId }) {
                     selectedSite = site
@@ -194,6 +211,7 @@ public struct NewMapView: View {
     private var mapKitView: some View {
         MapClusterView(
             annotations: mapKitAnnotations,
+            layerSettings: viewModel.layerSettings,
             onSelect: { siteId in
                 if let s = viewModel.sites.first(where: { $0.id == siteId }) {
                     selectedSite = s
@@ -216,7 +234,8 @@ public struct NewMapView: View {
                 title: s.name,
                 subtitle: s.location,
                 visited: s.visitedCount > 0,
-                wishlist: s.wishlist
+                wishlist: s.wishlist,
+                difficulty: s.difficulty
             )
         }
     }
@@ -544,15 +563,20 @@ public struct NewMapView: View {
         }
     }
     
-private var filterSheet: some View {
-    FilterSheet(
-        mode: $viewModel.mode,
-        statusFilter: $viewModel.statusFilter,
-        exploreFilter: $viewModel.exploreFilter,
+    private var filterSheet: some View {
+        FilterSheet(
+            mode: $viewModel.mode,
+            statusFilter: $viewModel.statusFilter,
+            exploreFilter: $viewModel.exploreFilter,
             onDismiss: { showFilters = false }
         )
         .presentationDetents([.medium])
-}
+    }
+
+    private var layersSheet: some View {
+        LayerSheet(layerSettings: $viewModel.layerSettings, onDismiss: { showLayers = false })
+            .presentationDetents([.medium])
+    }
 
 private struct UnderwaterGlowOverlay: View {
     @Environment(\.colorScheme) private var colorScheme
@@ -910,6 +934,7 @@ class MapViewModel: ObservableObject {
     @Published var tier: Tier = .regions
     @Published var selectedRegion: Region?
     @Published var selectedArea: Area?
+    @Published var layerSettings: MapLayerSettings = MapLayerSettings()
     
     @Published var sites: [DiveSite] = []
     @Published var regions: [Region] = []
@@ -1191,6 +1216,31 @@ struct FilterSheet: View {
                 }
             }
             .navigationTitle("Filters")
+            .toolbar { ToolbarItem(placement: .topBarTrailing) { Button("Done") { onDismiss(); dismiss() } } }
+        }
+    }
+}
+
+struct LayerSheet: View {
+    @Binding var layerSettings: MapLayerSettings
+    var onDismiss: () -> Void
+    @Environment(\.dismiss) private var dismiss
+    
+    var body: some View {
+        NavigationStack {
+            Form {
+                Section("Visuals") {
+                    Toggle("Underwater glow", isOn: $layerSettings.showUnderwaterGlow)
+                        .onChange(of: layerSettings.showUnderwaterGlow) { _ in Haptics.tap() }
+                    Toggle("Cluster rings", isOn: $layerSettings.showClusters)
+                        .onChange(of: layerSettings.showClusters) { _ in Haptics.tap() }
+                    Toggle("Status glows", isOn: $layerSettings.showStatusGlows)
+                        .onChange(of: layerSettings.showStatusGlows) { _ in Haptics.tap() }
+                    Toggle("Color by difficulty", isOn: $layerSettings.colorByDifficulty)
+                        .onChange(of: layerSettings.colorByDifficulty) { _ in Haptics.tap() }
+                }
+            }
+            .navigationTitle("Map Layers")
             .toolbar { ToolbarItem(placement: .topBarTrailing) { Button("Done") { onDismiss(); dismiss() } } }
         }
     }

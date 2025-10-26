@@ -135,6 +135,12 @@ public final class MapVC: UIViewController, MLNMapViewDelegate, UIGestureRecogni
             }
         }
     }
+    public var layerSettings: DiveMapLayerSettings = .default {
+        didSet {
+            guard oldValue != layerSettings else { return }
+            applyLayerSettings()
+        }
+    }
 
     private var styleIsReady = false
     private var siteSource: MLNShapeSource?
@@ -219,6 +225,7 @@ public final class MapVC: UIViewController, MLNMapViewDelegate, UIGestureRecogni
         configureStyle(style)
         styleIsReady = true
         updateAnnotationsIfReady()
+        applyLayerSettings()
         emitViewportChange()
     }
 
@@ -412,6 +419,59 @@ public final class MapVC: UIViewController, MLNMapViewDelegate, UIGestureRecogni
             } else {
                 style.addLayer(selected)
             }
+        }
+    }
+
+    private func applyLayerSettings() {
+        guard styleIsReady, let style = map?.style else {
+            return
+        }
+
+        let updateLayers = { [layerSettings] in
+            let clusterIds = ["site-cluster", "site-cluster-count"]
+            for id in clusterIds {
+                if let layer = style.layer(withIdentifier: id) as? MLNStyleLayer {
+                    layer.isVisible = layerSettings.showClusters
+                }
+            }
+
+            let glowIds = [
+                "site-glow-logged",
+                "site-glow-saved",
+                "site-glow-planned",
+                "site-glow-default"
+            ]
+            for id in glowIds {
+                if let layer = style.layer(withIdentifier: id) as? MLNStyleLayer {
+                    layer.isVisible = layerSettings.showStatusGlows
+                }
+            }
+
+            let lagoon = UIColor(brandHex: "#2D7FBF") ?? UIColor(red: 0.18, green: 0.5, blue: 0.75, alpha: 1.0)
+            let beginner = UIColor(brandHex: "#3DDC97") ?? UIColor(red: 0.24, green: 0.86, blue: 0.59, alpha: 1.0)
+            let intermediate = UIColor(brandHex: "#60A5FA") ?? UIColor(red: 0.38, green: 0.65, blue: 0.98, alpha: 1.0)
+            let advanced = UIColor(brandHex: "#FBBF24") ?? UIColor(red: 0.98, green: 0.75, blue: 0.14, alpha: 1.0)
+            let expert = UIColor(brandHex: "#EF4444") ?? UIColor(red: 0.94, green: 0.27, blue: 0.27, alpha: 1.0)
+
+            let difficultyLayers: [(String, UIColor)] = [
+                ("site-layer-beginner", beginner),
+                ("site-layer-intermediate", intermediate),
+                ("site-layer-advanced", advanced),
+                ("site-layer-expert", expert),
+                ("site-layer-default", lagoon)
+            ]
+
+            for (id, color) in difficultyLayers {
+                guard let layer = style.layer(withIdentifier: id) as? MLNCircleStyleLayer else { continue }
+                let target = layerSettings.colorByDifficulty ? color : lagoon
+                layer.circleColor = NSExpression(forConstantValue: target)
+            }
+        }
+
+        if Thread.isMainThread {
+            updateLayers()
+        } else {
+            DispatchQueue.main.async(execute: updateLayers)
         }
     }
 
