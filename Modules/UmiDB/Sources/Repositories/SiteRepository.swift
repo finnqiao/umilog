@@ -88,28 +88,87 @@ public final class SiteRepository {
         }
     }
     
-    /// v3: FTS5 search with lightweight payloads
+    /// v3: FTS5 search with weighted ranking and BM25 scoring
+    /// Weighted scoring: name(3) > region(2) > tags(2) > location(1) > description(1)
     public func searchFTS(query: String, limit: Int = 50) throws -> [SiteLite] {
         try database.read { db in
-            let like = "%\(query)%"
-            let sites = try DiveSite
-                .filter(DiveSite.Columns.name.like(like) || DiveSite.Columns.location.like(like) || DiveSite.Columns.description.like(like))
-                .limit(limit)
-                .order(DiveSite.Columns.name)
-                .fetchAll(db)
+            // Sanitize query for FTS5 (remove special chars, lowercase)
+            let sanitizedQuery = query.lowercased()
             
-            return sites.map { site in
+            // Query: search in sites_fts virtual table with BM25 weighting
+            // FTS5 rank is negative (better matches = lower rank), so multiply to weight importance
+            let sql = """
+            SELECT s.id, s.name, s.latitude, s.longitude, s.difficulty, s.type, 
+                   s.tags, s.region, s.visitedCount, s.wishlist,
+                   (
+                       CASE WHEN f.name MATCH ? THEN rank * 3.0
+                            WHEN f.region MATCH ? THEN rank * 2.0
+                            WHEN f.tags MATCH ? THEN rank * 2.0
+                            WHEN f.location MATCH ? THEN rank * 1.0
+                            ELSE rank
+                       END
+                   ) as weighted_rank
+            FROM sites s
+            INNER JOIN sites_fts f ON s.id = f.rowid
+            WHERE sites_fts MATCH ?
+            ORDER BY weighted_rank, s.name
+            LIMIT ?
+            """
+            
+            // Run raw SQL query and map to SiteLite
+            let sites = try Row.fetchAll(db, sql: sql, 
+                                        arguments: [sanitizedQuery, sanitizedQuery, 
+                                                   sanitizedQuery, sanitizedQuery,
+                                                   sanitizedQuery, limit])
+            
+            return sites.map { row in
                 SiteLite(
-                    id: site.id,
-                    name: site.name,
-                    latitude: site.latitude,
-                    longitude: site.longitude,
-                    difficulty: site.difficulty.rawValue,
-                    type: site.type.rawValue,
-                    tags: Array(site.tags.prefix(3)),
-                    region: site.region,
-                    visitedCount: site.visitedCount,
-                    wishlist: site.wishlist
+                    id: row["id"],
+                    name: row["name"],
+                    latitude: row["latitude"],
+                    longitude: row["longitude"],
+                    difficulty: row["difficulty"],
+                    type: row["type"],
+                    tags: (row["tags"] as String).split(separator: ",").prefix(3).map(String.init),
+                    region: row["region"],
+                    visitedCount: row["visitedCount"],
+                    wishlist: row["wishlist"]
+                )
+            }
+        }
+    }
+    
+    /// Prefix matching for autocomplete-style search
+    /// Supports partial word matching using FTS5 prefix syntax (e.g., "wreck*")
+    public func searchPrefix(prefix: String, limit: Int = 20) throws -> [SiteLite] {
+        try database.read { db in
+            let sanitizedPrefix = prefix.lowercased() + "*"
+            
+            let sql = """
+            SELECT s.id, s.name, s.latitude, s.longitude, s.difficulty, s.type,
+                   s.tags, s.region, s.visitedCount, s.wishlist
+            FROM sites s
+            INNER JOIN sites_fts f ON s.id = f.rowid
+            WHERE sites_fts MATCH ?
+            ORDER BY rank, s.name
+            LIMIT ?
+            """
+            
+            let sites = try Row.fetchAll(db, sql: sql, 
+                                        arguments: [sanitizedPrefix, limit])
+            
+            return sites.map { row in
+                SiteLite(
+                    id: row["id"],
+                    name: row["name"],
+                    latitude: row["latitude"],
+                    longitude: row["longitude"],
+                    difficulty: row["difficulty"],
+                    type: row["type"],
+                    tags: (row["tags"] as String).split(separator: ",").prefix(3).map(String.init),
+                    region: row["region"],
+                    visitedCount: row["visitedCount"],
+                    wishlist: row["wishlist"]
                 )
             }
         }

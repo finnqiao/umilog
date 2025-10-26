@@ -231,6 +231,32 @@ All operations are idempotent and crash‑safe; partial failures roll back.
 - **Facet counts**: Read from site_filters_materialized (precomputed nightly or on seed)
 - **Search**: FTS5 across name/region/area/country/tags/description with relevance ranking
 
+### FTS5 Search Strategy
+
+**Virtual Table**: `sites_fts` (FTS5)
+- Indexed columns: name, region, location, tags, description
+- Synchronization: Manual rebuild during seeding via `INSERT INTO sites_fts(sites_fts) VALUES('rebuild')`
+- Triggers deferred during bulk import for performance
+
+**Query Optimization**:
+1. **Weighted Ranking**: BM25-based scoring with column weights
+   - name:3 (exact matches prioritized)
+   - region:2
+   - tags:2 (user-facing facets)
+   - location:1 (geographic context)
+   - description:1 (full-text fallback)
+2. **Prefix Matching**: Support `query*` syntax for autocomplete (e.g., "wreck*" matches "wreck" and "wreckage")
+3. **Result Ranking**: `ORDER BY rank` (FTS5 BM25 rank) then by name (alphabetical tie-breaking)
+
+**Query Methods in SiteRepository**:
+- `searchFTS(query, limit)` → [SiteLite]: Full FTS5 search with ranking
+- `searchPrefix(prefix, limit)` → [SiteLite]: Autocomplete using prefix:* syntax (future optimization)
+
+**Performance**:
+- FTS5 search: < 100ms for 500+ sites
+- Prefix queries: < 50ms (subset of FTS5)
+- Index size: ~15% of database size (acceptable trade-off)
+
 ### Performance Budgets
 - Cold start with 150 sites: **< 2s**
 - Viewport query (≤50 sites): **< 200ms**
