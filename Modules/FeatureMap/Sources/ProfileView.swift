@@ -111,7 +111,9 @@ public struct ProfileView: View {
                     ActionRow(icon: "applewatch", title: "Connect Apple Watch", subtitle: "Auto-log dives", color: .blue)
                     ActionRow(icon: "arrow.up.doc", title: "Import from CSV/UDDF", subtitle: "Bring existing logs", color: .purple)
                     ActionRow(icon: "plus.square", title: "Backfill Past Dives", subtitle: "Add multiple dives quickly", color: .blue)
-                    ActionRow(icon: "square.and.arrow.down", title: "Export All Data", subtitle: "Download your dive logs", color: .green)
+                    ActionRow(icon: "square.and.arrow.down", title: "Export All Data", subtitle: "Download your dive logs", color: .green) {
+                        exportDiveData()
+                    }
                 }
                 
                 // Developer (Debug)
@@ -193,6 +195,11 @@ public struct ProfileView: View {
         .background(Color(.systemGroupedBackground))
         .navigationTitle("Profile")
     }
+    
+    private func exportDiveData() {
+        // Placeholder: in production this would generate CSV/JSON and send via email
+        print("📧 Export data initiated - would send dive logs via email")
+    }
 }
 
 struct StatTile: View {
@@ -248,9 +255,10 @@ struct ActionRow: View {
     let title: String
     let subtitle: String
     let color: Color
+    var action: (() -> Void)? = nil
     
     var body: some View {
-        Button(action: {}) {
+        Button(action: action ?? {}) {
             HStack(spacing: 12) {
                 ZStack {
                     Circle()

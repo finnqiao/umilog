@@ -50,6 +50,12 @@ private struct DiveHistoryRow: View {
     let dive: DiveLog
     let site: DiveSite?
     
+    private var isRecentlyLogged: Bool {
+        // Check if dive was logged in the past 7 days
+        let sevenDaysAgo = Calendar.current.date(byAdding: .day, value: -7, to: Date()) ?? Date()
+        return dive.date > sevenDaysAgo
+    }
+    
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             // Header
@@ -69,9 +75,22 @@ private struct DiveHistoryRow: View {
                 
                 Spacer()
                 
-                if dive.signed {
-                    Image(systemName: "rosette")
-                        .foregroundStyle(Color.seaGreen)
+                HStack(spacing: 8) {
+                    if isRecentlyLogged {
+                        Text("NEW")
+                            .font(.caption2)
+                            .fontWeight(.bold)
+                            .foregroundStyle(.white)
+                            .padding(.horizontal, 6)
+                            .padding(.vertical, 2)
+                            .background(Color.seaGreen)
+                            .cornerRadius(4)
+                    }
+                    
+                    if dive.signed {
+                        Image(systemName: "rosette")
+                            .foregroundStyle(Color.seaGreen)
+                    }
                 }
             }
             
