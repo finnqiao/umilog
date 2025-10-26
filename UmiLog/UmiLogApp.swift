@@ -27,6 +27,8 @@ struct ContentView: View {
     @EnvironmentObject var appState: AppState
     @State private var selectedTab: Tab = .map
     @State private var showingWizard = false
+    @State private var showingQuickLog = false
+    @State private var showingLogOptions = false
     
     var body: some View {
         ZStack {
@@ -40,16 +42,22 @@ struct ContentView: View {
         .environment(\.underwaterThemeBinding, underwaterThemeBinding)
         .onChange(of: selectedTab) { newTab in
             if newTab == .log {
-                Task { @MainActor in
-                    showingWizard = true
-                    try? await Task.sleep(nanoseconds: 100_000_000) // 0.1s
-                    selectedTab = .map
-                }
+                selectedTab = .map
+                showingLogOptions = true
             }
         }
         .sheet(isPresented: $showingWizard) {
             LiveLogWizardView()
                 .wateryTransition()
+        }
+        .sheet(isPresented: $showingQuickLog) {
+            QuickLogView()
+                .wateryTransition()
+        }
+        .confirmationDialog("Log a Dive", isPresented: $showingLogOptions, titleVisibility: .visible) {
+            Button("Quick Log") { showingQuickLog = true }
+            Button("Start Live Log Wizard") { showingWizard = true }
+            Button("Cancel", role: .cancel) { }
         }
     }
 }
