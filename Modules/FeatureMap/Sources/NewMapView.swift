@@ -980,9 +980,21 @@ struct MapBounds {
 
 @MainActor
 class MapViewModel: ObservableObject {
-    @Published var mode: MapMode = .myMap
-    @Published var statusFilter: StatusFilter = .visited
-    @Published var exploreFilter: ExploreFilter = .all
+    @Published var mode: MapMode {
+        didSet {
+            saveFilterPreferences()
+        }
+    }
+    @Published var statusFilter: StatusFilter {
+        didSet {
+            saveFilterPreferences()
+        }
+    }
+    @Published var exploreFilter: ExploreFilter {
+        didSet {
+            saveFilterPreferences()
+        }
+    }
     @Published var tier: Tier = .regions
     @Published var selectedRegion: Region?
     @Published var selectedArea: Area?
@@ -994,8 +1006,22 @@ class MapViewModel: ObservableObject {
     @Published var visibleSites: [DiveSite] = []
     
     private var wishlistObserver: NSObjectProtocol?
+    private let defaults = UserDefaults.standard
+    private static let modeKey = "map.filter.mode"
+    private static let statusFilterKey = "map.filter.status"
+    private static let exploreFilterKey = "map.filter.explore"
     
     init() {
+        // Load persisted filter preferences
+        let savedMode = defaults.string(forKey: Self.modeKey) ?? "myMap"
+        self.mode = savedMode == "explore" ? .explore : .myMap
+        
+        let savedStatusFilter = defaults.string(forKey: Self.statusFilterKey) ?? "visited"
+        self.statusFilter = Self.parseStatusFilter(savedStatusFilter)
+        
+        let savedExploreFilter = defaults.string(forKey: Self.exploreFilterKey) ?? "all"
+        self.exploreFilter = Self.parseExploreFilter(savedExploreFilter)
+        
         wishlistObserver = NotificationCenter.default.addObserver(
             forName: .wishlistUpdated,
             object: nil,
@@ -1057,6 +1083,46 @@ class MapViewModel: ObservableObject {
         let groups = Dictionary(grouping: regionSites) { parseAreaCountry($0.location).area }
         return groups.map { Area(id: $0.key, name: $0.key, country: parseAreaCountry($0.value.first!.location).country, siteCount: $0.value.count) }
             .sorted { $0.name < $1.name }
+    }
+    
+    private func saveFilterPreferences() {
+        defaults.set(mode == .explore ? "explore" : "myMap", forKey: Self.modeKey)
+        defaults.set(statusFilterString(statusFilter), forKey: Self.statusFilterKey)
+        defaults.set(exploreFilterString(exploreFilter), forKey: Self.exploreFilterKey)
+    }
+    
+    private func statusFilterString(_ filter: StatusFilter) -> String {
+        switch filter {
+        case .visited: return "visited"
+        case .wishlist: return "wishlist"
+        case .planned: return "planned"
+        }
+    }
+    
+    private func exploreFilterString(_ filter: ExploreFilter) -> String {
+        switch filter {
+        case .all: return "all"
+        case .nearby: return "nearby"
+        case .popular: return "popular"
+        case .beginner: return "beginner"
+        }
+    }
+    
+    private static func parseStatusFilter(_ string: String) -> StatusFilter {
+        switch string {
+        case "wishlist": return .wishlist
+        case "planned": return .planned
+        default: return .visited
+        }
+    }
+    
+    private static func parseExploreFilter(_ string: String) -> ExploreFilter {
+        switch string {
+        case "nearby": return .nearby
+        case "popular": return .popular
+        case "beginner": return .beginner
+        default: return .all
+        }
     }
     
     private func applyWishlistUpdate(_ notification: Notification) {
