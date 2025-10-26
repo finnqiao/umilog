@@ -35,7 +35,7 @@ See [TODO.md](TODO.md) for detailed Phases 1–8 breakdown.
 - Logging: Live Log Wizard saves dives + sightings and updates visited counts (center tab triggers wizard)
 - History: Dive list with search and dive detail view
 
-Not yet complete (see audit): Layers panel, filter persistence/nearby behavior, Quick Log entry wiring, Wildlife tab data wiring, Profile actions and Underwater Theme persistence.
+Not yet complete (see audit): Layers panel, filter persistence/nearby behavior, GeofenceManager integration, Permission flows, Filter & search state persistence.
 
 See the full audit: [docs/UI_FLOWS_AUDIT.md](docs/UI_FLOWS_AUDIT.md)
 
@@ -50,7 +50,7 @@ Archived project status documents are in `docs/archive/`:
 
 ## 🧭 Information Architecture
 
-**Tabs**: Map · History · Log · Wildlife · Profile
+**Tabs**: Map · History (Timeline tab of My Dive Sites) · Log (FAB) · Wildlife · Profile
 
 **Scopes & Tiers**:
 - **Discover** (default in Map tab): Shows **Areas in view**; narrow by chips (Near me, Beginner, Wrecks, Big animals, Season, Entry, Depth, Current, Viz)
@@ -135,17 +135,20 @@ Key components added in this refactor:
 - Fallback: MapKit (NewMapView) for compatibility
 - Style: `Resources/Maps/umilog_underwater.json` (v8 minimal, underwater palette)
 
-## 📊 History & Profile (My Dive Sites)
+## 📊 My Dive Sites (Timeline, Saved, Planned)
 
-**Timeline** (was History):
+**Timeline** (formerly History tab):
 - Image-forward log cards; tap → open full log
 - Share and quick actions (Duplicate, PDF, Sign-off)
 - Multi-select toolbar for bulk export/send
+- Auto-refreshes on new dive save
 
-**Saved & Planned**:
-- Same image-first cards as Discover/In-Area
-- Tap → enter area or open site
-- Quick manage status
+**Saved**:
+- Sites marked as favorites; manage offline packs
+
+**Planned**:
+- Sites with future dive dates assigned
+- Status chips show Logged/Saved/Planned state
 
 ## 📸 Screens
 
@@ -262,6 +265,19 @@ See [TODO.md](TODO.md) and [ARCHITECTURE.md](ARCHITECTURE.md) for detailed break
 - Backend service (FastAPI/Cloudflare Workers)
 - Automated data pipeline (Wikidata + OSM weekly scrapes)
 - Community contributions + QA workflows
+
+## 📚 Documentation Map
+
+Key reference documents (in reading order):
+
+1. **[README.md](README.md)** (this file) — Project overview and getting started
+2. **[docs/UI_FLOWS_AUDIT.md](docs/UI_FLOWS_AUDIT.md)** — Current functional UI flows, known gaps, and ownership matrix
+3. **[ARCHITECTURE.md](ARCHITECTURE.md)** — Technical architecture, database schema, sync strategy, and module structure
+4. **[TODO.md](TODO.md)** — Detailed work items, phases, and acceptance checklist
+5. **[LEARNINGS.md](LEARNINGS.md)** — Technical insights, design decisions, and lessons learned
+6. **[ASSETS.md](ASSETS.md)** — Asset pipeline, icon guidelines, and design tokens
+
+Historical status documents are in [docs/archive/](docs/archive/) for reference only.
 
 ## 🤝 Contributing
 
