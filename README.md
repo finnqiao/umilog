@@ -30,7 +30,7 @@ See [TODO.md](TODO.md) for detailed Phases 1–8 breakdown.
 
 ## ✅ What’s functional right now
 
-- Map tab (V3): MapLibre default with MapKit fallback, Regions → Areas → Sites bottom sheet, search and filter sheets
+- Map tab (V3): MapLibre default with MapKit fallback, Regions → Areas → Sites bottom sheet (max 50% height), search and filter sheets, toolbar full-screen toggle for exploration
 - Site Detail sheet: opens the 4-step Live Log Wizard
 - Logging: Live Log Wizard saves dives + sightings and updates visited counts (center tab triggers wizard)
 - History: Dive list with search and dive detail view
@@ -97,7 +97,7 @@ Archived project status documents are in `docs/archive/`:
 - Back tap or pill restores previous camera and area pins
 
 **Underwater Theme**:
-- **Dark-first**: Deep blue water, muted land, subdued labels
+- **Blue-forward**: Deep blues (not black), brighter base map, high-contrast labels and pins
 - **Action blues**: Primary actions (buttons, active chips) in bright ocean blue
 - **Status colors**: Teal for "Logged"; Amber for "Planned"
 - **AA contrast**: Scrims over imagery; ensure all text readable
@@ -171,7 +171,7 @@ Drop screenshots in docs/screens/ and reference them here (filenames are example
 ### Map engine (default: MapLibre)
 - The default map engine is MapLibre Native (DiveMap) with GeoJSON runtime sources and clustering.
 - Fallback: MapKit (NewMapView) remains available for testing.
-- Style: Resources/Maps/umilog_min.json (v8 minimal, vector-only)
+- Style: Resources/Maps/umilog_underwater.json (v8, raster base + overlays)
 - Data: Resources/Maps/sites.geojson, shops.geojson
 - Package: MapLibre via SPM (maplibre-gl-native-distribution)
 

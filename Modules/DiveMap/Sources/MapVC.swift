@@ -266,7 +266,16 @@ public final class MapVC: UIViewController, MLNMapViewDelegate, UIGestureRecogni
 
     @objc private func handleMapTap(_ gesture: UITapGestureRecognizer) {
         let point = gesture.location(in: map)
-        let identifiers: Set<String> = ["site-layer", "site-cluster"]
+        // Look for taps on any site layers (by difficulty) and clusters
+        let identifiers: Set<String> = [
+            "site-layer-beginner",
+            "site-layer-intermediate",
+            "site-layer-advanced",
+            "site-layer-expert",
+            "site-layer-default",
+            "site-selected",
+            "site-cluster"
+        ]
         let features = map.visibleFeatures(at: point, styleLayerIdentifiers: identifiers)
 
         guard let feature = features.first else { return }

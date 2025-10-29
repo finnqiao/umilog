@@ -4,6 +4,8 @@
 
 ## 🔎 Latest Learnings (Oct 2025)
 
+- Map readability: Switched underwater visuals to blue-first rather than near-black. Reduced global dark overlay, tinted materials instead of opaque fills, and increased base map brightness/saturation for label/pin contrast. Bottom panel now capped at 50% of screen with a toolbar toggle for full-screen map.
+
 ### Cross-links to TODO triage
 - Map V3 filters/layers persistence → TODO P1 (Filter pipeline spec + persistence)
 - History live updates via NotificationCenter → TODO P0 (History auto-refresh on .diveLogUpdated)

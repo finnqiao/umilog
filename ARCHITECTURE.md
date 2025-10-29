@@ -266,13 +266,19 @@ All operations are idempotent and crash‑safe; partial failures roll back.
 
 ### Map Rendering
 - **MapLibre** (default):
-  - DiveMap module renders `umilog_min.json` style (vector tiles)
+  - DiveMap module renders `umilog_underwater.json` style (raster base + overlays)
+  - Blue-forward palette for water/land with higher brightness and saturation for text/pin contrast
   - Runtime GeoJSON sources for sites with clustering
   - Pins react to filter state
   - Clusters zoom on tap
   - Offline fallback if tiles fail
 - **MapKit** (fallback):
   - Legacy `NewMapView` wrapper for regression testing
+
+### Map Chrome
+- Top pill: Search + Filters + Layers
+- Bottom panel: capped at max 50% of viewport; rounded, tinted material background for contrast over imagery
+- Full-screen toggle in toolbar to hide the bottom panel for exploration
 
 ## Telemetry (privacy‑preserving)
 
