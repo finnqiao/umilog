@@ -26,6 +26,7 @@ public struct NewMapView: View {
     @State private var showSearch = false
     @State private var searchText = ""
     @State private var showFilterLayers = false
+    @State private var isMapFullScreen = false
 
     // Bottom sheet detents and behavior
     @State private var sheetDetent: SheetDetent = .peek
@@ -143,7 +144,27 @@ public struct NewMapView: View {
         mapView
             .tint(primaryColor)
             .navigationTitle("Map")
-            .navigationBarTitleDisplayMode(.large)
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .topBarTrailing) {
+                    HStack(spacing: 12) {
+                        Button(action: { showSearch = true; Haptics.soft() }) {
+                            Image(systemName: "magnifyingglass")
+                                .foregroundStyle(Color.foam)
+                        }
+                        
+                        Button(action: { showFilterLayers = true; Haptics.soft() }) {
+                            Image(systemName: "slider.horizontal.3")
+                                .foregroundStyle(Color.foam)
+                        }
+                        
+                        Button(action: { withAnimation(.spring(response: 0.3)) { isMapFullScreen.toggle() }; Haptics.soft() }) {
+                            Image(systemName: isMapFullScreen ? "arrow.down.right.and.arrow.up.left" : "arrow.up.left.and.arrow.down.right")
+                                .foregroundStyle(Color.foam)
+                        }
+                    }
+                }
+            }
             .sheet(isPresented: $showingSiteDetail) {
                 siteDetailSheet
             }
@@ -201,7 +222,26 @@ public struct NewMapView: View {
             mapLayer
             overlayControls
         }
-        .overlay(alignment: .top) { topPill }
+    }
+    
+    private func zoomIn() {
+        withAnimation(.easeInOut(duration: 0.2)) {
+            let newSpan = MKCoordinateSpan(
+                latitudeDelta: mapRegion.span.latitudeDelta / 1.5,
+                longitudeDelta: mapRegion.span.longitudeDelta / 1.5
+            )
+            mapRegion = MKCoordinateRegion(center: mapRegion.center, span: newSpan)
+        }
+    }
+    
+    private func zoomOut() {
+        withAnimation(.easeInOut(duration: 0.2)) {
+            let newSpan = MKCoordinateSpan(
+                latitudeDelta: mapRegion.span.latitudeDelta * 1.5,
+                longitudeDelta: mapRegion.span.longitudeDelta * 1.5
+            )
+            mapRegion = MKCoordinateRegion(center: mapRegion.center, span: newSpan)
+        }
     }
     
     private var mapLayer: some View {
@@ -286,96 +326,111 @@ public struct NewMapView: View {
     }
     
     private var overlayControls: some View {
-        GeometryReader { geo in
-            VStack(spacing: 0) {
-                Spacer()
-                // Thin scrim behind the sheet only
-                LinearGradient(
-                    colors: [Color.black.opacity(0.0), Color.black.opacity(0.30)],
-                    startPoint: .top,
-                    endPoint: .bottom
-                )
-                .frame(height: 60)
-                .allowsHitTesting(false)
-                .opacity(sheetDetent == .full ? 0 : 1)
-                .transition(.opacity)
-
-                bottomSheet
-                    .frame(height: sheetHeight(geo))
-                    .transition(.move(edge: .bottom).combined(with: .opacity))
+        ZStack(alignment: .bottom) {
+            GeometryReader { geo in
+                VStack(spacing: 0) {
+                    Spacer()
+                    
+                    if !isMapFullScreen {
+                        // Caustics overlay + water gradient (very subtle animation)
+                        ZStack {
+                            // Deep water gradient (darkens toward bottom)
+                            LinearGradient(
+                                colors: [
+                                    Color.black.opacity(0.0),
+                                    Color.oceanBlue.opacity(0.08)
+                                ],
+                                startPoint: .top,
+                                endPoint: .bottom
+                            )
+                            .frame(height: 120)
+                            .allowsHitTesting(false)
+                            
+                            // Radial caustics (subtle, animated)
+                            Circle()
+                                .fill(
+                                    RadialGradient(
+                                        gradient: Gradient(colors: [
+                                            Color.diveTeal.opacity(0.04),
+                                            Color.oceanBlue.opacity(0.02),
+                                            Color.clear
+                                        ]),
+                                        center: .center,
+                                        startRadius: 20,
+                                        endRadius: 200
+                                    )
+                                )
+                                .scaleEffect(1.0 + sin(Date().timeIntervalSince1970) * 0.006)
+                                .frame(height: 120)
+                                .allowsHitTesting(false)
+                        }
+                        .transition(.opacity)
+                        
+                        // Glass sheet with soft shadow
+                        bottomSheet
+                            .frame(height: sheetHeight(geo))
+                            .shadow(color: Color.black.opacity(0.15), radius: 8, y: -2)
+                            .transition(.move(edge: .bottom).combined(with: .opacity))
+                    }
+                }
+            }
+            
+            // Zoom +/- buttons (bottom-right, always visible)
+            if !isMapFullScreen {
+                VStack(spacing: 8) {
+                    Button(action: { zoomIn() }) {
+                        Image(systemName: "plus")
+                            .font(.system(size: 16, weight: .semibold))
+                            .foregroundStyle(Color.foam)
+                            .frame(width: 40, height: 40)
+                            .background(Circle().fill(Color.glass).stroke(Color.kelp.opacity(0.5), lineWidth: 1))
+                    }
+                    .buttonStyle(.plain)
+                    
+                    Button(action: { zoomOut() }) {
+                        Image(systemName: "minus")
+                            .font(.system(size: 16, weight: .semibold))
+                            .foregroundStyle(Color.foam)
+                            .frame(width: 40, height: 40)
+                            .background(Circle().fill(Color.glass).stroke(Color.kelp.opacity(0.5), lineWidth: 1))
+                    }
+                    .buttonStyle(.plain)
+                    
+                    Spacer()
+                }
+                .padding(.trailing, 16)
+                .padding(.bottom, 100)
+                .ignoresSafeArea()
             }
         }
     }
     
-    // V3 Top Pill: search + filters + layers
-    private var topPill: some View {
-        HStack(spacing: 10) {
-            HStack(spacing: 8) {
-                Image(systemName: "magnifyingglass")
-                    .foregroundStyle(Color.mist)
-                Text(searchText.isEmpty ? "Search sites, shops" : searchText)
-                    .foregroundStyle(searchText.isEmpty ? Color.mist : Color.foam)
-                    .lineLimit(1)
-            }
-            .contentShape(RoundedRectangle(cornerRadius: 16))
-            .onTapGesture { showSearch = true }
-            
-            Button(action: { showFilterLayers = true; Haptics.soft() }) {
-                Image(systemName: "slider.horizontal.3")
-                    .foregroundStyle(Color.foam)
-            }
-            .buttonStyle(.plain)
-        }
-        .font(.system(size: 15, weight: .regular))
-        .padding(.horizontal, 14)
-        .padding(.vertical, 10)
-        .background(
-            Capsule()
-                .fill(Color.glass)
-                .overlay(
-                    Capsule()
-                        .stroke(Color.kelp.opacity(0.35), lineWidth: 1)
-                )
-        )
-        .padding(.top, 10)
-        .padding(.horizontal, 16)
-    }
+    // Top Pill: removed (controls moved to toolbar)
     
     private var bottomSheet: some View {
         VStack(spacing: 0) {
+            // Drag handle
             Capsule()
                 .fill(Color.kelp.opacity(0.35))
                 .frame(width: 44, height: 5)
                 .padding(.top, 12)
-                .padding(.bottom, 4)
+                .padding(.bottom, 16)
 
-            VStack(spacing: 16) {
-                HStack {
+            VStack(spacing: 12) {
+                // Scope picker
+                HStack(spacing: 16) {
                     Picker("Scope", selection: $scope) {
                         Text("Saved").tag(Scope.saved)
                         Text("Discover").tag(Scope.discover)
                     }
                     .pickerStyle(.segmented)
                     .tint(Color.lagoon)
-                    .frame(maxWidth: 200)
-
+                    
                     Spacer()
-
-                    HStack(spacing: 8) {
-                        Image(systemName: followMap ? "location.fill" : "location")
-                            .foregroundStyle(followMap ? Color.lagoon : Color.mist)
-                        Toggle("Follow", isOn: $followMap)
-                            .labelsHidden()
-                    }
-
-                    Button(action: { fitToVisible() }) {
-                        Text(countsText)
-                            .font(.caption)
-                            .foregroundStyle(Color.mist)
-                    }
                 }
                 .padding(.horizontal, 16)
-
+                
+                // Entity tab (Discover only)
                 if scope == .discover {
                     Picker("", selection: $entityTab) {
                         Text("Areas").tag(EntityTab.areas)
@@ -385,32 +440,29 @@ public struct NewMapView: View {
                     .tint(Color.lagoon)
                     .padding(.horizontal, 16)
                 }
-
+                
+                // Chips (Discover, half/full only)
                 if scope == .discover && sheetDetent != .peek {
                     filterChipsScrollView
                 }
 
-                Divider()
-                    .background(Color.clear)
-                    .overlay(Color.kelp.opacity(0.4))
-                    .padding(.horizontal, 16)
-
+                // List content
                 tierContentView
+                    .padding(.top, 8)
             }
             .padding(.bottom, 20)
         }
         .foregroundStyle(Color.foam)
         .background(
             RoundedRectangle(cornerRadius: 24, style: .continuous)
-                .fill(.ultraThinMaterial)
+                .fill(Color.oceanBlue.opacity(0.08).blendMode(.overlay))
                 .overlay(
                     RoundedRectangle(cornerRadius: 24, style: .continuous)
-                        .fill(Color.oceanBlue.opacity(0.10))
-                        .blendMode(.plusLighter)
+                        .fill(Material.thin)
                 )
                 .overlay(
                     RoundedRectangle(cornerRadius: 24, style: .continuous)
-                        .stroke(Color.oceanBlue.opacity(0.35), lineWidth: 1)
+                        .stroke(Color.oceanBlue.opacity(0.2), lineWidth: 1)
                 )
         )
         .transition(.move(edge: .bottom))
