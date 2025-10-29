@@ -60,7 +60,17 @@ public enum DatabaseSeeder {
     private static func seedSites() throws {
         Self.logger.log("  📍 Loading dive sites...")
         
-        // Load all legacy seed files (optimized tiles not bundled in app)
+        // Try to load from optimized regional tiles first
+        do {
+            if try loadOptimizedTiles() {
+                return  // Successfully loaded from tiles
+            }
+        } catch {
+            Self.logger.warning("  ⚠️ Optimized tiles load failed: \\(error.localizedDescription, privacy: .public)")
+        }
+        
+        // Fall back to legacy multi-file loading
+        Self.logger.log("  ℹ️ Falling back to legacy seed files")
         var allSites: [SiteSeedData] = []
         
         let seedFiles = ["sites_seed", "sites_extended", "sites_extended2", "sites_wikidata"]

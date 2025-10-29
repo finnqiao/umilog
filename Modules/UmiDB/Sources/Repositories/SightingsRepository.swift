@@ -29,7 +29,8 @@ public final class SightingsRepository {
     public func getUniqueSpeciesCount() throws -> Int {
         try database.read { db in
             let count = try WildlifeSighting
-                .select(distinct: WildlifeSighting.Columns.speciesId)
+                .select(WildlifeSighting.Columns.speciesId)
+                .distinct()
                 .fetchCount(db)
             return count
         }
