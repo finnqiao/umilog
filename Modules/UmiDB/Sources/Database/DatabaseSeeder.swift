@@ -60,26 +60,25 @@ public enum DatabaseSeeder {
     private static func seedSites() throws {
         Self.logger.log("  📍 Loading dive sites...")
         
-        // Try to load from optimized regional tiles first
-        if try loadOptimizedTiles() {
-            return  // Successfully loaded from tiles
+        // Load all legacy seed files (optimized tiles not bundled in app)
+        var allSites: [SiteSeedData] = []
+        
+        let seedFiles = ["sites_seed", "sites_extended", "sites_extended2", "sites_wikidata"]
+        for fileName in seedFiles {
+            if let file = optionalJSON(fileName, as: SitesSeedFile.self) {
+                Self.logger.log("  ℹ️ Loaded \\(file.sites.count, privacy: .public) from \\(fileName, privacy: .public)")
+                allSites.append(contentsOf: file.sites)
+            }
         }
         
-        // Fall back to legacy multi-file loading
-        Self.logger.log("  ℹ️ Optimized tiles not found; falling back to legacy seed files")
-        
-        let primary = try loadJSON("sites_seed", as: SitesSeedFile.self)
-        let ext1 = optionalJSON("sites_extended", as: SitesSeedFile.self)
-        let ext2 = optionalJSON("sites_extended2", as: SitesSeedFile.self)
-        let ext3 = optionalJSON("sites_wikidata", as: SitesSeedFile.self)
-        
-        let seedArrays: [[SiteSeedData]] = [primary.sites, ext1?.sites ?? [], ext2?.sites ?? [], ext3?.sites ?? []]
-        let allSiteData = seedArrays.flatMap { $0 }
+        guard !allSites.isEmpty else {
+            Self.logger.error("  ❌ No seed files loaded")
+            return
+        }
         
         // Deduplicate by id to avoid primary key insert failures when sources overlap
         var unique: [String: SiteSeedData] = [:]
-        for s in allSiteData {
-            // Keep first occurrence to prefer curated seeds over external
+        for s in allSites {
             if unique[s.id] == nil {
                 unique[s.id] = s
             }
