@@ -166,7 +166,7 @@ public enum LocationError: LocalizedError {
         case .unknown:
             return "An unknown location error occurred."
         }
-    }
+        ;    }
 }
 
 // MARK: - Notifications

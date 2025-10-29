@@ -121,10 +121,12 @@ class AppState: ObservableObject {
         }
     }
     @Published var useMapLibre: Bool = true  // MapLibre is the default map engine; set false for MapKit fallback
+    @Published var isDatabaseSeeded: Bool = false
     private static let underwaterThemeDefaultsKey = "app.umilog.preferences.underwaterThemeEnabled"
     private let defaults: UserDefaults
     private let logger = Logger(subsystem: "app.umilog", category: "AppState")
     private let geofenceManager = GeofenceManager.shared
+    private var seedTask: Task<Void, Never>?
     
     init(defaults: UserDefaults = .standard) {
         self.defaults = defaults
@@ -140,14 +142,46 @@ class AppState: ObservableObject {
         geofenceManager.startMonitoring()
         
         // Seed database with test data on first launch
-        Task {
+        seedTask = Task.detached(priority: .background) { [weak self] in
             do {
                 try DatabaseSeeder.seedIfNeeded()
-                logger.log("Seed complete")
+                await MainActor.run {
+                    self?.logger.log("Seed complete")
+                    self?.isDatabaseSeeded = true
+                }
             } catch {
-                logger.error("Seed failed: \\(error.localizedDescription, privacy: .public)")
+                await MainActor.run {
+                    self?.logger.error("Seed failed: \\(error.localizedDescription, privacy: .public)")
+                    self?.isDatabaseSeeded = true
+                }
             }
         }
+    }
+    
+    func ensureDatabaseSeeded() async {
+        if isDatabaseSeeded {
+            return
+        }
+        
+        if let seedTask {
+            _ = await seedTask.value
+            return
+        }
+        
+        await Task.detached(priority: .background) { [weak self] in
+            do {
+                try DatabaseSeeder.seedIfNeeded()
+                await MainActor.run {
+                    self?.logger.log("Seed complete (late ensure)")
+                    self?.isDatabaseSeeded = true
+                }
+            } catch {
+                await MainActor.run {
+                    self?.logger.error("Seed failed (late ensure): \\(error.localizedDescription, privacy: .public)")
+                    self?.isDatabaseSeeded = true
+                }
+            }
+        }.value
     }
 }
 

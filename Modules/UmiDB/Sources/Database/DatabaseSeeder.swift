@@ -616,3 +616,79 @@ private struct OptimizedSite: Decodable {
     let wishlist: Bool
     let visitedCount: Int
 }
+
+private func resolveAreaAndCountry(for shop: ShopSeed, siteIndex: [String: DiveSite]) -> (String, String) {
+    for nearby in shop.nearbyDiveSites {
+        if let site = siteIndex[nearby.id] {
+            let (area, country) = splitLocationComponents(site.location)
+            return (area, country)
+        }
+    }
+    return ("", shop.region ?? "")
+}
+
+private func splitLocationComponents(_ location: String) -> (String, String) {
+    let parts = location
+        .split(separator: ",")
+        .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
+    if parts.count >= 2 {
+        return (String(parts[0]), String(parts[1]))
+    } else if let first = parts.first {
+        return (String(first), "")
+    } else {
+        return ("", "")
+    }
+}
+
+private struct ComprehensiveDataset: Decodable {
+    let shops: [ShopSeed]
+}
+
+private struct ShopSeed: Decodable {
+    let id: String
+    let name: String
+    let latitude: Double?
+    let longitude: Double?
+    let type: String?
+    let phone: String?
+    let website: String?
+    let email: String?
+    let hours: String?
+    let description: String?
+    let source: String?
+    let region: String?
+    let nearbyDiveSites: [NearbySite]
+    
+    struct NearbySite: Decodable {
+        let id: String
+        let name: String
+        let distanceApprox: String?
+        
+        private enum CodingKeys: String, CodingKey {
+            case id
+            case name
+            case distanceApprox = "distance_approx"
+        }
+        
+        var distanceKm: Double? {
+            guard let distanceApprox = distanceApprox?.trimmingCharacters(in: .whitespacesAndNewlines), !distanceApprox.isEmpty else {
+                return nil
+            }
+            let cleaned = distanceApprox.replacingOccurrences(of: "[^0-9\\.]", with: "", options: .regularExpression)
+            guard !cleaned.isEmpty else { return nil }
+            return Double(cleaned)
+        }
+    }
+    
+    var normalizedServices: [String] {
+        var services: [String] = []
+        if let type = type?.trimmingCharacters(in: .whitespacesAndNewlines), !type.isEmpty {
+            let formatted = type.replacingOccurrences(of: "_", with: " ").capitalized
+            services.append(formatted)
+        }
+        if let hours = hours?.trimmingCharacters(in: .whitespacesAndNewlines), !hours.isEmpty {
+            services.append("Hours: \(hours)")
+        }
+        return services
+    }
+}

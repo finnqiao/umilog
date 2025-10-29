@@ -43,7 +43,7 @@ public struct NewMapView: View {
 
     // V3 scope and entity tabs
     @State private var scope: Scope = .saved
-    @State private var entityTab: EntityTab = .sites
+    @State private var entityTab: EntityTab = .areas
     
     public init(useMapLibre: Bool = true) {
         self.useMapLibre = useMapLibre
@@ -57,7 +57,8 @@ public struct NewMapView: View {
     private var countsText: String {
         let areas = Set(baseSitesForCounts.map { parseAreaCountry($0.location).area }).count
         let sites = baseSitesForCounts.count
-        return "Areas in view: \(areas) • Sites in view: \(sites)"
+        var components = ["Areas in view: \(areas)", "Sites in view: \(sites)"]
+        return components.joined(separator: " • ")
     }
 
     private func fitToVisible() {
@@ -435,6 +436,7 @@ public struct NewMapView: View {
                     Picker("", selection: $entityTab) {
                         Text("Areas").tag(EntityTab.areas)
                         Text("Sites").tag(EntityTab.sites)
+                        Text("Shops").tag(EntityTab.shops)
                     }
                     .pickerStyle(.segmented)
                     .tint(Color.lagoon)
@@ -442,7 +444,7 @@ public struct NewMapView: View {
                 }
                 
                 // Chips (Discover, half/full only)
-                if scope == .discover && sheetDetent != .peek {
+                if scope == .discover && sheetDetent != .peek && entityTab != .shops {
                     filterChipsScrollView
                 }
 
@@ -618,39 +620,81 @@ public struct NewMapView: View {
     }
     
     private var staticFilterChips: some View {
-        Group {
-            FilterChip(title: "Wrecks", isSelected: false, action: {}, primaryColor: primaryColor)
-            FilterChip(title: "Cave", isSelected: false, action: {}, primaryColor: primaryColor)
-            FilterChip(title: "Nitrox", isSelected: false, action: {}, primaryColor: primaryColor)
-        }
+        FilterChip(
+            title: "Wrecks",
+            isSelected: viewModel.exploreFilter == .wrecks,
+            action: {
+                withAnimation(.spring(response: 0.25)) {
+                    viewModel.exploreFilter = .wrecks
+                    viewModel.tier = .sites
+                    viewModel.selectedRegion = nil
+                    viewModel.selectedArea = nil
+                }
+                Haptics.tap()
+            },
+            primaryColor: primaryColor
+        )
     }
     
     private var tierContentView: some View {
-        Group {
+        VStack(spacing: 12) {
             if scope == .discover {
-                if entityTab == .areas {
-                    AreasListView(
-                        areas: areasInScope,
-                        onAreaTap: handleAreaTap
-                    )
-                    .frame(maxHeight: 260)
-                } else {
+                BreadcrumbHeader(viewModel: viewModel)
+                    .padding(.horizontal, 16)
+                
+                switch entityTab {
+                case .areas:
+                    areasTierView
+                case .sites:
                     SitesListView(
-                        sites: listSitesForCurrentScope,
+                        sites: discoverSitesList,
                         selectedSiteId: selectedSiteIdForScroll,
                         onSiteTap: handleSiteTap
+                    )
+                    .frame(maxHeight: 260)
+                case .shops:
+                    ShopsListView(
+                        shops: shopsForCurrentSelection,
+                        onShopTap: handleShopTap
                     )
                     .frame(maxHeight: 260)
                 }
             } else {
                 SitesListView(
-                    sites: viewModel.filteredSites,
+                    sites: savedSitesList,
                     selectedSiteId: selectedSiteIdForScroll,
                     onSiteTap: handleSiteTap
                 )
                 .frame(maxHeight: 260)
             }
         }
+    }
+    
+    @ViewBuilder
+    private var areasTierView: some View {
+        switch viewModel.tier {
+        case .regions:
+            RegionsListView(
+                regions: viewModel.regions,
+                selectedRegion: Binding(
+                    get: { viewModel.selectedRegion },
+                    set: { newValue in viewModel.selectedRegion = newValue }
+                ),
+                onRegionTap: handleRegionTap
+            )
+        case .areas:
+            AreasListView(
+                areas: viewModel.areasInSelectedRegion,
+                onAreaTap: handleAreaTap
+            )
+        case .sites:
+            SitesListView(
+                sites: discoverSitesList,
+                selectedSiteId: selectedSiteIdForScroll,
+                onSiteTap: handleSiteTap
+            )
+        }
+        .frame(maxHeight: 260)
     }
     
     
@@ -723,6 +767,7 @@ private struct UnderwaterGlowOverlay: View {
             viewModel.selectedRegion = region
             viewModel.selectedArea = nil
             viewModel.tier = .areas
+            entityTab = .areas
         }
         Haptics.tap()
     }
@@ -734,6 +779,7 @@ private struct UnderwaterGlowOverlay: View {
             viewModel.selectedArea = area
             sheetDetent = .half
             followMap = true
+            entityTab = .sites
         }
         Haptics.tap()
     }
@@ -746,6 +792,7 @@ private struct UnderwaterGlowOverlay: View {
             focusMap(on: [site], singleSpan: 2.5)
         }
     }
+    
 
     // MARK: - Sheet helpers
     private func sheetHeight(_ geo: GeometryProxy) -> CGFloat {
@@ -769,17 +816,26 @@ private struct UnderwaterGlowOverlay: View {
         }
     }
 
-    private var listSitesForCurrentScope: [DiveSite] {
-        followMap ? viewModel.visibleSites : viewModel.sites
+    private var savedSitesList: [DiveSite] {
+        let base = followMap ? viewModel.visibleSites : viewModel.sites
+        return viewModel.applyMyMapFilters(to: base)
     }
-
-    private var areasInScope: [Area] {
-        let sites = listSitesForCurrentScope
-        let groups = Dictionary(grouping: sites) { parseAreaCountry($0.location).area }
-        return groups.map { key, items in
-            Area(id: key, name: key, country: parseAreaCountry(items.first!.location).country, siteCount: items.count)
-        }.sorted { $0.name < $1.name }
+    
+    private var discoverSitesList: [DiveSite] {
+        let base: [DiveSite]
+        if let area = viewModel.selectedArea {
+            base = viewModel.sites.filter { parseAreaCountry($0.location).area == area.name }
+        } else if let region = viewModel.selectedRegion {
+            base = viewModel.sites.filter { $0.region == region.name }
+        } else if followMap {
+            base = viewModel.visibleSites
+        } else {
+            base = viewModel.sites
+        }
+        return viewModel.applyExploreFilters(to: base)
     }
+    
+    
 }
 
 // MARK: - Pin View
@@ -853,11 +909,15 @@ struct BreadcrumbHeader: View {
             HStack(spacing: 6) {
                 Text("Regions")
                     .foregroundStyle(viewModel.tier == .regions ? Color.lagoon : Color.mist)
-                    .onTapGesture { viewModel.tier = .regions }
+                    .onTapGesture { viewModel.resetToRegions() }
                 Text("›").foregroundStyle(Color.mist.opacity(0.6))
                 Text(viewModel.selectedRegion?.name ?? "Areas")
                     .foregroundStyle(viewModel.tier == .areas ? Color.lagoon : Color.mist)
-                    .onTapGesture { if viewModel.selectedRegion != nil { viewModel.tier = .areas } }
+                    .onTapGesture {
+                        if viewModel.selectedRegion != nil {
+                            viewModel.resetToAreas()
+                        }
+                    }
                 Text("›").foregroundStyle(Color.mist.opacity(0.6))
                 Text("Sites")
                     .foregroundStyle(viewModel.tier == .sites ? Color.lagoon : Color.mist)
@@ -888,9 +948,9 @@ struct AreasListView: View {
                     VStack(alignment: .leading) {
                         Text(area.name).font(.body)
                             .accessibilityLabel("Area: \(area.name)")
-                        Text("\(area.country) · \(area.siteCount) sites")
+                        Text(summary(for: area))
                             .font(.caption).foregroundStyle(SwiftUI.Color(UIColor.secondaryLabel))
-                            .accessibilityLabel("Located in \(area.country) with \(area.siteCount) dive sites")
+                            .accessibilityLabel(accessibilitySummary(for: area))
                     }
                     Spacer()
                     Image(systemName: "chevron.right").foregroundStyle(.secondary)
@@ -903,6 +963,26 @@ struct AreasListView: View {
                 .accessibilityElement(children: .combine)
             }
         }}
+    }
+    
+    private func summary(for area: Area) -> String {
+        var components: [String] = []
+        if !area.country.isEmpty {
+            components.append(area.country)
+        }
+        components.append("\(area.siteCount) sites")
+        if area.shopCount > 0 {
+            components.append("\(area.shopCount) shops")
+        }
+        return components.joined(separator: " · ")
+    }
+    
+    private func accessibilitySummary(for area: Area) -> String {
+        var sentence = "Located in \(area.country.isEmpty ? "this region" : area.country) with \(area.siteCount) dive sites"
+        if area.shopCount > 0 {
+            sentence += " and \(area.shopCount) dive shops"
+        }
+        return sentence
     }
 }
 // MARK: - Regions List
@@ -921,7 +1001,7 @@ struct RegionsListView: View {
                     .padding(.horizontal, 16)
                     .padding(.top, 16)
                 
-                Text("2/8 visited")
+                Text(summaryLine)
                     .font(.subheadline)
                     .foregroundStyle(SwiftUI.Color(UIColor.secondaryLabel))
                     .frame(maxWidth: .infinity, alignment: .leading)
@@ -929,17 +1009,30 @@ struct RegionsListView: View {
                     .padding(.bottom, 8)
                 
                 ForEach(regions) { region in
-                    RegionRow(region: region)
+                    RegionRow(region: region, isSelected: selectedRegion?.id == region.id)
                         .contentShape(Rectangle())
                         .onTapGesture { onRegionTap(region) }
                 }
             }
         }
     }
+    
+    private var summaryLine: String {
+        guard !regions.isEmpty else { return "No regions yet" }
+        let visitedTotal = regions.reduce(0) { $0 + $1.visitedCount }
+        let sitesTotal = regions.reduce(0) { $0 + $1.totalSites }
+        let shopTotal = regions.reduce(0) { $0 + $1.shopCount }
+        var parts = ["\(visitedTotal)/\(sitesTotal) visited"]
+        if shopTotal > 0 {
+            parts.append("\(shopTotal) shops")
+        }
+        return parts.joined(separator: " • ")
+    }
 }
 
 struct RegionRow: View {
     let region: Region
+    var isSelected: Bool = false
     
     var body: some View {
         HStack {
@@ -952,10 +1045,10 @@ struct RegionRow: View {
                 Text(region.name)
                     .font(.body)
                     .accessibilityLabel("Region: \(region.name)")
-                Text("\(region.visitedCount)/\(region.totalSites) visited")
+                Text(detailText)
                     .font(.caption)
                     .foregroundStyle(SwiftUI.Color(UIColor.secondaryLabel))
-                    .accessibilityLabel("\(region.visitedCount) of \(region.totalSites) sites visited")
+                    .accessibilityLabel(accessibilityDetail)
             }
             
             Spacer()
@@ -969,7 +1062,24 @@ struct RegionRow: View {
         }
         .padding(.horizontal, 16)
         .padding(.vertical, 8)
+        .background(
+            RoundedRectangle(cornerRadius: 12, style: .continuous)
+                .fill(isSelected ? Color.glass.opacity(0.6) : Color.clear)
+        )
         .accessibilityElement(children: .combine)
+    }
+    
+    private var detailText: String {
+        let visited = "\(region.visitedCount)/\(region.totalSites) visited"
+        guard region.shopCount > 0 else { return visited }
+        return "\(visited) • \(region.shopCount) shops"
+    }
+    
+    private var accessibilityDetail: String {
+        if region.shopCount > 0 {
+            return "\(region.visitedCount) of \(region.totalSites) sites visited, \(region.shopCount) dive shops"
+        }
+        return "\(region.visitedCount) of \(region.totalSites) sites visited"
     }
 }
 
@@ -1017,6 +1127,97 @@ struct SitesListView: View {
                 withAnimation(.easeInOut(duration: 0.3)) { flashId = nil }
             }
         }
+    }
+}
+
+struct ShopsListView: View {
+    let shops: [DiveShop]
+    let onShopTap: (DiveShop) -> Void
+    
+    var body: some View {
+        if shops.isEmpty {
+            VStack(spacing: 12) {
+                Image(systemName: "shippingbox")
+                    .font(.system(size: 28))
+                    .foregroundStyle(SwiftUI.Color(UIColor.secondaryLabel))
+                Text("No shops yet")
+                    .font(.subheadline)
+                    .foregroundStyle(SwiftUI.Color(UIColor.secondaryLabel))
+            }
+            .frame(maxWidth: .infinity)
+            .padding(.vertical, 24)
+        } else {
+            ScrollView {
+                LazyVStack(spacing: 0) {
+                    ForEach(shops) { shop in
+                        ShopRow(shop: shop)
+                            .contentShape(Rectangle())
+                            .onTapGesture { onShopTap(shop) }
+                    }
+                }
+            }
+        }
+    }
+}
+
+struct ShopRow: View {
+    let shop: DiveShop
+    
+    var body: some View {
+        HStack(spacing: 12) {
+            Image(systemName: "building.2.crop.circle")
+                .font(.system(size: 24))
+                .foregroundStyle(Color.oceanBlue)
+                .accessibilityHidden(true)
+            VStack(alignment: .leading, spacing: 2) {
+                Text(shop.name)
+                    .font(.body)
+                    .accessibilityLabel("Shop: \(shop.name)")
+                if !subtitle.isEmpty {
+                    Text(subtitle)
+                        .font(.caption)
+                        .foregroundStyle(SwiftUI.Color(UIColor.secondaryLabel))
+                }
+                if let detail = detail {
+                    Text(detail)
+                        .font(.caption2)
+                        .foregroundStyle(SwiftUI.Color(UIColor.tertiaryLabel))
+                }
+            }
+            Spacer()
+            Image(systemName: "chevron.right")
+                .foregroundStyle(.secondary)
+                .accessibilityHidden(true)
+        }
+        .padding(.horizontal, 16)
+        .padding(.vertical, 10)
+        .accessibilityElement(children: .combine)
+    }
+    
+    private var subtitle: String {
+        var components: [String] = []
+        if let area = shop.area, !area.isEmpty {
+            components.append(area)
+        }
+        if let country = shop.country, !country.isEmpty {
+            components.append(country)
+        } else if let region = shop.region, !region.isEmpty {
+            components.append(region)
+        }
+        return components.joined(separator: " · ")
+    }
+    
+    private var detail: String? {
+        if let service = shop.services.first, !service.isEmpty {
+            return service
+        }
+        if let phone = shop.phone, !phone.isEmpty {
+            return phone
+        }
+        if let website = shop.website, !website.isEmpty {
+            return website
+        }
+        return nil
     }
 }
 
@@ -1162,7 +1363,7 @@ class MapViewModel: ObservableObject {
         let savedMode = defaults.string(forKey: Self.modeKey) ?? "myMap"
         self.mode = savedMode == "explore" ? .explore : .myMap
         
-        let savedStatusFilter = defaults.string(forKey: Self.statusFilterKey) ?? "visited"
+        let savedStatusFilter = defaults.string(forKey: Self.statusFilterKey) ?? "wishlist"
         self.statusFilter = Self.parseStatusFilter(savedStatusFilter)
         
         let savedExploreFilter = defaults.string(forKey: Self.exploreFilterKey) ?? "all"
@@ -1184,31 +1385,56 @@ class MapViewModel: ObservableObject {
     }
     
     var filteredSites: [DiveSite] {
-        let filtered = visibleSites.filter { site in
-            // Region filter
-            if let region = selectedRegion, site.region != region.name { return false }
-            // Area filter  
-            if let area = selectedArea {
-                let (siteArea, _) = parseAreaCountry(site.location)
-                if siteArea != area.name { return false }
-            }
-            // Mode filters
-            if mode == .myMap {
-                switch statusFilter {
-                case .visited: return site.visitedCount > 0
-                case .wishlist: return site.wishlist
-                case .planned: return false // TODO planned
-                }
-            } else {
-                switch exploreFilter {
-                case .all: return true
-                case .nearby: return true // TODO distance
-                case .popular: return site.visitedCount > 5
-                case .beginner: return site.difficulty.rawValue == "Beginner"
-                }
+        if mode == .myMap {
+            return applyMyMapFilters(to: visibleSites)
+        } else {
+            return applyExploreFilters(to: visibleSites)
+        }
+    }
+    
+    func applyMyMapFilters(to sites: [DiveSite]) -> [DiveSite] {
+        sites.filter { site in
+            guard matchesHierarchy(site) else { return false }
+            switch statusFilter {
+            case .visited:
+                return site.visitedCount > 0
+            case .wishlist:
+                return site.wishlist
+            case .planned:
+                return false // TODO: planned sites support
             }
         }
-        return filtered
+    }
+    
+    func applyExploreFilters(to sites: [DiveSite]) -> [DiveSite] {
+        sites.filter { site in
+            guard matchesHierarchy(site) else { return false }
+            switch exploreFilter {
+            case .all:
+                return true
+            case .nearby:
+                return true // TODO: incorporate user location distance
+            case .popular:
+                return site.visitedCount > 5
+            case .beginner:
+                return site.difficulty == .beginner
+            case .wrecks:
+                return site.type == .wreck
+            }
+        }
+    }
+    
+    private func matchesHierarchy(_ site: DiveSite) -> Bool {
+        if let region = selectedRegion, site.region != region.name {
+            return false
+        }
+        if let area = selectedArea {
+            let (siteArea, _) = parseAreaCountry(site.location)
+            if siteArea != area.name {
+                return false
+            }
+        }
+        return true
     }
     
     var visitedCount: Int {
@@ -1227,7 +1453,17 @@ class MapViewModel: ObservableObject {
         guard let region = selectedRegion else { return [] }
         let regionSites = sites.filter { $0.region == region.name }
         let groups = Dictionary(grouping: regionSites) { parseAreaCountry($0.location).area }
-        return groups.map { Area(id: $0.key, name: $0.key, country: parseAreaCountry($0.value.first!.location).country, siteCount: $0.value.count) }
+        return groups.map { entry in
+            let areaName = entry.key
+            let country = parseAreaCountry(entry.value.first!.location).country
+            return Area(
+                id: areaName,
+                name: areaName,
+                country: country,
+                siteCount: entry.value.count,
+                shopCount: 0
+            )
+        }
             .sorted { $0.name < $1.name }
     }
     
@@ -1251,14 +1487,15 @@ class MapViewModel: ObservableObject {
         case .nearby: return "nearby"
         case .popular: return "popular"
         case .beginner: return "beginner"
+        case .wrecks: return "wrecks"
         }
     }
     
     private static func parseStatusFilter(_ string: String) -> StatusFilter {
         switch string {
-        case "wishlist": return .wishlist
+        case "visited": return .visited
         case "planned": return .planned
-        default: return .visited
+        default: return .wishlist
         }
     }
     
@@ -1267,6 +1504,7 @@ class MapViewModel: ObservableObject {
         case "nearby": return .nearby
         case "popular": return .popular
         case "beginner": return .beginner
+        case "wrecks": return .wrecks
         default: return .all
         }
     }
@@ -1298,8 +1536,14 @@ class MapViewModel: ObservableObject {
             self.loading = true
         }
         
-        let siteRepo = SiteRepository(database: AppDatabase.shared)
+        let database = AppDatabase.shared
+        let siteRepo = SiteRepository(database: database)
         do {
+            do {
+                try DatabaseSeeder.seedIfNeeded()
+            } catch {
+                print("Failed to seed database before loading sites: \(error)")
+            }
             let fetchedSites = try siteRepo.fetchAll()
             let regionNames = Set(fetchedSites.map { $0.region })
             let computedRegions = regionNames.map { name in
@@ -1308,7 +1552,8 @@ class MapViewModel: ObservableObject {
                     id: name,
                     name: name,
                     totalSites: regionSites.count,
-                    visitedCount: regionSites.filter { $0.visitedCount > 0 }.count
+                    visitedCount: regionSites.filter { $0.visitedCount > 0 }.count,
+                    shopCount: 0
                 )
             }.sorted { $0.name < $1.name }
             
@@ -1325,6 +1570,18 @@ class MapViewModel: ObservableObject {
                 self.regions = []
             }
         }
+    }
+    
+    func resetToRegions() {
+        selectedRegion = nil
+        selectedArea = nil
+        tier = .regions
+    }
+    
+    func resetToAreas() {
+        guard selectedRegion != nil else { return }
+        selectedArea = nil
+        tier = .areas
     }
     
     private var viewportDebounceTask: Task<Void, Never>?
@@ -1385,7 +1642,7 @@ enum StatusFilter {
 }
 
 enum ExploreFilter {
-    case all, nearby, popular, beginner
+    case all, nearby, popular, beginner, wrecks
 }
 
 enum Tier {
@@ -1397,6 +1654,7 @@ struct Region: Identifiable, Equatable {
     let name: String
     let totalSites: Int
     let visitedCount: Int
+    let shopCount: Int
 }
 
 struct Area: Identifiable, Equatable {
@@ -1404,6 +1662,7 @@ struct Area: Identifiable, Equatable {
     let name: String
     let country: String
     let siteCount: Int
+    let shopCount: Int
 }
 
 // MARK: - Helper Extensions
