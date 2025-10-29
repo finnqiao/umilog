@@ -417,42 +417,8 @@ public struct NewMapView: View {
                 .padding(.top, 12)
                 .padding(.bottom, 16)
 
-            VStack(spacing: 12) {
-                // Scope picker
-                HStack(spacing: 16) {
-                    Picker("Scope", selection: $scope) {
-                        Text("Saved").tag(Scope.saved)
-                        Text("Discover").tag(Scope.discover)
-                    }
-                    .pickerStyle(.segmented)
-                    .tint(Color.lagoon)
-                    
-                    Spacer()
-                }
-                .padding(.horizontal, 16)
-                
-                // Entity tab (Discover only)
-                if scope == .discover {
-                    Picker("", selection: $entityTab) {
-                        Text("Areas").tag(EntityTab.areas)
-                        Text("Sites").tag(EntityTab.sites)
-                        Text("Shops").tag(EntityTab.shops)
-                    }
-                    .pickerStyle(.segmented)
-                    .tint(Color.lagoon)
-                    .padding(.horizontal, 16)
-                }
-                
-                // Chips (Discover, half/full only)
-                if scope == .discover && sheetDetent != .peek && entityTab != .shops {
-                    filterChipsScrollView
-                }
-
-                // List content
-                tierContentView
-                    .padding(.top, 8)
-            }
-            .padding(.bottom, 20)
+            bottomSheetContent
+                .padding(.bottom, 20)
         }
         .foregroundStyle(Color.foam)
         .background(
@@ -468,6 +434,51 @@ public struct NewMapView: View {
                 )
         )
         .transition(.move(edge: .bottom))
+    }
+    
+    private var bottomSheetContent: some View {
+        VStack(spacing: 12) {
+            // Scope picker
+            scopePicker
+            
+            // Entity tab (Discover only)
+            if scope == .discover {
+                entityTabPicker
+            }
+            
+            // Chips (Discover, half/full only)
+            if scope == .discover && sheetDetent != .peek {
+                filterChipsScrollView
+            }
+
+            // List content
+            tierContentView
+                .padding(.top, 8)
+        }
+    }
+    
+    private var scopePicker: some View {
+        HStack(spacing: 16) {
+            Picker("Scope", selection: $scope) {
+                Text("Saved").tag(Scope.saved)
+                Text("Discover").tag(Scope.discover)
+            }
+            .pickerStyle(.segmented)
+            .tint(Color.lagoon)
+            
+            Spacer()
+        }
+        .padding(.horizontal, 16)
+    }
+    
+    private var entityTabPicker: some View {
+        Picker("", selection: $entityTab) {
+            Text("Areas").tag(EntityTab.areas)
+            Text("Sites").tag(EntityTab.sites)
+        }
+        .pickerStyle(.segmented)
+        .tint(Color.lagoon)
+        .padding(.horizontal, 16)
     }
     
     private var filterChipsScrollView: some View {
@@ -652,12 +663,6 @@ public struct NewMapView: View {
                         onSiteTap: handleSiteTap
                     )
                     .frame(maxHeight: 260)
-                case .shops:
-                    ShopsListView(
-                        shops: shopsForCurrentSelection,
-                        onShopTap: handleShopTap
-                    )
-                    .frame(maxHeight: 260)
                 }
             } else {
                 SitesListView(
@@ -682,19 +687,21 @@ public struct NewMapView: View {
                 ),
                 onRegionTap: handleRegionTap
             )
+            .frame(maxHeight: 260)
         case .areas:
             AreasListView(
                 areas: viewModel.areasInSelectedRegion,
                 onAreaTap: handleAreaTap
             )
+            .frame(maxHeight: 260)
         case .sites:
             SitesListView(
                 sites: discoverSitesList,
                 selectedSiteId: selectedSiteIdForScroll,
                 onSiteTap: handleSiteTap
             )
+            .frame(maxHeight: 260)
         }
-        .frame(maxHeight: 260)
     }
     
     
