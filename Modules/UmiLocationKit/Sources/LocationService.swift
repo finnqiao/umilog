@@ -25,7 +25,10 @@ public final class LocationService: NSObject, ObservableObject {
         locationManager.desiredAccuracy = kCLLocationAccuracyBest
         locationManager.distanceFilter = 50 // Update every 50 meters
         locationManager.pausesLocationUpdatesAutomatically = true
-        locationManager.allowsBackgroundLocationUpdates = true
+        // Only enable background updates if already authorized; will be set in delegate callback
+        if locationManager.authorizationStatus == .authorizedAlways {
+            locationManager.allowsBackgroundLocationUpdates = true
+        }
         
         authorizationStatus = locationManager.authorizationStatus
     }
@@ -89,7 +92,11 @@ extension LocationService: CLLocationManagerDelegate {
         authorizationStatus = manager.authorizationStatus
         
         switch authorizationStatus {
-        case .authorizedAlways, .authorizedWhenInUse:
+        case .authorizedAlways:
+            manager.allowsBackgroundLocationUpdates = true
+            startLocationUpdates()
+        case .authorizedWhenInUse:
+            manager.allowsBackgroundLocationUpdates = false
             startLocationUpdates()
         case .denied, .restricted:
             lastError = .permissionDenied
