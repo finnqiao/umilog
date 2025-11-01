@@ -26,10 +26,10 @@ public struct NewMapView: View {
     @State private var showSearch = false
     @State private var searchText = ""
     @State private var showFilterLayers = false
-    @State private var isMapFullScreen = false
 
     // Bottom sheet detents and behavior
     @State private var sheetDetent: SheetDetent = .peek
+    @State private var lastNonPeekDetent: SheetDetent = .half
     @State private var isUserDraggingSheet = false
     @State private var lastMapInteractionAt = Date()
     @State private var idleCollapseTask: Task<Void, Never>?
@@ -38,12 +38,17 @@ public struct NewMapView: View {
     @State private var selectedSiteIdForScroll: String?
     @State private var followMap: Bool = true
 
+    // Track camera fits for recenter
+    @State private var lastFittedRegion: MKCoordinateRegion?
+    @State private var lastViewport: DiveMapViewport?
+
     // Location (for contextual FAB)
     @ObservedObject private var locationService = LocationService.shared
 
     // V3 scope and entity tabs
-    @State private var scope: Scope = .saved
+    @State private var scope: Scope = .discover
     @State private var entityTab: EntityTab = .areas
+    @State private var mySitesTab: MySitesTab = .saved
     
     public init(useMapLibre: Bool = true) {
         self.useMapLibre = useMapLibre
@@ -66,26 +71,38 @@ public struct NewMapView: View {
     }
     
     private var activeFilterCount: Int {
-        // Count active filters: if statusFilter is set (any value), it's 1; if exploreFilter is not .all, it's 1
         var count = 0
-        // For now, assume status filter is always active if set
-        // In future, we'd track which filters are actually applied
         if viewModel.exploreFilter != .all { count += 1 }
         return count
     }
+
+    // Use the correct list for annotations to avoid accidental filtering to wishlist-only
+    private var annotationSites: [DiveSite] {
+        if scope == .discover {
+            return discoverSitesList
+        } else {
+            return savedSitesList
+        }
+    }
+
     private var mapLibreAnnotations: [DiveMapAnnotation] {
+        // Multi-scale: regions → areas → sites
+        let latSpan: Double = {
+            if let v = lastViewport { return v.maxLatitude - v.minLatitude }
+            return mapRegion.span.latitudeDelta
+        }()
+        if latSpan > 60 { return regionAggregateAnnotations }
+        if latSpan > 20 { return areaAggregateAnnotations }
+        return siteAnnotations
+    }
+
+    private var siteAnnotations: [DiveMapAnnotation] {
         let selectedId = selectedSite?.id
-        let sitesToShow = viewModel.filteredSites.isEmpty ? viewModel.sites : viewModel.filteredSites
-        return sitesToShow.map { site in
+        // If visible set is tiny at world scale, fall back to all sites so clusters are visible
+        let base = (scope == .discover && followMap && annotationSites.count < 100) ? viewModel.sites : annotationSites
+        return base.map { site in
             let kind: DiveMapAnnotation.Kind = site.type == .wreck ? .wreck : .site
-            let status: DiveMapAnnotation.Status
-            if site.visitedCount > 0 {
-                status = .logged
-            } else if site.wishlist {
-                status = .saved
-            } else {
-                status = .baseline
-            }
+            let status: DiveMapAnnotation.Status = site.visitedCount > 0 ? .logged : (site.wishlist ? .saved : .baseline)
             let difficulty = DiveMapAnnotation.Difficulty(rawValue: site.difficulty.rawValue) ?? .other
             return DiveMapAnnotation(
                 id: site.id,
@@ -100,6 +117,50 @@ public struct NewMapView: View {
         }
     }
 
+    private var regionAggregateAnnotations: [DiveMapAnnotation] {
+        // One point per region (centroid)
+        let groups = Dictionary(grouping: viewModel.sites, by: { $0.region })
+        return groups.map { (region, sites) in
+            let lat = sites.map { $0.latitude }.average
+            let lon = sites.map { $0.longitude }.average
+            return DiveMapAnnotation(
+                id: "region:\(region)",
+                coordinate: CLLocationCoordinate2D(latitude: lat, longitude: lon),
+                kind: .site,
+                status: .baseline,
+                difficulty: .other,
+                visited: false,
+                wishlist: false,
+                isSelected: false
+            )
+        }
+    }
+
+    private var areaAggregateAnnotations: [DiveMapAnnotation] {
+        // One point per area (centroid). If a region is selected, limit to it.
+        let filteredSites: [DiveSite]
+        if let region = viewModel.selectedRegion?.name {
+            filteredSites = viewModel.sites.filter { $0.region == region }
+        } else {
+            filteredSites = viewModel.sites
+        }
+        let groups = Dictionary(grouping: filteredSites, by: { parseAreaCountry($0.location).area })
+        return groups.map { (area, sites) in
+            let lat = sites.map { $0.latitude }.average
+            let lon = sites.map { $0.longitude }.average
+            return DiveMapAnnotation(
+                id: "area:\(area)",
+                coordinate: CLLocationCoordinate2D(latitude: lat, longitude: lon),
+                kind: .site,
+                status: .baseline,
+                difficulty: .other,
+                visited: false,
+                wishlist: false,
+                isSelected: false
+            )
+        }
+    }
+
     private func focusMap(on sites: [DiveSite], singleSpan: Double = 4.0) {
         guard !sites.isEmpty else { return }
         if sites.count == 1, let site = sites.first {
@@ -107,6 +168,7 @@ public struct NewMapView: View {
                 center: CLLocationCoordinate2D(latitude: site.latitude, longitude: site.longitude),
                 span: MKCoordinateSpan(latitudeDelta: singleSpan, longitudeDelta: singleSpan)
             )
+            lastFittedRegion = mapRegion
             return
         }
 
@@ -131,7 +193,9 @@ public struct NewMapView: View {
             center: center,
             span: MKCoordinateSpan(latitudeDelta: latSpan, longitudeDelta: lonSpan)
         )
+        lastFittedRegion = mapRegion
     }
+
     private var diveMapCamera: DiveMapCamera {
         let span = mapRegion.span
         let normalizedLatitude = max(span.latitudeDelta, 1.0)
@@ -141,56 +205,43 @@ public struct NewMapView: View {
         return DiveMapCamera(center: mapRegion.center, zoomLevel: approxZoom)
     }
     
+    private var isOffCenter: Bool {
+        guard let lastFittedRegion, let lastViewport else { return false }
+        let fittedCenter = lastFittedRegion.center
+        let currentCenter = CLLocationCoordinate2D(
+            latitude: (lastViewport.minLatitude + lastViewport.maxLatitude) / 2.0,
+            longitude: (lastViewport.minLongitude + lastViewport.maxLongitude) / 2.0
+        )
+        let dLat = abs(fittedCenter.latitude - currentCenter.latitude)
+        let dLon = abs(fittedCenter.longitude - currentCenter.longitude)
+        // Consider off-center if drift > 10% of fitted span
+        let latThreshold = max(0.5, lastFittedRegion.span.latitudeDelta * 0.1)
+        let lonThreshold = max(0.5, lastFittedRegion.span.longitudeDelta * 0.1)
+        return dLat > latThreshold || dLon > lonThreshold
+    }
+
     public var body: some View {
         mapView
             .tint(primaryColor)
-            .navigationTitle("Map")
+            .navigationTitle("")
             .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .topBarTrailing) {
-                    HStack(spacing: 12) {
-                        Button(action: { showSearch = true; Haptics.soft() }) {
-                            Image(systemName: "magnifyingglass")
-                                .foregroundStyle(Color.foam)
-                        }
-                        
-                        Button(action: { showFilterLayers = true; Haptics.soft() }) {
-                            Image(systemName: "slider.horizontal.3")
-                                .foregroundStyle(Color.foam)
-                        }
-                        
-                        Button(action: { withAnimation(.spring(response: 0.3)) { isMapFullScreen.toggle() }; Haptics.soft() }) {
-                            Image(systemName: isMapFullScreen ? "arrow.down.right.and.arrow.up.left" : "arrow.up.left.and.arrow.down.right")
-                                .foregroundStyle(Color.foam)
-                        }
-                    }
-                }
-            }
-            .sheet(isPresented: $showingSiteDetail) {
-                siteDetailSheet
-            }
-            .sheet(isPresented: $showSearch) {
-                searchSheet
-            }
-            .sheet(isPresented: $showFilterLayers) {
-                combinedFilterLayersSheet
-            }
-            .onChange(of: viewModel.selectedRegion) {
+            .sheet(isPresented: $showingSiteDetail) { siteDetailSheet }
+            .sheet(isPresented: $showSearch) { searchSheet }
+            .sheet(isPresented: $showFilterLayers) { combinedFilterLayersSheet }
+            .onChange(of: viewModel.selectedRegion) { _ in
                 focusMap(on: viewModel.filteredSites)
             }
-            .onChange(of: viewModel.selectedArea) {
+            .onChange(of: viewModel.selectedArea) { _ in
                 focusMap(on: viewModel.filteredSites)
             }
-            .onChange(of: viewModel.statusFilter) {
+            .onChange(of: viewModel.statusFilter) { _ in
                 focusMap(on: viewModel.filteredSites)
             }
-            .onChange(of: viewModel.exploreFilter) {
+            .onChange(of: viewModel.exploreFilter) { _ in
                 focusMap(on: viewModel.filteredSites)
             }
-.onChange(of: selectedSite) {
-                if let selectedSite {
-                    focusMap(on: [selectedSite])
-                }
+            .onChange(of: selectedSite) { _ in
+                if let selectedSite { focusMap(on: [selectedSite]) }
             }
             .onChange(of: scope) { newScope in
                 viewModel.mode = (newScope == .discover) ? .explore : .myMap
@@ -210,6 +261,12 @@ public struct NewMapView: View {
                     // Refresh visible sites based on current map viewport
                     try? await Task.sleep(nanoseconds: 100_000_000)
                     await viewModel.refreshVisibleSites(in: mapRegion)
+
+                    // Default sheet to half when we have items
+                    sheetDetent = .half
+                    lastNonPeekDetent = .half
+                } else {
+                    sheetDetent = .peek
                 }
             }
             .accessibilityElement(children: .contain)
@@ -275,10 +332,12 @@ public struct NewMapView: View {
                     withAnimation(.easeInOut(duration: 0.3)) {
                         focusMap(on: [site], singleSpan: 2.5)
                         sheetDetent = .half
+                        lastNonPeekDetent = .half
                     }
                 }
             },
             onRegionChange: { viewport in
+                lastViewport = viewport
                 viewModel.scheduleRefreshVisibleSites(bounds: MapBounds(viewport: viewport))
                 lastMapInteractionAt = Date()
                 scheduleIdleCollapse()
@@ -299,6 +358,7 @@ public struct NewMapView: View {
                     withAnimation(.easeInOut(duration: 0.3)) {
                         focusMap(on: [s], singleSpan: 2.5)
                         sheetDetent = .half
+                        lastNonPeekDetent = .half
                     }
                 }
             },
@@ -328,56 +388,100 @@ public struct NewMapView: View {
     
     private var overlayControls: some View {
         ZStack(alignment: .bottom) {
+            // Top bar (inline title + anchored top-right cluster)
+            VStack {
+                HStack {
+                    Text("Map")
+                        .font(.headline)
+                        .foregroundStyle(Color.foam)
+                        .padding(.leading, 12)
+                    Spacer()
+                    HStack(spacing: 12) {
+                        Button(action: { showSearch = true; Haptics.soft() }) {
+                            Image(systemName: "magnifyingglass")
+                                .foregroundStyle(Color.foam)
+                                .frame(width: 32, height: 32)
+                                .background(Circle().fill(Color.glass))
+                        }
+                        Button(action: { showFilterLayers = true; Haptics.soft() }) {
+                            Image(systemName: "slider.horizontal.3")
+                                .foregroundStyle(Color.foam)
+                                .frame(width: 32, height: 32)
+                                .background(Circle().fill(Color.glass))
+                        }
+                        Button(action: {
+                            withAnimation(.spring(response: 0.3)) {
+                                if sheetDetent != .peek {
+                                    lastNonPeekDetent = sheetDetent
+                                    sheetDetent = .peek
+                                } else {
+                                    sheetDetent = lastNonPeekDetent
+                                }
+                            }
+                            Haptics.soft()
+                        }) {
+                            Image(systemName: sheetDetent == .peek ? "arrow.down.right.and.arrow.up.left" : "arrow.up.left.and.arrow.down.right")
+                                .foregroundStyle(Color.foam)
+                                .frame(width: 32, height: 32)
+                                .background(Circle().fill(Color.glass))
+                        }
+                    }
+                    .padding(.trailing, 12)
+                }
+                Spacer()
+            }
+            .padding(.top, 12)
+            .ignoresSafeArea(edges: .top)
+
             GeometryReader { geo in
                 VStack(spacing: 0) {
                     Spacer()
                     
-                    if !isMapFullScreen {
-                        // Caustics overlay + water gradient (very subtle animation)
-                        ZStack {
-                            // Deep water gradient (darkens toward bottom)
-                            LinearGradient(
-                                colors: [
-                                    Color.black.opacity(0.0),
-                                    Color.oceanBlue.opacity(0.08)
-                                ],
-                                startPoint: .top,
-                                endPoint: .bottom
+                    // Caustics overlay + water gradient (very subtle animation)
+                    ZStack {
+                        // Deep water gradient (darkens toward bottom)
+                        LinearGradient(
+                            colors: [
+                                Color.black.opacity(0.0),
+                                Color.oceanBlue.opacity(0.08)
+                            ],
+                            startPoint: .top,
+                            endPoint: .bottom
+                        )
+                        .frame(height: 120)
+                        .allowsHitTesting(false)
+                        
+                        // Radial caustics (subtle, animated)
+                        Circle()
+                            .fill(
+                                RadialGradient(
+                                    gradient: Gradient(colors: [
+                                        Color.diveTeal.opacity(0.04),
+                                        Color.oceanBlue.opacity(0.02),
+                                        Color.clear
+                                    ]),
+                                    center: .center,
+                                    startRadius: 20,
+                                    endRadius: 200
+                                )
                             )
+                            .scaleEffect(1.0 + sin(Date().timeIntervalSince1970) * 0.006)
                             .frame(height: 120)
                             .allowsHitTesting(false)
-                            
-                            // Radial caustics (subtle, animated)
-                            Circle()
-                                .fill(
-                                    RadialGradient(
-                                        gradient: Gradient(colors: [
-                                            Color.diveTeal.opacity(0.04),
-                                            Color.oceanBlue.opacity(0.02),
-                                            Color.clear
-                                        ]),
-                                        center: .center,
-                                        startRadius: 20,
-                                        endRadius: 200
-                                    )
-                                )
-                                .scaleEffect(1.0 + sin(Date().timeIntervalSince1970) * 0.006)
-                                .frame(height: 120)
-                                .allowsHitTesting(false)
-                        }
-                        .transition(.opacity)
-                        
-                        // Glass sheet with soft shadow
-                        bottomSheet
-                            .frame(height: sheetHeight(geo))
-                            .shadow(color: Color.black.opacity(0.15), radius: 8, y: -2)
-                            .transition(.move(edge: .bottom).combined(with: .opacity))
                     }
+                    .transition(.opacity)
+                    
+                    // Glass sheet with soft shadow
+                    bottomSheet
+                        .frame(height: sheetHeight(geo))
+                        .shadow(color: Color.black.opacity(0.15), radius: 8, y: -2)
+                        .transition(.move(edge: .bottom).combined(with: .opacity))
                 }
             }
             
-            // Zoom +/- buttons (bottom-right, always visible)
-            if !isMapFullScreen {
+            // Zoom +/- and Recenter (bottom-right)
+            VStack(spacing: 8) {
+                Spacer()
                 VStack(spacing: 8) {
                     Button(action: { zoomIn() }) {
                         Image(systemName: "plus")
@@ -387,7 +491,6 @@ public struct NewMapView: View {
                             .background(Circle().fill(Color.glass).stroke(Color.kelp.opacity(0.5), lineWidth: 1))
                     }
                     .buttonStyle(.plain)
-                    
                     Button(action: { zoomOut() }) {
                         Image(systemName: "minus")
                             .font(.system(size: 16, weight: .semibold))
@@ -396,34 +499,69 @@ public struct NewMapView: View {
                             .background(Circle().fill(Color.glass).stroke(Color.kelp.opacity(0.5), lineWidth: 1))
                     }
                     .buttonStyle(.plain)
-                    
-                    Spacer()
+                    if isOffCenter {
+                        Button(action: {
+                            if let last = lastFittedRegion {
+                                withAnimation(.easeInOut(duration: 0.25)) {
+                                    mapRegion = last
+                                }
+                            }
+                            Haptics.tap()
+                        }) {
+                            Image(systemName: "location")
+                                .font(.system(size: 15, weight: .semibold))
+                                .foregroundStyle(Color.foam)
+                                .frame(width: 40, height: 40)
+                                .background(Circle().fill(Color.glass).stroke(Color.kelp.opacity(0.5), lineWidth: 1))
+                        }
+                        .buttonStyle(.plain)
+                    }
                 }
                 .padding(.trailing, 16)
                 .padding(.bottom, 100)
-                .ignoresSafeArea()
+            }
+            .ignoresSafeArea()
+
+            // Center "Search here" pill when followMap is off and user pans
+            if !followMap {
+                VStack {
+                    Spacer().frame(height: 8)
+                    Button(action: {
+                        if let viewport = lastViewport {
+                            Task { await viewModel.refreshVisibleSites(in: MapBounds(viewport: viewport).toRegion()) }
+                        }
+                    }) {
+                        HStack(spacing: 6) {
+                            Image(systemName: "magnifyingglass")
+                            Text("Search here")
+                        }
+                        .font(.footnote)
+                        .padding(.horizontal, 12)
+                        .padding(.vertical, 8)
+                        .background(Capsule().fill(Color.glass))
+                        .foregroundStyle(Color.foam)
+                    }
+                }
             }
         }
     }
-    
-    // Top Pill: removed (controls moved to toolbar)
     
     private var bottomSheet: some View {
         VStack(spacing: 0) {
             // Drag handle
             Capsule()
                 .fill(Color.kelp.opacity(0.35))
-                .frame(width: 44, height: 5)
+                .frame(width: 36, height: 4)
                 .padding(.top, 12)
-                .padding(.bottom, 16)
+                .padding(.bottom, 12)
 
             bottomSheetContent
-                .padding(.bottom, 20)
+                .padding(.bottom, 12)
         }
         .foregroundStyle(Color.foam)
         .background(
             RoundedRectangle(cornerRadius: 24, style: .continuous)
-                .fill(Color.oceanBlue.opacity(0.08).blendMode(.overlay))
+                .fill(Color.oceanBlue.opacity(0.62).opacity(0.62))
                 .overlay(
                     RoundedRectangle(cornerRadius: 24, style: .continuous)
                         .fill(Material.thin)
@@ -437,15 +575,11 @@ public struct NewMapView: View {
     }
     
     private var bottomSheetContent: some View {
-        VStack(spacing: 12) {
-            // Scope picker
-            scopePicker
-            
-            // Entity tab (Discover only)
-            if scope == .discover {
-                entityTabPicker
-            }
-            
+        VStack(spacing: 8) {
+            // Header rows
+            scopeHeaderRow
+            contextHeaderRow
+
             // Chips (Discover, half/full only)
             if scope == .discover && sheetDetent != .peek {
                 filterChipsScrollView
@@ -456,101 +590,61 @@ public struct NewMapView: View {
                 .padding(.top, 8)
         }
     }
-    
-    private var scopePicker: some View {
-        HStack(spacing: 16) {
+
+    private var scopeHeaderRow: some View {
+        HStack(spacing: 12) {
             Picker("Scope", selection: $scope) {
-                Text("Saved").tag(Scope.saved)
                 Text("Discover").tag(Scope.discover)
+                Text("My Dive Sites").tag(Scope.saved)
             }
             .pickerStyle(.segmented)
             .tint(Color.lagoon)
-            
             Spacer()
+            Toggle(isOn: $followMap) {
+                Image(systemName: "location.fill")
+                    .accessibilityLabel("Follow map")
+            }
+            .labelsHidden()
+            .toggleStyle(.switch)
         }
         .padding(.horizontal, 16)
     }
-    
-    private var entityTabPicker: some View {
-        Picker("", selection: $entityTab) {
-            Text("Areas").tag(EntityTab.areas)
-            Text("Sites").tag(EntityTab.sites)
+
+    private var contextHeaderRow: some View {
+        HStack(spacing: 12) {
+            if scope == .discover {
+                Picker("", selection: $entityTab) {
+                    Text("Areas").tag(EntityTab.areas)
+                    Text("Sites").tag(EntityTab.sites)
+                }
+                .pickerStyle(.segmented)
+                .tint(Color.lagoon)
+                Spacer()
+                Button(action: { fitToVisible(); Haptics.soft() }) {
+                    Text("In view: \(baseSitesForCounts.count)")
+                        .font(.caption)
+                        .foregroundStyle(Color.foam)
+                }
+            } else {
+                Picker("", selection: $mySitesTab) {
+                    Text("Timeline").tag(MySitesTab.timeline)
+                    Text("Saved").tag(MySitesTab.saved)
+                    Text("Planned").tag(MySitesTab.planned)
+                }
+                .pickerStyle(.segmented)
+                .tint(Color.lagoon)
+                Spacer()
+            }
         }
-        .pickerStyle(.segmented)
-        .tint(Color.lagoon)
         .padding(.horizontal, 16)
     }
     
     private var filterChipsScrollView: some View {
         ScrollView(.horizontal, showsIndicators: false) {
-            HStack(spacing: 8) {
-                if viewModel.mode == .myMap {
-                    myMapFilterChips
-                } else {
-                    exploreFilterChips
-                }
-            }
+            HStack(spacing: 8) { exploreFilterChips }
             .padding(.horizontal, 16)
         }
         .padding(.vertical, 4)
-    }
-    
-    @ViewBuilder
-    private var myMapFilterChips: some View {
-        visitedFilterChip
-        wishlistFilterChip
-        plannedFilterChip
-    }
-    
-    private var visitedFilterChip: some View {
-        FilterChip(
-            title: "Visited (\(viewModel.visitedCount))",
-            isSelected: viewModel.statusFilter == .visited,
-            action: {
-                withAnimation(.spring(response: 0.25)) {
-                    viewModel.statusFilter = .visited
-                    viewModel.tier = .sites
-                    viewModel.selectedRegion = nil
-                    viewModel.selectedArea = nil
-                }
-                Haptics.tap()
-            },
-            primaryColor: primaryColor
-        )
-    }
-    
-    private var wishlistFilterChip: some View {
-        FilterChip(
-            title: "Wishlist (\(viewModel.wishlistCount))",
-            isSelected: viewModel.statusFilter == .wishlist,
-            action: {
-                withAnimation(.spring(response: 0.25)) {
-                    viewModel.statusFilter = .wishlist
-                    viewModel.tier = .sites
-                    viewModel.selectedRegion = nil
-                    viewModel.selectedArea = nil
-                }
-                Haptics.tap()
-            },
-            primaryColor: primaryColor
-        )
-    }
-    
-    private var plannedFilterChip: some View {
-        FilterChip(
-            title: "Planned (\(viewModel.plannedCount))",
-            isSelected: viewModel.statusFilter == .planned,
-            action: {
-                withAnimation(.spring(response: 0.25)) {
-                    viewModel.statusFilter = .planned
-                    viewModel.tier = .sites
-                    viewModel.selectedRegion = nil
-                    viewModel.selectedArea = nil
-                }
-                Haptics.tap()
-            },
-            primaryColor: primaryColor
-        )
     }
     
     @ViewBuilder
@@ -660,17 +754,19 @@ public struct NewMapView: View {
                     SitesListView(
                         sites: discoverSitesList,
                         selectedSiteId: selectedSiteIdForScroll,
-                        onSiteTap: handleSiteTap
+                        onSiteTap: handleSiteTap,
+                        limit: sheetDetent == .peek ? 2 : nil,
+                        scrollDisabled: sheetDetent == .peek
                     )
-                    .frame(maxHeight: 260)
                 }
             } else {
                 SitesListView(
                     sites: savedSitesList,
                     selectedSiteId: selectedSiteIdForScroll,
-                    onSiteTap: handleSiteTap
+                    onSiteTap: handleSiteTap,
+                    limit: sheetDetent == .peek ? 2 : nil,
+                    scrollDisabled: sheetDetent == .peek
                 )
-                .frame(maxHeight: 260)
             }
         }
     }
@@ -687,20 +783,19 @@ public struct NewMapView: View {
                 ),
                 onRegionTap: handleRegionTap
             )
-            .frame(maxHeight: 260)
         case .areas:
             AreasListView(
                 areas: viewModel.areasInSelectedRegion,
                 onAreaTap: handleAreaTap
             )
-            .frame(maxHeight: 260)
         case .sites:
             SitesListView(
                 sites: discoverSitesList,
                 selectedSiteId: selectedSiteIdForScroll,
-                onSiteTap: handleSiteTap
+                onSiteTap: handleSiteTap,
+                limit: sheetDetent == .peek ? 2 : nil,
+                scrollDisabled: sheetDetent == .peek
             )
-            .frame(maxHeight: 260)
         }
     }
     
@@ -719,6 +814,7 @@ public struct NewMapView: View {
             withAnimation(.easeInOut(duration: 0.3)) {
                 focusMap(on: [site], singleSpan: 2.5)
                 sheetDetent = .half
+                lastNonPeekDetent = .half
             }
             showSearch = false
         }
@@ -805,9 +901,9 @@ private struct UnderwaterGlowOverlay: View {
     private func sheetHeight(_ geo: GeometryProxy) -> CGFloat {
         let h = geo.size.height
         switch sheetDetent {
-        case .peek: return max(h * 0.18, 140)
-        case .half: return h * 0.5
-        case .full: return h * 0.9
+        case .peek: return max(h * 0.24, 160)
+        case .half: return h * 0.60
+        case .full: return h * 1.00
         }
     }
 
@@ -1096,11 +1192,14 @@ struct SitesListView: View {
     let sites: [DiveSite]
     let selectedSiteId: String?
     let onSiteTap: (DiveSite) -> Void
+    var limit: Int? = nil
+    var scrollDisabled: Bool = false
     @State private var flashId: String?
     
     var body: some View {
         ScrollViewReader { proxy in
-            if sites.isEmpty {
+            let displayed = limit.map { Array(sites.prefix($0)) } ?? sites
+            if displayed.isEmpty {
                 VStack(spacing: 12) {
                     Image(systemName: "tray")
                         .font(.system(size: 28))
@@ -1114,17 +1213,19 @@ struct SitesListView: View {
             } else {
                 ScrollView {
                     LazyVStack(spacing: 0) {
-                        ForEach(sites) { site in
+                        ForEach(displayed) { site in
                             SiteRow(site: site, isHighlighted: flashId == site.id)
                                 .id(site.id)
                                 .onTapGesture { onSiteTap(site) }
                         }
                     }
                 }
+                .scrollDisabled(scrollDisabled)
             }
         }
-        .onChange(of: selectedSiteId) { id in
-            guard let id else { return }
+        // Scroll to selection when a pin is tapped
+        .onChange(of: selectedSiteId) { oldId, newId in
+            guard let id = newId else { return }
             DispatchQueue.main.async {
                 withAnimation(.easeInOut(duration: 0.3)) {
                     flashId = id
@@ -1239,6 +1340,18 @@ struct MapBounds {
             minLongitude: viewport.minLongitude,
             maxLongitude: viewport.maxLongitude
         )
+    }
+
+    func toRegion() -> MKCoordinateRegion {
+        let center = CLLocationCoordinate2D(
+            latitude: (minLatitude + maxLatitude) / 2.0,
+            longitude: (minLongitude + maxLongitude) / 2.0
+        )
+        let span = MKCoordinateSpan(
+            latitudeDelta: maxLatitude - minLatitude,
+            longitudeDelta: maxLongitude - minLongitude
+        )
+        return MKCoordinateRegion(center: center, span: span)
     }
 }
 
@@ -1590,6 +1703,13 @@ extension View {
     }
 }
 
+private extension Array where Element == Double {
+    var average: Double {
+        guard !isEmpty else { return 0 }
+        return reduce(0, +) / Double(count)
+    }
+}
+
 struct RoundedCorner: Shape {
     var radius: CGFloat = .infinity
     var corners: UIRectCorner = .allCorners
@@ -1775,6 +1895,7 @@ struct CombinedFilterLayersSheet: View {
 // MARK: - V3 Enums
 enum Scope { case saved, discover }
 enum EntityTab { case areas, sites }
+enum MySitesTab { case timeline, saved, planned }
 
 #Preview {
     NewMapView()

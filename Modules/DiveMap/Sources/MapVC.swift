@@ -337,15 +337,15 @@ public final class MapVC: UIViewController, MLNMapViewDelegate, UIGestureRecogni
         let saved = UIColor(brandHex: "#60A5FA") ?? UIColor(red: 0.38, green: 0.65, blue: 0.98, alpha: 1.0)
         let planned = UIColor(brandHex: "#F59E0B") ?? UIColor(red: 0.96, green: 0.62, blue: 0.04, alpha: 1.0)
         let reef = UIColor(brandHex: "#5EEAD4") ?? UIColor(red: 0.37, green: 0.92, blue: 0.83, alpha: 1.0)
-        let abyss = UIColor(brandHex: "#0A0F1F") ?? UIColor(red: 0.04, green: 0.06, blue: 0.12, alpha: 1.0)
+        let abyss = UIColor(brandHex: "#09111D") ?? UIColor(red: 0.04, green: 0.06, blue: 0.12, alpha: 1.0)
 
         if style.layer(withIdentifier: "site-cluster") == nil {
             let cluster = MLNCircleStyleLayer(identifier: "site-cluster", source: siteSource)
             cluster.predicate = NSPredicate(format: "cluster == YES")
-            cluster.circleColor = NSExpression(forConstantValue: lagoon.withAlphaComponent(0.22))
-            cluster.circleStrokeColor = NSExpression(forConstantValue: lagoon.withAlphaComponent(0.75))
-            cluster.circleStrokeWidth = NSExpression(forConstantValue: 2.0)
-            cluster.circleRadius = NSExpression(forConstantValue: 28)
+            cluster.circleColor = NSExpression(forConstantValue: lagoon.withAlphaComponent(0.35))
+            cluster.circleStrokeColor = NSExpression(forConstantValue: lagoon.withAlphaComponent(0.95))
+            cluster.circleStrokeWidth = NSExpression(forConstantValue: 3.0)
+            cluster.circleRadius = NSExpression(forConstantValue: 36)
             cluster.isVisible = true
             style.addLayer(cluster)
         }
@@ -354,7 +354,7 @@ public final class MapVC: UIViewController, MLNMapViewDelegate, UIGestureRecogni
             let count = MLNSymbolStyleLayer(identifier: "site-cluster-count", source: siteSource)
             count.predicate = NSPredicate(format: "cluster == YES")
             count.text = NSExpression(format: "CAST(point_count, 'NSString')")
-            count.textColor = NSExpression(forConstantValue: UIColor(brandHex: "#E6ECF4") ?? UIColor.white)
+            count.textColor = NSExpression(forConstantValue: UIColor(brandHex: "#9FB0C7") ?? UIColor.white)
             count.textFontSize = NSExpression(forConstantValue: 12)
             count.textFontNames = NSExpression(forConstantValue: ["HelveticaNeue-Bold"])
             count.textAllowsOverlap = NSExpression(forConstantValue: true)
@@ -551,7 +551,7 @@ public final class MapVC: UIViewController, MLNMapViewDelegate, UIGestureRecogni
         // Just ensure our background is below them
         if style.layer(withIdentifier: "umi-bg") == nil {
             let background = MLNBackgroundStyleLayer(identifier: "umi-bg")
-            background.backgroundColor = NSExpression(forConstantValue: UIColor(brandHex: "#0A0F1F") ?? UIColor(red: 0.04, green: 0.06, blue: 0.12, alpha: 1.0))
+            background.backgroundColor = NSExpression(forConstantValue: UIColor(brandHex: "#111827") ?? UIColor(red: 0.07, green: 0.09, blue: 0.15, alpha: 1.0))
             // Insert below all other layers as base
             if let firstLayer = style.layers.first {
                 style.insertLayer(background, below: firstLayer)

@@ -46,7 +46,7 @@
       "id": "background",
       "type": "background",
       "paint": {
-        "background-color": "#0B1F3A"
+        "background-color": "#111827"
       }
     },
     {
@@ -56,12 +56,12 @@
       "minzoom": 0,
       "maxzoom": 18,
       "paint": {
-        "raster-opacity": 0.82,
-        "raster-brightness-min": 0.40,
-        "raster-brightness-max": 1.20,
-        "raster-contrast": 0.30,
-        "raster-saturation": 0.05,
-        "raster-hue-rotate": -20
+        "raster-opacity": 0.68,
+        "raster-brightness-min": 0.35,
+        "raster-brightness-max": 1.15,
+        "raster-contrast": 0.25,
+        "raster-saturation": -0.10,
+        "raster-hue-rotate": -8
       }
     },
     {
@@ -69,8 +69,8 @@
       "type": "fill",
       "source": "water-overlay",
       "paint": {
-        "fill-color": "#123B6B",
-        "fill-opacity": 0.35
+        "fill-color": "#0D2239",
+        "fill-opacity": 0.45
       }
     },
     {
@@ -204,8 +204,8 @@
         "text-font": ["Open Sans Semibold", "Arial Unicode MS Bold"]
       },
       "paint": {
-        "text-color": "#E6ECF4",
-        "text-halo-color": "#0B1F3A",
+        "text-color": "#9FB0C7",
+        "text-halo-color": "#09111D",
         "text-halo-width": 0.5,
         "text-opacity": [
           "interpolate",
