@@ -114,10 +114,13 @@ targets:
     platform: iOS
     sources:
       - UmiLogTests/
+    settings:
+      GENERATE_INFOPLIST_FILE: YES
     dependencies:
       - target: UmiLog
       - target: UmiDB
       - target: UmiCoreKit
+      - target: FeatureMap
 
   UmiLogUITests:
     type: bundle.ui-testing

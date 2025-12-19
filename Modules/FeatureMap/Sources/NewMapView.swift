@@ -35,6 +35,7 @@ public struct MapAppearance {
 public struct NewMapView: View {
     private let appearance: MapAppearance
     @StateObject private var viewModel = MapViewModel()
+    @StateObject private var uiViewModel = MapUIViewModel()
     @Environment(\.safeAreaInsets) private var safeAreaInsets
     private let tabBarHeight: CGFloat = 72
     @State private var mapRegion = MKCoordinateRegion(
@@ -52,6 +53,9 @@ public struct NewMapView: View {
     @State private var sheetDetent: SheetDetent = .peek
     @State private var lastNonPeekDetent: SheetDetent = .half
     @State private var activeSheetHeight: CGFloat = 0
+
+    // New unified surface state
+    @State private var surfaceDetent: SurfaceDetent = .peek
     @State private var controlRailHeight: CGFloat = 0
     @State private var isProgrammaticCameraChange = false
     @State private var searchPillVisible = false
@@ -648,7 +652,39 @@ public struct NewMapView: View {
         ZStack {
             mapLayer
             overlayControls
-            bottomSheetOverlay
+            if featureFlags.useNewSurface {
+                unifiedSurfaceOverlay
+                proximityPromptOverlay
+            } else {
+                bottomSheetOverlay
+            }
+        }
+    }
+
+    // MARK: - Proximity Prompt Overlay (Step 12)
+
+    @ViewBuilder
+    private var proximityPromptOverlay: some View {
+        if let prompt = uiViewModel.proximityPrompt, !prompt.isDismissed {
+            VStack {
+                Spacer()
+                ProximityPromptCard(
+                    state: prompt,
+                    onAccept: {
+                        uiViewModel.send(.acceptProximityPrompt)
+                        startLiveLog(at: prompt.site)
+                        Haptics.success()
+                    },
+                    onDismiss: {
+                        uiViewModel.send(.dismissProximityPrompt)
+                        Haptics.soft()
+                    }
+                )
+                .padding(.horizontal, 16)
+                .padding(.bottom, surfaceDetent.height(in: UIScreen.main.bounds.height) + 12)
+            }
+            .transition(.move(edge: .bottom).combined(with: .opacity))
+            .animation(.spring(response: 0.4, dampingFraction: 0.8), value: uiViewModel.proximityPrompt != nil)
         }
     }
 
@@ -686,7 +722,81 @@ public struct NewMapView: View {
             .ignoresSafeArea(edges: .bottom)
         }
     }
-    
+
+    // MARK: - New Unified Surface (Step 10)
+
+    private var unifiedSurfaceOverlay: some View {
+        UnifiedBottomSurface(
+            mode: uiModeBinding,
+            detent: $surfaceDetent,
+            exploreFilters: $uiViewModel.exploreFilters,
+            filterLens: filterLensBinding,
+            dataViewModel: viewModel,
+            onSiteTap: { site in
+                uiViewModel.send(.openSiteInspection(site.id))
+                surfaceDetent = .medium
+                focusMap(on: [site], singleSpan: 2.5)
+                Haptics.soft()
+            },
+            onDismissInspect: {
+                uiViewModel.send(.closeSiteInspection)
+                surfaceDetent = .peek
+            },
+            onApplyFilters: {
+                uiViewModel.send(.closeFilter(apply: true))
+                surfaceDetent = .peek
+            },
+            onCancelFilters: {
+                uiViewModel.send(.closeFilter(apply: false))
+                surfaceDetent = .peek
+            },
+            onSearchSelect: { site in
+                uiViewModel.send(.closeSearch(selectedSite: site.id))
+                surfaceDetent = .medium
+                focusMap(on: [site], singleSpan: 2.5)
+                Haptics.soft()
+            },
+            onOpenFilter: {
+                uiViewModel.send(.openFilter)
+                surfaceDetent = .expanded
+            },
+            onOpenSearch: {
+                uiViewModel.send(.openSearch)
+                surfaceDetent = .expanded
+            },
+            onNavigateUp: {
+                uiViewModel.send(.navigateUp)
+            },
+            onDrillDown: { regionId in
+                uiViewModel.send(.drillDownToRegion(regionId))
+            }
+        )
+    }
+
+    /// Binding for MapUIMode that dispatches actions on set.
+    private var uiModeBinding: Binding<MapUIMode> {
+        Binding(
+            get: { uiViewModel.mode },
+            set: { _ in
+                // Mode is only changed via send() actions, not direct binding
+            }
+        )
+    }
+
+    /// Binding for filter lens that syncs with the explore context.
+    private var filterLensBinding: Binding<FilterLens?> {
+        Binding(
+            get: { uiViewModel.exploreContext?.filterLens },
+            set: { newLens in
+                if let lens = newLens {
+                    uiViewModel.send(.applyFilterLens(lens))
+                } else {
+                    uiViewModel.send(.clearFilterLens)
+                }
+            }
+        )
+    }
+
     private func currentViewportRegion() -> MKCoordinateRegion {
         if let viewport = lastViewport {
             return MapBounds(viewport: viewport).toRegion()
@@ -739,13 +849,22 @@ public struct NewMapView: View {
             ),
             onSelect: { identifier in
                 if let site = viewModel.sites.first(where: { $0.id == identifier }) {
-                    // US-8: Show preview card first, not full detail
                     selectedSiteIdForScroll = site.id
-                    withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) {
-                        previewSite = site
+
+                    // Step 10.3: Route to new surface when enabled
+                    if featureFlags.useNewSurface {
+                        uiViewModel.send(.openSiteInspection(site.id))
+                        surfaceDetent = .medium
                         focusMap(on: [site], singleSpan: 2.5)
+                        Haptics.soft()
+                    } else {
+                        // US-8: Show preview card first, not full detail
+                        withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) {
+                            previewSite = site
+                            focusMap(on: [site], singleSpan: 2.5)
+                        }
+                        Haptics.soft()
                     }
-                    Haptics.soft()
                     return
                 }
                 if identifier.hasPrefix("shop:"),
@@ -763,6 +882,20 @@ public struct NewMapView: View {
                 if !isProgrammaticCameraChange {
                     followMap = false
                     showSearchPrompt()
+
+                    // Step 10.4: Dismiss inspection if site scrolls offscreen
+                    if featureFlags.useNewSurface,
+                       let siteId = uiViewModel.inspectedSiteId,
+                       let site = viewModel.sites.first(where: { $0.id == siteId }) {
+                        let isVisible = viewport.minLatitude <= site.latitude &&
+                                        site.latitude <= viewport.maxLatitude &&
+                                        viewport.minLongitude <= site.longitude &&
+                                        site.longitude <= viewport.maxLongitude
+                        if !isVisible {
+                            uiViewModel.send(.closeSiteInspection)
+                            surfaceDetent = .peek
+                        }
+                    }
                 }
                 viewModel.scheduleRefreshVisibleSites(bounds: bounds)
 
@@ -850,7 +983,65 @@ public struct NewMapView: View {
         }
     }
 
-    private var topOverlay: some View { EmptyView() }
+    // MARK: - HUD Overlay (Step 11)
+
+    @ViewBuilder
+    private var topOverlay: some View {
+        if featureFlags.useNewSurface {
+            hudOverlay
+        } else {
+            EmptyView()
+        }
+    }
+
+    private var hudOverlay: some View {
+        ZStack {
+            // Search button - top right
+            VStack {
+                HStack {
+                    Spacer()
+                    MinimalSearchButton {
+                        uiViewModel.send(.openSearch)
+                        surfaceDetent = .expanded
+                        Haptics.soft()
+                    }
+                    .padding(.trailing, safeAreaInsets.trailing + 16)
+                    .padding(.top, safeAreaInsets.top + 8)
+                }
+                Spacer()
+            }
+
+            // Context label - bottom left, above surface
+            VStack {
+                Spacer()
+                HStack {
+                    ContextLabel(
+                        mode: uiViewModel.mode,
+                        siteCount: hudSiteCount,
+                        isFiltered: hudIsFiltered,
+                        siteName: inspectedSiteName
+                    )
+                    .padding(.leading, safeAreaInsets.leading + 16)
+                    .padding(.bottom, surfaceDetent.height(in: UIScreen.main.bounds.height) + 12)
+                    Spacer()
+                }
+            }
+            .animation(.easeOut(duration: 0.2), value: uiViewModel.mode)
+        }
+    }
+
+    private var inspectedSiteName: String? {
+        guard let siteId = uiViewModel.inspectedSiteId else { return nil }
+        return viewModel.sites.first(where: { $0.id == siteId })?.name
+    }
+
+    private var hudSiteCount: Int {
+        baseSitesForCounts.count
+    }
+
+    private var hudIsFiltered: Bool {
+        uiViewModel.exploreFilters.isActive || uiViewModel.exploreContext?.filterLens != nil
+    }
 
     private var bottomGlow: some View {
         // Simplified - removed decorative circle that caused visual noise
@@ -1861,6 +2052,7 @@ private struct MapFeatureFlags {
     var sheetDetents: Bool = true
     var showChipsAtPeek: Bool = false
     var clusterOn: Bool = true
+    var useNewSurface: Bool = true  // Step 10: New unified bottom surface
 }
 
 private struct OverlayMetrics {
