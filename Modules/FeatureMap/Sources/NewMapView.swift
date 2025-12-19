@@ -43,24 +43,17 @@ public struct NewMapView: View {
         span: MKCoordinateSpan(latitudeDelta: 120, longitudeDelta: 180)
     )
     @State private var selectedSite: DiveSite?
-    @State private var previewSite: DiveSite?  // US-8: Lightweight preview before full detail
     @State private var showingSiteDetail = false
     @State private var showSearch = false
     @State private var searchText = ""
     @State private var showFilterLayers = false
 
-    // Bottom sheet detents and behavior
-    @State private var sheetDetent: SheetDetent = .peek
-    @State private var lastNonPeekDetent: SheetDetent = .half
-    @State private var activeSheetHeight: CGFloat = 0
-
-    // New unified surface state
+    // Unified surface state
     @State private var surfaceDetent: SurfaceDetent = .peek
     @State private var isProgrammaticCameraChange = false
 #if DEBUG
     @State private var showDebugHUD = false
 #endif
-    @GestureState private var sheetDragTranslation: CGFloat = 0
     @State private var featureFlags = MapFeatureFlags()
 
     // Selection and syncing
@@ -86,8 +79,6 @@ public struct NewMapView: View {
     }
     
     private var primaryColor: Color { viewModel.mode == .explore ? .reef : .lagoon }
-
-    private enum SheetDetent { case peek, half, full }
 
     private var baseSitesForCounts: [DiveSite] {
         let viewportSites = viewModel.visibleSites.isEmpty ? viewModel.sites : viewModel.visibleSites
@@ -279,11 +270,11 @@ public struct NewMapView: View {
     }
 
 #if DEBUG
-    private var sheetDetentLabel: String {
-        switch sheetDetent {
+    private var surfaceDetentLabel: String {
+        switch surfaceDetent {
         case .peek: return "peek"
-        case .half: return "half"
-        case .full: return "full"
+        case .medium: return "medium"
+        case .expanded: return "expanded"
         }
     }
 
@@ -308,7 +299,7 @@ public struct NewMapView: View {
 
     private var debugHUD: some View {
         VStack(alignment: .leading, spacing: 8) {
-            Text("Sheet: \(sheetDetentLabel)")
+            Text("Surface: \(surfaceDetentLabel)")
                 .font(.caption.weight(.semibold))
                 .foregroundColor(.white)
             Text(datasetLabel)
@@ -492,7 +483,7 @@ public struct NewMapView: View {
             span: MKCoordinateSpan(latitudeDelta: 120, longitudeDelta: 180)
         )
         followMap = true
-        sheetDetent = .peek
+        surfaceDetent = .peek
         lastFittedRegion = mapRegion
     }
 #endif
@@ -533,26 +524,6 @@ public struct NewMapView: View {
             .tint(primaryColor)
             .navigationTitle("")
             .navigationBarTitleDisplayMode(.inline)
-            // US-8: Site preview card overlay
-            .overlay(alignment: .bottom) {
-                if let site = previewSite {
-                    SitePreviewCard(
-                        site: site,
-                        onTap: {
-                            selectedSite = site
-                            previewSite = nil
-                            showingSiteDetail = true
-                        },
-                        onDismiss: {
-                            withAnimation(.easeOut(duration: 0.2)) {
-                                previewSite = nil
-                            }
-                        }
-                    )
-                    .transition(.move(edge: .bottom).combined(with: .opacity))
-                    .padding(.bottom, activeSheetHeight + 16)
-                }
-            }
             .sheet(isPresented: $showingSiteDetail) { siteDetailSheet }
             .sheet(isPresented: $showSearch) { searchSheet }
             .sheet(isPresented: $showFilterLayers) { combinedFilterLayersSheet }
@@ -586,17 +557,7 @@ public struct NewMapView: View {
             .onChange(of: featureFlags.clusterOn) { newValue in
                 viewModel.layerSettings.showClusters = newValue
             }
-            .onChange(of: featureFlags.sheetDetents) { enabled in
-                if !enabled {
-                    sheetDetent = .peek
-                    lastNonPeekDetent = .half
-                    updateTabBarVisibility(for: .peek)
-                }
-            }
-            .onChange(of: sheetDetent) { newDetent in
-                if featureFlags.sheetDetents && newDetent != .peek {
-                    lastNonPeekDetent = newDetent
-                }
+            .onChange(of: surfaceDetent) { newDetent in
                 updateTabBarVisibility(for: newDetent)
             }
             .task {
@@ -618,12 +579,10 @@ public struct NewMapView: View {
                     // Refresh visible sites based on current map viewport
                     try? await Task.sleep(nanoseconds: 100_000_000)
                     await viewModel.refreshVisibleSites(in: mapRegion)
-
-                    lastNonPeekDetent = .half
                 }
             }
             .onAppear {
-                updateTabBarVisibility(for: sheetDetent)
+                updateTabBarVisibility(for: surfaceDetent)
             }
             .onDisappear {
                 NotificationCenter.default.post(name: .tabBarVisibilityShouldChange, object: nil, userInfo: ["hidden": false])
@@ -638,12 +597,8 @@ public struct NewMapView: View {
         ZStack {
             mapLayer
             overlayControls
-            if featureFlags.useNewSurface {
-                unifiedSurfaceOverlay
-                proximityPromptOverlay
-            } else {
-                bottomSheetOverlay
-            }
+            unifiedSurfaceOverlay
+            proximityPromptOverlay
         }
     }
 
@@ -674,42 +629,7 @@ public struct NewMapView: View {
         }
     }
 
-    private var bottomSheetOverlay: some View {
-        GeometryReader { geo in
-            let containerHeight = geo.size.height
-            let baseHeight = sheetHeight(for: sheetDetent, containerHeight: containerHeight)
-            let dragOffset = featureFlags.sheetDetents ? sheetDragOffset(for: sheetDragTranslation, containerHeight: containerHeight) : 0
-            let currentHeight = max(0, baseHeight - dragOffset)
-            let _ = updateActiveSheetHeightIfNeeded(currentHeight)
-
-            let sheetView = bottomSheet
-                .frame(height: baseHeight)
-                .offset(y: dragOffset)
-                .shadow(color: Color.black.opacity(0.18), radius: 10, y: -4)
-                .transition(.move(edge: .bottom).combined(with: .opacity))
-
-            VStack(spacing: 0) {
-                Spacer()
-                    .allowsHitTesting(false)
-                bottomGlow
-                    .allowsHitTesting(false)
-                if featureFlags.sheetDetents {
-                    sheetView
-                        .overlay(alignment: .top) {
-                            Color.clear
-                                .frame(height: 44)
-                                .contentShape(Rectangle())
-                                .gesture(sheetDragGesture(containerHeight: containerHeight))
-                        }
-                } else {
-                    sheetView
-                }
-            }
-            .ignoresSafeArea(edges: .bottom)
-        }
-    }
-
-    // MARK: - New Unified Surface (Step 10)
+    // MARK: - Unified Surface (Step 10)
 
     private var unifiedSurfaceOverlay: some View {
         UnifiedBottomSurface(
@@ -837,20 +757,11 @@ public struct NewMapView: View {
                 if let site = viewModel.sites.first(where: { $0.id == identifier }) {
                     selectedSiteIdForScroll = site.id
 
-                    // Step 10.3: Route to new surface when enabled
-                    if featureFlags.useNewSurface {
-                        uiViewModel.send(.openSiteInspection(site.id))
-                        surfaceDetent = .medium
-                        focusMap(on: [site], singleSpan: 2.5)
-                        Haptics.soft()
-                    } else {
-                        // US-8: Show preview card first, not full detail
-                        withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) {
-                            previewSite = site
-                            focusMap(on: [site], singleSpan: 2.5)
-                        }
-                        Haptics.soft()
-                    }
+                    // Route to unified surface
+                    uiViewModel.send(.openSiteInspection(site.id))
+                    surfaceDetent = .medium
+                    focusMap(on: [site], singleSpan: 2.5)
+                    Haptics.soft()
                     return
                 }
                 if identifier.hasPrefix("shop:"),
@@ -911,7 +822,7 @@ public struct NewMapView: View {
                 }
 #endif
 
-                if sheetDetent != .full,
+                if surfaceDetent != .expanded,
                    geofenceManager.isAtDiveSite,
                    let site = geofenceManager.currentDiveSite {
                     VStack {
@@ -919,7 +830,7 @@ public struct NewMapView: View {
                             .allowsHitTesting(false)
                         contextualStartButton(for: site)
                             .padding(.horizontal, 24)
-                            .padding(.bottom, max(metrics.bottomPadding, activeSheetHeight + safeAreaInsets.bottom + 40))
+                            .padding(.bottom, max(metrics.bottomPadding, surfaceDetent.height(in: geo.size.height) + safeAreaInsets.bottom + 40))
                             .allowsHitTesting(true)
                     }
                     .frame(width: geo.size.width, height: geo.size.height)
@@ -1049,84 +960,11 @@ public struct NewMapView: View {
         Haptics.tap()
     }
     
-    private func toggleSheetDetent() {
-        guard featureFlags.sheetDetents else { return }
-        withAnimation(.spring(response: 0.3)) {
-            if sheetDetent == .peek {
-                sheetDetent = lastNonPeekDetent
-            } else {
-                lastNonPeekDetent = sheetDetent
-                sheetDetent = .peek
-            }
-        }
-        Haptics.soft()
-    }
-
-    private func updateTabBarVisibility(for detent: SheetDetent) {
-        let shouldHide = featureFlags.sheetDetents ? (detent != .peek) : false
+    private func updateTabBarVisibility(for detent: SurfaceDetent) {
+        let shouldHide = detent != .peek
         NotificationCenter.default.post(name: .tabBarVisibilityShouldChange, object: nil, userInfo: ["hidden": shouldHide])
     }
 
-    private func sheetHeight(for detent: SheetDetent, containerHeight: CGFloat) -> CGFloat {
-        switch detent {
-        case .peek:
-            return max(containerHeight * 0.24, 160)
-        case .half:
-            return containerHeight * 0.60
-        case .full:
-            return containerHeight
-        }
-    }
-
-    private func sheetDragOffset(for translation: CGFloat, containerHeight: CGFloat) -> CGFloat {
-        let baseHeight = sheetHeight(for: sheetDetent, containerHeight: containerHeight)
-        let minHeight = sheetHeight(for: .peek, containerHeight: containerHeight)
-        let maxHeight = sheetHeight(for: .full, containerHeight: containerHeight)
-        let clampedHeight = min(max(baseHeight - translation, minHeight), maxHeight)
-        return baseHeight - clampedHeight
-    }
-
-    private func sheetDragGesture(containerHeight: CGFloat) -> some Gesture {
-        DragGesture(minimumDistance: 5, coordinateSpace: .global)
-            .updating($sheetDragTranslation) { value, state, _ in
-                state = value.translation.height
-            }
-            .onEnded { value in
-                finalizeSheetDrag(translation: value.translation.height, containerHeight: containerHeight)
-            }
-    }
-
-    private func finalizeSheetDrag(translation: CGFloat, containerHeight: CGFloat) {
-        guard featureFlags.sheetDetents else {
-            sheetDetent = .peek
-            return
-        }
-        let baseHeight = sheetHeight(for: sheetDetent, containerHeight: containerHeight)
-        let minHeight = sheetHeight(for: .peek, containerHeight: containerHeight)
-        let halfHeight = sheetHeight(for: .half, containerHeight: containerHeight)
-        let fullHeight = sheetHeight(for: .full, containerHeight: containerHeight)
-
-        let clampedHeight = min(max(baseHeight - translation, minHeight), fullHeight)
-        let targets: [(SheetDetent, CGFloat)] = [(.peek, minHeight), (.half, halfHeight), (.full, fullHeight)]
-        let targetDetent = targets.min { abs(clampedHeight - $0.1) < abs(clampedHeight - $1.1) }?.0 ?? sheetDetent
-
-        guard targetDetent != sheetDetent else { return }
-        withAnimation(.spring(response: 0.3)) {
-            sheetDetent = targetDetent
-        }
-    }
-
-    @discardableResult
-    private func updateActiveSheetHeightIfNeeded(_ newValue: CGFloat) -> Bool {
-        let clamped = max(0, newValue)
-        if abs(activeSheetHeight - clamped) > 1 {
-            DispatchQueue.main.async {
-                activeSheetHeight = clamped
-            }
-            return true
-        }
-        return false
-    }
 
     private func syncStatusFilterToMySitesTab(_ tab: MySitesTab) {
         switch tab {
@@ -1318,8 +1156,8 @@ public struct NewMapView: View {
                         sites: discoverSitesList,
                         selectedSiteId: selectedSiteIdForScroll,
                         onSiteTap: handleSiteTap,
-                        limit: sheetDetent == .peek ? 2 : nil,
-                        scrollDisabled: sheetDetent == .peek,
+                        limit: surfaceDetent == .peek ? 2 : nil,
+                        scrollDisabled: surfaceDetent == .peek,
                         emptyState: discoverSitesEmptyState
                     )
                     if showShops {
@@ -1330,8 +1168,8 @@ public struct NewMapView: View {
                         ShopsListView(
                             shops: discoverShopsList,
                             onShopTap: handleShopTap,
-                            limit: sheetDetent == .peek ? 2 : nil,
-                            scrollDisabled: sheetDetent == .peek,
+                            limit: surfaceDetent == .peek ? 2 : nil,
+                            scrollDisabled: surfaceDetent == .peek,
                             emptyState: discoverShopsEmptyState
                         )
                     }
@@ -1341,8 +1179,8 @@ public struct NewMapView: View {
                     sites: savedSitesList,
                     selectedSiteId: selectedSiteIdForScroll,
                     onSiteTap: handleSiteTap,
-                    limit: sheetDetent == .peek ? 2 : nil,
-                    scrollDisabled: sheetDetent == .peek,
+                    limit: surfaceDetent == .peek ? 2 : nil,
+                    scrollDisabled: surfaceDetent == .peek,
                     emptyState: mySitesEmptyState
                 )
             }
@@ -1371,8 +1209,8 @@ public struct NewMapView: View {
                 sites: discoverSitesList,
                 selectedSiteId: selectedSiteIdForScroll,
                 onSiteTap: handleSiteTap,
-                limit: sheetDetent == .peek ? 2 : nil,
-                scrollDisabled: sheetDetent == .peek,
+                limit: surfaceDetent == .peek ? 2 : nil,
+                scrollDisabled: surfaceDetent == .peek,
                 emptyState: discoverSitesEmptyState
             )
         }
@@ -1392,8 +1230,7 @@ public struct NewMapView: View {
             selectedSiteIdForScroll = site.id
             withAnimation(.easeInOut(duration: 0.3)) {
                 focusMap(on: [site], singleSpan: 2.5)
-                sheetDetent = .half
-                lastNonPeekDetent = .half
+                surfaceDetent = .medium
             }
             showSearch = false
         }
@@ -1443,12 +1280,12 @@ private struct MapBackgroundOverlay: View {
 
 private func overlayMetrics(for size: CGSize) -> OverlayMetrics {
     // Exclusion zones
-    let effectiveTabBarHeight = sheetDetent == .peek ? tabBarHeight : 0
+    let effectiveTabBarHeight = surfaceDetent == .peek ? tabBarHeight : 0
     let bottomNavExclusion = safeAreaInsets.bottom + effectiveTabBarHeight + 12
     let navPadding = bottomNavExclusion + 16
-    let sheetClearance = (activeSheetHeight > 0 ? activeSheetHeight : 0) + 16
+    let surfaceClearance = surfaceDetent.height(in: size.height) + 16
 
-    let bottomPadding = max(16, max(navPadding, sheetClearance))
+    let bottomPadding = max(16, max(navPadding, surfaceClearance))
 
     return OverlayMetrics(bottomPadding: bottomPadding)
 }
@@ -1470,7 +1307,7 @@ private func overlayMetrics(for size: CGSize) -> OverlayMetrics {
         withAnimation(.easeInOut(duration: 0.3)) {
             focusMap(on: areaSites)
             viewModel.selectedArea = area
-            sheetDetent = .half
+            surfaceDetent = .medium
                 followMap = true
             entityTab = .sites
         }
@@ -1483,8 +1320,7 @@ private func overlayMetrics(for size: CGSize) -> OverlayMetrics {
         selectedSiteIdForScroll = site.id
         withAnimation(.easeInOut(duration: 0.3)) {
             focusMap(on: [site], singleSpan: 2.5)
-            sheetDetent = .half
-            lastNonPeekDetent = .half
+            surfaceDetent = .medium
         }
     }
 
@@ -1497,9 +1333,8 @@ private func overlayMetrics(for size: CGSize) -> OverlayMetrics {
                 center: coordinate,
                 span: MKCoordinateSpan(latitudeDelta: 2.0, longitudeDelta: 2.0)
             )
-                followMap = true
-            sheetDetent = .half
-            lastNonPeekDetent = .half
+            followMap = true
+            surfaceDetent = .medium
         }
     }
     

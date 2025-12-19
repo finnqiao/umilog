@@ -5,10 +5,10 @@
 | Field | Value |
 |-------|-------|
 | **Status** | In Progress |
-| **Current Step** | Step 13: Remove Old UI Elements |
-| **Last Updated** | Session 5 |
+| **Current Step** | Step 14: Migrate State from MapViewModel |
+| **Last Updated** | Session 6 |
 | **Total Steps** | 15 (78 sub-tasks) |
-| **Completed** | Steps 1-12 (Phase A+B+C complete, ready for cleanup) |
+| **Completed** | Steps 1-13 (Phase A+B+C+D cleanup complete) |
 
 ---
 
@@ -1014,62 +1014,63 @@ Mode: FILTER / SEARCH
 
 **Important:** Create git tag before this step for rollback.
 
-#### Step 13.1: Remove control rail
+#### Step 13.1: Remove control rail ✅
 
 **File:** `NewMapView.swift`
 
-- [ ] Delete `mapControlRail()` function (lines ~870-950)
-- [ ] Delete `MapControlButton` struct (lines ~1793-1831)
-- [ ] Delete `RailAccessoryButton` struct (lines ~1833-1856)
-- [ ] Remove `@State private var controlRailHeight: CGFloat`
-- [ ] Remove rail from `overlayControls` ViewBuilder
-- [ ] Remove `featureFlags.useRail` checks
-- [ ] Remove rail-related debug toggles
+- [x] Delete `mapControlRail()` function (lines ~870-950)
+- [x] Delete `MapControlButton` struct (lines ~1793-1831)
+- [x] Delete `RailAccessoryButton` struct (lines ~1833-1856)
+- [x] Remove `@State private var controlRailHeight: CGFloat`
+- [x] Remove rail from `overlayControls` ViewBuilder
+- [x] Remove `featureFlags.useRail` checks
+- [x] Remove rail-related debug toggles
 
-#### Step 13.2: Remove filter chips
+#### Step 13.2: Remove filter chips ✅
 
-- [ ] Delete `filterChipsScrollView` ViewBuilder (lines ~1259-1265)
-- [ ] Delete `exploreFilterChips` ViewBuilder (lines ~1267-1275)
-- [ ] Delete chip computed properties:
+- [x] Delete `filterChipsScrollView` ViewBuilder (lines ~1259-1265)
+- [x] Delete `exploreFilterChips` ViewBuilder (lines ~1267-1275)
+- [x] Delete chip computed properties:
   - `allFilterChip`
   - `nearbyFilterChip`
   - `popularFilterChip`
   - `beginnerFilterChip`
   - `staticFilterChips`
   - `shopsFilterChip`
-- [ ] Delete `FilterChip` struct (lines ~1901-1930)
-- [ ] Remove chips from bottomSheetContent (if still referenced)
-- [ ] Remove `featureFlags.showChipsAtPeek`
+- [x] Delete `FilterChip` struct (lines ~1901-1930)
+- [x] Remove chips from bottomSheetContent (if still referenced)
+- [x] Remove `featureFlags.showChipsAtPeek`
 
-#### Step 13.3: Remove floating search pill
+#### Step 13.3: Remove floating search pill ✅
 
-- [ ] Delete search pill from `overlayControls` (lines ~787-806)
-- [ ] Remove `@State private var searchPillVisible`
-- [ ] Remove `@State private var searchPillHideTask`
-- [ ] Delete `showSearchPrompt()` function (lines ~1614-1623)
-- [ ] Delete `hideSearchPrompt()` function (lines ~1625-1629)
-- [ ] Remove `searchPillY` from OverlayMetrics
+- [x] Delete search pill from `overlayControls` (lines ~787-806)
+- [x] Remove `@State private var searchPillVisible`
+- [x] Remove `@State private var searchPillHideTask`
+- [x] Delete `showSearchPrompt()` function (lines ~1614-1623)
+- [x] Delete `hideSearchPrompt()` function (lines ~1625-1629)
+- [x] Remove `searchPillY` from OverlayMetrics
 
-#### Step 13.4: Remove preview card overlay
+#### Step 13.4: Remove preview card overlay ✅
 
-- [ ] Remove SitePreviewCard overlay from body (lines ~547-565)
-- [ ] Remove `@State private var previewSite`
-- [ ] File `SitePreviewCard.swift` can be deleted or moved to `_Deprecated/`
+- [x] Remove SitePreviewCard overlay from body (lines ~547-565)
+- [x] Remove `@State private var previewSite`
+- [x] File `SitePreviewCard.swift` moved to `_Deprecated/`
 
-#### Step 13.5: Remove old bottom sheet
+#### Step 13.5: Remove old bottom sheet ✅
 
-- [ ] Delete commented-out `bottomSheetOverlay` ViewBuilder
-- [ ] Delete `sheetDragGesture()` function
-- [ ] Delete old `SheetDetent` enum (in NewMapView)
-- [ ] Remove sheet-related @State vars:
+- [x] Delete `bottomSheetOverlay` ViewBuilder
+- [x] Delete `sheetDragGesture()` function
+- [x] Delete old `SheetDetent` enum (in NewMapView)
+- [x] Remove sheet-related @State vars:
   - `sheetDetent`
   - `lastNonPeekDetent`
   - `activeSheetHeight`
   - `sheetDragTranslation` GestureState
-- [ ] Remove `OverlayMetrics` struct if no longer needed
-- [ ] Remove `overlayMetrics()` function if no longer needed
+- [x] Migrated `sheetDetent` references to `surfaceDetent`
+- [x] Updated `overlayMetrics()` to use `surfaceDetent.height()` instead of `activeSheetHeight`
+- [x] Updated tab bar visibility logic to use `surfaceDetent`
 
-**✓ Checkpoint 13:** Only new UI elements remain. App still functions.
+**✅ Checkpoint 13:** Only new UI elements remain. App builds successfully.
 
 ---
 
