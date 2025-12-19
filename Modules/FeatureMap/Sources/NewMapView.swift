@@ -1210,6 +1210,18 @@ public struct NewMapView: View {
 
     private var sheetPrimaryRow: some View {
         HStack(spacing: 12) {
+            // Phase 4: Search button (accessible when rail is removed)
+            Button(action: { showSearch = true; Haptics.soft() }) {
+                Image(systemName: "magnifyingglass")
+                    .font(.system(size: 16, weight: .semibold))
+                    .foregroundStyle(Color.foam)
+                    .frame(width: 36, height: 36)
+                    .background(Circle().fill(Color.glass))
+                    .overlay(Circle().stroke(Color.foam.opacity(0.12), lineWidth: 1))
+            }
+            .buttonStyle(.plain)
+            .accessibilityLabel("Search dive sites")
+
             Picker("Scope", selection: $scope) {
                 Text("Discover").tag(Scope.discover)
                 Text("My Dive Sites").tag(Scope.saved)
