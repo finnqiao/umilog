@@ -56,10 +56,7 @@ public struct NewMapView: View {
 
     // New unified surface state
     @State private var surfaceDetent: SurfaceDetent = .peek
-    @State private var controlRailHeight: CGFloat = 0
     @State private var isProgrammaticCameraChange = false
-    @State private var searchPillVisible = false
-    @State private var searchPillHideTask: Task<Void, Never>?
 #if DEBUG
     @State private var showDebugHUD = false
 #endif
@@ -221,7 +218,6 @@ public struct NewMapView: View {
     }
 
     private func fitToVisible() {
-        hideSearchPrompt()
         followMap = true
         if scope == .discover && entityTab == .sites && showShops {
             focusMap(onShops: discoverShopsList, including: baseSitesForCounts)
@@ -310,13 +306,9 @@ public struct NewMapView: View {
         mapLibreAnnotations.count
     }
 
-    private var railStateLabel: String {
-        featureFlags.useRail ? "visible" : "hidden"
-    }
-
     private var debugHUD: some View {
         VStack(alignment: .leading, spacing: 8) {
-            Text("Sheet: \(sheetDetentLabel) • Rail: \(railStateLabel)")
+            Text("Sheet: \(sheetDetentLabel)")
                 .font(.caption.weight(.semibold))
                 .foregroundColor(.white)
             Text(datasetLabel)
@@ -335,11 +327,7 @@ public struct NewMapView: View {
             .buttonStyle(.borderedProminent)
             .controlSize(.mini)
             Divider()
-            Toggle("Rail", isOn: $featureFlags.useRail)
-                .toggleStyle(.switch)
             Toggle("Detents", isOn: $featureFlags.sheetDetents)
-                .toggleStyle(.switch)
-            Toggle("Chips @ peek", isOn: $featureFlags.showChipsAtPeek)
                 .toggleStyle(.switch)
             Toggle("Clusters", isOn: $featureFlags.clusterOn)
                 .toggleStyle(.switch)
@@ -453,7 +441,6 @@ public struct NewMapView: View {
 
     private func focusMap(onCoordinates coordinates: [CLLocationCoordinate2D], singleSpan: Double = 4.0) {
         guard !coordinates.isEmpty else { return }
-        hideSearchPrompt()
         beginProgrammaticCameraChange()
         if coordinates.count == 1, let coordinate = coordinates.first {
             mapRegion = MKCoordinateRegion(
@@ -499,7 +486,6 @@ public struct NewMapView: View {
     }
 
     private func resetCameraToWorld() {
-        hideSearchPrompt()
         beginProgrammaticCameraChange()
         mapRegion = MKCoordinateRegion(
             center: CLLocationCoordinate2D(latitude: 0, longitude: 0),
@@ -881,7 +867,6 @@ public struct NewMapView: View {
                 mapRegion = bounds.toRegion()
                 if !isProgrammaticCameraChange {
                     followMap = false
-                    showSearchPrompt()
 
                     // Step 10.4: Dismiss inspection if site scrolls offscreen
                     if featureFlags.useNewSurface,
@@ -917,27 +902,6 @@ public struct NewMapView: View {
             ZStack(alignment: .topLeading) {
                 topOverlay
 
-                if metrics.showSearchPill {
-                    Button(action: searchCurrentViewport) {
-                        HStack(spacing: 6) {
-                            Image(systemName: "magnifyingglass")
-                            Text("Search this area")
-                                .fontWeight(.semibold)
-                                .lineLimit(1)
-                        }
-                        .font(.footnote)
-                        .padding(.horizontal, 14)
-                        .frame(height: 36)
-                        .frame(maxWidth: 240)
-                        .background(Capsule().fill(Color.glass))
-                        .foregroundStyle(Color.foam)
-                    }
-                    .allowsHitTesting(true)
-                    .position(x: geo.size.width / 2,
-                              y: metrics.searchPillY)
-                    .transition(.move(edge: .top).combined(with: .opacity))
-                }
-
 #if DEBUG
                 if showDebugHUD {
                     debugHUD
@@ -946,23 +910,6 @@ public struct NewMapView: View {
                         .allowsHitTesting(true)
                 }
 #endif
-
-                VStack {
-                    Spacer()
-                        .allowsHitTesting(false)
-                    HStack {
-                        Spacer()
-                            .allowsHitTesting(false)
-                        if featureFlags.useRail {
-                            mapControlRail()
-                                .opacity(metrics.railOpacity)
-                                .padding(.trailing, safeAreaInsets.trailing + 16)
-                                .padding(.bottom, metrics.bottomPadding)
-                                .allowsHitTesting(true)
-                        }
-                    }
-                }
-                .frame(width: geo.size.width, height: geo.size.height)
 
                 if sheetDetent != .full,
                    geofenceManager.isAtDiveSite,
@@ -1058,88 +1005,6 @@ public struct NewMapView: View {
         .transition(.opacity)
     }
 
-    private func mapControlRail() -> some View {
-        VStack(spacing: 12) {
-            MapControlButton(
-                icon: "magnifyingglass",
-                label: "Search dive sites",
-                action: {
-                    showSearch = true
-                    Haptics.soft()
-                }
-            )
-            MapControlButton(
-                icon: "slider.horizontal.3",
-                label: "Filters and layers",
-                isActive: activeFilterCount > 0,
-                badge: activeFilterCount > 0 ? abbreviatedCount(activeFilterCount) : nil,
-                announcesState: true,
-                action: {
-                    showFilterLayers = true
-                    Haptics.soft()
-                }
-            )
-            if isOffCenter {
-                MapControlButton(
-                    icon: "scope",
-                    label: "Recenter map",
-                    action: recenterMap
-                )
-            }
-            MapControlButton(
-                icon: sheetDetent == .peek ? "arrow.up.left.and.arrow.down.right" : "arrow.down.right.and.arrow.up.left",
-                label: sheetDetent == .peek ? "Expand sheet" : "Collapse sheet",
-                action: toggleSheetDetent
-            )
-            .opacity(featureFlags.sheetDetents ? 1.0 : 0.4)
-            .allowsHitTesting(featureFlags.sheetDetents)
-            MapControlButton(
-                icon: "plus",
-                label: "Zoom in",
-                action: {
-                    zoomIn()
-                    Haptics.tap()
-                }
-            )
-            MapControlButton(
-                icon: "minus",
-                label: "Zoom out",
-                action: {
-                    zoomOut()
-                    Haptics.tap()
-                }
-            )
-            RailAccessoryButton(
-                icon: "magnifyingglass.circle",
-                accessibilityLabel: "Search this area",
-                size: 36,
-                action: {
-                    Haptics.tap()
-                    searchCurrentViewport()
-                }
-            )
-        }
-        .padding(12)
-        .background(
-            RoundedRectangle(cornerRadius: 20, style: .continuous)
-                .fill(Color.glass)
-                .overlay(
-                    RoundedRectangle(cornerRadius: 20, style: .continuous)
-                        .stroke(Color.foam.opacity(0.12), lineWidth: 1)
-                )
-        )
-        .shadow(color: Color.black.opacity(0.2), radius: 14, y: 6)
-        .background(
-            GeometryReader { proxy in
-                Color.clear
-                    .onAppear { controlRailHeight = proxy.size.height }
-                    .onChange(of: proxy.size.height) { newValue in
-                        controlRailHeight = newValue
-                    }
-            }
-        )
-    }
-
     private func contextualStartButton(for site: DiveSite) -> some View {
         Button(action: { startLiveLog(at: site) }) {
             HStack(spacing: 14) {
@@ -1181,7 +1046,6 @@ public struct NewMapView: View {
             mapRegion = last
             followMap = true
         }
-        hideSearchPrompt()
         Haptics.tap()
     }
     
@@ -1284,7 +1148,6 @@ public struct NewMapView: View {
             entityTab = .sites
             showShops = false
         }
-        hideSearchPrompt()
         followMap = true
         fitToVisible()
     }
@@ -1297,7 +1160,6 @@ public struct NewMapView: View {
             viewModel.selectedArea = nil
             viewModel.tier = .regions
         }
-        hideSearchPrompt()
         followMap = true
         fitToVisible()
     }
@@ -1310,8 +1172,7 @@ public struct NewMapView: View {
     private func searchCurrentViewport() {
         guard let viewport = lastViewport else {
             followMap = true
-            hideSearchPrompt()
-            fitToVisible()
+                fitToVisible()
             return
         }
         Task {
@@ -1319,8 +1180,7 @@ public struct NewMapView: View {
             await MainActor.run {
                 withAnimation(.spring(response: 0.25)) {
                     followMap = true
-                    hideSearchPrompt()
-                }
+                            }
             }
         }
     }
@@ -1357,17 +1217,6 @@ public struct NewMapView: View {
         VStack(spacing: 16) {
             sheetPrimaryRow
             sheetContextRow
-
-            if scope == .discover && (sheetDetent != .peek || featureFlags.showChipsAtPeek) {
-                VStack(alignment: .leading, spacing: 6) {
-                    Text(filtersScopeLabel)
-                        .font(.caption2)
-                        .foregroundStyle(Color.mist)
-                        .padding(.horizontal, 16)
-                    filterChipsScrollView
-                        .frame(height: 36)
-                }
-            }
 
             if let summary = filterSummaryText {
                 Text(summary)
@@ -1445,123 +1294,6 @@ public struct NewMapView: View {
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding(.horizontal, 16)
-    }
-    
-    private var filterChipsScrollView: some View {
-        ScrollView(.horizontal, showsIndicators: false) {
-            HStack(spacing: 8) { exploreFilterChips }
-            .padding(.horizontal, 16)
-        }
-        .padding(.vertical, 4)
-    }
-    
-    @ViewBuilder
-    private var exploreFilterChips: some View {
-        allFilterChip
-        nearbyFilterChip
-        popularFilterChip
-        beginnerFilterChip
-        staticFilterChips
-        shopsFilterChip
-    }
-    
-    private var allFilterChip: some View {
-        FilterChip(
-            title: "All",
-            isSelected: viewModel.exploreFilter == .all,
-            action: {
-                withAnimation(.spring(response: 0.25)) {
-                    viewModel.exploreFilter = .all
-                    viewModel.tier = .sites
-                    viewModel.selectedRegion = nil
-                    viewModel.selectedArea = nil
-                }
-                Haptics.tap()
-            },
-            primaryColor: primaryColor
-        )
-    }
-    
-    private var nearbyFilterChip: some View {
-        FilterChip(
-            title: "Nearby",
-            isSelected: viewModel.exploreFilter == .nearby,
-            action: {
-                withAnimation(.spring(response: 0.25)) {
-                    viewModel.exploreFilter = .nearby
-                    viewModel.tier = .sites
-                    viewModel.selectedRegion = nil
-                    viewModel.selectedArea = nil
-                }
-                Haptics.tap()
-            },
-            primaryColor: primaryColor
-        )
-    }
-    
-    private var popularFilterChip: some View {
-        FilterChip(
-            title: "Popular",
-            isSelected: viewModel.exploreFilter == .popular,
-            action: {
-                withAnimation(.spring(response: 0.25)) {
-                    viewModel.exploreFilter = .popular
-                    viewModel.tier = .sites
-                    viewModel.selectedRegion = nil
-                    viewModel.selectedArea = nil
-                }
-                Haptics.tap()
-            },
-            primaryColor: primaryColor
-        )
-    }
-    
-    private var beginnerFilterChip: some View {
-        FilterChip(
-            title: "Beginner",
-            isSelected: viewModel.exploreFilter == .beginner,
-            action: {
-                withAnimation(.spring(response: 0.25)) {
-                    viewModel.exploreFilter = .beginner
-                    viewModel.tier = .sites
-                    viewModel.selectedRegion = nil
-                    viewModel.selectedArea = nil
-                }
-                Haptics.tap()
-            },
-            primaryColor: primaryColor
-        )
-    }
-    
-    private var staticFilterChips: some View {
-        FilterChip(
-            title: "Wrecks",
-            isSelected: viewModel.exploreFilter == .wrecks,
-            action: {
-                withAnimation(.spring(response: 0.25)) {
-                    viewModel.exploreFilter = .wrecks
-                    viewModel.tier = .sites
-                    viewModel.selectedRegion = nil
-                    viewModel.selectedArea = nil
-                }
-                Haptics.tap()
-            },
-            primaryColor: primaryColor
-        )
-    }
-
-    private var shopsFilterChip: some View {
-        FilterChip(
-            title: "Shops",
-            isSelected: showShops,
-            action: {
-                withAnimation(.spring(response: 0.2)) {
-                    showShops.toggle()
-                }
-                Haptics.soft()
-            },
-            primaryColor: primaryColor
-        )
     }
     
     private var tierContentView: some View {
@@ -1710,42 +1442,15 @@ private struct MapBackgroundOverlay: View {
 }
 
 private func overlayMetrics(for size: CGSize) -> OverlayMetrics {
-    let topSafe = safeAreaInsets.top + 12
-    let sheetTopY = max(topSafe + 44, size.height - activeSheetHeight)
-
     // Exclusion zones
     let effectiveTabBarHeight = sheetDetent == .peek ? tabBarHeight : 0
     let bottomNavExclusion = safeAreaInsets.bottom + effectiveTabBarHeight + 12
     let navPadding = bottomNavExclusion + 16
     let sheetClearance = (activeSheetHeight > 0 ? activeSheetHeight : 0) + 16
 
-    // Base bottom padding keeps the rail out of BottomNav ∪ SheetTop with 16pt inset
-    let rawBottomPadding = max(16, max(navPadding, sheetClearance))
+    let bottomPadding = max(16, max(navPadding, sheetClearance))
 
-    // Prevent the rail from climbing into the top safe area when the sheet is full
-    let maxBottomPadding: CGFloat
-    if controlRailHeight > 0 {
-        maxBottomPadding = max(16, size.height - (topSafe + controlRailHeight + 16))
-    } else {
-        maxBottomPadding = max(16, rawBottomPadding)
-    }
-    let bottomPadding = min(rawBottomPadding, maxBottomPadding)
-
-    let railOpacity = sheetDetent == .full ? 0.6 : 1.0
-
-    // Search pill placement relative to the live sheet top
-    let pillHeight: CGFloat = 36
-    let pillOffset: CGFloat = 10
-    let desiredCenter = sheetTopY - (pillHeight / 2) - pillOffset
-    let minimumCenter = topSafe + pillHeight / 2 + 20
-    let clampedCenter = min(sheetTopY - (pillHeight / 2) - 4, max(minimumCenter, desiredCenter))
-    let verticalGap = clampedCenter - pillHeight / 2 - topSafe
-    let showSearchPill = searchPillVisible && sheetDetent != .full && verticalGap >= 56
-
-    return OverlayMetrics(bottomPadding: bottomPadding,
-                          railOpacity: railOpacity,
-                          showSearchPill: showSearchPill,
-                          searchPillY: clampedCenter)
+    return OverlayMetrics(bottomPadding: bottomPadding)
 }
 
 // MARK: - Action Handlers
@@ -1766,8 +1471,7 @@ private func overlayMetrics(for size: CGSize) -> OverlayMetrics {
             focusMap(on: areaSites)
             viewModel.selectedArea = area
             sheetDetent = .half
-            hideSearchPrompt()
-            followMap = true
+                followMap = true
             entityTab = .sites
         }
         Haptics.tap()
@@ -1793,31 +1497,12 @@ private func overlayMetrics(for size: CGSize) -> OverlayMetrics {
                 center: coordinate,
                 span: MKCoordinateSpan(latitudeDelta: 2.0, longitudeDelta: 2.0)
             )
-            hideSearchPrompt()
-            followMap = true
+                followMap = true
             sheetDetent = .half
             lastNonPeekDetent = .half
         }
     }
     
-
-    // MARK: - Sheet helpers
-    private func showSearchPrompt() {
-        searchPillHideTask?.cancel()
-        searchPillVisible = true
-        searchPillHideTask = Task {
-            try? await Task.sleep(nanoseconds: 2_000_000_000)
-            await MainActor.run {
-                searchPillVisible = false
-            }
-        }
-    }
-
-    private func hideSearchPrompt() {
-        searchPillHideTask?.cancel()
-        searchPillHideTask = nil
-        searchPillVisible = false
-    }
 
     // MARK: - Smart Initial Camera (US-1, US-2)
 
@@ -1981,85 +1666,14 @@ extension EnvironmentValues {
 
 // MARK: - Pin View
 
-private struct MapControlButton: View {
-    let icon: String
-    let label: String
-    var isActive: Bool = false
-    var badge: String? = nil
-    var announcesState: Bool = false
-    let action: () -> Void
-    
-    var body: some View {
-        Button(action: action) {
-            ZStack(alignment: .topTrailing) {
-                Circle()
-                    .fill(isActive ? Color.oceanBlue.opacity(0.9) : Color.glass)
-                    .frame(width: 44, height: 44)
-                    .overlay(
-                        Circle()
-                            .stroke(Color.foam.opacity(isActive ? 0.4 : 0.18), lineWidth: 1)
-                    )
-                    .overlay(
-                        Image(systemName: icon)
-                            .font(.system(size: 16, weight: .semibold))
-                            .foregroundStyle(Color.foam)
-                    )
-                if let badge {
-                    Text(badge)
-                        .font(.caption2.weight(.bold))
-                        .padding(4)
-                        .background(Circle().fill(Color.reef))
-                        .foregroundStyle(Color.white)
-                        .offset(x: 16, y: -16)
-                        .accessibilityHidden(true)
-                }
-            }
-        }
-        .buttonStyle(.plain)
-        .accessibilityLabel(label)
-        .accessibilityValue(Text(announcesState ? (isActive ? "On" : "Off") : ""))
-    }
-}
-
-private struct RailAccessoryButton: View {
-    let icon: String
-    let accessibilityLabel: String
-    var size: CGFloat = 44
-    let action: () -> Void
-
-    var body: some View {
-        Button(action: action) {
-            Circle()
-                .fill(Color.glass)
-                .frame(width: size, height: size)
-                .overlay(
-                    Circle()
-                        .stroke(Color.foam.opacity(0.18), lineWidth: 1)
-                )
-                .overlay(
-                    Image(systemName: icon)
-                        .font(.system(size: 16, weight: .semibold))
-                        .foregroundStyle(Color.foam)
-                )
-        }
-        .buttonStyle(.plain)
-        .accessibilityLabel(accessibilityLabel)
-    }
-}
-
 private struct MapFeatureFlags {
-    var useRail: Bool = true
     var sheetDetents: Bool = true
-    var showChipsAtPeek: Bool = false
     var clusterOn: Bool = true
     var useNewSurface: Bool = true  // Step 10: New unified bottom surface
 }
 
 private struct OverlayMetrics {
     let bottomPadding: CGFloat
-    let railOpacity: Double
-    let showSearchPill: Bool
-    let searchPillY: CGFloat
 }
 
 struct PinView: View {
@@ -2087,37 +1701,6 @@ struct PinView: View {
         } else {
             return .gray.opacity(0.5)  // Unowned - muted
         }
-    }
-}
-
-// MARK: - Filter Chips
-
-struct FilterChip: View {
-    let title: String
-    let isSelected: Bool
-    let action: () -> Void
-    var primaryColor: Color
-    
-    var body: some View {
-        Button(action: action) {
-            Text(title)
-                .font(.system(size: 13, weight: .semibold))
-                .foregroundStyle(isSelected ? Color.foam : Color.mist)
-                .padding(.horizontal, 14)
-                .padding(.vertical, 8)
-                .background(
-                    Capsule()
-                        .fill(isSelected ? primaryColor.opacity(0.95) : Color.glass)
-                )
-                .overlay(
-                    Capsule()
-                        .stroke(isSelected ? primaryColor.opacity(0.9) : Color.kelp.opacity(0.4), lineWidth: 1)
-                )
-        }
-        .buttonStyle(.plain)
-        .shadow(color: isSelected ? primaryColor.opacity(0.25) : .clear, radius: 6, y: 3)
-        .accessibilityLabel(title)
-        .accessibilityHint(isSelected ? "Filter active" : "Tap to activate filter")
     }
 }
 
