@@ -29,7 +29,9 @@ struct ContentView: View {
     @State private var selectedTab: Tab = .map
     @State private var showingWizard = false
     @State private var showingQuickLog = false
-    @State private var showingLogOptions = false
+    @State private var showingLogLauncher = false
+    @State private var pendingLiveLogSite: DiveSite?
+    @State private var isTabBarHidden = false
     
     var body: some View {
         ZStack {
@@ -41,24 +43,56 @@ struct ContentView: View {
             }
         }
         .environment(\.underwaterThemeBinding, underwaterThemeBinding)
+        .onReceive(NotificationCenter.default.publisher(for: .tabBarVisibilityShouldChange)) { notification in
+            guard let hidden = notification.userInfo?["hidden"] as? Bool else { return }
+            withAnimation(.easeInOut(duration: 0.2)) {
+                isTabBarHidden = hidden
+            }
+        }
         .onChange(of: selectedTab) { newTab in
             if newTab == .log {
                 selectedTab = .map
-                showingLogOptions = true
+                showingLogLauncher = true
             }
         }
         .sheet(isPresented: $showingWizard) {
-            LiveLogWizardView()
+            LiveLogWizardView(initialSite: pendingLiveLogSite)
                 .wateryTransition()
         }
         .sheet(isPresented: $showingQuickLog) {
             QuickLogView()
                 .wateryTransition()
         }
-        .confirmationDialog("Log a Dive", isPresented: $showingLogOptions, titleVisibility: .visible) {
-            Button("Quick Log") { showingQuickLog = true }
-            Button("Start Live Log Wizard") { showingWizard = true }
-            Button("Cancel", role: .cancel) { }
+        .sheet(isPresented: $showingLogLauncher) {
+            LogLauncherView(
+                startQuickLog: {
+                    showingLogLauncher = false
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.25) {
+                        showingQuickLog = true
+                    }
+                },
+                startLiveLog: {
+                    showingLogLauncher = false
+                    pendingLiveLogSite = nil
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.25) {
+                        showingWizard = true
+                    }
+                },
+                onClose: {
+                    showingLogLauncher = false
+                }
+            )
+            .presentationDetents([.medium, .large])
+        }
+        .onReceive(NotificationCenter.default.publisher(for: .startLiveLogRequested)) { notification in
+            guard let site = notification.object as? DiveSite else { return }
+            pendingLiveLogSite = site
+            showingWizard = true
+        }
+        .onChange(of: showingWizard) { isPresented in
+            if !isPresented {
+                pendingLiveLogSite = nil
+            }
         }
     }
 }
@@ -74,7 +108,7 @@ private extension ContentView {
     @ViewBuilder var tabs: some View {
         TabView(selection: $selectedTab) {
             NavigationStack {
-                NewMapView(useMapLibre: appState.useMapLibre)
+                NewMapView()
                     .navigationBarTitleDisplayMode(.inline)
             }
             .tabItem { Label("Map", systemImage: "map.fill") }
@@ -98,6 +132,59 @@ private extension ContentView {
             .tag(Tab.profile)
         }
         .tint(.oceanBlue)
+        .toolbar(isTabBarHidden ? .hidden : .visible, for: .tabBar)
+    }
+}
+
+struct LogLauncherView: View {
+    let startQuickLog: () -> Void
+    let startLiveLog: () -> Void
+    let onClose: () -> Void
+    @Environment(\.dismiss) private var dismiss
+    
+    var body: some View {
+        NavigationStack {
+            List {
+                Section("Choose how to log") {
+                    Button(action: handleQuickLog) {
+                        Label("Quick Log", systemImage: "bolt.fill")
+                            .font(.body.weight(.semibold))
+                    }
+                    Button(action: handleLiveLog) {
+                        Label("Start Live Log", systemImage: "waveform.path.ecg")
+                            .font(.body.weight(.semibold))
+                    }
+                }
+                Section("Tips") {
+                    Text("Quick Log saves a dive in under a minute. Live Log tracks depth, time, and reminders during your dive.")
+                        .font(.footnote)
+                        .foregroundStyle(.secondary)
+                        .listRowBackground(Color.clear)
+                }
+            }
+            .listStyle(.insetGrouped)
+            .navigationTitle("Log a Dive")
+            .toolbar {
+                ToolbarItem(placement: .topBarLeading) {
+                    Button("Close", role: .cancel) { close() }
+                }
+            }
+        }
+    }
+    
+    private func close() {
+        dismiss()
+        onClose()
+    }
+    
+    private func handleQuickLog() {
+        dismiss()
+        startQuickLog()
+    }
+    
+    private func handleLiveLog() {
+        dismiss()
+        startLiveLog()
     }
 }
 
@@ -120,7 +207,6 @@ class AppState: ObservableObject {
             defaults.set(underwaterThemeEnabled, forKey: Self.underwaterThemeDefaultsKey)
         }
     }
-    @Published var useMapLibre: Bool = true  // MapLibre is the default map engine; set false for MapKit fallback
     @Published var isDatabaseSeeded: Bool = false
     private static let underwaterThemeDefaultsKey = "app.umilog.preferences.underwaterThemeEnabled"
     private let defaults: UserDefaults
@@ -132,15 +218,14 @@ class AppState: ObservableObject {
         self.defaults = defaults
         let storedThemeEnabled = defaults.object(forKey: Self.underwaterThemeDefaultsKey) as? Bool ?? true
         self.underwaterThemeEnabled = storedThemeEnabled
-        // Initialize app state
-        logger.log("AppState init, underwaterThemeEnabled=\\(self.underwaterThemeEnabled, privacy: .public), useMapLibre=\\(self.useMapLibre, privacy: .public)")
-        
+        logger.log("AppState init, underwaterThemeEnabled=\(self.underwaterThemeEnabled, privacy: .public)")
+
         // Setup notification categories for geofencing
         geofenceManager.setupNotificationCategories()
-        
+
         // Start geofence monitoring
         geofenceManager.startMonitoring()
-        
+
         // Seed database with test data on first launch
         seedTask = Task.detached(priority: .background) { [weak self] in
             do {
@@ -151,7 +236,7 @@ class AppState: ObservableObject {
                 }
             } catch {
                 await MainActor.run {
-                    self?.logger.error("Seed failed: \\(error.localizedDescription, privacy: .public)")
+                    self?.logger.error("Seed failed: \(error.localizedDescription, privacy: .public)")
                     self?.isDatabaseSeeded = true
                 }
             }

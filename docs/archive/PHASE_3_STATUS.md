@@ -1,5 +1,7 @@
----
-Deprecated: Historical reference only. See README.md and docs/UI_FLOWS_AUDIT.md for current status and active roadmap.
-Original file: PHASE_3_STATUS.md (moved to docs/archive)
----
+# Archived: Phase 3 Status
 
+This document has been moved to docs/archive/PHASE_3_STATUS.md for historical reference.
+
+See:
+- docs/archive/PHASE_3_STATUS.md
+- docs/UI_FLOWS_AUDIT.md (current status and active roadmap)

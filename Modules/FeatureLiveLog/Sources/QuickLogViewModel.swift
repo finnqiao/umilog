@@ -188,7 +188,7 @@ public final class QuickLogViewModel: ObservableObject {
         guard let location = locationService.currentLocation else { return }
         
         do {
-            let allSites = try siteRepository.getAllSites()
+            let allSites = try siteRepository.fetchAll()
             
             // Sort by distance
             nearbySites = allSites.sorted { site1, site2 in

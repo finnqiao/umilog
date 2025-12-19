@@ -853,31 +853,16 @@ public struct NewMapView: View {
     private var topOverlay: some View { EmptyView() }
 
     private var bottomGlow: some View {
-        ZStack {
-            LinearGradient(
-                colors: [
-                    Color.black.opacity(0.0),
-                    Color.oceanBlue.opacity(0.08)
-                ],
-                startPoint: .top,
-                endPoint: .bottom
-            )
-            Circle()
-                .fill(
-                    RadialGradient(
-                        gradient: Gradient(colors: [
-                            Color.diveTeal.opacity(0.06),
-                            Color.oceanBlue.opacity(0.03),
-                            Color.clear
-                        ]),
-                        center: .center,
-                        startRadius: 90,
-                        endRadius: 240
-                    )
-                )
-                .scaleEffect(1.05)
-        }
-        .frame(height: 120)
+        // Simplified - removed decorative circle that caused visual noise
+        LinearGradient(
+            colors: [
+                Color.clear,
+                Color.abyss.opacity(0.6)
+            ],
+            startPoint: .top,
+            endPoint: .bottom
+        )
+        .frame(height: 80)
         .allowsHitTesting(false)
         .transition(.opacity)
     }
@@ -1665,8 +1650,8 @@ private func overlayMetrics(for size: CGSize) -> OverlayMetrics {
             return (location.coordinate, 6.0)
         }
 
-        // 3. Fallback: Cabo San Lucas (popular dive region)
-        return (CLLocationCoordinate2D(latitude: 22.89, longitude: -109.92), 3.0)
+        // 3. Fallback: Cabo San Lucas (popular dive region) - zoomed out to see land
+        return (CLLocationCoordinate2D(latitude: 22.89, longitude: -109.92), 1.8)
     }
 
     /// Convert zoom level to approximate span (latitude delta)

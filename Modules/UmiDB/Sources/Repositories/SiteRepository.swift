@@ -288,15 +288,5 @@ public final class SiteRepository {
             try DiveSite.deleteOne(db, key: id)
         }
     }
-    
-    // MARK: - Convenience Methods
-    
-    public func getAllSites() throws -> [DiveSite] {
-        try database.read { db in
-            try DiveSite
-                .order(DiveSite.Columns.name)
-                .fetchAll(db)
-        }
-    }
 }
 

@@ -278,6 +278,7 @@ targets:
     dependencies:
       - package: MapLibre
       - target: UmiCoreKit
+      - target: UmiDesignSystem
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: app.umilog.feature.divemap

@@ -40,7 +40,7 @@ public class ScratchOffMapViewModel: ObservableObject {
     public func loadData() async {
         do {
             // Load all dive sites
-            diveSites = try siteRepository.getAllSites()
+            diveSites = try siteRepository.fetchAll()
             
             // Load visited countries from dives
             let dives = try await diveRepository.getAllDives()

@@ -46,7 +46,7 @@
       "id": "background",
       "type": "background",
       "paint": {
-        "background-color": "#111827"
+        "background-color": "#0A1628"
       }
     },
     {
@@ -56,21 +56,12 @@
       "minzoom": 0,
       "maxzoom": 18,
       "paint": {
-        "raster-opacity": 0.88,
-        "raster-brightness-min": 0.45,
-        "raster-brightness-max": 1.0,
-        "raster-contrast": 0.35,
-        "raster-saturation": -0.05,
-        "raster-hue-rotate": -5
-      }
-    },
-    {
-      "id": "water-overlay",
-      "type": "fill",
-      "source": "water-overlay",
-      "paint": {
-        "fill-color": "#0D2239",
-        "fill-opacity": 0.25
+        "raster-opacity": 1.0,
+        "raster-brightness-min": 0.3,
+        "raster-brightness-max": 0.85,
+        "raster-contrast": 0.5,
+        "raster-saturation": 0.25,
+        "raster-hue-rotate": 200
       }
     },
     {

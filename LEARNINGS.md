@@ -2,7 +2,92 @@
 
 > Document key decisions, discoveries, and lessons learned during development.
 
-## 🔎 Latest Learnings (Oct 2025)
+## 🔎 Latest Learnings (Dec 2025)
+
+### Map Theming & Tech Debt Cleanup (12-18-2025)
+
+**Goal**: Create a configurable, dynamic map like Resy's while cleaning up tech debt from multiple iterations.
+
+**What We Changed**:
+
+1. **Unified Color System**:
+   - Created `UIColors.swift` in UmiDesignSystem to bridge SwiftUI Colors to UIKit UIColor
+   - Removed duplicate `ColorExtensions.swift` (had conflicting color values)
+   - Key insight: The duplicate file defined `oceanBlue` as `#2563EB` while canonical was `#2D7FBF`
+   - **Learning**: Always centralize design tokens in one module; duplicates drift over time
+
+2. **Configurable Map Theme**:
+   - Created `MapTheme.swift` with centralized configuration for all map styling:
+     - `MapTheme.Colors` - All color definitions
+     - `MapTheme.Typography` - Font settings
+     - `MapTheme.Sizing` - Marker, cluster, glow sizes
+     - `MapTheme.Animation` - Timing and haptics
+     - `MapTheme.Features` - Toggle features on/off
+     - `MapTheme.Clustering` - Cluster behavior
+   - Created `MapIcons.swift` for icon configuration
+   - **Learning**: Centralized config makes A/B testing and rebranding trivial
+
+3. **MapKit Removal**:
+   - Deleted `MapClusterView.swift` (199 lines of MapKit fallback code)
+   - Removed `useMapLibre` toggle from ProfileView and AppState
+   - Simplified NewMapView by removing conditional engine selection
+   - **Learning**: Dual-engine strategy added complexity. Single engine with offline fallback is simpler
+
+4. **Code Cleanup**:
+   - Removed `Placeholder.swift` from UmiCoreKit (no longer needed)
+   - Consolidated `getAllSites()` to `fetchAll()` in SiteRepository
+   - Archived `ScratchOffMapView.swift` and `ScratchOffMapViewModel.swift` (used MapKit)
+   - Archived 9 outdated documentation files to `docs/archive/`
+   - **Learning**: Regular cleanup prevents cruft accumulation
+
+5. **MapVC Refactoring**:
+   - Replaced all inline `UIColor(brandHex:)` calls with MapTheme references
+   - Added `// CUSTOMIZE:` comments at key customization points
+   - Removed private hex-parsing extension (now uses design system)
+   - **Learning**: Self-documenting code with customization hints aids future development
+
+**Files Created**:
+- `Modules/UmiDesignSystem/Sources/UIColors.swift` - UIColor ↔ SwiftUI Color bridge
+- `Modules/DiveMap/Sources/MapTheme.swift` - Centralized theme configuration
+- `Modules/DiveMap/Sources/MapIcons.swift` - Icon configuration
+
+**Files Deleted**:
+- `Modules/FeatureMap/Sources/ColorExtensions.swift`
+- `Modules/FeatureMap/Sources/MapClusterView.swift`
+- `Modules/UmiCoreKit/Sources/Placeholder.swift`
+
+**Files Archived**:
+- `Modules/FeatureMap/Sources/_Archived/ScratchOffMapView.swift`
+- `Modules/FeatureMap/Sources/_Archived/ScratchOffMapViewModel.swift`
+- 9 phase/status documentation files → `docs/archive/`
+
+### ViewModel Extraction (12-19-2025)
+
+**Goal**: Improve code organization by extracting MapViewModel and related types from NewMapView.swift.
+
+**What We Changed**:
+
+1. **Created `MapViewModel.swift`** (~430 lines extracted):
+   - `MapBounds` struct - geographic bounding box for viewport queries
+   - `MapViewModel` class - manages map state, filters, sites, and regions
+   - Enums: `MapMode`, `StatusFilter`, `ExploreFilter`, `Tier`
+   - Models: `Region`, `Area`
+   - Helper enums: `Scope`, `EntityTab`, `MySitesTab`
+   - Helper function: `parseAreaCountry()`
+
+2. **Reduced NewMapView.swift** from ~2,950 to ~2,520 lines (~430 line reduction)
+
+**Why Extract ViewModels**:
+- **Testability**: ViewModels in separate files are easier to unit test
+- **Maintainability**: Smaller files are easier to navigate and understand
+- **Reusability**: Types like `MapBounds`, `Region`, `Area` may be needed elsewhere
+- **Build times**: Smaller files can sometimes compile faster incrementally
+
+**Learning**: Keep ViewModels in separate files, especially once they exceed ~200 lines.
+
+---
+
+## 🔎 Previous Learnings (Oct 2025)
 
 - Map readability: Switched underwater visuals to blue-first rather than near-black. Reduced global dark overlay, tinted materials instead of opaque fills, and increased base map brightness/saturation for label/pin contrast. Bottom panel now capped at 50% of screen with a toolbar toggle for full-screen map.
 

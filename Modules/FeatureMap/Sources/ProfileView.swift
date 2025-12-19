@@ -5,13 +5,6 @@ import GRDB
 
 public struct ProfileView: View {
     @StateObject private var viewModel = ProfileViewModel()
-    @State private var mapEnginePreference = UserDefaults.standard.bool(forKey: "app.umilog.preferences.useMapLibre") {
-        didSet {
-            UserDefaults.standard.set(mapEnginePreference, forKey: "app.umilog.preferences.useMapLibre")
-            // Post notification that map engine changed
-            NotificationCenter.default.post(name: NSNotification.Name("mapEngineChanged"), object: nil)
-        }
-    }
     @Environment(\.underwaterThemeBinding) private var underwaterThemeBinding
     
     public init() {}
@@ -135,29 +128,8 @@ public struct ProfileView: View {
                     .background(Color(.secondarySystemGroupedBackground))
                     .cornerRadius(16)
                     .padding(.horizontal, 16)
-                    
-                    HStack {
-                        Text("Map Engine")
-                            .font(.body)
-                        Spacer()
-                        Picker("", selection: Binding(
-                            get: { mapEnginePreference ? "MapLibre" : "MapKit" },
-                            set: { newValue in
-                                mapEnginePreference = newValue == "MapLibre"
-                                Haptics.soft()
-                            }
-                        )) {
-                            Text("MapLibre").tag("MapLibre")
-                            Text("MapKit").tag("MapKit")
-                        }
-                        .pickerStyle(.segmented)
-                    }
-                    .padding(16)
-                    .background(Color(.secondarySystemGroupedBackground))
-                    .cornerRadius(16)
-                    .padding(.horizontal, 16)
                 }
-                
+
                 // Privacy & Security
                 VStack(alignment: .leading, spacing: 12) {
                     Text("Privacy & Security")

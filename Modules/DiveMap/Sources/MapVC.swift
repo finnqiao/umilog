@@ -155,8 +155,8 @@ public final class MapVC: UIViewController, MLNMapViewDelegate, UIGestureRecogni
         super.viewDidLoad()
         logger.log("mapvc_viewdidload")
         
-        // Placeholder background while style loads
-        fallbackBackground.backgroundColor = UIColor(red: 0.91, green: 0.95, blue: 0.96, alpha: 1.0)
+        // Placeholder background while style loads - dark blue to match underwater theme
+        fallbackBackground.backgroundColor = UIColor(red: 0.04, green: 0.09, blue: 0.16, alpha: 1.0)
         view.addSubview(fallbackBackground)
         let w = view.bounds.size.width
         let h = view.bounds.size.height
@@ -195,10 +195,10 @@ public final class MapVC: UIViewController, MLNMapViewDelegate, UIGestureRecogni
             automaticallyAdjustsScrollViewInsets = false
         }
 
-        // Set initial camera (Cabo San Lucas fallback, zoomed out for context)
+        // Set initial camera (Cabo San Lucas fallback, zoomed out to show land context)
         let camera = initialCamera ?? DiveMapCamera(
             center: CLLocationCoordinate2D(latitude: 22.89, longitude: -109.92),
-            zoomLevel: 3.0
+            zoomLevel: 1.8
         )
         map.setCenter(camera.center, zoomLevel: camera.zoomLevel, animated: false)
         logger.log("camera_set lat=\(camera.center.latitude, privacy: .public) lon=\(camera.center.longitude, privacy: .public) zoom=\(camera.zoomLevel, privacy: .public)")

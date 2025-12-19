@@ -407,7 +407,7 @@ struct SitePickerView: View {
     private func loadSites() async {
         do {
             let repository = SiteRepository(database: AppDatabase.shared)
-            sites = try repository.getAllSites()
+            sites = try repository.fetchAll()
         } catch {
             print("Failed to load sites: \(error)")
         }

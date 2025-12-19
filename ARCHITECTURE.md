@@ -26,7 +26,8 @@ Tabs: Map · History · Log (FAB) · Wildlife · Profile
 
 - App shell and tabs: `UmiLog/UmiLogApp.swift` (UnderwaterThemeView wrapper; center tab presents LiveLogWizardView)
 - Map & sheets: `Modules/FeatureMap/Sources/NewMapView.swift`, `Modules/FeatureMap/Sources/SiteDetailSheet.swift`, `Modules/FeatureMap/Sources/SearchSheet.swift`, `Modules/FeatureMap/Sources/FilterSheet.swift`
-- Map engines: MapLibre wrapper `Modules/DiveMap/Sources/*`, MapKit fallback `Modules/FeatureMap/Sources/MapClusterView.swift`
+- Map engine: MapLibre wrapper `Modules/DiveMap/Sources/*` (MapKit fallback removed Dec 2025)
+- Map theming: `Modules/DiveMap/Sources/MapTheme.swift`, `Modules/DiveMap/Sources/MapIcons.swift`
 - History: `Modules/FeatureHistory/Sources/*`
 - Logging: `Modules/FeatureLiveLog/Sources/LiveLogWizardView.swift`, `Modules/FeatureLiveLog/Sources/QuickLogView.swift`
 - Wildlife: `Modules/FeatureMap/Sources/WildlifeView.swift`

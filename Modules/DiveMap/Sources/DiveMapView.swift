@@ -31,7 +31,7 @@ public struct DiveMapView: UIViewControllerRepresentable {
         annotations: [DiveMapAnnotation],
         initialCamera: DiveMapCamera = DiveMapCamera(
             center: CLLocationCoordinate2D(latitude: 22.89, longitude: -109.92),
-            zoomLevel: 3.0
+            zoomLevel: 1.8
         ),
         layerSettings: DiveMapLayerSettings = .default,
         onSelect: @escaping (String) -> Void = { _ in },
