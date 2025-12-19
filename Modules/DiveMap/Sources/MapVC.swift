@@ -2,6 +2,7 @@ import UIKit
 import MapLibre
 import CoreLocation
 import os
+import UmiDesignSystem
 
 public struct DiveMapAnnotation: Identifiable {
     public enum Kind: String {
@@ -117,12 +118,16 @@ public final class MapVC: UIViewController, MLNMapViewDelegate, UIGestureRecogni
     public var initialCamera: DiveMapCamera? {
         didSet {
             guard let camera = initialCamera, map != nil else { return }
-            // Only update if significantly different to avoid loops
-            if let last = lastSetCamera, abs(last.center.latitude - camera.center.latitude) < 0.01 && abs(last.zoomLevel - camera.zoomLevel) < 0.5 {
+            // Reduced threshold for responsive zoom control updates
+            if let last = lastSetCamera,
+               abs(last.center.latitude - camera.center.latitude) < 0.001 &&
+               abs(last.center.longitude - camera.center.longitude) < 0.001 &&
+               abs(last.zoomLevel - camera.zoomLevel) < 0.1 {
                 return
             }
             lastSetCamera = camera
             setCamera(camera, animated: true)
+            logger.log("camera_updated lat=\(camera.center.latitude, privacy: .public) lon=\(camera.center.longitude, privacy: .public) zoom=\(camera.zoomLevel, privacy: .public)")
         }
     }
 
@@ -175,7 +180,7 @@ public final class MapVC: UIViewController, MLNMapViewDelegate, UIGestureRecogni
         // Enable gestures for zoom/pan
         map.allowsZooming = true
         map.allowsScrolling = true
-        map.allowsRotating = false  // Disable rotation for simplicity
+        map.allowsRotating = true
         map.allowsTilting = false
         
         view.addSubview(map)
@@ -190,10 +195,10 @@ public final class MapVC: UIViewController, MLNMapViewDelegate, UIGestureRecogni
             automaticallyAdjustsScrollViewInsets = false
         }
 
-        // Set initial camera (Red Sea region with seeded data)
+        // Set initial camera (Cabo San Lucas fallback, zoomed out for context)
         let camera = initialCamera ?? DiveMapCamera(
-            center: CLLocationCoordinate2D(latitude: 27.78, longitude: 34.32),
-            zoomLevel: 4.8
+            center: CLLocationCoordinate2D(latitude: 22.89, longitude: -109.92),
+            zoomLevel: 3.0
         )
         map.setCenter(camera.center, zoomLevel: camera.zoomLevel, animated: false)
         logger.log("camera_set lat=\(camera.center.latitude, privacy: .public) lon=\(camera.center.longitude, privacy: .public) zoom=\(camera.zoomLevel, privacy: .public)")
@@ -209,7 +214,22 @@ public final class MapVC: UIViewController, MLNMapViewDelegate, UIGestureRecogni
     }
 
     public func setCamera(_ camera: DiveMapCamera, animated: Bool) {
-        map.setCenter(camera.center, zoomLevel: camera.zoomLevel, animated: animated)
+        let mlnCamera = MLNMapCamera(
+            lookingAtCenter: camera.center,
+            altitude: altitudeForZoom(camera.zoomLevel),
+            pitch: 0,
+            heading: map.camera.heading
+        )
+        if animated {
+            map.fly(to: mlnCamera, withDuration: 0.4, completionHandler: nil)
+        } else {
+            map.setCamera(mlnCamera, animated: false)
+        }
+    }
+
+    private func altitudeForZoom(_ zoom: Double) -> CLLocationDistance {
+        // Approximate altitude calculation for MapLibre zoom levels
+        return 40_000_000 / pow(2, zoom)
     }
 
     // MARK: - Runtime Updates
@@ -307,66 +327,77 @@ public final class MapVC: UIViewController, MLNMapViewDelegate, UIGestureRecogni
     // MARK: - Private Helpers
 
     private func configureStyle(_ style: MLNStyle) {
+        logger.log("configureStyle: starting with layers=\(style.layers.count, privacy: .public) sources=\(style.sources.count, privacy: .public)")
         ensureBaseLayers(in: style)
         ensureDataSources(in: style)
         ensureOverlayLayers(in: style)
+        logger.log("configureStyle: complete with layers=\(style.layers.count, privacy: .public) sources=\(style.sources.count, privacy: .public)")
     }
 
     private func ensureDataSources(in style: MLNStyle) {
         if siteSource == nil, let existingSites = style.source(withIdentifier: "sites") as? MLNShapeSource {
             siteSource = existingSites
+            logger.log("source_reused: sites source already exists")
         }
 
         if siteSource == nil {
             let empty = MLNShapeCollectionFeature(shapes: [])
+            // CUSTOMIZE: Edit MapTheme.Clustering to change clustering behavior
+            let clusterRadius = MapTheme.Clustering.clusterRadius
+            let maxClusterZoom = MapTheme.Clustering.maxClusterZoom
             let sites = MLNShapeSource(identifier: "sites", shape: empty, options: [
                 .clustered: true as NSNumber,
-                .clusterRadius: 48 as NSNumber,
-                .maximumZoomLevelForClustering: 10 as NSNumber
+                .clusterRadius: clusterRadius as NSNumber,
+                .maximumZoomLevelForClustering: maxClusterZoom as NSNumber
             ])
             style.addSource(sites)
             siteSource = sites
-            logger.log("source_added: sites")
+            logger.log("source_added: sites with clustering radius=\(clusterRadius, privacy: .public) maxZoom=\(maxClusterZoom, privacy: .public)")
         }
     }
 
     private func ensureOverlayLayers(in style: MLNStyle) {
         guard let siteSource else { return }
 
-        let lagoon = UIColor(brandHex: "#2D7FBF") ?? UIColor(red: 0.18, green: 0.5, blue: 0.75, alpha: 1.0)
-        let saved = UIColor(brandHex: "#60A5FA") ?? UIColor(red: 0.38, green: 0.65, blue: 0.98, alpha: 1.0)
-        let planned = UIColor(brandHex: "#F59E0B") ?? UIColor(red: 0.96, green: 0.62, blue: 0.04, alpha: 1.0)
-        let reef = UIColor(brandHex: "#5EEAD4") ?? UIColor(red: 0.37, green: 0.92, blue: 0.83, alpha: 1.0)
-        let abyss = UIColor(brandHex: "#09111D") ?? UIColor(red: 0.04, green: 0.06, blue: 0.12, alpha: 1.0)
+        // CUSTOMIZE: All colors come from MapTheme.Colors - edit there to change appearance
+        let clusterFill = MapTheme.Colors.clusterFill
+        let clusterStroke = MapTheme.Colors.clusterStroke
+        let clusterText = MapTheme.Colors.clusterText
+        let stroke = MapTheme.Colors.stroke
 
+        // MARK: - Cluster Layer
         if style.layer(withIdentifier: "site-cluster") == nil {
             let cluster = MLNCircleStyleLayer(identifier: "site-cluster", source: siteSource)
             cluster.predicate = NSPredicate(format: "cluster == YES")
-            cluster.circleColor = NSExpression(forConstantValue: lagoon.withAlphaComponent(0.35))
-            cluster.circleStrokeColor = NSExpression(forConstantValue: lagoon.withAlphaComponent(0.95))
-            cluster.circleStrokeWidth = NSExpression(forConstantValue: 3.0)
+            cluster.circleColor = NSExpression(forConstantValue: clusterFill.withAlphaComponent(0.35))
+            cluster.circleStrokeColor = NSExpression(forConstantValue: clusterStroke.withAlphaComponent(0.95))
+            cluster.circleStrokeWidth = NSExpression(forConstantValue: MapTheme.Sizing.clusterStrokeWidth)
+            // CUSTOMIZE: Cluster radius based on point count - edit MapTheme.Sizing.clusterRadiusStops
             cluster.circleRadius = NSExpression(forConstantValue: 36)
             cluster.isVisible = true
             style.addLayer(cluster)
         }
 
+        // MARK: - Cluster Count Label
         if style.layer(withIdentifier: "site-cluster-count") == nil {
             let count = MLNSymbolStyleLayer(identifier: "site-cluster-count", source: siteSource)
             count.predicate = NSPredicate(format: "cluster == YES")
             count.text = NSExpression(format: "CAST(point_count, 'NSString')")
-            count.textColor = NSExpression(forConstantValue: UIColor(brandHex: "#9FB0C7") ?? UIColor.white)
-            count.textFontSize = NSExpression(forConstantValue: 12)
-            count.textFontNames = NSExpression(forConstantValue: ["HelveticaNeue-Bold"])
+            count.textColor = NSExpression(forConstantValue: clusterText)
+            // CUSTOMIZE: Font settings from MapTheme.Typography
+            count.textFontSize = NSExpression(forConstantValue: MapTheme.Typography.clusterFontSize)
+            count.textFontNames = NSExpression(forConstantValue: [MapTheme.Typography.clusterFont])
             count.textAllowsOverlap = NSExpression(forConstantValue: true)
             style.addLayer(count)
         }
 
-        // Status glows
+        // MARK: - Status Glows
+        // CUSTOMIZE: Status glow colors from MapTheme.Colors
         let glowSpecs: [(String, NSPredicate, UIColor)] = [
-            ("site-glow-logged", NSPredicate(format: "cluster != YES AND status == %@", DiveMapAnnotation.Status.logged.rawValue), lagoon.withAlphaComponent(0.28)),
-            ("site-glow-saved", NSPredicate(format: "cluster != YES AND status == %@", DiveMapAnnotation.Status.saved.rawValue), saved.withAlphaComponent(0.26)),
-            ("site-glow-planned", NSPredicate(format: "cluster != YES AND status == %@", DiveMapAnnotation.Status.planned.rawValue), planned.withAlphaComponent(0.28)),
-            ("site-glow-default", NSPredicate(format: "cluster != YES AND (status == %@ OR status == NULL)", DiveMapAnnotation.Status.baseline.rawValue), lagoon.withAlphaComponent(0.22))
+            ("site-glow-logged", NSPredicate(format: "cluster != YES AND status == %@", DiveMapAnnotation.Status.logged.rawValue), MapTheme.Colors.logged.withAlphaComponent(0.28)),
+            ("site-glow-saved", NSPredicate(format: "cluster != YES AND status == %@", DiveMapAnnotation.Status.saved.rawValue), MapTheme.Colors.saved.withAlphaComponent(0.26)),
+            ("site-glow-planned", NSPredicate(format: "cluster != YES AND status == %@", DiveMapAnnotation.Status.planned.rawValue), MapTheme.Colors.planned.withAlphaComponent(0.28)),
+            ("site-glow-default", NSPredicate(format: "cluster != YES AND (status == %@ OR status == NULL)", DiveMapAnnotation.Status.baseline.rawValue), MapTheme.Colors.defaultGlow)
         ]
 
         var insertionReference: MLNStyleLayer? = style.layer(withIdentifier: "site-cluster-count")
@@ -375,8 +406,9 @@ public final class MapVC: UIViewController, MLNMapViewDelegate, UIGestureRecogni
                 let glow = MLNCircleStyleLayer(identifier: spec.0, source: siteSource)
                 glow.predicate = spec.1
                 glow.circleColor = NSExpression(forConstantValue: spec.2)
-                glow.circleRadius = NSExpression(forConstantValue: 32)
-                glow.circleBlur = NSExpression(forConstantValue: 12)
+                // CUSTOMIZE: Glow size from MapTheme.Sizing
+                glow.circleRadius = NSExpression(forConstantValue: MapTheme.Sizing.glowRadiusMultiplier * 10)
+                glow.circleBlur = NSExpression(forConstantValue: MapTheme.Sizing.glowBlur * 15)
                 glow.circleOpacity = NSExpression(forConstantValue: 1.0)
                 if let ref = insertionReference {
                     style.insertLayer(glow, above: ref)
@@ -387,13 +419,14 @@ public final class MapVC: UIViewController, MLNMapViewDelegate, UIGestureRecogni
             }
         }
 
-        // Difficulty fills
+        // MARK: - Difficulty Markers
+        // CUSTOMIZE: Difficulty colors from MapTheme.Colors
         let difficultySpecs: [(String, NSPredicate, UIColor)] = [
-            ("site-layer-beginner", NSPredicate(format: "cluster != YES AND difficulty == %@", DiveMapAnnotation.Difficulty.beginner.rawValue), UIColor(brandHex: "#3DDC97") ?? UIColor(red: 0.24, green: 0.86, blue: 0.59, alpha: 1.0)),
-            ("site-layer-intermediate", NSPredicate(format: "cluster != YES AND difficulty == %@", DiveMapAnnotation.Difficulty.intermediate.rawValue), saved),
-            ("site-layer-advanced", NSPredicate(format: "cluster != YES AND difficulty == %@", DiveMapAnnotation.Difficulty.advanced.rawValue), UIColor(brandHex: "#FBBF24") ?? UIColor(red: 0.98, green: 0.75, blue: 0.14, alpha: 1.0)),
-            ("site-layer-expert", NSPredicate(format: "cluster != YES AND difficulty == %@", DiveMapAnnotation.Difficulty.expert.rawValue), UIColor(brandHex: "#EF4444") ?? UIColor(red: 0.94, green: 0.27, blue: 0.27, alpha: 1.0)),
-            ("site-layer-default", NSPredicate(format: "cluster != YES AND (difficulty == %@ OR difficulty == NULL)", DiveMapAnnotation.Difficulty.other.rawValue), lagoon)
+            ("site-layer-beginner", NSPredicate(format: "cluster != YES AND difficulty == %@", DiveMapAnnotation.Difficulty.beginner.rawValue), MapTheme.Colors.beginner),
+            ("site-layer-intermediate", NSPredicate(format: "cluster != YES AND difficulty == %@", DiveMapAnnotation.Difficulty.intermediate.rawValue), MapTheme.Colors.intermediate),
+            ("site-layer-advanced", NSPredicate(format: "cluster != YES AND difficulty == %@", DiveMapAnnotation.Difficulty.advanced.rawValue), MapTheme.Colors.advanced),
+            ("site-layer-expert", NSPredicate(format: "cluster != YES AND difficulty == %@", DiveMapAnnotation.Difficulty.expert.rawValue), MapTheme.Colors.expert),
+            ("site-layer-default", NSPredicate(format: "cluster != YES AND (difficulty == %@ OR difficulty == NULL)", DiveMapAnnotation.Difficulty.other.rawValue), MapTheme.Colors.default)
         ]
 
         var lastLayer: MLNStyleLayer? = insertionReference
@@ -402,10 +435,11 @@ public final class MapVC: UIViewController, MLNMapViewDelegate, UIGestureRecogni
                 let circle = MLNCircleStyleLayer(identifier: spec.0, source: siteSource)
                 circle.predicate = spec.1
                 circle.circleColor = NSExpression(forConstantValue: spec.2)
+                // CUSTOMIZE: Marker sizing from MapTheme.Sizing.markerRadiusStops
                 circle.circleRadius = NSExpression(forConstantValue: 9)
                 circle.circleOpacity = NSExpression(forConstantValue: 0.96)
-                circle.circleStrokeColor = NSExpression(forConstantValue: abyss)
-                circle.circleStrokeWidth = NSExpression(forConstantValue: 1.8)
+                circle.circleStrokeColor = NSExpression(forConstantValue: stroke)
+                circle.circleStrokeWidth = NSExpression(forConstantValue: MapTheme.Sizing.markerStrokeWidth)
                 if let ref = lastLayer {
                     style.insertLayer(circle, above: ref)
                 } else {
@@ -415,14 +449,15 @@ public final class MapVC: UIViewController, MLNMapViewDelegate, UIGestureRecogni
             }
         }
 
+        // MARK: - Selection Highlight
         if style.layer(withIdentifier: "site-selected") == nil {
             let selected = MLNCircleStyleLayer(identifier: "site-selected", source: siteSource)
             selected.predicate = NSPredicate(format: "selected == 1 && cluster != YES")
-            selected.circleColor = NSExpression(forConstantValue: reef.withAlphaComponent(0.85))
+            selected.circleColor = NSExpression(forConstantValue: MapTheme.Colors.selectionRing.withAlphaComponent(0.85))
             selected.circleRadius = NSExpression(forConstantValue: 14)
             selected.circleOpacity = NSExpression(forConstantValue: 0.9)
-            selected.circleStrokeColor = NSExpression(forConstantValue: lagoon)
-            selected.circleStrokeWidth = NSExpression(forConstantValue: 2.0)
+            selected.circleStrokeColor = NSExpression(forConstantValue: clusterFill)
+            selected.circleStrokeWidth = NSExpression(forConstantValue: MapTheme.Sizing.selectionStrokeWidth)
             if let ref = lastLayer {
                 style.insertLayer(selected, above: ref)
             } else {
@@ -437,6 +472,7 @@ public final class MapVC: UIViewController, MLNMapViewDelegate, UIGestureRecogni
         }
 
         let updateLayers = { [layerSettings] in
+            // Toggle cluster visibility
             let clusterIds = ["site-cluster", "site-cluster-count"]
             for id in clusterIds {
                 if let layer = style.layer(withIdentifier: id) as? MLNStyleLayer {
@@ -444,6 +480,7 @@ public final class MapVC: UIViewController, MLNMapViewDelegate, UIGestureRecogni
                 }
             }
 
+            // Toggle glow visibility
             let glowIds = [
                 "site-glow-logged",
                 "site-glow-saved",
@@ -456,23 +493,19 @@ public final class MapVC: UIViewController, MLNMapViewDelegate, UIGestureRecogni
                 }
             }
 
-            let lagoon = UIColor(brandHex: "#2D7FBF") ?? UIColor(red: 0.18, green: 0.5, blue: 0.75, alpha: 1.0)
-            let beginner = UIColor(brandHex: "#3DDC97") ?? UIColor(red: 0.24, green: 0.86, blue: 0.59, alpha: 1.0)
-            let intermediate = UIColor(brandHex: "#60A5FA") ?? UIColor(red: 0.38, green: 0.65, blue: 0.98, alpha: 1.0)
-            let advanced = UIColor(brandHex: "#FBBF24") ?? UIColor(red: 0.98, green: 0.75, blue: 0.14, alpha: 1.0)
-            let expert = UIColor(brandHex: "#EF4444") ?? UIColor(red: 0.94, green: 0.27, blue: 0.27, alpha: 1.0)
-
+            // CUSTOMIZE: All difficulty colors from MapTheme.Colors
+            let defaultColor = MapTheme.Colors.default
             let difficultyLayers: [(String, UIColor)] = [
-                ("site-layer-beginner", beginner),
-                ("site-layer-intermediate", intermediate),
-                ("site-layer-advanced", advanced),
-                ("site-layer-expert", expert),
-                ("site-layer-default", lagoon)
+                ("site-layer-beginner", MapTheme.Colors.beginner),
+                ("site-layer-intermediate", MapTheme.Colors.intermediate),
+                ("site-layer-advanced", MapTheme.Colors.advanced),
+                ("site-layer-expert", MapTheme.Colors.expert),
+                ("site-layer-default", defaultColor)
             ]
 
             for (id, color) in difficultyLayers {
                 guard let layer = style.layer(withIdentifier: id) as? MLNCircleStyleLayer else { continue }
-                let target = layerSettings.colorByDifficulty ? color : lagoon
+                let target = layerSettings.colorByDifficulty ? color : defaultColor
                 layer.circleColor = NSExpression(forConstantValue: target)
             }
         }
@@ -486,8 +519,16 @@ public final class MapVC: UIViewController, MLNMapViewDelegate, UIGestureRecogni
 
     private func zoomIntoCluster(at point: CGPoint) {
         let coordinate = map.convert(point, toCoordinateFrom: map)
-        let targetZoom = min(map.zoomLevel + 1.5, map.maximumZoomLevel)
-        map.setCenter(coordinate, zoomLevel: targetZoom, animated: true)
+        // Zoom +2 levels to show cluster contents, up to maxClusterZoom
+        let targetZoom = min(map.zoomLevel + 2.0, MapTheme.Clustering.maxClusterZoom)
+
+        let mlnCamera = MLNMapCamera(
+            lookingAtCenter: coordinate,
+            altitude: altitudeForZoom(targetZoom),
+            pitch: 0,
+            heading: map.camera.heading
+        )
+        map.fly(to: mlnCamera, withDuration: 0.35, completionHandler: nil)
     }
 
     private func updateAnnotationsIfReady() {
@@ -551,7 +592,8 @@ public final class MapVC: UIViewController, MLNMapViewDelegate, UIGestureRecogni
         // Just ensure our background is below them
         if style.layer(withIdentifier: "umi-bg") == nil {
             let background = MLNBackgroundStyleLayer(identifier: "umi-bg")
-            background.backgroundColor = NSExpression(forConstantValue: UIColor(brandHex: "#111827") ?? UIColor(red: 0.07, green: 0.09, blue: 0.15, alpha: 1.0))
+            // CUSTOMIZE: Background color from MapTheme.Colors
+            background.backgroundColor = NSExpression(forConstantValue: MapTheme.Colors.background)
             // Insert below all other layers as base
             if let firstLayer = style.layers.first {
                 style.insertLayer(background, below: firstLayer)
@@ -623,15 +665,4 @@ public final class MapVC: UIViewController, MLNMapViewDelegate, UIGestureRecogni
     }
 }
 
-private extension UIColor {
-    convenience init?(brandHex: String) {
-        let hex = brandHex.replacingOccurrences(of: "#", with: "")
-        guard hex.count == 6, let value = Int(hex, radix: 16) else {
-            return nil
-        }
-        let r = CGFloat((value >> 16) & 0xFF) / 255.0
-        let g = CGFloat((value >> 8) & 0xFF) / 255.0
-        let b = CGFloat(value & 0xFF) / 255.0
-        self.init(red: r, green: g, blue: b, alpha: 1.0)
-    }
-}
+// Note: Removed UIColor(brandHex:) extension - now using MapTheme colors from UmiDesignSystem
