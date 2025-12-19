@@ -42,6 +42,7 @@ public struct NewMapView: View {
         span: MKCoordinateSpan(latitudeDelta: 120, longitudeDelta: 180)
     )
     @State private var selectedSite: DiveSite?
+    @State private var previewSite: DiveSite?  // US-8: Lightweight preview before full detail
     @State private var showingSiteDetail = false
     @State private var showSearch = false
     @State private var searchText = ""
@@ -542,6 +543,26 @@ public struct NewMapView: View {
             .tint(primaryColor)
             .navigationTitle("")
             .navigationBarTitleDisplayMode(.inline)
+            // US-8: Site preview card overlay
+            .overlay(alignment: .bottom) {
+                if let site = previewSite {
+                    SitePreviewCard(
+                        site: site,
+                        onTap: {
+                            selectedSite = site
+                            previewSite = nil
+                            showingSiteDetail = true
+                        },
+                        onDismiss: {
+                            withAnimation(.easeOut(duration: 0.2)) {
+                                previewSite = nil
+                            }
+                        }
+                    )
+                    .transition(.move(edge: .bottom).combined(with: .opacity))
+                    .padding(.bottom, activeSheetHeight + 16)
+                }
+            }
             .sheet(isPresented: $showingSiteDetail) { siteDetailSheet }
             .sheet(isPresented: $showSearch) { searchSheet }
             .sheet(isPresented: $showFilterLayers) { combinedFilterLayersSheet }
@@ -718,13 +739,13 @@ public struct NewMapView: View {
             ),
             onSelect: { identifier in
                 if let site = viewModel.sites.first(where: { $0.id == identifier }) {
-                    selectedSite = site
+                    // US-8: Show preview card first, not full detail
                     selectedSiteIdForScroll = site.id
-                    withAnimation(.easeInOut(duration: 0.3)) {
+                    withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) {
+                        previewSite = site
                         focusMap(on: [site], singleSpan: 2.5)
-                        sheetDetent = .half
-                        lastNonPeekDetent = .half
                     }
+                    Haptics.soft()
                     return
                 }
                 if identifier.hasPrefix("shop:"),
