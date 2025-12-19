@@ -744,6 +744,13 @@ public struct NewMapView: View {
                     showSearchPrompt()
                 }
                 viewModel.scheduleRefreshVisibleSites(bounds: bounds)
+
+                // US-2: Save map state for persistence
+                let center = CLLocationCoordinate2D(
+                    latitude: (viewport.minLatitude + viewport.maxLatitude) / 2,
+                    longitude: (viewport.minLongitude + viewport.maxLongitude) / 2
+                )
+                viewModel.saveMapState(center: center, zoom: diveMapCamera.zoomLevel)
             }
         )
         .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -1603,9 +1610,15 @@ private func overlayMetrics(for size: CGSize) -> OverlayMetrics {
         searchPillVisible = false
     }
 
-    // MARK: - Smart Initial Camera (US-1)
+    // MARK: - Smart Initial Camera (US-1, US-2)
 
     private func determineInitialMapCenter() -> (coordinate: CLLocationCoordinate2D, span: Double) {
+        // 0. US-2: Check for persisted map state (returning user)
+        if let lastState = viewModel.loadLastMapState() {
+            let span = zoomToSpan(lastState.zoom)
+            return (lastState.center, span)
+        }
+
         // 1. Check for saved sites (most recent visited or wishlist)
         let savedSites = viewModel.sites.filter { $0.wishlist || $0.visitedCount > 0 }
         if let mostRecent = savedSites.first {
@@ -1621,6 +1634,12 @@ private func overlayMetrics(for size: CGSize) -> OverlayMetrics {
 
         // 3. Fallback: Cabo San Lucas (popular dive region)
         return (CLLocationCoordinate2D(latitude: 22.89, longitude: -109.92), 3.0)
+    }
+
+    /// Convert zoom level to approximate span (latitude delta)
+    private func zoomToSpan(_ zoom: Double) -> Double {
+        // Approximate: span ≈ 360 / 2^(zoom-1)
+        return 360.0 / pow(2.0, zoom - 1)
     }
 
     private var savedSitesList: [DiveSite] {
