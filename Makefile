@@ -118,20 +118,7 @@ data-validate: dirs
 .PHONY: sites-merge
 sites-merge: dirs
 	@echo "Merging site sources..."
-	python3 -c "\
-import json; \
-import glob; \
-sites = []; \
-seen = set(); \
-for f in ['$(SEED_OUT)', '$(EXPORT_DIR)/sites_osm.json']: \
-    try: \
-        data = json.load(open(f)); \
-        for s in (data.get('sites', data) if isinstance(data, dict) else data): \
-            key = (s['name'].lower(), round(s['latitude'],4), round(s['longitude'],4)); \
-            if key not in seen: seen.add(key); sites.append(s); \
-    except: pass; \
-json.dump({'sites': sites}, open('$(EXPORT_DIR)/sites_merged.json', 'w'), indent=2); \
-print(f'Merged {len(sites)} sites')"
+	python3 data/scripts/merge_sites.py $(EXPORT_DIR)/sites_merged.json $(SEED_OUT) $(EXPORT_DIR)/sites_osm.json
 
 # Full reference database build pipeline
 .PHONY: refdb-build-all

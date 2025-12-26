@@ -1,11 +1,9 @@
 [out:json][timeout:300];
 (
-  // Dive sites - Maldives & Sri Lanka
-  node["leisure"="dive_centre"](-2,71,10,82);
-  node["sport"="scuba_diving"](-2,71,10,82);
-  // Reefs
-  node["natural"="reef"](-2,71,10,82);
-  way["natural"="reef"](-2,71,10,82);
+  node["leisure"="dive_centre"](-1,72,8,74);
+  node["sport"="scuba_diving"](-1,72,8,74);
+  node["natural"="reef"](-1,72,8,74);
+  way["natural"="reef"](-1,72,8,74);
 );
 out body;
 >;
