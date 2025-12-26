@@ -282,10 +282,238 @@ public final class SiteRepository {
     }
     
     // MARK: - Delete
-    
+
     public func delete(id: String) throws {
         try database.write { db in
             try DiveSite.deleteOne(db, key: id)
+        }
+    }
+
+    // MARK: - v5: Species-based Queries (Bidirectional Filtering)
+
+    /// Fetch sites where a specific species can be found
+    public func fetchForSpecies(_ speciesId: String) throws -> [SiteLite] {
+        try database.read { db in
+            let sql = """
+            SELECT s.id, s.name, s.latitude, s.longitude, s.difficulty, s.type,
+                   s.tags, s.region, s.visitedCount, s.wishlist,
+                   ss.likelihood
+            FROM sites s
+            INNER JOIN site_species ss ON s.id = ss.site_id
+            WHERE ss.species_id = ?
+            ORDER BY
+                CASE ss.likelihood
+                    WHEN 'common' THEN 1
+                    WHEN 'occasional' THEN 2
+                    ELSE 3
+                END,
+                s.name
+            """
+
+            let rows = try Row.fetchAll(db, sql: sql, arguments: [speciesId])
+            return rows.map { row in
+                let tagsString = row["tags"] as? String ?? "[]"
+                let tags: [String]
+                if let data = tagsString.data(using: .utf8),
+                   let decoded = try? JSONDecoder().decode([String].self, from: data) {
+                    tags = Array(decoded.prefix(3))
+                } else {
+                    tags = []
+                }
+
+                return SiteLite(
+                    id: row["id"],
+                    name: row["name"],
+                    latitude: row["latitude"],
+                    longitude: row["longitude"],
+                    difficulty: row["difficulty"],
+                    type: row["type"],
+                    tags: tags,
+                    region: row["region"],
+                    visitedCount: row["visitedCount"],
+                    wishlist: row["wishlist"]
+                )
+            }
+        }
+    }
+
+    /// Fetch sites with specific species in viewport (for map filtering)
+    public func fetchWithSpeciesFilter(
+        minLat: Double, maxLat: Double, minLon: Double, maxLon: Double,
+        speciesIds: [String],
+        likelihood: SiteSpeciesLink.Likelihood? = nil,
+        limit: Int = 500
+    ) throws -> [SiteLite] {
+        guard !speciesIds.isEmpty else {
+            return try fetchInBoundsLite(minLat: minLat, maxLat: maxLat, minLon: minLon, maxLon: maxLon, limit: limit)
+        }
+
+        return try database.read { db in
+            let placeholders = speciesIds.map { _ in "?" }.joined(separator: ",")
+            var sql = """
+            SELECT DISTINCT s.id, s.name, s.latitude, s.longitude, s.difficulty, s.type,
+                   s.tags, s.region, s.visitedCount, s.wishlist
+            FROM sites s
+            INNER JOIN site_species ss ON s.id = ss.site_id
+            WHERE s.latitude BETWEEN ? AND ?
+              AND s.longitude BETWEEN ? AND ?
+              AND ss.species_id IN (\(placeholders))
+            """
+
+            var args: [DatabaseValueConvertible] = [minLat, maxLat, minLon, maxLon]
+            args.append(contentsOf: speciesIds)
+
+            if let likelihood = likelihood {
+                sql += " AND ss.likelihood = ?"
+                args.append(likelihood.rawValue)
+            }
+
+            sql += " ORDER BY s.name LIMIT ?"
+            args.append(limit)
+
+            let rows = try Row.fetchAll(db, sql: sql, arguments: StatementArguments(args))
+            return rows.map { row in
+                let tagsString = row["tags"] as? String ?? "[]"
+                let tags: [String]
+                if let data = tagsString.data(using: .utf8),
+                   let decoded = try? JSONDecoder().decode([String].self, from: data) {
+                    tags = Array(decoded.prefix(3))
+                } else {
+                    tags = []
+                }
+
+                return SiteLite(
+                    id: row["id"],
+                    name: row["name"],
+                    latitude: row["latitude"],
+                    longitude: row["longitude"],
+                    difficulty: row["difficulty"],
+                    type: row["type"],
+                    tags: tags,
+                    region: row["region"],
+                    visitedCount: row["visitedCount"],
+                    wishlist: row["wishlist"]
+                )
+            }
+        }
+    }
+
+    /// Get sites with the most species diversity
+    public func fetchBySpeciesDiversity(limit: Int = 20) throws -> [SiteLite] {
+        try database.read { db in
+            let sql = """
+            SELECT s.id, s.name, s.latitude, s.longitude, s.difficulty, s.type,
+                   s.tags, s.region, s.visitedCount, s.wishlist,
+                   COUNT(ss.species_id) as species_count
+            FROM sites s
+            LEFT JOIN site_species ss ON s.id = ss.site_id
+            GROUP BY s.id
+            HAVING species_count > 0
+            ORDER BY species_count DESC
+            LIMIT ?
+            """
+
+            let rows = try Row.fetchAll(db, sql: sql, arguments: [limit])
+            return rows.map { row in
+                let tagsString = row["tags"] as? String ?? "[]"
+                let tags: [String]
+                if let data = tagsString.data(using: .utf8),
+                   let decoded = try? JSONDecoder().decode([String].self, from: data) {
+                    tags = Array(decoded.prefix(3))
+                } else {
+                    tags = []
+                }
+
+                return SiteLite(
+                    id: row["id"],
+                    name: row["name"],
+                    latitude: row["latitude"],
+                    longitude: row["longitude"],
+                    difficulty: row["difficulty"],
+                    type: row["type"],
+                    tags: tags,
+                    region: row["region"],
+                    visitedCount: row["visitedCount"],
+                    wishlist: row["wishlist"]
+                )
+            }
+        }
+    }
+
+    // MARK: - v5: Geographic Hierarchy Queries
+
+    /// Fetch sites by country
+    public func fetchByCountry(_ countryId: String) throws -> [SiteLite] {
+        try database.read { db in
+            let sites = try DiveSite
+                .filter(DiveSite.Columns.countryId == countryId)
+                .order(DiveSite.Columns.name)
+                .fetchAll(db)
+
+            return sites.map { site in
+                SiteLite(
+                    id: site.id,
+                    name: site.name,
+                    latitude: site.latitude,
+                    longitude: site.longitude,
+                    difficulty: site.difficulty.rawValue,
+                    type: site.type.rawValue,
+                    tags: Array(site.tags.prefix(3)),
+                    region: site.region,
+                    visitedCount: site.visitedCount,
+                    wishlist: site.wishlist
+                )
+            }
+        }
+    }
+
+    /// Fetch sites by region (normalized)
+    public func fetchByRegionId(_ regionId: String) throws -> [SiteLite] {
+        try database.read { db in
+            let sites = try DiveSite
+                .filter(DiveSite.Columns.regionId == regionId)
+                .order(DiveSite.Columns.name)
+                .fetchAll(db)
+
+            return sites.map { site in
+                SiteLite(
+                    id: site.id,
+                    name: site.name,
+                    latitude: site.latitude,
+                    longitude: site.longitude,
+                    difficulty: site.difficulty.rawValue,
+                    type: site.type.rawValue,
+                    tags: Array(site.tags.prefix(3)),
+                    region: site.region,
+                    visitedCount: site.visitedCount,
+                    wishlist: site.wishlist
+                )
+            }
+        }
+    }
+
+    /// Fetch sites by area
+    public func fetchByArea(_ areaId: String) throws -> [SiteLite] {
+        try database.read { db in
+            let sites = try DiveSite
+                .filter(DiveSite.Columns.areaId == areaId)
+                .order(DiveSite.Columns.name)
+                .fetchAll(db)
+
+            return sites.map { site in
+                SiteLite(
+                    id: site.id,
+                    name: site.name,
+                    latitude: site.latitude,
+                    longitude: site.longitude,
+                    difficulty: site.difficulty.rawValue,
+                    type: site.type.rawValue,
+                    tags: Array(site.tags.prefix(3)),
+                    region: site.region,
+                    visitedCount: site.visitedCount,
+                    wishlist: site.wishlist
+                )
+            }
         }
     }
 }

@@ -1,5 +1,6 @@
 import SwiftUI
 import UmiDB
+import UmiDesignSystem
 
 /// Unified bottom surface that morphs based on the current UI mode.
 /// Replaces the old bottom sheet, preview card, and filter overlays.
@@ -12,6 +13,15 @@ struct UnifiedBottomSurface: View {
     @Binding var filterLens: FilterLens?
 
     // MARK: - Data
+
+    /// Filtered sites computed by the parent view using new filter types.
+    let filteredSites: [DiveSite]
+
+    /// All sites for search (unfiltered).
+    let allSites: [DiveSite]
+
+    /// Loading state from data view model.
+    let isLoading: Bool
 
     @ObservedObject var dataViewModel: MapViewModel
 
@@ -26,6 +36,10 @@ struct UnifiedBottomSurface: View {
     var onOpenSearch: () -> Void
     var onNavigateUp: () -> Void
     var onDrillDown: (String) -> Void
+    var onOpenPlan: (String?) -> Void
+    var onAddSiteToPlan: (String) -> Void
+    var onRemoveSiteFromPlan: (String) -> Void
+    var onClosePlan: () -> Void
 
     // MARK: - State
 
@@ -33,39 +47,55 @@ struct UnifiedBottomSurface: View {
     @State private var isAnimating = false
     @State private var searchQuery: String = ""
 
+    // MARK: - Environment
+
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
     // MARK: - Body
 
     var body: some View {
         GeometryReader { geometry in
             let containerHeight = geometry.size.height
-            let allowedDetents = SurfaceDetent.allowed(for: mode)
-            let baseHeight = detent.height(in: containerHeight)
-            let minHeight = allowedDetents.map { $0.height(in: containerHeight) }.min() ?? baseHeight
-            let maxHeight = allowedDetents.map { $0.height(in: containerHeight) }.max() ?? baseHeight
 
-            let adjustedTranslation = SurfaceGestures.computeRubberBandOffset(
-                translation: dragTranslation,
-                baseHeight: baseHeight,
-                minHeight: minHeight,
-                maxHeight: maxHeight
-            )
+            // Guard against invalid container height during layout
+            if containerHeight > 0 {
+                let allowedDetents = SurfaceDetent.allowed(for: mode)
+                let baseHeight = detent.height(in: containerHeight)
+                let minHeight = allowedDetents.map { $0.height(in: containerHeight) }.min() ?? baseHeight
+                let maxHeight = allowedDetents.map { $0.height(in: containerHeight) }.max() ?? baseHeight
 
-            let currentHeight = baseHeight - adjustedTranslation
+                let adjustedTranslation = SurfaceGestures.computeRubberBandOffset(
+                    translation: dragTranslation,
+                    baseHeight: baseHeight,
+                    minHeight: minHeight,
+                    maxHeight: maxHeight
+                )
 
-            VStack(spacing: 0) {
-                Spacer(minLength: 0)
+                // Ensure currentHeight is always valid (positive and finite)
+                let rawHeight = baseHeight - adjustedTranslation
+                let currentHeight = max(minHeight, min(maxHeight, rawHeight))
 
-                surfaceContent(containerHeight: containerHeight)
-                    .frame(height: currentHeight)
-                    .background(surfaceBackground)
-                    .clipShape(RoundedRectangle(cornerRadius: 24, style: .continuous))
-                    .shadow(color: Color.black.opacity(0.18), radius: 10, y: -4)
-                    .gesture(dragGesture(containerHeight: containerHeight, allowedDetents: allowedDetents))
+                VStack(spacing: 0) {
+                    Spacer(minLength: 0)
+
+                    surfaceContent(containerHeight: containerHeight)
+                        .frame(height: currentHeight)
+                        .background(surfaceBackground)
+                        .clipShape(RoundedRectangle(cornerRadius: 24, style: .continuous))
+                        .shadow(color: Color.black.opacity(0.18), radius: 10, y: -4)
+                        .gesture(dragGesture(containerHeight: containerHeight, allowedDetents: allowedDetents))
+                }
+                .ignoresSafeArea(edges: .bottom)
+                .animation(surfaceAnimation, value: detent)
+                .animation(surfaceAnimation, value: mode)
             }
-            .ignoresSafeArea(edges: .bottom)
-            .animation(.spring(response: 0.35, dampingFraction: 0.85), value: detent)
-            .animation(.spring(response: 0.35, dampingFraction: 0.85), value: mode)
         }
+    }
+
+    // MARK: - Animation
+
+    private var surfaceAnimation: Animation? {
+        reduceMotion ? nil : .spring(response: 0.35, dampingFraction: 0.85)
     }
 
     // MARK: - Surface Content
@@ -82,43 +112,81 @@ struct UnifiedBottomSurface: View {
 
     @ViewBuilder
     private func modeContent(containerHeight: CGFloat) -> some View {
-        switch mode {
-        case .explore(let context):
-            ExploreContent(
-                context: context,
-                detent: detent,
-                sites: dataViewModel.filteredSites,
-                loading: dataViewModel.loading,
-                onSiteTap: onSiteTap,
-                onOpenFilter: onOpenFilter,
-                onNavigateUp: onNavigateUp,
-                onDrillDown: onDrillDown
-            )
+        // Wrap content in a container that applies transitions
+        Group {
+            switch mode {
+            case .explore(let context):
+                ExploreContent(
+                    context: context,
+                    detent: detent,
+                    sites: filteredSites,
+                    loading: isLoading,
+                    filterLens: $filterLens,
+                    filterDifficulties: $exploreFilters.difficulty,
+                    onSiteTap: onSiteTap,
+                    onOpenFilter: onOpenFilter,
+                    onNavigateUp: onNavigateUp,
+                    onDrillDown: onDrillDown
+                )
+                .transition(contentTransition)
 
-        case .inspectSite(let context):
-            InspectContent(
-                context: context,
-                site: dataViewModel.sites.first { $0.id == context.siteId },
-                detent: detent,
-                onDismiss: onDismissInspect
-            )
+            case .inspectSite(let context):
+                InspectContent(
+                    context: context,
+                    site: allSites.first { $0.id == context.siteId },
+                    detent: detent,
+                    onDismiss: onDismissInspect,
+                    onOpenPlan: onOpenPlan
+                )
+                .transition(contentTransition)
 
-        case .filter:
-            FilterContent(
-                exploreFilters: $exploreFilters,
-                filterLens: $filterLens,
-                onApply: onApplyFilters,
-                onCancel: onCancelFilters
-            )
+            case .filter:
+                FilterContent(
+                    exploreFilters: $exploreFilters,
+                    filterLens: $filterLens,
+                    onApply: onApplyFilters,
+                    onCancel: onCancelFilters
+                )
+                .transition(contentTransition)
 
-        case .search:
-            SearchContent(
-                query: $searchQuery,
-                sites: dataViewModel.sites,
-                onSelect: onSearchSelect,
-                onDismiss: { }
-            )
+            case .search:
+                SearchContent(
+                    query: $searchQuery,
+                    sites: allSites,
+                    onSelect: onSearchSelect,
+                    onDismiss: { }
+                )
+                .transition(contentTransition)
+
+            case .plan(let context):
+                PlanContent(
+                    context: context,
+                    allSites: allSites,
+                    detent: detent,
+                    onAddSite: { onOpenSearch() },
+                    onRemoveSite: onRemoveSiteFromPlan,
+                    onClose: onClosePlan
+                )
+                .transition(contentTransition)
+            }
         }
+        .animation(contentAnimation, value: mode.stableId)
+    }
+
+    // MARK: - Content Transition
+
+    private var contentTransition: AnyTransition {
+        if reduceMotion {
+            return .opacity
+        }
+        return .asymmetric(
+            insertion: .opacity.combined(with: .scale(scale: 0.98)).combined(with: .offset(y: 8)),
+            removal: .opacity.combined(with: .scale(scale: 0.98))
+        )
+    }
+
+    private var contentAnimation: Animation? {
+        reduceMotion ? nil : .easeInOut(duration: 0.25)
     }
 
     // MARK: - Drag Handle
@@ -126,7 +194,7 @@ struct UnifiedBottomSurface: View {
     private var dragHandle: some View {
         VStack(spacing: 0) {
             Capsule()
-                .fill(Color.gray.opacity(0.35))
+                .fill(Color.mist.opacity(0.5))
                 .frame(width: 36, height: 4)
                 .padding(.top, 8)
                 .padding(.bottom, 8)
@@ -134,23 +202,38 @@ struct UnifiedBottomSurface: View {
         .frame(height: 24)
         .frame(maxWidth: .infinity)
         .contentShape(Rectangle())
+        .accessibilityLabel("Resize handle")
+        .accessibilityHint("Drag to expand or collapse the panel")
     }
 
     // MARK: - Background
 
     private var surfaceBackground: some View {
         ZStack {
-            // Base glass effect
-            Color(uiColor: .systemBackground)
-                .opacity(0.95)
+            // Match map background gradient exactly for seamless appearance
+            LinearGradient(
+                colors: [
+                    Color(red: 0.06, green: 0.14, blue: 0.24),  // Map backgroundTop
+                    Color(red: 0.04, green: 0.11, blue: 0.19)   // Map backgroundBottom
+                ],
+                startPoint: .top,
+                endPoint: .bottom
+            )
 
-            // Thin material overlay
+            // Subtle glass overlay for depth and surface distinction
             Rectangle()
-                .fill(.ultraThinMaterial)
+                .fill(Color.glass.opacity(0.4))
 
-            // Top border highlight
+            // Top border highlight for surface separation
             RoundedRectangle(cornerRadius: 24, style: .continuous)
-                .strokeBorder(Color.gray.opacity(0.2), lineWidth: 0.5)
+                .strokeBorder(
+                    LinearGradient(
+                        colors: [Color.ocean.opacity(0.5), Color.ocean.opacity(0.15)],
+                        startPoint: .top,
+                        endPoint: .bottom
+                    ),
+                    lineWidth: 0.5
+                )
         }
     }
 
@@ -171,8 +254,12 @@ struct UnifiedBottomSurface: View {
                 )
 
                 if newDetent != detent {
-                    withAnimation(.spring(response: 0.35, dampingFraction: 0.85)) {
+                    if reduceMotion {
                         detent = newDetent
+                    } else {
+                        withAnimation(.spring(response: 0.35, dampingFraction: 0.85)) {
+                            detent = newDetent
+                        }
                     }
                 }
             }

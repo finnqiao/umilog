@@ -32,6 +32,8 @@ enum SurfaceDetent: Equatable, CaseIterable {
             return [.medium, .expanded]
         case .filter, .search:
             return [.expanded]
+        case .plan:
+            return [.medium, .expanded]
         }
     }
 
@@ -43,6 +45,8 @@ enum SurfaceDetent: Equatable, CaseIterable {
         case .inspectSite:
             return .medium
         case .filter, .search:
+            return .expanded
+        case .plan:
             return .expanded
         }
     }

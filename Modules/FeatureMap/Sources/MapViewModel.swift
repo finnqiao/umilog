@@ -60,10 +60,15 @@ struct MapBounds {
 
 // MARK: - Map ViewModel
 
-/// Manages map state including mode, filters, sites, and regions.
-/// Persists filter preferences to UserDefaults.
+/// Manages map data including sites, shops, and regions.
+/// UI state has been migrated to MapUIViewModel (Step 14).
+/// Legacy filter properties retained for backward compatibility with filter sheets.
 @MainActor
 class MapViewModel: ObservableObject {
+    // MARK: - Legacy State (Deprecated - use MapUIViewModel instead)
+    // These properties are retained for backward compatibility with CombinedFilterLayersSheet.
+    // New code should use MapUIViewModel.exploreFilters and MapUIViewModel.exploreContext.filterLens.
+
     @Published var mode: MapMode {
         didSet {
             saveFilterPreferences()
@@ -82,6 +87,9 @@ class MapViewModel: ObservableObject {
     @Published var tier: Tier = .regions
     @Published var selectedRegion: Region?
     @Published var selectedArea: Area?
+
+    // MARK: - Active State
+
     @Published var layerSettings: MapLayerSettings = MapLayerSettings()
 
     @Published var sites: [DiveSite] = []
@@ -178,6 +186,68 @@ class MapViewModel: ObservableObject {
             }
         }
         return true
+    }
+
+    // MARK: - New Filter Methods (Step 14 migration)
+
+    /// Apply filters using the new unified state types.
+    /// - Parameters:
+    ///   - sites: The source sites to filter
+    ///   - filters: The ExploreFilters from MapUIViewModel
+    ///   - lens: Optional FilterLens for "My Sites" mode
+    ///   - hierarchy: The current hierarchy level
+    /// - Returns: Filtered sites
+    func applyFilters(
+        to sites: [DiveSite],
+        filters: ExploreFilters,
+        lens: FilterLens?,
+        hierarchy: HierarchyLevel
+    ) -> [DiveSite] {
+        sites.filter { site in
+            // Apply hierarchy filter
+            guard matchesHierarchy(site, level: hierarchy) else { return false }
+
+            // Apply filter lens (My Sites mode) if active
+            if let lens = lens {
+                switch lens {
+                case .saved:
+                    guard site.wishlist else { return false }
+                case .logged:
+                    guard site.visitedCount > 0 else { return false }
+                case .planned:
+                    return false // TODO: planned sites support
+                }
+            }
+
+            // Apply explore filters
+            if !filters.difficulty.isEmpty {
+                guard filters.difficulty.contains(site.difficulty) else { return false }
+            }
+
+            if !filters.siteType.isEmpty {
+                guard filters.siteType.contains(site.type) else { return false }
+            }
+
+            if let depthRange = filters.maxDepthRange {
+                guard depthRange.contains(site.maxDepth) else { return false }
+            }
+
+            return true
+        }
+    }
+
+    /// Check if a site matches the given hierarchy level.
+    private func matchesHierarchy(_ site: DiveSite, level: HierarchyLevel) -> Bool {
+        switch level {
+        case .world:
+            return true
+        case .region(let regionId):
+            return site.region == regionId
+        case .area(let regionId, let areaId):
+            guard site.region == regionId else { return false }
+            let (siteArea, _) = parseAreaCountry(site.location)
+            return siteArea == areaId
+        }
     }
 
     var visitedCount: Int {

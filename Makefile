@@ -42,3 +42,121 @@ shops-build: dirs
 
 .PHONY: build-all
 build-all: wd-fetch wd-build-seed shops-fetch shops-build
+
+# ============================================================
+# v5: Extended Data Pipeline for Reference Database Enhancement
+# ============================================================
+
+# Fetch OSM dive sites for underrepresented regions
+.PHONY: osm-sites-fetch
+osm-sites-fetch: dirs
+	@echo "Fetching OSM dive sites for underrepresented regions..."
+	curl -sS -X POST https://overpass-api.de/api/interpreter \
+	  -d @data/queries/overpass_sites_se_asia.overpassql \
+	  -o $(RAW_DIR)/sites_se_asia.json
+	curl -sS -X POST https://overpass-api.de/api/interpreter \
+	  -d @data/queries/overpass_sites_japan.overpassql \
+	  -o $(RAW_DIR)/sites_japan.json
+	curl -sS -X POST https://overpass-api.de/api/interpreter \
+	  -d @data/queries/overpass_sites_pacific.overpassql \
+	  -o $(RAW_DIR)/sites_pacific.json
+	curl -sS -X POST https://overpass-api.de/api/interpreter \
+	  -d @data/queries/overpass_sites_maldives.overpassql \
+	  -o $(RAW_DIR)/sites_maldives.json
+	curl -sS -X POST https://overpass-api.de/api/interpreter \
+	  -d @data/queries/overpass_sites_central_america.overpassql \
+	  -o $(RAW_DIR)/sites_central_america.json
+	@echo "Saved OSM site dumps to $(RAW_DIR)"
+
+# Build OSM sites into seed format
+.PHONY: osm-sites-build
+osm-sites-build: dirs
+	python3 data/scripts/osm_sites_to_json.py $(RAW_DIR) $(EXPORT_DIR)/sites_osm.json
+
+# Fetch species taxonomy from WoRMS (rate limited - takes ~10 min)
+.PHONY: species-taxonomy-fetch
+species-taxonomy-fetch: dirs
+	@echo "Fetching species taxonomy from WoRMS (this takes ~10 minutes)..."
+	python3 data/scripts/worms_taxonomy_fetch.py $(RAW_DIR)/worms_families.json
+
+# Fetch species occurrences from GBIF (rate limited - takes ~5 min)
+.PHONY: species-gbif-fetch
+species-gbif-fetch: dirs
+	@echo "Fetching species occurrences from GBIF..."
+	python3 data/scripts/gbif_species_fetch.py $(RAW_DIR)/gbif_species.json
+
+# Build unified species catalog
+.PHONY: species-build
+species-build: dirs
+	python3 data/scripts/species_to_seed.py \
+	  $(RAW_DIR)/worms_families.json \
+	  $(RAW_DIR)/gbif_species.json \
+	  $(EXPORT_DIR)
+
+# Build geographic hierarchy from sites
+.PHONY: geo-hierarchy-build
+geo-hierarchy-build: dirs
+	python3 data/scripts/geographic_hierarchy.py \
+	  $(EXPORT_DIR)/sites_merged.json \
+	  $(EXPORT_DIR)
+
+# Link species to sites using GBIF/OBIS occurrence data
+.PHONY: site-species-link
+site-species-link: dirs
+	@echo "Linking species to sites (this takes a while due to API rate limits)..."
+	python3 data/scripts/site_species_linker.py \
+	  $(EXPORT_DIR)/sites_validated.json \
+	  $(EXPORT_DIR)/species_catalog_v2.json \
+	  $(EXPORT_DIR)/site_species.json
+
+# Validate and deduplicate all data
+.PHONY: data-validate
+data-validate: dirs
+	python3 data/scripts/data_validator.py $(EXPORT_DIR)
+
+# Merge all site sources into one file
+.PHONY: sites-merge
+sites-merge: dirs
+	@echo "Merging site sources..."
+	python3 -c "\
+import json; \
+import glob; \
+sites = []; \
+seen = set(); \
+for f in ['$(SEED_OUT)', '$(EXPORT_DIR)/sites_osm.json']: \
+    try: \
+        data = json.load(open(f)); \
+        for s in (data.get('sites', data) if isinstance(data, dict) else data): \
+            key = (s['name'].lower(), round(s['latitude'],4), round(s['longitude'],4)); \
+            if key not in seen: seen.add(key); sites.append(s); \
+    except: pass; \
+json.dump({'sites': sites}, open('$(EXPORT_DIR)/sites_merged.json', 'w'), indent=2); \
+print(f'Merged {len(sites)} sites')"
+
+# Full reference database build pipeline
+.PHONY: refdb-build-all
+refdb-build-all: wd-fetch osm-sites-fetch osm-sites-build wd-build-seed sites-merge geo-hierarchy-build species-taxonomy-fetch species-gbif-fetch species-build data-validate
+	@echo ""
+	@echo "=== Reference Database Build Complete ==="
+	@echo "Next steps:"
+	@echo "  1. Run 'make site-species-link' to create species-site associations"
+	@echo "  2. Copy seed files to Resources/SeedData/"
+	@echo ""
+
+# Copy exports to app seed directory
+.PHONY: seed-deploy
+seed-deploy:
+	@echo "Deploying seed files to Resources/SeedData/..."
+	cp $(EXPORT_DIR)/countries.json Resources/SeedData/
+	cp $(EXPORT_DIR)/regions.json Resources/SeedData/
+	cp $(EXPORT_DIR)/areas.json Resources/SeedData/
+	cp $(EXPORT_DIR)/families_catalog.json Resources/SeedData/
+	cp $(EXPORT_DIR)/species_catalog_v2.json Resources/SeedData/
+	cp $(EXPORT_DIR)/site_species.json Resources/SeedData/
+	@echo "Seed files deployed"
+
+# Clean generated files
+.PHONY: clean-data
+clean-data:
+	rm -rf $(RAW_DIR)/*.json $(STAGE_DIR)/*.json $(EXPORT_DIR)/*.json
+	@echo "Cleaned data directories"

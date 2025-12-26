@@ -48,7 +48,7 @@ extension WildlifeSighting {
 }
 
 /// Wildlife species catalog
-public struct WildlifeSpecies: Codable, Identifiable {
+public struct WildlifeSpecies: Codable, Identifiable, Hashable {
     public let id: String
     public let name: String
     public let scientificName: String
@@ -56,7 +56,15 @@ public struct WildlifeSpecies: Codable, Identifiable {
     public let rarity: Rarity
     public let regions: [String]
     public let imageUrl: String?
-    
+    // v5: Taxonomy and external IDs
+    public let familyId: String?
+    public let conservationStatus: String?  // IUCN: LC, VU, EN, CR
+    public let description: String?
+    public let thumbnailUrl: String?
+    public let wormsAphiaId: Int?
+    public let gbifKey: Int?
+    public let fishbaseId: Int?
+
     public init(
         id: String = UUID().uuidString,
         name: String,
@@ -64,7 +72,14 @@ public struct WildlifeSpecies: Codable, Identifiable {
         category: Category,
         rarity: Rarity,
         regions: [String],
-        imageUrl: String? = nil
+        imageUrl: String? = nil,
+        familyId: String? = nil,
+        conservationStatus: String? = nil,
+        description: String? = nil,
+        thumbnailUrl: String? = nil,
+        wormsAphiaId: Int? = nil,
+        gbifKey: Int? = nil,
+        fishbaseId: Int? = nil
     ) {
         self.id = id
         self.name = name
@@ -73,17 +88,24 @@ public struct WildlifeSpecies: Codable, Identifiable {
         self.rarity = rarity
         self.regions = regions
         self.imageUrl = imageUrl
+        self.familyId = familyId
+        self.conservationStatus = conservationStatus
+        self.description = description
+        self.thumbnailUrl = thumbnailUrl
+        self.wormsAphiaId = wormsAphiaId
+        self.gbifKey = gbifKey
+        self.fishbaseId = fishbaseId
     }
-    
-    public enum Category: String, Codable {
+
+    public enum Category: String, Codable, CaseIterable {
         case fish = "Fish"
         case coral = "Coral"
         case mammal = "Mammal"
         case invertebrate = "Invertebrate"
         case reptile = "Reptile"
     }
-    
-    public enum Rarity: String, Codable {
+
+    public enum Rarity: String, Codable, CaseIterable {
         case common = "Common"
         case uncommon = "Uncommon"
         case rare = "Rare"
@@ -94,11 +116,35 @@ public struct WildlifeSpecies: Codable, Identifiable {
 // MARK: - GRDB
 extension WildlifeSpecies: FetchableRecord, PersistableRecord {
     public static let databaseTableName = "wildlife_species"
-    
+
+    public enum Columns {
+        static let id = Column(CodingKeys.id)
+        static let name = Column(CodingKeys.name)
+        static let scientificName = Column(CodingKeys.scientificName)
+        static let category = Column(CodingKeys.category)
+        static let rarity = Column(CodingKeys.rarity)
+        static let regions = Column(CodingKeys.regions)
+        static let imageUrl = Column(CodingKeys.imageUrl)
+        static let familyId = Column(CodingKeys.familyId)
+        static let conservationStatus = Column(CodingKeys.conservationStatus)
+        static let description = Column(CodingKeys.description)
+        static let thumbnailUrl = Column(CodingKeys.thumbnailUrl)
+        static let wormsAphiaId = Column(CodingKeys.wormsAphiaId)
+        static let gbifKey = Column(CodingKeys.gbifKey)
+        static let fishbaseId = Column(CodingKeys.fishbaseId)
+    }
+
     enum CodingKeys: String, CodingKey {
         case id, name, scientificName, category, rarity, regions, imageUrl
+        case familyId = "family_id"
+        case conservationStatus = "conservation_status"
+        case description
+        case thumbnailUrl = "thumbnail_url"
+        case wormsAphiaId = "worms_aphia_id"
+        case gbifKey = "gbif_key"
+        case fishbaseId = "fishbase_id"
     }
-    
+
     public func encode(to encoder: Encoder) throws {
         var container = encoder.container(keyedBy: CodingKeys.self)
         try container.encode(id, forKey: .id)
@@ -108,8 +154,15 @@ extension WildlifeSpecies: FetchableRecord, PersistableRecord {
         try container.encode(rarity, forKey: .rarity)
         try container.encode(regions.joined(separator: ","), forKey: .regions)
         try container.encodeIfPresent(imageUrl, forKey: .imageUrl)
+        try container.encodeIfPresent(familyId, forKey: .familyId)
+        try container.encodeIfPresent(conservationStatus, forKey: .conservationStatus)
+        try container.encodeIfPresent(description, forKey: .description)
+        try container.encodeIfPresent(thumbnailUrl, forKey: .thumbnailUrl)
+        try container.encodeIfPresent(wormsAphiaId, forKey: .wormsAphiaId)
+        try container.encodeIfPresent(gbifKey, forKey: .gbifKey)
+        try container.encodeIfPresent(fishbaseId, forKey: .fishbaseId)
     }
-    
+
     public init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         id = try container.decode(String.self, forKey: .id)
@@ -120,5 +173,18 @@ extension WildlifeSpecies: FetchableRecord, PersistableRecord {
         let regionsString = try container.decode(String.self, forKey: .regions)
         regions = regionsString.split(separator: ",").map(String.init)
         imageUrl = try container.decodeIfPresent(String.self, forKey: .imageUrl)
+        familyId = try container.decodeIfPresent(String.self, forKey: .familyId)
+        conservationStatus = try container.decodeIfPresent(String.self, forKey: .conservationStatus)
+        description = try container.decodeIfPresent(String.self, forKey: .description)
+        thumbnailUrl = try container.decodeIfPresent(String.self, forKey: .thumbnailUrl)
+        wormsAphiaId = try container.decodeIfPresent(Int.self, forKey: .wormsAphiaId)
+        gbifKey = try container.decodeIfPresent(Int.self, forKey: .gbifKey)
+        fishbaseId = try container.decodeIfPresent(Int.self, forKey: .fishbaseId)
     }
+}
+
+// MARK: - Associations
+extension WildlifeSpecies {
+    public static let family = belongsTo(SpeciesFamily.self)
+    public static let siteLinks = hasMany(SiteSpeciesLink.self)
 }

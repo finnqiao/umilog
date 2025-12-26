@@ -47,34 +47,34 @@ struct ActionButton: View {
 
     private var foregroundColor: Color {
         if isPrimary {
-            return .white
+            return Color.foam
         } else if isActive {
-            return Color.oceanBlue
+            return Color.lagoon
         } else {
-            return Color(uiColor: .label)
+            return Color.foam
         }
     }
 
     private var backgroundColor: Color {
         if isPrimary {
-            return Color.oceanBlue
+            return Color.lagoon
         } else if isActive {
-            return Color.oceanBlue.opacity(0.12)
+            return Color.lagoon.opacity(0.2)
         } else {
-            return Color.gray.opacity(0.08)
+            return Color.trench
         }
     }
 
     private var borderColor: Color {
         if isActive {
-            return Color.oceanBlue.opacity(0.3)
+            return Color.lagoon.opacity(0.4)
         } else {
-            return .clear
+            return Color.ocean.opacity(0.2)
         }
     }
 
     private var borderWidth: CGFloat {
-        isActive ? 1.5 : 0
+        1
     }
 }
 

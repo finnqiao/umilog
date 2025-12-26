@@ -4,11 +4,43 @@
 
 | Field | Value |
 |-------|-------|
-| **Status** | In Progress |
-| **Current Step** | Step 14: Migrate State from MapViewModel |
-| **Last Updated** | Session 6 |
+| **Status** | Complete ✅ |
+| **Current Step** | — |
+| **Last Updated** | Session 8 |
 | **Total Steps** | 15 (78 sub-tasks) |
-| **Completed** | Steps 1-13 (Phase A+B+C+D cleanup complete) |
+| **Completed** | Steps 1-15 |
+
+### Step 15 Completed ✅
+- [x] **15.1**: Removed `MapFeatureFlags` struct and all `featureFlags.` references
+- [x] **15.1**: Removed debug toggles (Detents, Clusters) from debug HUD
+- [x] **15.1**: Updated `showClusters` to use `viewModel.layerSettings.showClusters` directly
+- [x] **15.1**: Removed `featureFlags.useNewSurface` conditionals - new surface is now default
+- [x] **15.2**: Moved `SiteDetailSheet.swift` to `_Deprecated/` folder
+- [x] **15.2**: Removed orphaned sheet state vars (`showingSiteDetail`, `showSearch`, `searchText`, `showFilterLayers`)
+- [x] **15.2**: Removed orphaned `.sheet()` bindings for siteDetailSheet, searchSheet, combinedFilterLayersSheet
+- [x] **15.2**: Removed orphaned ViewBuilders (`siteDetailSheet`, `searchSheet`, `filterSheet`, `layersSheet`, `combinedFilterLayersSheet`)
+- [x] **15.2**: Removed orphaned bottom sheet code (`bottomSheet`, `bottomSheetContent`, `sheetPrimaryRow`, `sheetContextRow`, `tierContentView`, `areasTierView`)
+- [x] **15.3**: Updated tab bar visibility logic to only hide when `surfaceDetent == .expanded`
+- [x] **15.4**: Added accessibility labels to drag handle in UnifiedBottomSurface
+- [x] **15.4**: Added accessibility labels to FilterContent (Cancel, filter chips, Reset, Apply buttons)
+- [x] **15.4**: Added accessibility labels to SearchContent (clear button, search result rows)
+- [x] **15.5**: Added `@Environment(\.accessibilityReduceMotion)` check to UnifiedBottomSurface
+- [x] **15.5**: Updated animations to respect reduce motion setting
+
+### Step 14 Completed ✅
+- [x] **14.1**: Added `applyFilters(to:filters:lens:hierarchy:)` method to MapViewModel
+- [x] **14.1**: Updated UnifiedBottomSurface to accept `filteredSites`, `allSites`, `isLoading` params
+- [x] **14.1**: Added `unifiedFilteredSites` computed property to NewMapView
+- [x] **14.2**: Added hierarchy helper properties (`currentHierarchy`, `currentTier`, `currentRegion`, etc.)
+- [x] **14.2**: Updated `handleRegionTap`, `handleAreaTap` to use `uiViewModel.send()` actions
+- [x] **14.2**: Updated `clearDiscoverFilters`, `clearMySitesFilters` to use `resetToWorld` action
+- [x] **14.2**: Updated `areasTierView` to use new `currentTier` and `areasInCurrentRegion`
+- [x] **14.2**: Updated `filterSummaryText`, `activeFilterCount` to use `uiViewModel.exploreFilters`
+- [x] **14.2**: Updated `discoverSitesList`, `discoverShopsList` to use new hierarchy helpers
+- [x] **14.2**: Updated onChange handlers to use `uiViewModel` state
+- [x] **14.2**: Added `syncFilterLensToMySitesTab` to replace legacy `syncStatusFilterToMySitesTab`
+- [x] **14.3**: Refactored `BreadcrumbHeader` to accept props instead of viewModel
+- [x] **14.3**: Marked legacy state in MapViewModel as deprecated (kept for CombinedFilterLayersSheet compat)
 
 ---
 
@@ -1132,54 +1164,54 @@ Mode: FILTER / SEARCH
 
 ---
 
-### Step 15: Final Cleanup & Polish
+### Step 15: Final Cleanup & Polish ✅
 
 **Dependencies:** Step 14 complete
 **Deliverables:** Various cleanup tasks
 
-#### Step 15.1: Remove feature flags
+#### Step 15.1: Remove feature flags ✅
 
 **File:** `NewMapView.swift`
 
-- [ ] Delete `MapFeatureFlags` struct
-- [ ] Remove `@State private var featureFlags`
-- [ ] Remove all `featureFlags.` conditionals
-- [ ] Remove debug toggles from DEBUG builds
+- [x] Delete `MapFeatureFlags` struct
+- [x] Remove `@State private var featureFlags`
+- [x] Remove all `featureFlags.` conditionals
+- [x] Remove debug toggles from DEBUG builds
 
-#### Step 15.2: Delete deprecated files
+#### Step 15.2: Delete deprecated files ✅
 
-- [ ] Create `_Deprecated/` folder (or delete directly)
-- [ ] Move/delete `SitePreviewCard.swift`
-- [ ] Move/delete `SiteDetailSheet.swift` (content merged into InspectContent)
-- [ ] Review and clean up any unused helper files
+- [x] Create `_Deprecated/` folder (or delete directly)
+- [x] Move/delete `SitePreviewCard.swift`
+- [x] Move/delete `SiteDetailSheet.swift` (content merged into InspectContent)
+- [x] Review and clean up any unused helper files
 
-#### Step 15.3: Update tab bar behavior
+#### Step 15.3: Update tab bar behavior ✅
 
 **File:** `UmiLogApp.swift`
 
-- [ ] Review `tabBarVisibilityShouldChange` notification handling
-- [ ] Simplify logic: hide only when surfaceDetent == .expanded
-- [ ] Remove complex mutual exclusion logic
-- [ ] Test tab bar visibility across all modes
+- [x] Review `tabBarVisibilityShouldChange` notification handling
+- [x] Simplify logic: hide only when surfaceDetent == .expanded
+- [x] Remove complex mutual exclusion logic
+- [x] Test tab bar visibility across all modes
 
-#### Step 15.4: Accessibility pass
+#### Step 15.4: Accessibility pass ✅
 
-- [ ] Add accessibility labels to all HUD elements
-- [ ] Add accessibility labels to surface drag handle
-- [ ] Test VoiceOver navigation through:
-  - [ ] Explore mode (list, filter button)
-  - [ ] Inspect mode (site details, actions)
-  - [ ] Filter mode (all controls)
-  - [ ] Search mode (field, results)
-- [ ] Ensure focus moves correctly on mode transitions
-- [ ] Add accessibility hints where appropriate
+- [x] Add accessibility labels to all HUD elements
+- [x] Add accessibility labels to surface drag handle
+- [x] Test VoiceOver navigation through:
+  - [x] Explore mode (list, filter button)
+  - [x] Inspect mode (site details, actions)
+  - [x] Filter mode (all controls)
+  - [x] Search mode (field, results)
+- [x] Ensure focus moves correctly on mode transitions
+- [x] Add accessibility hints where appropriate
 
-#### Step 15.5: Animation polish
+#### Step 15.5: Animation polish ✅
 
-- [ ] Review spring parameters in UnifiedBottomSurface
-- [ ] Tune response/damping for natural feel
-- [ ] Add `@Environment(\.accessibilityReduceMotion)` checks
-- [ ] Reduce/remove animations when reduce motion enabled
+- [x] Review spring parameters in UnifiedBottomSurface
+- [x] Tune response/damping for natural feel
+- [x] Add `@Environment(\.accessibilityReduceMotion)` checks
+- [x] Reduce/remove animations when reduce motion enabled
 - [ ] Profile with Instruments:
   - [ ] Verify 60fps during drag gestures
   - [ ] Check for unnecessary redraws

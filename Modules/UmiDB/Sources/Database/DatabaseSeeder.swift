@@ -5,14 +5,32 @@ public enum DatabaseSeeder {
     static let logger = Logger(subsystem: "app.umilog", category: "DatabaseSeeder")
     
     // MARK: - Main Seeding Entry Point
-    
+
     /// Seeds the database with comprehensive test data from JSON files
     public static func seedIfNeeded() throws {
         let db = AppDatabase.shared
-        
+
         Self.logger.log("🌱 Starting database seed...")
         var seededSomething = false
-        
+
+        // v5: Geographic hierarchy (countries, regions, areas)
+        let geoRepo = GeographyRepository(database: db)
+        let countryCount = try geoRepo.countCountries()
+        if countryCount == 0 {
+            try seedGeographicHierarchy(); seededSomething = true
+        } else {
+            Self.logger.log("  ℹ️ Geographic hierarchy already present (\\(countryCount, privacy: .public) countries)")
+        }
+
+        // v5: Species families
+        let speciesRepo = SpeciesRepository(database: db)
+        let familyCount = try speciesRepo.countFamilies()
+        if familyCount == 0 {
+            try seedSpeciesFamilies(); seededSomething = true
+        } else {
+            Self.logger.log("  ℹ️ Species families already present (\\(familyCount, privacy: .public))")
+        }
+
         // Sites
         let siteCount = try db.siteRepository.fetchAll().count
         if siteCount == 0 {
@@ -20,16 +38,23 @@ public enum DatabaseSeeder {
         } else {
             Self.logger.log("  ℹ️ Sites already present (\\(siteCount, privacy: .public))")
         }
-        
+
         // Species
-        let speciesRepo = SpeciesRepository(database: db)
         let speciesCount = try speciesRepo.fetchAll().count
         if speciesCount == 0 {
             try seedSpecies(); seededSomething = true
         } else {
             Self.logger.log("  ℹ️ Species already present (\\(speciesCount, privacy: .public))")
         }
-        
+
+        // v5: Site-species links
+        let linksCount = try speciesRepo.countSiteLinks()
+        if linksCount == 0 && speciesCount > 0 && siteCount > 0 {
+            try seedSiteSpeciesLinks(); seededSomething = true
+        } else if linksCount > 0 {
+            Self.logger.log("  ℹ️ Site-species links already present (\\(linksCount, privacy: .public))")
+        }
+
         // Dives
         let diveCount = try db.diveRepository.fetchAll().count
         if diveCount == 0 {
@@ -37,7 +62,7 @@ public enum DatabaseSeeder {
         } else {
             Self.logger.log("  ℹ️ Dives already present (\\(diveCount, privacy: .public))")
         }
-        
+
         // Sightings
         let sightingsCount = try db.read { db in
             try Int.fetchOne(db, sql: "SELECT COUNT(*) FROM sightings") ?? 0
@@ -47,12 +72,132 @@ public enum DatabaseSeeder {
         } else {
             Self.logger.log("  ℹ️ Sightings already present (\\(sightingsCount, privacy: .public))")
         }
-        
+
         if seededSomething {
             Self.logger.log("✅ Database seeding complete!")
         } else {
             Self.logger.log("✅ Database already seeded; nothing to do")
         }
+    }
+
+    // MARK: - v5: Geographic Hierarchy Seeding
+
+    private static func seedGeographicHierarchy() throws {
+        Self.logger.log("  🌍 Loading geographic hierarchy...")
+
+        let db = AppDatabase.shared
+        let geoRepo = GeographyRepository(database: db)
+
+        // Load countries
+        if let countriesFile = optionalJSON("countries", as: CountriesSeedFile.self) {
+            let countries = countriesFile.countries.map { data in
+                Country(
+                    id: data.id,
+                    name: data.name,
+                    nameLocal: data.name_local,
+                    continent: data.continent,
+                    wikidataId: data.wikidata_id
+                )
+            }
+            try geoRepo.createCountries(countries)
+            Self.logger.log("  ✅ Loaded \\(countries.count, privacy: .public) countries")
+        }
+
+        // Load regions
+        if let regionsFile = optionalJSON("regions", as: RegionsSeedFile.self) {
+            let regions = regionsFile.regions.map { data in
+                Region(
+                    id: data.id,
+                    name: data.name,
+                    countryId: data.country_id,
+                    latitude: data.latitude,
+                    longitude: data.longitude,
+                    wikidataId: data.wikidata_id
+                )
+            }
+            try geoRepo.createRegions(regions)
+            Self.logger.log("  ✅ Loaded \\(regions.count, privacy: .public) regions")
+        }
+
+        // Load areas
+        if let areasFile = optionalJSON("areas", as: AreasSeedFile.self) {
+            let areas = areasFile.areas.map { data in
+                Area(
+                    id: data.id,
+                    name: data.name,
+                    regionId: data.region_id,
+                    countryId: data.country_id,
+                    latitude: data.latitude,
+                    longitude: data.longitude,
+                    wikidataId: data.wikidata_id
+                )
+            }
+            try geoRepo.createAreas(areas)
+            Self.logger.log("  ✅ Loaded \\(areas.count, privacy: .public) areas")
+        }
+    }
+
+    // MARK: - v5: Species Families Seeding
+
+    private static func seedSpeciesFamilies() throws {
+        Self.logger.log("  🐠 Loading species families...")
+
+        guard let familiesFile = optionalJSON("families_catalog", as: FamiliesSeedFile.self) else {
+            Self.logger.log("  ℹ️ No families_catalog.json found")
+            return
+        }
+
+        let db = AppDatabase.shared
+        let speciesRepo = SpeciesRepository(database: db)
+
+        let families = familiesFile.families.map { data in
+            SpeciesFamily(
+                id: data.id,
+                name: data.name,
+                scientificName: data.scientific_name,
+                category: WildlifeSpecies.Category(rawValue: data.category) ?? .fish,
+                wormsAphiaId: data.worms_aphia_id,
+                gbifKey: data.gbif_key
+            )
+        }
+
+        try speciesRepo.createFamilies(families)
+        Self.logger.log("  ✅ Loaded \\(families.count, privacy: .public) species families")
+    }
+
+    // MARK: - v5: Site-Species Links Seeding
+
+    private static func seedSiteSpeciesLinks() throws {
+        Self.logger.log("  🔗 Loading site-species links...")
+
+        guard let linksFile = optionalJSON("site_species", as: SiteSpeciesSeedFile.self) else {
+            Self.logger.log("  ℹ️ No site_species.json found")
+            return
+        }
+
+        let db = AppDatabase.shared
+        let speciesRepo = SpeciesRepository(database: db)
+        let dateFormatter = ISO8601DateFormatter()
+
+        let links = linksFile.site_species.compactMap { data -> SiteSpeciesLink? in
+            guard let likelihood = SiteSpeciesLink.Likelihood(rawValue: data.likelihood) else {
+                return nil
+            }
+            return SiteSpeciesLink(
+                siteId: data.site_id,
+                speciesId: data.species_id,
+                likelihood: likelihood,
+                seasonMonths: data.season_months,
+                depthMinM: data.depth_min_m,
+                depthMaxM: data.depth_max_m,
+                source: data.source,
+                sourceRecordCount: data.source_record_count,
+                lastUpdated: dateFormatter.date(from: data.last_updated) ?? Date()
+            )
+        }
+
+        try speciesRepo.createSiteLinks(links)
+        Self.logger.log("  ✅ Loaded \\(links.count, privacy: .public) site-species links")
     }
     
     // MARK: - Site Seeding
@@ -658,18 +803,18 @@ private struct ShopSeed: Decodable {
     let source: String?
     let region: String?
     let nearbyDiveSites: [NearbySite]
-    
+
     struct NearbySite: Decodable {
         let id: String
         let name: String
         let distanceApprox: String?
-        
+
         private enum CodingKeys: String, CodingKey {
             case id
             case name
             case distanceApprox = "distance_approx"
         }
-        
+
         var distanceKm: Double? {
             guard let distanceApprox = distanceApprox?.trimmingCharacters(in: .whitespacesAndNewlines), !distanceApprox.isEmpty else {
                 return nil
@@ -679,7 +824,7 @@ private struct ShopSeed: Decodable {
             return Double(cleaned)
         }
     }
-    
+
     var normalizedServices: [String] {
         var services: [String] = []
         if let type = type?.trimmingCharacters(in: .whitespacesAndNewlines), !type.isEmpty {
@@ -691,4 +836,78 @@ private struct ShopSeed: Decodable {
         }
         return services
     }
+}
+
+// MARK: - v5: Geographic Hierarchy Seed Structures
+
+private struct CountriesSeedFile: Decodable {
+    let countries: [CountrySeedData]
+}
+
+private struct CountrySeedData: Decodable {
+    let id: String
+    let name: String
+    let name_local: String?
+    let continent: String
+    let wikidata_id: String?
+}
+
+private struct RegionsSeedFile: Decodable {
+    let regions: [RegionSeedData]
+}
+
+private struct RegionSeedData: Decodable {
+    let id: String
+    let name: String
+    let country_id: String?
+    let latitude: Double?
+    let longitude: Double?
+    let wikidata_id: String?
+}
+
+private struct AreasSeedFile: Decodable {
+    let areas: [AreaSeedData]
+}
+
+private struct AreaSeedData: Decodable {
+    let id: String
+    let name: String
+    let region_id: String?
+    let country_id: String?
+    let latitude: Double?
+    let longitude: Double?
+    let wikidata_id: String?
+}
+
+// MARK: - v5: Species Taxonomy Seed Structures
+
+private struct FamiliesSeedFile: Decodable {
+    let families: [FamilySeedData]
+}
+
+private struct FamilySeedData: Decodable {
+    let id: String
+    let name: String
+    let scientific_name: String
+    let category: String
+    let worms_aphia_id: Int?
+    let gbif_key: Int?
+}
+
+// MARK: - v5: Site-Species Links Seed Structures
+
+private struct SiteSpeciesSeedFile: Decodable {
+    let site_species: [SiteSpeciesSeedData]
+}
+
+private struct SiteSpeciesSeedData: Decodable {
+    let site_id: String
+    let species_id: String
+    let likelihood: String
+    let season_months: [String]?
+    let depth_min_m: Int?
+    let depth_max_m: Int?
+    let source: String?
+    let source_record_count: Int?
+    let last_updated: String
 }

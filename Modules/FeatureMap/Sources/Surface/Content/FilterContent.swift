@@ -66,11 +66,13 @@ struct FilterContent: View {
         HStack {
             Text("Filters")
                 .font(.headline)
+                .foregroundStyle(Color.foam)
             Spacer()
             Button("Cancel") {
                 onCancel()
             }
-            .foregroundStyle(.secondary)
+            .foregroundStyle(Color.mist)
+            .accessibilityLabel("Cancel filter changes")
         }
     }
 
@@ -81,7 +83,7 @@ struct FilterContent: View {
             Text("My Sites")
                 .font(.subheadline)
                 .fontWeight(.semibold)
-                .foregroundStyle(.secondary)
+                .foregroundStyle(Color.mist)
 
             HStack(spacing: 8) {
                 lensChip(title: "All", lens: nil, isSelected: localLens == nil)
@@ -102,13 +104,15 @@ struct FilterContent: View {
             Text(title)
                 .font(.subheadline)
                 .fontWeight(isSelected ? .semibold : .regular)
-                .foregroundStyle(isSelected ? .white : Color(uiColor: .label))
+                .foregroundStyle(isSelected ? Color.foam : Color.mist)
                 .padding(.horizontal, 14)
                 .padding(.vertical, 8)
-                .background(isSelected ? Color.oceanBlue : Color.gray.opacity(0.12))
+                .background(isSelected ? Color.lagoon : Color.trench)
                 .clipShape(Capsule())
         }
         .buttonStyle(.plain)
+        .accessibilityLabel("\(title) filter")
+        .accessibilityAddTraits(isSelected ? .isSelected : [])
     }
 
     // MARK: - Difficulty Section
@@ -118,7 +122,7 @@ struct FilterContent: View {
             Text("Difficulty")
                 .font(.subheadline)
                 .fontWeight(.semibold)
-                .foregroundStyle(.secondary)
+                .foregroundStyle(Color.mist)
 
             FlowLayout(spacing: 8) {
                 ForEach(DiveSite.Difficulty.allCases, id: \.self) { difficulty in
@@ -150,7 +154,7 @@ struct FilterContent: View {
             Text("Site Type")
                 .font(.subheadline)
                 .fontWeight(.semibold)
-                .foregroundStyle(.secondary)
+                .foregroundStyle(Color.mist)
 
             FlowLayout(spacing: 8) {
                 ForEach(DiveSite.SiteType.allCases, id: \.self) { siteType in
@@ -183,17 +187,18 @@ struct FilterContent: View {
                 Text("Dive Shops")
                     .font(.subheadline)
                     .fontWeight(.semibold)
+                    .foregroundStyle(Color.foam)
                 Text("Show dive shop locations on the map")
                     .font(.caption)
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(Color.mist)
             }
             Spacer()
             Toggle("", isOn: $localFilters.showShops)
                 .labelsHidden()
-                .tint(Color.oceanBlue)
+                .tint(Color.lagoon)
         }
         .padding(16)
-        .background(Color.gray.opacity(0.08))
+        .background(Color.trench)
         .clipShape(RoundedRectangle(cornerRadius: 12))
     }
 
@@ -210,13 +215,15 @@ struct FilterContent: View {
                 Text(title)
                     .font(.subheadline)
             }
-            .foregroundStyle(isSelected ? .white : Color(uiColor: .label))
+            .foregroundStyle(isSelected ? Color.foam : Color.mist)
             .padding(.horizontal, 12)
             .padding(.vertical, 8)
-            .background(isSelected ? Color.oceanBlue : Color.gray.opacity(0.12))
+            .background(isSelected ? Color.lagoon : Color.trench)
             .clipShape(Capsule())
         }
         .buttonStyle(.plain)
+        .accessibilityLabel("\(title) filter")
+        .accessibilityAddTraits(isSelected ? .isSelected : [])
     }
 
     // MARK: - Footer
@@ -224,6 +231,7 @@ struct FilterContent: View {
     private var footer: some View {
         VStack(spacing: 0) {
             Divider()
+                .overlay(Color.ocean.opacity(0.3))
 
             HStack {
                 Button("Reset") {
@@ -232,14 +240,16 @@ struct FilterContent: View {
                         localLens = nil
                     }
                 }
-                .foregroundStyle(.red)
+                .foregroundStyle(Color.danger)
+                .accessibilityLabel("Reset all filters")
 
                 Spacer()
 
                 if activeCount > 0 {
                     Text("\(activeCount) active")
                         .font(.caption)
-                        .foregroundStyle(.secondary)
+                        .foregroundStyle(Color.mist)
+                        .accessibilityLabel("\(activeCount) filters active")
                 }
 
                 Button(action: applyFilters) {
@@ -247,7 +257,8 @@ struct FilterContent: View {
                         .fontWeight(.semibold)
                 }
                 .buttonStyle(.borderedProminent)
-                .tint(Color.oceanBlue)
+                .tint(Color.lagoon)
+                .accessibilityLabel("Apply filters")
             }
             .padding(16)
         }

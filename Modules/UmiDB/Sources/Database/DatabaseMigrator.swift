@@ -215,6 +215,105 @@ public enum DatabaseMigrator {
             }
         }
         
+        // MARK: - v5: Geographic Hierarchy, Species Taxonomy, Species-Site Linkage
+        migrator.registerMigration("v5_geography_species_taxonomy") { db in
+            // Countries table (ISO 3166-1 alpha-2 codes)
+            try db.create(table: "countries") { t in
+                t.column("id", .text).primaryKey()  // ISO code: "EG", "TH", "JP"
+                t.column("name", .text).notNull()
+                t.column("name_local", .text)
+                t.column("continent", .text).notNull()
+                t.column("wikidata_id", .text)
+            }
+            try db.create(index: "idx_countries_continent", on: "countries", columns: ["continent"])
+
+            // Regions table (diving regions, normalized)
+            try db.create(table: "regions") { t in
+                t.column("id", .text).primaryKey()  // e.g., "red-sea", "coral-triangle"
+                t.column("name", .text).notNull()
+                t.column("country_id", .text).references("countries", onDelete: .setNull)
+                t.column("latitude", .double)
+                t.column("longitude", .double)
+                t.column("wikidata_id", .text)
+            }
+            try db.create(index: "idx_regions_country", on: "regions", columns: ["country_id"])
+
+            // Areas table (sub-regions, e.g., Dahab, Koh Tao)
+            try db.create(table: "areas") { t in
+                t.column("id", .text).primaryKey()
+                t.column("name", .text).notNull()
+                t.column("region_id", .text).references("regions", onDelete: .setNull)
+                t.column("country_id", .text).references("countries", onDelete: .setNull)
+                t.column("latitude", .double)
+                t.column("longitude", .double)
+                t.column("wikidata_id", .text)
+            }
+            try db.create(index: "idx_areas_region", on: "areas", columns: ["region_id"])
+            try db.create(index: "idx_areas_country", on: "areas", columns: ["country_id"])
+
+            // Add geographic foreign keys to sites
+            try db.alter(table: "sites") { t in
+                t.add(column: "country_id", .text).references("countries", onDelete: .setNull)
+                t.add(column: "region_id", .text).references("regions", onDelete: .setNull)
+                t.add(column: "area_id", .text).references("areas", onDelete: .setNull)
+                t.add(column: "wikidata_id", .text)
+                t.add(column: "osm_id", .text)
+            }
+            try db.create(index: "idx_sites_country", on: "sites", columns: ["country_id"])
+            try db.create(index: "idx_sites_region_id", on: "sites", columns: ["region_id"])
+            try db.create(index: "idx_sites_area_id", on: "sites", columns: ["area_id"])
+
+            // Species families table (simplified taxonomy)
+            try db.create(table: "species_families") { t in
+                t.column("id", .text).primaryKey()  // e.g., "carcharhinidae"
+                t.column("name", .text).notNull()   // "Requiem Sharks"
+                t.column("scientific_name", .text).notNull()
+                t.column("category", .text).notNull()  // "Fish", "Coral", etc.
+                t.column("worms_aphia_id", .integer)
+                t.column("gbif_key", .integer)
+            }
+            try db.create(index: "idx_families_category", on: "species_families", columns: ["category"])
+
+            // Add taxonomy fields to wildlife_species
+            try db.alter(table: "wildlife_species") { t in
+                t.add(column: "family_id", .text).references("species_families", onDelete: .setNull)
+                t.add(column: "conservation_status", .text)  // IUCN: LC, VU, EN, CR
+                t.add(column: "description", .text)
+                t.add(column: "thumbnail_url", .text)
+                t.add(column: "worms_aphia_id", .integer)
+                t.add(column: "gbif_key", .integer)
+                t.add(column: "fishbase_id", .integer)
+            }
+            try db.create(index: "idx_species_family", on: "wildlife_species", columns: ["family_id"])
+            try db.create(index: "idx_species_scientific", on: "wildlife_species", columns: ["scientificName"])
+
+            // Site-species junction table (many-to-many with likelihood)
+            try db.create(table: "site_species") { t in
+                t.column("site_id", .text).notNull()
+                    .references("sites", onDelete: .cascade)
+                t.column("species_id", .text).notNull()
+                    .references("wildlife_species", onDelete: .cascade)
+                t.column("likelihood", .text).notNull().defaults(to: "occasional")  // common, occasional, rare
+                t.column("season_months", .text)  // JSON array: ["Jan","Feb"]
+                t.column("depth_min_m", .integer)
+                t.column("depth_max_m", .integer)
+                t.column("source", .text)  // "gbif", "obis", "user", "curated"
+                t.column("source_record_count", .integer)
+                t.column("last_updated", .datetime).notNull().defaults(sql: "CURRENT_TIMESTAMP")
+                t.primaryKey(["site_id", "species_id"], onConflict: .replace)
+            }
+            try db.create(index: "idx_site_species_site", on: "site_species", columns: ["site_id"])
+            try db.create(index: "idx_site_species_species", on: "site_species", columns: ["species_id"])
+            try db.create(index: "idx_site_species_likelihood", on: "site_species", columns: ["likelihood"])
+
+            // FTS5 for species search
+            try db.create(virtualTable: "species_fts", using: FTS5()) { t in
+                t.column("name")
+                t.column("scientific_name")
+                // Note: Manual population required via INSERT INTO species_fts
+            }
+        }
+
         // Run migrations
         try migrator.migrate(writer)
     }

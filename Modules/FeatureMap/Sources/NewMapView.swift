@@ -43,10 +43,6 @@ public struct NewMapView: View {
         span: MKCoordinateSpan(latitudeDelta: 120, longitudeDelta: 180)
     )
     @State private var selectedSite: DiveSite?
-    @State private var showingSiteDetail = false
-    @State private var showSearch = false
-    @State private var searchText = ""
-    @State private var showFilterLayers = false
 
     // Unified surface state
     @State private var surfaceDetent: SurfaceDetent = .peek
@@ -54,7 +50,6 @@ public struct NewMapView: View {
 #if DEBUG
     @State private var showDebugHUD = false
 #endif
-    @State private var featureFlags = MapFeatureFlags()
 
     // Selection and syncing
     @State private var selectedSiteIdForScroll: String?
@@ -78,7 +73,7 @@ public struct NewMapView: View {
         self.appearance = appearance
     }
     
-    private var primaryColor: Color { viewModel.mode == .explore ? .reef : .lagoon }
+    private var primaryColor: Color { scope == .discover ? .reef : .lagoon }
 
     private var baseSitesForCounts: [DiveSite] {
         let viewportSites = viewModel.visibleSites.isEmpty ? viewModel.sites : viewModel.visibleSites
@@ -87,6 +82,78 @@ public struct NewMapView: View {
         } else {
             return viewModel.applyMyMapFilters(to: viewportSites)
         }
+    }
+
+    /// Sites filtered using the new unified state types from MapUIViewModel.
+    /// Used by UnifiedBottomSurface and will eventually replace baseSitesForCounts.
+    private var unifiedFilteredSites: [DiveSite] {
+        let viewportSites = viewModel.visibleSites.isEmpty ? viewModel.sites : viewModel.visibleSites
+        return viewModel.applyFilters(
+            to: viewportSites,
+            filters: uiViewModel.exploreFilters,
+            lens: uiViewModel.exploreContext?.filterLens,
+            hierarchy: uiViewModel.currentHierarchyLevel
+        )
+    }
+
+    // MARK: - Hierarchy Helpers (Step 14.2)
+
+    /// Current hierarchy level from the unified UI state.
+    private var currentHierarchy: HierarchyLevel {
+        uiViewModel.currentHierarchyLevel
+    }
+
+    /// Whether we're drilled into a region or area (not at world level).
+    private var isDrilledDown: Bool {
+        !currentHierarchy.isWorld
+    }
+
+    /// The current region ID if drilled into a region or area, nil at world level.
+    private var currentRegionId: String? {
+        currentHierarchy.regionId
+    }
+
+    /// The current area ID if drilled into an area, nil otherwise.
+    private var currentAreaId: String? {
+        currentHierarchy.areaId
+    }
+
+    /// The Region model for the current hierarchy level, if applicable.
+    private var currentRegion: Region? {
+        guard let regionId = currentRegionId else { return nil }
+        return viewModel.regions.first { $0.id == regionId }
+    }
+
+    /// The current tier based on hierarchy level (for backward compat with tier-based views).
+    private var currentTier: Tier {
+        switch currentHierarchy {
+        case .world:
+            return .regions
+        case .region:
+            return .areas
+        case .area:
+            return .sites
+        }
+    }
+
+    /// Areas in the currently selected region, using new hierarchy.
+    private var areasInCurrentRegion: [Area] {
+        guard let regionId = currentRegionId else { return [] }
+        let regionSites = viewModel.sites.filter { $0.region == regionId }
+        let groups = Dictionary(grouping: regionSites) { parseAreaCountry($0.location).area }
+        let shopsInRegion = viewModel.shops.filter { $0.region == regionId }
+        return groups.map { entry in
+            let areaName = entry.key
+            let country = parseAreaCountry(entry.value.first!.location).country
+            let shopCount = shopsInRegion.filter { ($0.area ?? "") == areaName }.count
+            return Area(
+                id: areaName,
+                name: areaName,
+                country: country,
+                siteCount: entry.value.count,
+                shopCount: shopCount
+            )
+        }.sorted { $0.name < $1.name }
     }
 
     private var areasInViewCount: Int {
@@ -119,7 +186,7 @@ public struct NewMapView: View {
     }
 
     private var shouldShowBreadcrumb: Bool {
-        viewModel.selectedRegion != nil || viewModel.selectedArea != nil
+        isDrilledDown
     }
 
     private var discoverSitesEmptyState: EmptyStateConfiguration {
@@ -189,8 +256,9 @@ public struct NewMapView: View {
     private var filterSummaryText: String? {
         if scope == .discover {
             var parts: [String] = []
-            if viewModel.exploreFilter != .all {
-                parts.append(viewModel.exploreFilter.displayName)
+            // Use new unified filter state
+            if uiViewModel.exploreFilters.isActive {
+                parts.append("\(uiViewModel.exploreFilters.activeCount) filters")
             }
             if showShops {
                 parts.append("Shops")
@@ -201,9 +269,9 @@ public struct NewMapView: View {
             case .timeline:
                 return nil
             case .saved:
-                return StatusFilter.wishlist.displayName
+                return FilterLens.saved.displayName
             case .planned:
-                return StatusFilter.planned.displayName
+                return FilterLens.planned.displayName
             }
         }
     }
@@ -216,10 +284,9 @@ public struct NewMapView: View {
         }
         focusMap(on: baseSitesForCounts)
     }
-    
+
     private var activeFilterCount: Int {
-        var count = 0
-        if viewModel.exploreFilter != .all { count += 1 }
+        var count = uiViewModel.exploreFilters.activeCount
         if showShops { count += 1 }
         return count
     }
@@ -227,7 +294,7 @@ public struct NewMapView: View {
     // Use the correct list for annotations to avoid accidental filtering to wishlist-only
     private var annotationSites: [DiveSite] {
         if scope == .discover {
-            if entityTab == .sites || viewModel.selectedArea != nil {
+            if entityTab == .sites || currentAreaId != nil {
                 return discoverSitesList
             } else {
                 return []
@@ -310,18 +377,13 @@ public struct NewMapView: View {
                 .foregroundColor(.white.opacity(0.8))
             HStack(spacing: 8) {
                 Button("Fit all") { fitAllSites() }
-                if viewModel.selectedArea != nil {
+                if currentAreaId != nil {
                     Button("Fit area") { fitSelectedArea() }
                 }
                 Button("Reset world") { resetCameraToWorld() }
             }
             .buttonStyle(.borderedProminent)
             .controlSize(.mini)
-            Divider()
-            Toggle("Detents", isOn: $featureFlags.sheetDetents)
-                .toggleStyle(.switch)
-            Toggle("Clusters", isOn: $featureFlags.clusterOn)
-                .toggleStyle(.switch)
         }
         .padding(12)
         .background(Color.black.opacity(0.55))
@@ -390,8 +452,8 @@ public struct NewMapView: View {
         // One point per area (centroid). If a region is selected, limit to it.
         let baseSites: [DiveSite] = scope == .discover ? discoverSitesList : savedSitesList
         let filteredSites: [DiveSite] = {
-            if let region = viewModel.selectedRegion?.name {
-                return baseSites.filter { $0.region == region }
+            if let regionId = currentRegionId {
+                return baseSites.filter { $0.region == regionId }
             }
             return baseSites
         }()
@@ -471,8 +533,8 @@ public struct NewMapView: View {
     }
 
     private func fitSelectedArea() {
-        guard let area = viewModel.selectedArea else { return }
-        let areaSites = viewModel.sites.filter { parseAreaCountry($0.location).area == area.name }
+        guard let areaId = currentAreaId else { return }
+        let areaSites = viewModel.sites.filter { parseAreaCountry($0.location).area == areaId }
         focusMap(on: areaSites.isEmpty ? viewModel.sites : areaSites)
     }
 
@@ -524,38 +586,29 @@ public struct NewMapView: View {
             .tint(primaryColor)
             .navigationTitle("")
             .navigationBarTitleDisplayMode(.inline)
-            .sheet(isPresented: $showingSiteDetail) { siteDetailSheet }
-            .sheet(isPresented: $showSearch) { searchSheet }
-            .sheet(isPresented: $showFilterLayers) { combinedFilterLayersSheet }
-            .onChange(of: viewModel.selectedRegion) { _ in
-                focusMap(on: viewModel.filteredSites)
+            .onChange(of: uiViewModel.currentHierarchyLevel) { _ in
+                // Refocus map when hierarchy changes
+                focusMap(on: unifiedFilteredSites)
             }
-            .onChange(of: viewModel.selectedArea) { _ in
-                focusMap(on: viewModel.filteredSites)
-            }
-            .onChange(of: viewModel.statusFilter) { _ in
-                focusMap(on: viewModel.filteredSites)
-            }
-            .onChange(of: viewModel.exploreFilter) { _ in
-                focusMap(on: viewModel.filteredSites)
+            .onChange(of: uiViewModel.exploreFilters) { _ in
+                // Refocus map when filters change
+                focusMap(on: unifiedFilteredSites)
             }
             .onChange(of: selectedSite) { _ in
                 if let selectedSite { focusMap(on: [selectedSite]) }
             }
             .onChange(of: scope) { newScope in
-                viewModel.mode = (newScope == .discover) ? .explore : .myMap
+                // Sync scope to filter lens
                 if newScope == .discover {
+                    uiViewModel.send(.clearFilterLens)
                     entityTab = .sites
                 } else {
                     showShops = false
-                    syncStatusFilterToMySitesTab(mySitesTab)
+                    syncFilterLensToMySitesTab(mySitesTab)
                 }
             }
             .onChange(of: mySitesTab) { newValue in
-                syncStatusFilterToMySitesTab(newValue)
-            }
-            .onChange(of: featureFlags.clusterOn) { newValue in
-                viewModel.layerSettings.showClusters = newValue
+                syncFilterLensToMySitesTab(newValue)
             }
             .onChange(of: surfaceDetent) { newDetent in
                 updateTabBarVisibility(for: newDetent)
@@ -637,6 +690,9 @@ public struct NewMapView: View {
             detent: $surfaceDetent,
             exploreFilters: $uiViewModel.exploreFilters,
             filterLens: filterLensBinding,
+            filteredSites: unifiedFilteredSites,
+            allSites: viewModel.sites,
+            isLoading: viewModel.loading,
             dataViewModel: viewModel,
             onSiteTap: { site in
                 uiViewModel.send(.openSiteInspection(site.id))
@@ -657,9 +713,23 @@ public struct NewMapView: View {
                 surfaceDetent = .peek
             },
             onSearchSelect: { site in
-                uiViewModel.send(.closeSearch(selectedSite: site.id))
-                surfaceDetent = .medium
-                focusMap(on: [site], singleSpan: 2.5)
+                // Dismiss keyboard first
+                UIApplication.shared.sendAction(
+                    #selector(UIResponder.resignFirstResponder),
+                    to: nil, from: nil, for: nil
+                )
+
+                // Animate transition to inspect mode
+                withAnimation(.spring(response: 0.35, dampingFraction: 0.85)) {
+                    uiViewModel.send(.closeSearch(selectedSite: site.id))
+                    surfaceDetent = .medium
+                }
+
+                // Focus map after brief delay for smoother animation
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                    focusMap(on: [site], singleSpan: 2.5)
+                }
+
                 Haptics.soft()
             },
             onOpenFilter: {
@@ -675,6 +745,24 @@ public struct NewMapView: View {
             },
             onDrillDown: { regionId in
                 uiViewModel.send(.drillDownToRegion(regionId))
+            },
+            onOpenPlan: { siteId in
+                withAnimation(.spring(response: 0.35, dampingFraction: 0.85)) {
+                    uiViewModel.send(.openPlan(siteId: siteId))
+                    surfaceDetent = .expanded
+                }
+            },
+            onAddSiteToPlan: { siteId in
+                uiViewModel.send(.addSiteToPlan(siteId))
+            },
+            onRemoveSiteFromPlan: { siteId in
+                uiViewModel.send(.removeSiteFromPlan(siteId))
+            },
+            onClosePlan: {
+                withAnimation(.spring(response: 0.35, dampingFraction: 0.85)) {
+                    uiViewModel.send(.closePlan)
+                    surfaceDetent = .peek
+                }
             }
         )
     }
@@ -749,7 +837,7 @@ public struct NewMapView: View {
             annotations: mapLibreAnnotations,
             initialCamera: diveMapCamera,
             layerSettings: DiveMapLayerSettings(
-                showClusters: featureFlags.clusterOn && viewModel.layerSettings.showClusters,
+                showClusters: viewModel.layerSettings.showClusters,
                 showStatusGlows: viewModel.layerSettings.showStatusGlows,
                 colorByDifficulty: viewModel.layerSettings.colorByDifficulty
             ),
@@ -779,9 +867,8 @@ public struct NewMapView: View {
                 if !isProgrammaticCameraChange {
                     followMap = false
 
-                    // Step 10.4: Dismiss inspection if site scrolls offscreen
-                    if featureFlags.useNewSurface,
-                       let siteId = uiViewModel.inspectedSiteId,
+                    // Dismiss inspection if site scrolls offscreen
+                    if let siteId = uiViewModel.inspectedSiteId,
                        let site = viewModel.sites.first(where: { $0.id == siteId }) {
                         let isVisible = viewport.minLatitude <= site.latitude &&
                                         site.latitude <= viewport.maxLatitude &&
@@ -841,18 +928,9 @@ public struct NewMapView: View {
         }
     }
 
-    // MARK: - HUD Overlay (Step 11)
+    // MARK: - HUD Overlay
 
-    @ViewBuilder
     private var topOverlay: some View {
-        if featureFlags.useNewSurface {
-            hudOverlay
-        } else {
-            EmptyView()
-        }
-    }
-
-    private var hudOverlay: some View {
         ZStack {
             // Search button - top right
             VStack {
@@ -961,42 +1039,41 @@ public struct NewMapView: View {
     }
     
     private func updateTabBarVisibility(for detent: SurfaceDetent) {
-        let shouldHide = detent != .peek
+        let shouldHide = detent == .expanded
         NotificationCenter.default.post(name: .tabBarVisibilityShouldChange, object: nil, userInfo: ["hidden": shouldHide])
     }
 
 
-    private func syncStatusFilterToMySitesTab(_ tab: MySitesTab) {
+    /// Sync filter lens to the selected My Sites tab using new unified state.
+    private func syncFilterLensToMySitesTab(_ tab: MySitesTab) {
         switch tab {
         case .timeline:
-            viewModel.statusFilter = .visited
+            uiViewModel.send(.applyFilterLens(.logged))
         case .saved:
-            viewModel.statusFilter = .wishlist
+            uiViewModel.send(.applyFilterLens(.saved))
         case .planned:
-            viewModel.statusFilter = .planned
+            uiViewModel.send(.applyFilterLens(.planned))
         }
     }
-    
+
     private func clearDiscoverFilters() {
         withAnimation(.spring(response: 0.3)) {
-            viewModel.exploreFilter = .all
-            viewModel.selectedRegion = nil
-            viewModel.selectedArea = nil
-            viewModel.tier = .regions
+            // Reset filters using new unified state
+            uiViewModel.exploreFilters.reset()
+            uiViewModel.send(.resetToWorld)
             entityTab = .sites
             showShops = false
         }
         followMap = true
         fitToVisible()
     }
-    
+
     private func clearMySitesFilters() {
         withAnimation(.spring(response: 0.3)) {
             mySitesTab = .saved
-            syncStatusFilterToMySitesTab(.saved)
-            viewModel.selectedRegion = nil
-            viewModel.selectedArea = nil
-            viewModel.tier = .regions
+            syncFilterLensToMySitesTab(.saved)
+            // Reset hierarchy using new unified state
+            uiViewModel.send(.resetToWorld)
         }
         followMap = true
         fitToVisible()
@@ -1021,245 +1098,6 @@ public struct NewMapView: View {
                             }
             }
         }
-    }
-
-    private var bottomSheet: some View {
-        VStack(spacing: 0) {
-            ZStack {
-                Capsule()
-                    .fill(Color.kelp.opacity(0.35))
-                    .frame(width: 36, height: 4)
-            }
-            .frame(height: 44)
-
-            bottomSheetContent
-                .padding(.bottom, 12)
-        }
-        .foregroundStyle(Color.foam)
-        .background(
-            RoundedRectangle(cornerRadius: 24, style: .continuous)
-                .fill(Color.oceanBlue.opacity(0.62).opacity(0.62))
-                .overlay(
-                    RoundedRectangle(cornerRadius: 24, style: .continuous)
-                        .fill(Material.thin)
-                )
-                .overlay(
-                    RoundedRectangle(cornerRadius: 24, style: .continuous)
-                        .stroke(Color.oceanBlue.opacity(0.2), lineWidth: 1)
-                )
-        )
-        .transition(.move(edge: .bottom))
-    }
-    
-    private var bottomSheetContent: some View {
-        VStack(spacing: 16) {
-            sheetPrimaryRow
-            sheetContextRow
-
-            if let summary = filterSummaryText {
-                Text(summary)
-                    .font(.caption)
-                    .foregroundStyle(Color.mist)
-                    .padding(.horizontal, 16)
-                    .frame(maxWidth: .infinity, alignment: .leading)
-            }
-
-            Divider()
-                .padding(.horizontal, 16)
-
-            tierContentView
-        }
-    }
-
-    private var sheetPrimaryRow: some View {
-        HStack(spacing: 12) {
-            // Phase 4: Search button (accessible when rail is removed)
-            Button(action: { showSearch = true; Haptics.soft() }) {
-                Image(systemName: "magnifyingglass")
-                    .font(.system(size: 16, weight: .semibold))
-                    .foregroundStyle(Color.foam)
-                    .frame(width: 36, height: 36)
-                    .background(Circle().fill(Color.glass))
-                    .overlay(Circle().stroke(Color.foam.opacity(0.12), lineWidth: 1))
-            }
-            .buttonStyle(.plain)
-            .accessibilityLabel("Search dive sites")
-
-            Picker("Scope", selection: $scope) {
-                Text("Discover").tag(Scope.discover)
-                Text("My Dive Sites").tag(Scope.saved)
-            }
-            .pickerStyle(.segmented)
-            .tint(Color.lagoon)
-            .frame(maxWidth: .infinity)
-            .frame(height: 36)
-            Spacer(minLength: 8)
-            Button(action: { fitToVisible(); Haptics.soft() }) {
-                Text(currentCountLabel)
-                    .font(.caption.weight(.semibold))
-                    .foregroundStyle(Color.foam)
-                    .lineLimit(1)
-            }
-            .buttonStyle(.plain)
-            .accessibilityLabel("Fit to results")
-            .accessibilityValue(currentCountLabel)
-        }
-        .padding(.horizontal, 16)
-    }
-
-    private var sheetContextRow: some View {
-        HStack(spacing: 12) {
-            if scope == .discover {
-                Picker("", selection: $entityTab) {
-                    Text("Areas").tag(EntityTab.areas)
-                    Text("Sites").tag(EntityTab.sites)
-                }
-                .pickerStyle(.segmented)
-                .tint(Color.lagoon)
-                .frame(maxWidth: .infinity)
-                .frame(height: 36)
-            } else {
-                Picker("", selection: $mySitesTab) {
-                    Text("Timeline").tag(MySitesTab.timeline)
-                    Text("Saved").tag(MySitesTab.saved)
-                    Text("Planned").tag(MySitesTab.planned)
-                }
-                .pickerStyle(.segmented)
-                .tint(Color.lagoon)
-                .frame(maxWidth: .infinity)
-                .frame(height: 36)
-            }
-        }
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .padding(.horizontal, 16)
-    }
-    
-    private var tierContentView: some View {
-        VStack(spacing: 12) {
-            if viewModel.loading {
-                ProgressView()
-                    .progressViewStyle(.circular)
-                    .frame(maxWidth: .infinity)
-                    .padding(.top, 8)
-            }
-            if scope == .discover {
-                if shouldShowBreadcrumb {
-                    BreadcrumbHeader(viewModel: viewModel)
-                        .padding(.horizontal, 16)
-                }
-                
-                switch entityTab {
-                case .areas:
-                    areasTierView
-                case .sites:
-                    SitesListView(
-                        sites: discoverSitesList,
-                        selectedSiteId: selectedSiteIdForScroll,
-                        onSiteTap: handleSiteTap,
-                        limit: surfaceDetent == .peek ? 2 : nil,
-                        scrollDisabled: surfaceDetent == .peek,
-                        emptyState: discoverSitesEmptyState
-                    )
-                    if showShops {
-                        if !discoverSitesList.isEmpty {
-                            Divider()
-                                .padding(.horizontal, 16)
-                        }
-                        ShopsListView(
-                            shops: discoverShopsList,
-                            onShopTap: handleShopTap,
-                            limit: surfaceDetent == .peek ? 2 : nil,
-                            scrollDisabled: surfaceDetent == .peek,
-                            emptyState: discoverShopsEmptyState
-                        )
-                    }
-                }
-            } else {
-                SitesListView(
-                    sites: savedSitesList,
-                    selectedSiteId: selectedSiteIdForScroll,
-                    onSiteTap: handleSiteTap,
-                    limit: surfaceDetent == .peek ? 2 : nil,
-                    scrollDisabled: surfaceDetent == .peek,
-                    emptyState: mySitesEmptyState
-                )
-            }
-        }
-    }
-    
-    @ViewBuilder
-    private var areasTierView: some View {
-        switch viewModel.tier {
-        case .regions:
-            RegionsListView(
-                regions: viewModel.regions,
-                selectedRegion: Binding(
-                    get: { viewModel.selectedRegion },
-                    set: { newValue in viewModel.selectedRegion = newValue }
-                ),
-                onRegionTap: handleRegionTap
-            )
-        case .areas:
-            AreasListView(
-                areas: viewModel.areasInSelectedRegion,
-                onAreaTap: handleAreaTap
-            )
-        case .sites:
-            SitesListView(
-                sites: discoverSitesList,
-                selectedSiteId: selectedSiteIdForScroll,
-                onSiteTap: handleSiteTap,
-                limit: surfaceDetent == .peek ? 2 : nil,
-                scrollDisabled: surfaceDetent == .peek,
-                emptyState: discoverSitesEmptyState
-            )
-        }
-    }
-    
-    
-    @ViewBuilder
-    private var siteDetailSheet: some View {
-        if let site = selectedSite {
-            SiteDetailSheet(site: site, mode: viewModel.mode)
-        }
-    }
-    
-    private var searchSheet: some View {
-        SearchSheet(searchText: $searchText, sites: viewModel.sites) { site in
-            selectedSite = site
-            selectedSiteIdForScroll = site.id
-            withAnimation(.easeInOut(duration: 0.3)) {
-                focusMap(on: [site], singleSpan: 2.5)
-                surfaceDetent = .medium
-            }
-            showSearch = false
-        }
-    }
-    
-    private var filterSheet: some View {
-        FilterSheet(
-            mode: $viewModel.mode,
-            statusFilter: $viewModel.statusFilter,
-            exploreFilter: $viewModel.exploreFilter,
-            onDismiss: { /* deprecated in favor of combined sheet */ }
-        )
-        .presentationDetents([.medium])
-    }
-
-    private var layersSheet: some View {
-        LayerSheet(layerSettings: $viewModel.layerSettings, onDismiss: { /* deprecated in favor of combined sheet */ })
-            .presentationDetents([.medium])
-    }
-
-    private var combinedFilterLayersSheet: some View {
-        CombinedFilterLayersSheet(
-            mode: $viewModel.mode,
-            statusFilter: $viewModel.statusFilter,
-            exploreFilter: $viewModel.exploreFilter,
-            layerSettings: $viewModel.layerSettings,
-            onDismiss: { showFilterLayers = false }
-        )
-        .presentationDetents([.medium])
     }
 
 private struct MapBackgroundOverlay: View {
@@ -1294,21 +1132,21 @@ private func overlayMetrics(for size: CGSize) -> OverlayMetrics {
     
     private func handleRegionTap(_ region: Region) {
         withAnimation(.spring(response: 0.25)) {
-            viewModel.selectedRegion = region
-            viewModel.selectedArea = nil
-            viewModel.tier = .areas
+            // Use new unified state for hierarchy navigation
+            uiViewModel.send(.drillDownToRegion(region.id))
             entityTab = .areas
         }
         Haptics.tap()
     }
-    
+
     private func handleAreaTap(_ area: Area) {
         let areaSites = viewModel.sites.filter { parseAreaCountry($0.location).area == area.name }
         withAnimation(.easeInOut(duration: 0.3)) {
             focusMap(on: areaSites)
-            viewModel.selectedArea = area
+            // Use new unified state for hierarchy navigation
+            uiViewModel.send(.drillDownToArea(area.id))
             surfaceDetent = .medium
-                followMap = true
+            followMap = true
             entityTab = .sites
         }
         Haptics.tap()
@@ -1361,8 +1199,9 @@ private func overlayMetrics(for size: CGSize) -> OverlayMetrics {
             return (location.coordinate, 6.0)
         }
 
-        // 3. Fallback: Cabo San Lucas (popular dive region) - zoomed out to see land
-        return (CLLocationCoordinate2D(latitude: 22.89, longitude: -109.92), 1.8)
+        // 3. Fallback: World view centered on Caribbean/Southeast Asia dive regions
+        // Shows visible land and popular dive destinations at an engaging zoom level
+        return (CLLocationCoordinate2D(latitude: 15.0, longitude: 0.0), 2.5)
     }
 
     /// Convert zoom level to approximate span (latitude delta)
@@ -1379,22 +1218,25 @@ private func overlayMetrics(for size: CGSize) -> OverlayMetrics {
     private var discoverSitesList: [DiveSite] {
         let viewportSites = viewModel.visibleSites.isEmpty ? viewModel.sites : viewModel.visibleSites
         let base: [DiveSite]
-        if let area = viewModel.selectedArea {
-            base = viewportSites.filter { parseAreaCountry($0.location).area == area.name }
-        } else if let region = viewModel.selectedRegion {
-            base = viewportSites.filter { $0.region == region.name }
+        // Use new hierarchy helpers
+        if let areaId = currentAreaId {
+            base = viewportSites.filter { parseAreaCountry($0.location).area == areaId }
+        } else if let regionId = currentRegionId {
+            base = viewportSites.filter { $0.region == regionId }
         } else {
             base = viewportSites
         }
-        return viewModel.applyExploreFilters(to: base)
+        // Apply new unified filters
+        return viewModel.applyFilters(to: base, filters: uiViewModel.exploreFilters, lens: nil, hierarchy: .world)
     }
 
     private var discoverShopsList: [MapDiveShop] {
         var shops = viewModel.shops
-        if let area = viewModel.selectedArea {
-            shops = shops.filter { $0.area == area.name }
-        } else if let region = viewModel.selectedRegion {
-            shops = shops.filter { $0.region == region.name }
+        // Use new hierarchy helpers
+        if let areaId = currentAreaId {
+            shops = shops.filter { $0.area == areaId }
+        } else if let regionId = currentRegionId {
+            shops = shops.filter { $0.region == regionId }
         }
         if let viewport = lastViewport {
             shops = shops.filter { shop in
@@ -1501,12 +1343,6 @@ extension EnvironmentValues {
 
 // MARK: - Pin View
 
-private struct MapFeatureFlags {
-    var sheetDetents: Bool = true
-    var clusterOn: Bool = true
-    var useNewSurface: Bool = true  // Step 10: New unified bottom surface
-}
-
 private struct OverlayMetrics {
     let bottomPadding: CGFloat
 }
@@ -1542,25 +1378,32 @@ struct PinView: View {
 // MARK: - Breadcrumb Header & Areas
 
 struct BreadcrumbHeader: View {
-    @ObservedObject var viewModel: MapViewModel
+    let tier: Tier
+    let regionName: String?
+    let regionsCount: Int
+    let areasCount: Int
+    let sitesCount: Int
+    var onResetToWorld: () -> Void
+    var onResetToRegion: () -> Void
+
     var body: some View {
         HStack(spacing: 8) {
             // Breadcrumb
             HStack(spacing: 6) {
                 Text("Regions")
-                    .foregroundStyle(viewModel.tier == .regions ? Color.lagoon : Color.mist)
-                    .onTapGesture { viewModel.resetToRegions() }
+                    .foregroundStyle(tier == .regions ? Color.lagoon : Color.mist)
+                    .onTapGesture { onResetToWorld() }
                 Text("›").foregroundStyle(Color.mist.opacity(0.6))
-                Text(viewModel.selectedRegion?.name ?? "Areas")
-                    .foregroundStyle(viewModel.tier == .areas ? Color.lagoon : Color.mist)
+                Text(regionName ?? "Areas")
+                    .foregroundStyle(tier == .areas ? Color.lagoon : Color.mist)
                     .onTapGesture {
-                        if viewModel.selectedRegion != nil {
-                            viewModel.resetToAreas()
+                        if regionName != nil {
+                            onResetToRegion()
                         }
                     }
                 Text("›").foregroundStyle(Color.mist.opacity(0.6))
                 Text("Sites")
-                    .foregroundStyle(viewModel.tier == .sites ? Color.lagoon : Color.mist)
+                    .foregroundStyle(tier == .sites ? Color.lagoon : Color.mist)
             }
             Spacer()
             // Counts
@@ -1569,11 +1412,12 @@ struct BreadcrumbHeader: View {
                 .foregroundStyle(Color.mist)
         }
     }
+
     private var countText: String {
-        switch viewModel.tier {
-        case .regions: return "\(abbreviatedCount(viewModel.regions.count)) regions"
-        case .areas: return "\(abbreviatedCount(viewModel.areasInSelectedRegion.count)) areas"
-        case .sites: return "\(abbreviatedCount(viewModel.filteredSites.count)) sites"
+        switch tier {
+        case .regions: return "\(abbreviatedCount(regionsCount)) regions"
+        case .areas: return "\(abbreviatedCount(areasCount)) areas"
+        case .sites: return "\(abbreviatedCount(sitesCount)) sites"
         }
     }
 }
@@ -1986,9 +1830,10 @@ struct QuickFactChip: View {
     var body: some View {
         Text(text)
             .font(.caption2)
+            .foregroundStyle(Color.mist)
             .padding(.horizontal, 8)
             .padding(.vertical, 4)
-            .background(Color.gray.opacity(0.15))
+            .background(Color.trench)
             .cornerRadius(8)
             .accessibilityLabel(text)
     }

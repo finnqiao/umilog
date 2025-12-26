@@ -122,6 +122,43 @@ enum MapUIReducer {
                 return .explore(ctx.returnContext)
             }
 
+        // MARK: - Plan Mode Transitions
+
+        case (.explore(let ctx), .openPlan(let siteId)):
+            var plannedSites: [String] = []
+            if let siteId = siteId {
+                plannedSites.append(siteId)
+            }
+            return .plan(PlanContext(
+                plannedSiteIds: plannedSites,
+                initialSiteId: siteId,
+                returnContext: ctx
+            ))
+
+        case (.inspectSite(let ctx), .openPlan(let siteId)):
+            var plannedSites: [String] = []
+            if let siteId = siteId {
+                plannedSites.append(siteId)
+            }
+            return .plan(PlanContext(
+                plannedSiteIds: plannedSites,
+                initialSiteId: siteId,
+                returnContext: ctx.returnContext
+            ))
+
+        case (.plan(var ctx), .addSiteToPlan(let siteId)):
+            if !ctx.plannedSiteIds.contains(siteId) {
+                ctx.plannedSiteIds.append(siteId)
+            }
+            return .plan(ctx)
+
+        case (.plan(var ctx), .removeSiteFromPlan(let siteId)):
+            ctx.plannedSiteIds.removeAll { $0 == siteId }
+            return .plan(ctx)
+
+        case (.plan(let ctx), .closePlan):
+            return .explore(ctx.returnContext)
+
         // MARK: - Invalid Transitions
 
         default:

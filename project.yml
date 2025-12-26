@@ -72,15 +72,29 @@ targets:
         buildPhase: resources
     dependencies:
       - target: UmiDesignSystem
+        embed: true
       - target: UmiCoreKit
+        embed: true
       - target: FeatureMap
+        embed: true
       - target: FeatureHome
+        embed: true
       - target: FeatureLiveLog
+        embed: true
       - target: FeatureHistory
+        embed: true
       - target: FeatureSites
+        embed: true
       - target: FeatureSettings
+        embed: true
       - target: UmiLocationKit
+        embed: true
       - target: DiveMap
+        embed: true
+      - target: UmiDB
+        embed: true
+      - package: MapLibre
+      - package: GRDB
     settings:
       base:
         INFOPLIST_FILE: UmiLog/Info.plist
@@ -182,6 +196,7 @@ targets:
       - target: UmiDesignSystem
       - target: UmiCoreKit
       - target: UmiDB
+      - package: GRDB
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: app.umilog.feature.home
@@ -199,6 +214,7 @@ targets:
       - target: UmiCoreKit
       - target: UmiDB
       - target: UmiLocationKit
+      - package: GRDB
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: app.umilog.feature.livelog
@@ -215,6 +231,7 @@ targets:
       - target: UmiDesignSystem
       - target: UmiCoreKit
       - target: UmiDB
+      - package: GRDB
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: app.umilog.feature.history
@@ -231,6 +248,7 @@ targets:
       - target: UmiDesignSystem
       - target: UmiCoreKit
       - target: UmiDB
+      - package: GRDB
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: app.umilog.feature.sites
@@ -247,6 +265,7 @@ targets:
       - target: UmiDesignSystem
       - target: UmiCoreKit
       - target: UmiDB
+      - package: GRDB
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: app.umilog.feature.settings
@@ -266,6 +285,7 @@ targets:
       - target: UmiLocationKit
       - target: FeatureLiveLog
       - target: DiveMap
+      - package: GRDB
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: app.umilog.feature.map
@@ -297,6 +317,7 @@ targets:
     dependencies:
       - target: UmiCoreKit
       - target: UmiDB
+      - package: GRDB
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: app.umilog.locationkit

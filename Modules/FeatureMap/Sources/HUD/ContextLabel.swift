@@ -55,6 +55,10 @@ struct ContextLabel: View {
         case .filter, .search:
             // Hidden during filter/search modes
             return nil
+
+        case .plan:
+            // Hidden during plan mode
+            return nil
         }
     }
 }

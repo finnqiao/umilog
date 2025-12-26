@@ -195,10 +195,10 @@ public final class MapVC: UIViewController, MLNMapViewDelegate, UIGestureRecogni
             automaticallyAdjustsScrollViewInsets = false
         }
 
-        // Set initial camera (Cabo San Lucas fallback, zoomed out to show land context)
+        // Set initial camera (world view showing dive regions - land visible, not empty ocean)
         let camera = initialCamera ?? DiveMapCamera(
-            center: CLLocationCoordinate2D(latitude: 22.89, longitude: -109.92),
-            zoomLevel: 1.8
+            center: CLLocationCoordinate2D(latitude: 15.0, longitude: 0.0),
+            zoomLevel: 2.5
         )
         map.setCenter(camera.center, zoomLevel: camera.zoomLevel, animated: false)
         logger.log("camera_set lat=\(camera.center.latitude, privacy: .public) lon=\(camera.center.longitude, privacy: .public) zoom=\(camera.zoomLevel, privacy: .public)")
@@ -369,11 +369,23 @@ public final class MapVC: UIViewController, MLNMapViewDelegate, UIGestureRecogni
         if style.layer(withIdentifier: "site-cluster") == nil {
             let cluster = MLNCircleStyleLayer(identifier: "site-cluster", source: siteSource)
             cluster.predicate = NSPredicate(format: "cluster == YES")
-            cluster.circleColor = NSExpression(forConstantValue: clusterFill.withAlphaComponent(0.35))
+
+            // Solid fill color for clusters (like reference image - red circles)
+            cluster.circleColor = NSExpression(forConstantValue: clusterFill.withAlphaComponent(0.9))
             cluster.circleStrokeColor = NSExpression(forConstantValue: clusterStroke.withAlphaComponent(0.95))
             cluster.circleStrokeWidth = NSExpression(forConstantValue: MapTheme.Sizing.clusterStrokeWidth)
-            // CUSTOMIZE: Cluster radius based on point count - edit MapTheme.Sizing.clusterRadiusStops
-            cluster.circleRadius = NSExpression(forConstantValue: 36)
+
+            // Data-driven radius based on point_count (larger clusters = bigger circles)
+            // Uses interpolation: 2 sites = 18pt, 10 = 22pt, 50 = 28pt, 100+ = 34pt
+            let clusterRadiusExpression = NSExpression(format: """
+                mgl_interpolate:withCurveType:parameters:stops:(point_count, 'linear', nil, %@)
+                """, [
+                    2: 18,
+                    10: 22,
+                    50: 28,
+                    100: 34
+                ])
+            cluster.circleRadius = clusterRadiusExpression
             cluster.isVisible = true
             style.addLayer(cluster)
         }
@@ -400,14 +412,24 @@ public final class MapVC: UIViewController, MLNMapViewDelegate, UIGestureRecogni
             ("site-glow-default", NSPredicate(format: "cluster != YES AND (status == %@ OR status == NULL)", DiveMapAnnotation.Status.baseline.rawValue), MapTheme.Colors.defaultGlow)
         ]
 
+        // Zoom-responsive glow radius (scales with marker size)
+        let glowRadiusExpression = NSExpression(format: """
+            mgl_interpolate:withCurveType:parameters:stops:($zoomLevel, 'linear', nil, %@)
+            """, [
+                3: 10,
+                8: 14,
+                12: 20,
+                16: 28
+            ])
+
         var insertionReference: MLNStyleLayer? = style.layer(withIdentifier: "site-cluster-count")
         for spec in glowSpecs {
             if style.layer(withIdentifier: spec.0) == nil {
                 let glow = MLNCircleStyleLayer(identifier: spec.0, source: siteSource)
                 glow.predicate = spec.1
                 glow.circleColor = NSExpression(forConstantValue: spec.2)
-                // CUSTOMIZE: Glow size from MapTheme.Sizing
-                glow.circleRadius = NSExpression(forConstantValue: MapTheme.Sizing.glowRadiusMultiplier * 10)
+                // Data-driven glow radius that scales with zoom
+                glow.circleRadius = glowRadiusExpression
                 glow.circleBlur = NSExpression(forConstantValue: MapTheme.Sizing.glowBlur * 15)
                 glow.circleOpacity = NSExpression(forConstantValue: 1.0)
                 if let ref = insertionReference {
@@ -429,14 +451,25 @@ public final class MapVC: UIViewController, MLNMapViewDelegate, UIGestureRecogni
             ("site-layer-default", NSPredicate(format: "cluster != YES AND (difficulty == %@ OR difficulty == NULL)", DiveMapAnnotation.Difficulty.other.rawValue), MapTheme.Colors.default)
         ]
 
+        // Zoom-responsive marker radius: small dots at low zoom, larger at high zoom
+        // zoom 3 = 4pt (tiny dots), zoom 8 = 6pt, zoom 12 = 9pt, zoom 16 = 14pt (tappable)
+        let markerRadiusExpression = NSExpression(format: """
+            mgl_interpolate:withCurveType:parameters:stops:($zoomLevel, 'linear', nil, %@)
+            """, [
+                3: 4,
+                8: 6,
+                12: 9,
+                16: 14
+            ])
+
         var lastLayer: MLNStyleLayer? = insertionReference
         for spec in difficultySpecs {
             if style.layer(withIdentifier: spec.0) == nil {
                 let circle = MLNCircleStyleLayer(identifier: spec.0, source: siteSource)
                 circle.predicate = spec.1
                 circle.circleColor = NSExpression(forConstantValue: spec.2)
-                // CUSTOMIZE: Marker sizing from MapTheme.Sizing.markerRadiusStops
-                circle.circleRadius = NSExpression(forConstantValue: 9)
+                // Data-driven marker radius that grows with zoom level
+                circle.circleRadius = markerRadiusExpression
                 circle.circleOpacity = NSExpression(forConstantValue: 0.96)
                 circle.circleStrokeColor = NSExpression(forConstantValue: stroke)
                 circle.circleStrokeWidth = NSExpression(forConstantValue: MapTheme.Sizing.markerStrokeWidth)
@@ -450,11 +483,21 @@ public final class MapVC: UIViewController, MLNMapViewDelegate, UIGestureRecogni
         }
 
         // MARK: - Selection Highlight
+        // Zoom-responsive selection radius (slightly larger than marker)
+        let selectionRadiusExpression = NSExpression(format: """
+            mgl_interpolate:withCurveType:parameters:stops:($zoomLevel, 'linear', nil, %@)
+            """, [
+                3: 6,
+                8: 9,
+                12: 14,
+                16: 18
+            ])
+
         if style.layer(withIdentifier: "site-selected") == nil {
             let selected = MLNCircleStyleLayer(identifier: "site-selected", source: siteSource)
             selected.predicate = NSPredicate(format: "selected == 1 && cluster != YES")
             selected.circleColor = NSExpression(forConstantValue: MapTheme.Colors.selectionRing.withAlphaComponent(0.85))
-            selected.circleRadius = NSExpression(forConstantValue: 14)
+            selected.circleRadius = selectionRadiusExpression
             selected.circleOpacity = NSExpression(forConstantValue: 0.9)
             selected.circleStrokeColor = NSExpression(forConstantValue: clusterFill)
             selected.circleStrokeWidth = NSExpression(forConstantValue: MapTheme.Sizing.selectionStrokeWidth)
@@ -519,8 +562,19 @@ public final class MapVC: UIViewController, MLNMapViewDelegate, UIGestureRecogni
 
     private func zoomIntoCluster(at point: CGPoint) {
         let coordinate = map.convert(point, toCoordinateFrom: map)
-        // Zoom +2 levels to show cluster contents, up to maxClusterZoom
-        let targetZoom = min(map.zoomLevel + 2.0, MapTheme.Clustering.maxClusterZoom)
+
+        // Adaptive zoom: jump more at low zoom, less at high zoom for smooth drilling
+        let currentZoom = map.zoomLevel
+        let zoomIncrement: Double
+        if currentZoom < 5 {
+            zoomIncrement = 3.0  // Big jump at world/continent level
+        } else if currentZoom < 8 {
+            zoomIncrement = 2.5  // Medium jump at country level
+        } else {
+            zoomIncrement = 2.0  // Smaller jump at regional level
+        }
+
+        let targetZoom = min(currentZoom + zoomIncrement, MapTheme.Clustering.maxClusterZoom + 1)
 
         let mlnCamera = MLNMapCamera(
             lookingAtCenter: coordinate,
@@ -528,7 +582,15 @@ public final class MapVC: UIViewController, MLNMapViewDelegate, UIGestureRecogni
             pitch: 0,
             heading: map.camera.heading
         )
-        map.fly(to: mlnCamera, withDuration: 0.35, completionHandler: nil)
+
+        // Smooth animation with spring feel
+        map.fly(to: mlnCamera, withDuration: 0.4, completionHandler: nil)
+
+        // Haptic feedback for cluster expansion
+        if MapTheme.Animation.enableHaptics {
+            let generator = UIImpactFeedbackGenerator(style: MapTheme.Animation.clusterHapticStyle)
+            generator.impactOccurred()
+        }
     }
 
     private func updateAnnotationsIfReady() {

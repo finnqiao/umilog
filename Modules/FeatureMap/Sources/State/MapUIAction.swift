@@ -70,4 +70,18 @@ enum MapUIAction: Equatable {
 
     /// Accept the proximity prompt (start logging).
     case acceptProximityPrompt
+
+    // MARK: - Trip Planning
+
+    /// Open trip planning mode, optionally starting with a site.
+    case openPlan(siteId: String?)
+
+    /// Add a site to the current plan.
+    case addSiteToPlan(String)
+
+    /// Remove a site from the current plan.
+    case removeSiteFromPlan(String)
+
+    /// Close plan mode and return to explore.
+    case closePlan
 }

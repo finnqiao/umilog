@@ -21,12 +21,18 @@ public struct DiveSite: Codable, Identifiable, Hashable {
     public let visitedCount: Int
     public let createdAt: Date
     public let tags: [String]  // v3: Wildlife, features, conditions, activities, characteristics
-    
+    // v5: Geographic hierarchy foreign keys
+    public let countryId: String?
+    public let regionId: String?
+    public let areaId: String?
+    public let wikidataId: String?
+    public let osmId: String?
+
     /// Computed property for MapKit compatibility
     public var coordinate: CLLocationCoordinate2D {
         CLLocationCoordinate2D(latitude: latitude, longitude: longitude)
     }
-    
+
     public init(
         id: String = UUID().uuidString,
         name: String,
@@ -44,7 +50,12 @@ public struct DiveSite: Codable, Identifiable, Hashable {
         wishlist: Bool = false,
         visitedCount: Int = 0,
         tags: [String] = [],
-        createdAt: Date = Date()
+        createdAt: Date = Date(),
+        countryId: String? = nil,
+        regionId: String? = nil,
+        areaId: String? = nil,
+        wikidataId: String? = nil,
+        osmId: String? = nil
     ) {
         self.id = id
         self.name = name
@@ -63,6 +74,11 @@ public struct DiveSite: Codable, Identifiable, Hashable {
         self.visitedCount = visitedCount
         self.tags = tags
         self.createdAt = createdAt
+        self.countryId = countryId
+        self.regionId = regionId
+        self.areaId = areaId
+        self.wikidataId = wikidataId
+        self.osmId = osmId
     }
     
     public enum Difficulty: String, Codable {
@@ -84,7 +100,7 @@ public struct DiveSite: Codable, Identifiable, Hashable {
 // MARK: - GRDB
 extension DiveSite: FetchableRecord, PersistableRecord {
     public static let databaseTableName = "sites"
-    
+
     public enum Columns {
         static let id = Column(CodingKeys.id)
         static let name = Column(CodingKeys.name)
@@ -103,10 +119,31 @@ extension DiveSite: FetchableRecord, PersistableRecord {
         static let visitedCount = Column(CodingKeys.visitedCount)
         static let tags = Column(CodingKeys.tags)
         static let createdAt = Column(CodingKeys.createdAt)
+        // v5: Geographic hierarchy
+        static let countryId = Column(CodingKeys.countryId)
+        static let regionId = Column(CodingKeys.regionId)
+        static let areaId = Column(CodingKeys.areaId)
+        static let wikidataId = Column(CodingKeys.wikidataId)
+        static let osmId = Column(CodingKeys.osmId)
+    }
+
+    enum CodingKeys: String, CodingKey {
+        case id, name, location, latitude, longitude, region
+        case averageDepth, maxDepth, averageTemp, averageVisibility
+        case difficulty, type, description, wishlist, visitedCount, tags, createdAt
+        case countryId = "country_id"
+        case regionId = "region_id"
+        case areaId = "area_id"
+        case wikidataId = "wikidata_id"
+        case osmId = "osm_id"
     }
 }
 
 // MARK: - Associations
 extension DiveSite {
     public static let dives = hasMany(DiveLog.self)
+    public static let country = belongsTo(Country.self)
+    public static let regionRef = belongsTo(Region.self)
+    public static let area = belongsTo(Area.self)
+    public static let speciesLinks = hasMany(SiteSpeciesLink.self)
 }

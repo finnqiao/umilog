@@ -7,6 +7,7 @@ enum MapUIMode: Equatable {
     case inspectSite(SiteInspectionContext)
     case filter(FilterContext)
     case search(SearchContext)
+    case plan(PlanContext)
 
     /// Default mode on app launch.
     static let initial = MapUIMode.explore(ExploreContext())
@@ -33,6 +34,18 @@ enum MapUIMode: Equatable {
     var inspectedSiteId: String? {
         if case .inspectSite(let ctx) = self { return ctx.siteId }
         return nil
+    }
+
+    /// Stable identifier for animation purposes.
+    /// Returns a consistent string for each mode type.
+    var stableId: String {
+        switch self {
+        case .explore: return "explore"
+        case .inspectSite: return "inspect"
+        case .filter: return "filter"
+        case .search: return "search"
+        case .plan: return "plan"
+        }
     }
 }
 
@@ -105,6 +118,35 @@ struct SearchContext: Equatable {
 
     init(query: String = "", returnContext: ExploreContext) {
         self.query = query
+        self.returnContext = returnContext
+    }
+}
+
+// MARK: - Plan Context
+
+/// Context for trip planning mode.
+struct PlanContext: Equatable {
+    /// IDs of sites planned for this trip.
+    var plannedSiteIds: [String] = []
+
+    /// Optional trip name.
+    var tripName: String?
+
+    /// The initial site that triggered plan mode (if any).
+    var initialSiteId: String?
+
+    /// The context to return to when closing.
+    let returnContext: ExploreContext
+
+    init(
+        plannedSiteIds: [String] = [],
+        tripName: String? = nil,
+        initialSiteId: String? = nil,
+        returnContext: ExploreContext
+    ) {
+        self.plannedSiteIds = plannedSiteIds
+        self.tripName = tripName
+        self.initialSiteId = initialSiteId
         self.returnContext = returnContext
     }
 }

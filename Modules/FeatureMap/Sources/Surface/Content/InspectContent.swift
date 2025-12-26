@@ -16,6 +16,7 @@ struct InspectContent: View {
     var onDismiss: () -> Void
     var onLog: () -> Void
     var onSave: () -> Void
+    var onOpenPlan: (String) -> Void
 
     // MARK: - State
 
@@ -32,7 +33,8 @@ struct InspectContent: View {
         detent: SurfaceDetent,
         onDismiss: @escaping () -> Void,
         onLog: @escaping () -> Void = {},
-        onSave: @escaping () -> Void = {}
+        onSave: @escaping () -> Void = {},
+        onOpenPlan: @escaping (String) -> Void = { _ in }
     ) {
         self.context = context
         self.site = site
@@ -40,6 +42,7 @@ struct InspectContent: View {
         self.onDismiss = onDismiss
         self.onLog = onLog
         self.onSave = onSave
+        self.onOpenPlan = onOpenPlan
         _isWishlist = State(initialValue: site?.wishlist ?? false)
     }
 
@@ -54,9 +57,18 @@ struct InspectContent: View {
                     .padding(.bottom, 12)
 
                 if detent == .medium || detent == .expanded {
+                    // Hero image - always show at medium and expanded
+                    heroImage(for: site)
+                        .padding(.horizontal, 16)
+                        .padding(.bottom, 12)
+
                     actionsRow(site: site)
                         .padding(.horizontal, 16)
-                        .padding(.bottom, 16)
+                        .padding(.bottom, 12)
+
+                    // Quick facts - always show at medium and expanded
+                    quickFactsRow(for: site)
+                        .padding(.bottom, 12)
                 }
 
                 if detent == .expanded {
@@ -79,6 +91,50 @@ struct InspectContent: View {
         }
     }
 
+    // MARK: - Hero Image
+
+    private func heroImage(for site: DiveSite) -> some View {
+        ZStack(alignment: .bottomLeading) {
+            Rectangle()
+                .fill(LinearGradient(
+                    colors: [Color.ocean, Color.lagoon.opacity(0.7)],
+                    startPoint: .topLeading,
+                    endPoint: .bottomTrailing
+                ))
+                .frame(height: detent == .medium ? 100 : 140)
+                .clipShape(RoundedRectangle(cornerRadius: 12))
+                .overlay(
+                    RoundedRectangle(cornerRadius: 12)
+                        .strokeBorder(Color.ocean.opacity(0.3), lineWidth: 1)
+                )
+
+            // Site type badge
+            Text(site.type.rawValue)
+                .font(.caption2)
+                .fontWeight(.semibold)
+                .foregroundStyle(Color.foam)
+                .padding(.horizontal, 8)
+                .padding(.vertical, 4)
+                .background(Color.abyss.opacity(0.7))
+                .clipShape(Capsule())
+                .padding(10)
+        }
+    }
+
+    // MARK: - Quick Facts Row
+
+    private func quickFactsRow(for site: DiveSite) -> some View {
+        ScrollView(.horizontal, showsIndicators: false) {
+            HStack(spacing: 8) {
+                QuickFactChip(text: site.difficulty.rawValue)
+                QuickFactChip(text: "Max \(Int(site.maxDepth))m")
+                QuickFactChip(text: "\(Int(site.averageTemp))°C")
+                QuickFactChip(text: "\(Int(site.averageVisibility))m viz")
+            }
+            .padding(.horizontal, 16)
+        }
+    }
+
     // MARK: - Site Header
 
     private func siteHeader(site: DiveSite) -> some View {
@@ -93,11 +149,11 @@ struct InspectContent: View {
                 Text(site.name)
                     .font(.headline)
                     .lineLimit(1)
-                    .foregroundStyle(.primary)
+                    .foregroundStyle(Color.foam)
 
                 Text(site.location)
                     .font(.subheadline)
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(Color.mist)
 
                 // Quick stats at medium/expanded
                 if detent != .peek {
@@ -107,7 +163,7 @@ struct InspectContent: View {
                         Label("\(Int(site.averageTemp))°C", systemImage: "thermometer.medium")
                     }
                     .font(.caption)
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(Color.mist)
                 }
             }
 
@@ -116,7 +172,7 @@ struct InspectContent: View {
             Button(action: onDismiss) {
                 Image(systemName: "xmark.circle.fill")
                     .font(.title2)
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(Color.mist)
             }
             .accessibilityLabel("Dismiss")
         }
@@ -137,14 +193,14 @@ struct InspectContent: View {
                 toggleWishlist(site: site)
             }
 
-            // Plan button (future feature)
+            // Plan button
             ActionButton(
-                icon: "calendar",
+                icon: "calendar.badge.plus",
                 title: "Plan",
                 isActive: false,
                 isPrimary: false
             ) {
-                // Future: open trip planner
+                onOpenPlan(site.id)
             }
 
             // Log button (primary)
@@ -164,39 +220,15 @@ struct InspectContent: View {
     private func expandedContent(site: DiveSite) -> some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 20) {
-                // Hero image placeholder
-                ZStack(alignment: .bottomLeading) {
-                    Rectangle()
-                        .fill(LinearGradient(
-                            colors: [.oceanBlue.opacity(0.6), .diveTeal],
-                            startPoint: .top,
-                            endPoint: .bottom
-                        ))
-                        .frame(height: 160)
-                        .clipShape(RoundedRectangle(cornerRadius: 12))
-                }
-                .padding(.horizontal, 16)
-
-                // Quick facts chips
-                ScrollView(.horizontal, showsIndicators: false) {
-                    HStack(spacing: 8) {
-                        QuickFactChip(text: site.difficulty.rawValue)
-                        QuickFactChip(text: "Max \(Int(site.maxDepth))m")
-                        QuickFactChip(text: "\(Int(site.averageTemp))°C")
-                        QuickFactChip(text: "\(Int(site.averageVisibility))m viz")
-                        QuickFactChip(text: site.type.rawValue)
-                    }
-                    .padding(.horizontal, 16)
-                }
-
                 // Description
                 if let description = site.description, !description.isEmpty {
                     VStack(alignment: .leading, spacing: 8) {
                         Text("Description")
                             .font(.headline)
+                            .foregroundStyle(Color.foam)
                         Text(description)
                             .font(.body)
-                            .foregroundStyle(.secondary)
+                            .foregroundStyle(Color.mist)
                     }
                     .padding(.horizontal, 16)
                 }
@@ -205,7 +237,7 @@ struct InspectContent: View {
                 HStack {
                     Text("Difficulty Level")
                         .font(.subheadline)
-                        .foregroundStyle(.secondary)
+                        .foregroundStyle(Color.mist)
                     Spacer()
                     Text(site.difficulty.rawValue)
                         .font(.subheadline)
@@ -213,7 +245,7 @@ struct InspectContent: View {
                         .foregroundStyle(difficultyColor(site.difficulty.rawValue))
                 }
                 .padding(16)
-                .background(Color.gray.opacity(0.08))
+                .background(Color.trench)
                 .cornerRadius(12)
                 .padding(.horizontal, 16)
             }
@@ -227,14 +259,15 @@ struct InspectContent: View {
         VStack(spacing: 12) {
             Image(systemName: "mappin.slash")
                 .font(.system(size: 32))
-                .foregroundStyle(.tertiary)
+                .foregroundStyle(Color.mist.opacity(0.5))
 
             Text("Site not found")
                 .font(.headline)
-                .foregroundStyle(.secondary)
+                .foregroundStyle(Color.foam)
 
             Button("Dismiss", action: onDismiss)
                 .buttonStyle(.bordered)
+                .tint(Color.lagoon)
         }
         .frame(maxWidth: .infinity)
         .padding(.top, 32)
@@ -244,20 +277,20 @@ struct InspectContent: View {
 
     private func statusColor(for site: DiveSite) -> Color {
         if site.visitedCount > 0 {
-            return .green
+            return Color.lagoon
         } else if site.wishlist {
-            return .blue
+            return Color.statusSaved
         } else {
-            return .gray.opacity(0.5)
+            return Color.mist.opacity(0.5)
         }
     }
 
     private func difficultyColor(_ difficulty: String) -> Color {
         switch difficulty.lowercased() {
-        case "beginner": return .green
-        case "intermediate": return .orange
-        case "advanced": return .red
-        default: return .gray
+        case "beginner": return Color.difficultyBeginner
+        case "intermediate": return Color.difficultyIntermediate
+        case "advanced": return Color.difficultyAdvanced
+        default: return Color.mist
         }
     }
 
@@ -267,26 +300,23 @@ struct InspectContent: View {
         let targetId = site.id
         let currentWishlist = isWishlist
 
-        Task.detached {
+        Task {
             do {
                 let repository = SiteRepository(database: AppDatabase.shared)
                 try repository.toggleWishlist(siteId: targetId)
                 let newValue = !currentWishlist
-                await MainActor.run {
-                    self.isWishlist = newValue
-                    self.isUpdatingWishlist = false
-                    Haptics.soft()
-                    NotificationCenter.default.post(
-                        name: .wishlistUpdated,
-                        object: targetId,
-                        userInfo: ["wishlist": newValue]
-                    )
-                }
+                isWishlist = newValue
+                isUpdatingWishlist = false
+                Haptics.soft()
+                NotificationCenter.default.post(
+                    name: .wishlistUpdated,
+                    object: targetId,
+                    userInfo: ["wishlist": newValue]
+                )
             } catch {
-                await MainActor.run {
-                    self.isUpdatingWishlist = false
-                    self.wishlistError = "Couldn't update wishlist. Please try again."
-                }
+                isUpdatingWishlist = false
+                wishlistError = "Couldn't update wishlist: \(error.localizedDescription)"
+                print("Wishlist error for site \(targetId): \(error)")
             }
         }
     }

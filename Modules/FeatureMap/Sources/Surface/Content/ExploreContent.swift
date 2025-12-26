@@ -3,7 +3,7 @@ import UmiDB
 import UmiDesignSystem
 
 /// Content view for Explore mode in the unified bottom surface.
-/// Shows site count at peek, breadcrumbs and site list when expanded.
+/// Shows site count at peek, breadcrumbs, filter pills, and site list.
 struct ExploreContent: View {
     // MARK: - Properties
 
@@ -11,6 +11,9 @@ struct ExploreContent: View {
     let detent: SurfaceDetent
     let sites: [DiveSite]
     let loading: Bool
+
+    @Binding var filterLens: FilterLens?
+    @Binding var filterDifficulties: Set<DiveSite.Difficulty>
 
     var onSiteTap: (DiveSite) -> Void
     var onOpenFilter: () -> Void
@@ -32,6 +35,13 @@ struct ExploreContent: View {
                 .padding(.bottom, 12)
 
             if detent != .peek {
+                // Quick filter pills row
+                QuickFilterPillsRow(
+                    filterLens: $filterLens,
+                    difficulties: $filterDifficulties
+                )
+                .padding(.bottom, 12)
+
                 if !context.hierarchyLevel.isWorld {
                     BreadcrumbRow(
                         hierarchyLevel: context.hierarchyLevel,
@@ -53,7 +63,7 @@ struct ExploreContent: View {
         HStack(spacing: 12) {
             countLabel
                 .font(.subheadline)
-                .foregroundStyle(.secondary)
+                .foregroundStyle(Color.mist)
 
             Spacer()
 
@@ -80,9 +90,10 @@ struct ExploreContent: View {
             Text(lens.displayName)
                 .font(.caption)
         }
+        .foregroundStyle(Color.foam)
         .padding(.horizontal, 8)
         .padding(.vertical, 4)
-        .background(Color.oceanBlue.opacity(0.15))
+        .background(Color.trench)
         .clipShape(Capsule())
     }
 
@@ -124,15 +135,15 @@ struct ExploreContent: View {
         VStack(spacing: 12) {
             Image(systemName: "mappin.slash")
                 .font(.system(size: 32))
-                .foregroundStyle(.tertiary)
+                .foregroundStyle(Color.mist.opacity(0.5))
 
             Text("No sites found")
                 .font(.headline)
-                .foregroundStyle(.secondary)
+                .foregroundStyle(Color.foam)
 
             Text("Clear filters or zoom out to reveal more dive sites.")
                 .font(.subheadline)
-                .foregroundStyle(.tertiary)
+                .foregroundStyle(Color.mist)
                 .multilineTextAlignment(.center)
         }
         .frame(maxWidth: .infinity)
@@ -170,12 +181,12 @@ private struct ExploreSiteRow: View {
                 Text(site.name)
                     .font(.body)
                     .fontWeight(.medium)
-                    .foregroundStyle(.primary)
+                    .foregroundStyle(Color.foam)
                     .accessibilityLabel("Site: \(site.name)")
 
                 Text(site.location)
                     .font(.caption)
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(Color.mist)
                     .accessibilityLabel("Location: \(site.location)")
 
                 // Quick facts chips
@@ -191,27 +202,27 @@ private struct ExploreSiteRow: View {
 
             Image(systemName: "chevron.right")
                 .font(.caption)
-                .foregroundStyle(.tertiary)
+                .foregroundStyle(Color.mist.opacity(0.5))
         }
         .padding(.horizontal, 16)
         .padding(.vertical, 12)
         .background(
             RoundedRectangle(cornerRadius: 12)
-                .fill(Color.oceanBlue.opacity(isHighlighted ? 0.12 : 0.0))
+                .fill(isHighlighted ? Color.trench : Color.clear)
         )
         .scaleEffect(isHighlighted ? 1.03 : 1.0)
-        .shadow(color: isHighlighted ? Color.oceanBlue.opacity(0.25) : .clear, radius: 8, y: 4)
+        .shadow(color: isHighlighted ? Color.lagoon.opacity(0.25) : .clear, radius: 8, y: 4)
         .animation(.spring(response: 0.3, dampingFraction: 0.75), value: isHighlighted)
         .accessibilityElement(children: .combine)
     }
 
     private var statusColor: Color {
         if site.visitedCount > 0 {
-            return Color.oceanBlue
+            return Color.lagoon
         } else if site.wishlist {
-            return Color.yellow
+            return Color.amber
         } else {
-            return Color.gray.opacity(0.3)
+            return Color.mist.opacity(0.3)
         }
     }
 }
@@ -224,9 +235,10 @@ private struct ExploreQuickFactChip: View {
     var body: some View {
         Text(text)
             .font(.caption2)
+            .foregroundStyle(Color.mist)
             .padding(.horizontal, 6)
             .padding(.vertical, 2)
-            .background(Color.gray.opacity(0.12))
+            .background(Color.trench)
             .clipShape(Capsule())
     }
 }
