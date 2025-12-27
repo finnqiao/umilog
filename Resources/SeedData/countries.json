@@ -1,0 +1,49 @@
+{
+  "countries": [
+    {
+      "id": "AU",
+      "name": "Australia",
+      "continent": "Oceania"
+    },
+    {
+      "id": "AW",
+      "name": "Aruba",
+      "continent": "North America"
+    },
+    {
+      "id": "EG",
+      "name": "Egypt",
+      "continent": "Africa"
+    },
+    {
+      "id": "GB",
+      "name": "United Kingdom",
+      "continent": "Europe"
+    },
+    {
+      "id": "IL",
+      "name": "Israel",
+      "continent": "Asia"
+    },
+    {
+      "id": "JP",
+      "name": "Japan",
+      "continent": "Asia"
+    },
+    {
+      "id": "MV",
+      "name": "Maldives",
+      "continent": "Asia"
+    },
+    {
+      "id": "US",
+      "name": "United States",
+      "continent": "North America"
+    },
+    {
+      "id": "ZA",
+      "name": "South Africa",
+      "continent": "Africa"
+    }
+  ]
+}

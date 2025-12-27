@@ -47,23 +47,42 @@ build-all: wd-fetch wd-build-seed shops-fetch shops-build
 # v5: Extended Data Pipeline for Reference Database Enhancement
 # ============================================================
 
-# Fetch OSM dive sites for underrepresented regions
+# Fetch OSM dive sites for underrepresented regions (split into smaller queries)
 .PHONY: osm-sites-fetch
 osm-sites-fetch: dirs
 	@echo "Fetching OSM dive sites for underrepresented regions..."
-	curl -sS -X POST https://overpass-api.de/api/interpreter \
-	  -d @data/queries/overpass_sites_se_asia.overpassql \
-	  -o $(RAW_DIR)/sites_se_asia.json
-	curl -sS -X POST https://overpass-api.de/api/interpreter \
+	@echo "  -> SE Asia West (Indonesia/Malaysia)..."
+	curl -sS --retry 3 --retry-delay 10 --max-time 300 -X POST https://overpass-api.de/api/interpreter \
+	  -d @data/queries/overpass_sites_se_asia_west.overpassql \
+	  -o $(RAW_DIR)/sites_se_asia_west.json
+	@sleep 10
+	@echo "  -> SE Asia East (Philippines/Papua)..."
+	curl -sS --retry 3 --retry-delay 10 --max-time 300 -X POST https://overpass-api.de/api/interpreter \
+	  -d @data/queries/overpass_sites_se_asia_east.overpassql \
+	  -o $(RAW_DIR)/sites_se_asia_east.json
+	@sleep 10
+	@echo "  -> Thailand/Vietnam..."
+	curl -sS --retry 3 --retry-delay 10 --max-time 300 -X POST https://overpass-api.de/api/interpreter \
+	  -d @data/queries/overpass_sites_thailand.overpassql \
+	  -o $(RAW_DIR)/sites_thailand.json
+	@sleep 10
+	@echo "  -> Japan..."
+	curl -sS --retry 3 --retry-delay 10 --max-time 300 -X POST https://overpass-api.de/api/interpreter \
 	  -d @data/queries/overpass_sites_japan.overpassql \
 	  -o $(RAW_DIR)/sites_japan.json
-	curl -sS -X POST https://overpass-api.de/api/interpreter \
+	@sleep 10
+	@echo "  -> Pacific..."
+	curl -sS --retry 3 --retry-delay 10 --max-time 300 -X POST https://overpass-api.de/api/interpreter \
 	  -d @data/queries/overpass_sites_pacific.overpassql \
 	  -o $(RAW_DIR)/sites_pacific.json
-	curl -sS -X POST https://overpass-api.de/api/interpreter \
+	@sleep 10
+	@echo "  -> Maldives..."
+	curl -sS --retry 3 --retry-delay 10 --max-time 300 -X POST https://overpass-api.de/api/interpreter \
 	  -d @data/queries/overpass_sites_maldives.overpassql \
 	  -o $(RAW_DIR)/sites_maldives.json
-	curl -sS -X POST https://overpass-api.de/api/interpreter \
+	@sleep 10
+	@echo "  -> Central America..."
+	curl -sS --retry 3 --retry-delay 10 --max-time 300 -X POST https://overpass-api.de/api/interpreter \
 	  -d @data/queries/overpass_sites_central_america.overpassql \
 	  -o $(RAW_DIR)/sites_central_america.json
 	@echo "Saved OSM site dumps to $(RAW_DIR)"

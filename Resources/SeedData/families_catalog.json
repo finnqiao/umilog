@@ -1,0 +1,43 @@
+{
+  "families": [
+    {
+      "id": "delphinidae",
+      "name": "Dolphins",
+      "scientific_name": "Delphinidae",
+      "category": "Mammal",
+      "worms_aphia_id": null
+    },
+    {
+      "id": "mobulidae",
+      "name": "Manta Rays",
+      "scientific_name": "Mobulidae",
+      "category": "Fish",
+      "worms_aphia_id": null
+    },
+    {
+      "id": "octopodidae",
+      "name": "Octopuses",
+      "scientific_name": "Octopodidae",
+      "category": "Invertebrate",
+      "worms_aphia_id": null
+    },
+    {
+      "id": "carcharhinidae",
+      "name": "Requiem Sharks",
+      "scientific_name": "Carcharhinidae",
+      "category": "Fish",
+      "worms_aphia_id": null
+    },
+    {
+      "id": "cheloniidae",
+      "name": "Sea Turtles",
+      "scientific_name": "Cheloniidae",
+      "category": "Reptile",
+      "worms_aphia_id": null
+    }
+  ],
+  "metadata": {
+    "generated_at": "2025-12-27T00:29:17.149757Z",
+    "count": 5
+  }
+}
