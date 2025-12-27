@@ -71,6 +71,13 @@
       "worms_aphia_id": 135074
     },
     {
+      "id": "delphinidae",
+      "name": "Dolphins",
+      "scientific_name": "Delphinidae",
+      "category": "Mammal",
+      "worms_aphia_id": 136980
+    },
+    {
       "id": "dugongidae",
       "name": "Dugongs",
       "scientific_name": "Dugongidae",
@@ -174,6 +181,13 @@
       "scientific_name": "Ginglymostomatidae",
       "category": "Fish",
       "worms_aphia_id": 105705
+    },
+    {
+      "id": "octopodidae",
+      "name": "Octopuses",
+      "scientific_name": "Octopodidae",
+      "category": "Invertebrate",
+      "worms_aphia_id": 11782
     },
     {
       "id": "palaemonidae",
@@ -331,7 +345,7 @@
     }
   ],
   "metadata": {
-    "generated_at": "2025-12-27T00:33:52.707598Z",
-    "count": 47
+    "generated_at": "2025-12-27T23:19:56.552251Z",
+    "count": 49
   }
 }
