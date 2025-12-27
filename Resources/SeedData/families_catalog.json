@@ -1,43 +1,337 @@
 {
   "families": [
     {
-      "id": "delphinidae",
-      "name": "Dolphins",
-      "scientific_name": "Delphinidae",
+      "id": "pomacanthidae",
+      "name": "Angelfish",
+      "scientific_name": "Pomacanthidae",
+      "category": "Fish",
+      "worms_aphia_id": 151470
+    },
+    {
+      "id": "ephippidae",
+      "name": "Batfish",
+      "scientific_name": "Ephippidae",
+      "category": "Fish",
+      "worms_aphia_id": 151426
+    },
+    {
+      "id": "faviidae",
+      "name": "Brain Corals",
+      "scientific_name": "Faviidae",
+      "category": "Coral",
+      "worms_aphia_id": 196099
+    },
+    {
+      "id": "chaetodontidae",
+      "name": "Butterflyfish",
+      "scientific_name": "Chaetodontidae",
+      "category": "Fish",
+      "worms_aphia_id": 125528
+    },
+    {
+      "id": "pocilloporidae",
+      "name": "Cauliflower Corals",
+      "scientific_name": "Pocilloporidae",
+      "category": "Coral",
+      "worms_aphia_id": 135079
+    },
+    {
+      "id": "chromodorididae",
+      "name": "Chromodorid Nudibranchs",
+      "scientific_name": "Chromodorididae",
+      "category": "Invertebrate",
+      "worms_aphia_id": 23003
+    },
+    {
+      "id": "stenopodidae",
+      "name": "Cleaner Shrimp",
+      "scientific_name": "Stenopodidae",
+      "category": "Invertebrate",
+      "worms_aphia_id": 106797
+    },
+    {
+      "id": "sepiidae",
+      "name": "Cuttlefish",
+      "scientific_name": "Sepiidae",
+      "category": "Invertebrate",
+      "worms_aphia_id": 11723
+    },
+    {
+      "id": "pomacentridae",
+      "name": "Damselfish",
+      "scientific_name": "Pomacentridae",
+      "category": "Fish",
+      "worms_aphia_id": 125553
+    },
+    {
+      "id": "dendrophylliidae",
+      "name": "Dendrophyllia Corals",
+      "scientific_name": "Dendrophylliidae",
+      "category": "Coral",
+      "worms_aphia_id": 135074
+    },
+    {
+      "id": "dugongidae",
+      "name": "Dugongs",
+      "scientific_name": "Dugongidae",
       "category": "Mammal",
-      "worms_aphia_id": null
+      "worms_aphia_id": 196263
+    },
+    {
+      "id": "myliobatidae",
+      "name": "Eagle Rays",
+      "scientific_name": "Myliobatidae",
+      "category": "Fish",
+      "worms_aphia_id": 105710
+    },
+    {
+      "id": "crinoidea",
+      "name": "Feather Stars",
+      "scientific_name": "Crinoidea",
+      "category": "Invertebrate",
+      "worms_aphia_id": 123081
+    },
+    {
+      "id": "flabellinidae",
+      "name": "Flabellinid Nudibranchs",
+      "scientific_name": "Flabellinidae",
+      "category": "Invertebrate",
+      "worms_aphia_id": 190
+    },
+    {
+      "id": "antennariidae",
+      "name": "Frogfish",
+      "scientific_name": "Antennariidae",
+      "category": "Fish",
+      "worms_aphia_id": 125484
+    },
+    {
+      "id": "serranidae",
+      "name": "Groupers",
+      "scientific_name": "Serranidae",
+      "category": "Fish",
+      "worms_aphia_id": 125561
+    },
+    {
+      "id": "sphyrnidae",
+      "name": "Hammerhead Sharks",
+      "scientific_name": "Sphyrnidae",
+      "category": "Fish",
+      "worms_aphia_id": 105694
+    },
+    {
+      "id": "carangidae",
+      "name": "Jacks",
+      "scientific_name": "Carangidae",
+      "category": "Fish",
+      "worms_aphia_id": 125523
+    },
+    {
+      "id": "dermochelyidae",
+      "name": "Leatherback Turtles",
+      "scientific_name": "Dermochelyidae",
+      "category": "Reptile",
+      "worms_aphia_id": 137000
+    },
+    {
+      "id": "lamnidae",
+      "name": "Mackerel Sharks",
+      "scientific_name": "Lamnidae",
+      "category": "Fish",
+      "worms_aphia_id": 105702
+    },
+    {
+      "id": "trichechidae",
+      "name": "Manatees",
+      "scientific_name": "Trichechidae",
+      "category": "Mammal",
+      "worms_aphia_id": 159503
     },
     {
       "id": "mobulidae",
       "name": "Manta Rays",
       "scientific_name": "Mobulidae",
       "category": "Fish",
-      "worms_aphia_id": null
+      "worms_aphia_id": 196070
     },
     {
-      "id": "octopodidae",
-      "name": "Octopuses",
-      "scientific_name": "Octopodidae",
+      "id": "muraenidae",
+      "name": "Moray Eels",
+      "scientific_name": "Muraenidae",
+      "category": "Fish",
+      "worms_aphia_id": 125431
+    },
+    {
+      "id": "fungiidae",
+      "name": "Mushroom Corals",
+      "scientific_name": "Fungiidae",
+      "category": "Coral",
+      "worms_aphia_id": 196100
+    },
+    {
+      "id": "ginglymostomatidae",
+      "name": "Nurse Sharks",
+      "scientific_name": "Ginglymostomatidae",
+      "category": "Fish",
+      "worms_aphia_id": 105705
+    },
+    {
+      "id": "palaemonidae",
+      "name": "Palaemonid Shrimp",
+      "scientific_name": "Palaemonidae",
       "category": "Invertebrate",
-      "worms_aphia_id": null
+      "worms_aphia_id": 106788
+    },
+    {
+      "id": "scaridae",
+      "name": "Parrotfish",
+      "scientific_name": "Scaridae",
+      "category": "Fish",
+      "worms_aphia_id": 398089
+    },
+    {
+      "id": "phyllidiidae",
+      "name": "Phyllidiid Nudibranchs",
+      "scientific_name": "Phyllidiidae",
+      "category": "Invertebrate",
+      "worms_aphia_id": 23093
+    },
+    {
+      "id": "poritidae",
+      "name": "Porites Corals",
+      "scientific_name": "Poritidae",
+      "category": "Coral",
+      "worms_aphia_id": 196105
+    },
+    {
+      "id": "tetraodontidae",
+      "name": "Pufferfish",
+      "scientific_name": "Tetraodontidae",
+      "category": "Fish",
+      "worms_aphia_id": 125612
     },
     {
       "id": "carcharhinidae",
       "name": "Requiem Sharks",
       "scientific_name": "Carcharhinidae",
       "category": "Fish",
-      "worms_aphia_id": null
+      "worms_aphia_id": 105689
+    },
+    {
+      "id": "scorpaenidae",
+      "name": "Scorpionfish",
+      "scientific_name": "Scorpaenidae",
+      "category": "Fish",
+      "worms_aphia_id": 125595
+    },
+    {
+      "id": "holothuriidae",
+      "name": "Sea Cucumbers",
+      "scientific_name": "Holothuriidae",
+      "category": "Invertebrate",
+      "worms_aphia_id": 123183
+    },
+    {
+      "id": "ophidiasteridae",
+      "name": "Sea Stars",
+      "scientific_name": "Ophidiasteridae",
+      "category": "Invertebrate",
+      "worms_aphia_id": 123137
     },
     {
       "id": "cheloniidae",
       "name": "Sea Turtles",
       "scientific_name": "Cheloniidae",
       "category": "Reptile",
-      "worms_aphia_id": null
+      "worms_aphia_id": 136999
+    },
+    {
+      "id": "diadematidae",
+      "name": "Sea Urchins",
+      "scientific_name": "Diadematidae",
+      "category": "Invertebrate",
+      "worms_aphia_id": 123163
+    },
+    {
+      "id": "syngnathidae",
+      "name": "Seahorses & Pipefish",
+      "scientific_name": "Syngnathidae",
+      "category": "Fish",
+      "worms_aphia_id": 125606
+    },
+    {
+      "id": "lutjanidae",
+      "name": "Snappers",
+      "scientific_name": "Lutjanidae",
+      "category": "Fish",
+      "worms_aphia_id": 151453
+    },
+    {
+      "id": "palinuridae",
+      "name": "Spiny Lobsters",
+      "scientific_name": "Palinuridae",
+      "category": "Invertebrate",
+      "worms_aphia_id": 106794
+    },
+    {
+      "id": "acroporidae",
+      "name": "Staghorn Corals",
+      "scientific_name": "Acroporidae",
+      "category": "Coral",
+      "worms_aphia_id": 196095
+    },
+    {
+      "id": "dasyatidae",
+      "name": "Stingrays",
+      "scientific_name": "Dasyatidae",
+      "category": "Fish",
+      "worms_aphia_id": 105708
+    },
+    {
+      "id": "acanthuridae",
+      "name": "Surgeonfish",
+      "scientific_name": "Acanthuridae",
+      "category": "Fish",
+      "worms_aphia_id": 125515
+    },
+    {
+      "id": "balistidae",
+      "name": "Triggerfish",
+      "scientific_name": "Balistidae",
+      "category": "Fish",
+      "worms_aphia_id": 125607
+    },
+    {
+      "id": "phocidae",
+      "name": "True Seals",
+      "scientific_name": "Phocidae",
+      "category": "Mammal",
+      "worms_aphia_id": 136976
+    },
+    {
+      "id": "rhincodontidae",
+      "name": "Whale Sharks",
+      "scientific_name": "Rhincodontidae",
+      "category": "Fish",
+      "worms_aphia_id": 105706
+    },
+    {
+      "id": "orectolobidae",
+      "name": "Wobbegongs",
+      "scientific_name": "Orectolobidae",
+      "category": "Fish",
+      "worms_aphia_id": 148806
+    },
+    {
+      "id": "labridae",
+      "name": "Wrasses",
+      "scientific_name": "Labridae",
+      "category": "Fish",
+      "worms_aphia_id": 125541
     }
   ],
   "metadata": {
-    "generated_at": "2025-12-27T00:29:17.149757Z",
-    "count": 5
+    "generated_at": "2025-12-27T00:33:52.707598Z",
+    "count": 47
   }
 }
