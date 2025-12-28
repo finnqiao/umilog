@@ -1,12 +1,32 @@
-# Dive sites tagged as recreational (Q2141554) with coordinates, labels, country, and admin area (if available)
-# Note: We filter for items that have a coordinate location (P625)
+# Dive sites with extended metadata for dive planning
+# Fetches recreational dive sites (Q2141554) and shipwrecks (Q852190) with diving info
 
-SELECT DISTINCT ?item ?itemLabel ?description ?coord ?country ?countryLabel ?admin ?adminLabel WHERE {
-  ?item wdt:P31 wd:Q2141554 .           # instance of: recreational dive site
-  ?item wdt:P625 ?coord .               # with coordinates
-  OPTIONAL { ?item wdt:P17 ?country . } # country
-  OPTIONAL { ?item wdt:P131 ?admin . }  # admin territorial entity
+SELECT DISTINCT ?item ?itemLabel ?description ?coord ?country ?countryLabel ?admin ?adminLabel
+       ?depth ?image ?instanceOf ?instanceOfLabel ?locatedIn ?locatedInLabel
+       ?inceptionDate ?website ?commonsCategory
+WHERE {
+  # Match recreational dive sites OR shipwrecks
+  { ?item wdt:P31 wd:Q2141554 . }  # recreational dive site
+  UNION
+  { ?item wdt:P31 wd:Q852190 .     # shipwreck
+    ?item wdt:P625 ?coord . }      # with coordinates (underwater wrecks)
+
+  ?item wdt:P625 ?coord .          # must have coordinates
+
+  # Core metadata
+  OPTIONAL { ?item wdt:P17 ?country . }
+  OPTIONAL { ?item wdt:P131 ?admin . }
   OPTIONAL { ?item schema:description ?description FILTER(LANG(?description) = "en") }
+
+  # Dive planning data
+  OPTIONAL { ?item wdt:P2044 ?depth . }        # elevation (negative = depth)
+  OPTIONAL { ?item wdt:P4511 ?depth . }        # vertical depth
+  OPTIONAL { ?item wdt:P18 ?image . }          # image
+  OPTIONAL { ?item wdt:P31 ?instanceOf . }     # instance of (wreck, reef, etc.)
+  OPTIONAL { ?item wdt:P706 ?locatedIn . }     # located in body of water
+  OPTIONAL { ?item wdt:P571 ?inceptionDate . } # date of inception (wreck sinking)
+  OPTIONAL { ?item wdt:P856 ?website . }       # official website
+  OPTIONAL { ?item wdt:P373 ?commonsCategory . } # commons category for more images
 
   SERVICE wikibase:label { bd:serviceParam wikibase:language "en". }
 }

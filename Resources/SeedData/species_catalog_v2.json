@@ -16,7 +16,7 @@
       "id": "gbif_2393172",
       "name": "Barramundi, Giant seaperch",
       "scientificName": "Lates calcarifer (Bloch, 1790)",
-      "category": "Invertebrate",
+      "category": "Fish",
       "rarity": "Rare",
       "familyId": null,
       "regions": [
@@ -28,8 +28,8 @@
       "id": "gbif_2417981",
       "name": "Blacktip Reef Shark, Blacktip Shark",
       "scientificName": "Carcharhinus melanopterus (Quoy & Gaimard, 1824)",
-      "category": "Invertebrate",
-      "rarity": "Uncommon",
+      "category": "Fish",
+      "rarity": "Common",
       "familyId": "carcharhinidae",
       "regions": [
         "australia",
@@ -50,18 +50,6 @@
       "gbifKey": 2225648
     },
     {
-      "id": "gbif_8215487",
-      "name": "Brown trout",
-      "scientificName": "Salmo trutta Linnaeus, 1758",
-      "category": "Invertebrate",
-      "rarity": "Common",
-      "familyId": null,
-      "regions": [
-        "mediterranean"
-      ],
-      "gbifKey": 8215487
-    },
-    {
       "id": "gbif_2114445",
       "name": "Clausi",
       "scientificName": "Acartia clausi Giesbrecht, 1889",
@@ -74,10 +62,22 @@
       "gbifKey": 2114445
     },
     {
+      "id": "gbif_2365685",
+      "name": "European chub",
+      "scientificName": "Squalius cephalus (Linnaeus, 1758)",
+      "category": "Fish",
+      "rarity": "Common",
+      "familyId": null,
+      "regions": [
+        "mediterranean"
+      ],
+      "gbifKey": 2365685
+    },
+    {
       "id": "gbif_2442225",
       "name": "green turtle",
       "scientificName": "Chelonia mydas (Linnaeus, 1758)",
-      "category": "Invertebrate",
+      "category": "Reptile",
       "rarity": "Rare",
       "familyId": "cheloniidae",
       "regions": [
@@ -90,7 +90,7 @@
       "id": "gbif_2418064",
       "name": "Grey Shark, Blacktail reef shark, Grey reef shark",
       "scientificName": "Carcharhinus amblyrhynchos (Bleeker, 1856)",
-      "category": "Invertebrate",
+      "category": "Fish",
       "rarity": "Uncommon",
       "familyId": "carcharhinidae",
       "regions": [
@@ -100,11 +100,23 @@
       "gbifKey": 2418064
     },
     {
+      "id": "gbif_4409628",
+      "name": "Gudgeon",
+      "scientificName": "Gobio gobio (Linnaeus, 1758)",
+      "category": "Fish",
+      "rarity": "Common",
+      "familyId": null,
+      "regions": [
+        "mediterranean"
+      ],
+      "gbifKey": 4409628
+    },
+    {
       "id": "gbif_5210114",
       "name": "Leopard coralgrouper",
       "scientificName": "Plectropomus leopardus (Lacepède, 1802)",
-      "category": "Invertebrate",
-      "rarity": "Rare",
+      "category": "Fish",
+      "rarity": "Uncommon",
       "familyId": "serranidae",
       "regions": [
         "australia"
@@ -112,11 +124,35 @@
       "gbifKey": 5210114
     },
     {
+      "id": "gbif_4409653",
+      "name": "Minnow",
+      "scientificName": "Phoxinus phoxinus (Linnaeus, 1758)",
+      "category": "Fish",
+      "rarity": "Common",
+      "familyId": null,
+      "regions": [
+        "mediterranean"
+      ],
+      "gbifKey": 4409653
+    },
+    {
+      "id": "gbif_2400598",
+      "name": "Parassi mullet, Stripped mullet",
+      "scientificName": "Mugil incilis Hancock, 1830",
+      "category": "Fish",
+      "rarity": "Common",
+      "familyId": null,
+      "regions": [
+        "caribbean"
+      ],
+      "gbifKey": 2400598
+    },
+    {
       "id": "gbif_2365787",
       "name": "Platypus",
       "scientificName": "Zacco platypus (Temminck & Schlegel, 1846)",
-      "category": "Invertebrate",
-      "rarity": "Rare",
+      "category": "Fish",
+      "rarity": "Uncommon",
       "familyId": null,
       "regions": [
         "japan"
@@ -127,8 +163,8 @@
       "id": "gbif_2441333",
       "name": "saltwater crocodile",
       "scientificName": "Crocodylus porosus Schneider, 1801",
-      "category": "Invertebrate",
-      "rarity": "Rare",
+      "category": "Fish",
+      "rarity": "Uncommon",
       "familyId": null,
       "regions": [
         "australia"
@@ -136,23 +172,11 @@
       "gbifKey": 2441333
     },
     {
-      "id": "gbif_2226990",
-      "name": "Signal Crayfish",
-      "scientificName": "Pacifastacus leniusculus (Dana, 1852)",
-      "category": "Invertebrate",
-      "rarity": "Rare",
-      "familyId": null,
-      "regions": [
-        "mediterranean"
-      ],
-      "gbifKey": 2226990
-    },
-    {
       "id": "gbif_2223834",
       "name": "southern pink shrimp",
       "scientificName": "Penaeus notialis Pérez Farfante, 1967",
       "category": "Invertebrate",
-      "rarity": "Uncommon",
+      "rarity": "Common",
       "familyId": null,
       "regions": [
         "caribbean"
@@ -164,29 +188,17 @@
       "name": "southern white shrimp",
       "scientificName": "Penaeus schmitti Burkenroad, 1936",
       "category": "Invertebrate",
-      "rarity": "Rare",
+      "rarity": "Uncommon",
       "familyId": null,
       "regions": [
         "caribbean"
       ],
       "gbifKey": 2223877
-    },
-    {
-      "id": "gbif_4312658",
-      "name": "white-clawed crayfish",
-      "scientificName": "Austropotamobius pallipes (Lereboullet, 1858)",
-      "category": "Invertebrate",
-      "rarity": "Rare",
-      "familyId": null,
-      "regions": [
-        "mediterranean"
-      ],
-      "gbifKey": 4312658
     }
   ],
   "metadata": {
-    "generated_at": "2025-12-28T05:25:07.952782Z",
-    "count": 15,
+    "generated_at": "2025-12-28T05:51:26.833921Z",
+    "count": 16,
     "sources": [
       "WoRMS",
       "GBIF"

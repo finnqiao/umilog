@@ -1,46 +1,70 @@
 {
   "regions": [
     {
-      "id": "atlantic",
-      "name": "Atlantic",
-      "latitude": 42.698506666,
-      "longitude": -58.069316666
-    },
-    {
-      "id": "australia",
-      "name": "Australia",
-      "latitude": -19.178551739853333,
-      "longitude": 149.77869172459998
-    },
-    {
-      "id": "africa",
-      "name": "Africa",
-      "latitude": -34.14949689450174,
-      "longitude": 18.507925314560975
-    },
-    {
-      "id": "japan",
-      "name": "Japan",
-      "latitude": 31.233004006756758,
-      "longitude": 130.4134201477027
-    },
-    {
-      "id": "caribbean",
-      "name": "Caribbean",
-      "latitude": 12.60194444,
-      "longitude": -70.05777778
-    },
-    {
       "id": "indian-ocean",
       "name": "Indian Ocean",
-      "latitude": 4.023480109375,
-      "longitude": 73.60674224791667
+      "latitude": 4.14473369174359,
+      "longitude": 73.55233738148718
+    },
+    {
+      "id": "atlantic",
+      "name": "Atlantic",
+      "latitude": 56.014339645054655,
+      "longitude": -4.026886764451049
+    },
+    {
+      "id": "southeast-asia",
+      "name": "Southeast Asia",
+      "latitude": 8.450481055,
+      "longitude": 111.98982616666666
+    },
+    {
+      "id": "south-america",
+      "name": "South America",
+      "latitude": 0.09296814799999946,
+      "longitude": -62.178480296
+    },
+    {
+      "id": "pacific-islands",
+      "name": "Pacific Islands",
+      "latitude": -42.61094969164706,
+      "longitude": 172.51386159505884
+    },
+    {
+      "id": "mediterranean",
+      "name": "Mediterranean",
+      "latitude": 40.72718070825352,
+      "longitude": 8.410409576338028
     },
     {
       "id": "red-sea",
       "name": "Red Sea",
-      "latitude": 28.40979882683333,
-      "longitude": 34.36677973427778
+      "latitude": 29.157455588090908,
+      "longitude": 33.56690618172727
+    },
+    {
+      "id": "japan",
+      "name": "Japan",
+      "latitude": 30.774094873684213,
+      "longitude": 130.74043377802633
+    },
+    {
+      "id": "australia",
+      "name": "Australia",
+      "latitude": -25.714064608151958,
+      "longitude": 132.9968016845147
+    },
+    {
+      "id": "africa",
+      "name": "Africa",
+      "latitude": -34.151489995577855,
+      "longitude": 18.511039441564012
+    },
+    {
+      "id": "caribbean",
+      "name": "Caribbean",
+      "latitude": 18.16594814666667,
+      "longitude": -72.22402592666667
     }
   ]
 }

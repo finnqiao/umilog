@@ -43,6 +43,16 @@ for b in bindings:
     coord = b.get('coord', {}).get('value', '')
     country = b.get('countryLabel', {}).get('value', '').strip() if 'countryLabel' in b else ''
     admin = b.get('adminLabel', {}).get('value', '').strip() if 'adminLabel' in b else ''
+
+    # New fields from enhanced query
+    depth_val = b.get('depth', {}).get('value', '') if 'depth' in b else ''
+    image_url = b.get('image', {}).get('value', '') if 'image' in b else ''
+    instance_of = b.get('instanceOfLabel', {}).get('value', '') if 'instanceOfLabel' in b else ''
+    located_in = b.get('locatedInLabel', {}).get('value', '') if 'locatedInLabel' in b else ''
+    inception = b.get('inceptionDate', {}).get('value', '') if 'inceptionDate' in b else ''
+    website = b.get('website', {}).get('value', '') if 'website' in b else ''
+    commons = b.get('commonsCategory', {}).get('value', '') if 'commonsCategory' in b else ''
+
     lat, lon = parse_coord(coord)
     if lat is None or lon is None:
         continue
@@ -64,7 +74,35 @@ for b in bindings:
     else:
         location = country or area or 'Unknown'
 
-    # Reasonable defaults for required numerics
+    # Parse depth (elevation is negative for underwater)
+    max_depth = None
+    if depth_val:
+        try:
+            d = float(depth_val)
+            max_depth = abs(d)  # Convert negative elevation to positive depth
+        except ValueError:
+            pass
+
+    # Determine site type from instanceOf
+    site_type = "reef"  # default
+    instance_lower = instance_of.lower()
+    if "wreck" in instance_lower or "shipwreck" in instance_lower:
+        site_type = "wreck"
+    elif "cave" in instance_lower or "cenote" in instance_lower:
+        site_type = "cave"
+    elif "wall" in instance_lower:
+        site_type = "wall"
+
+    # Parse wreck date from inception
+    wreck_date = None
+    if inception and site_type == "wreck":
+        # Format: 1944-01-11T00:00:00Z or just year
+        if 'T' in inception:
+            wreck_date = inception.split('T')[0]
+        else:
+            wreck_date = inception[:10] if len(inception) >= 10 else inception
+
+    # Build site object
     site = {
         "id": qid,
         "name": name or qid,
@@ -74,12 +112,18 @@ for b in bindings:
         "latitude": lat,
         "longitude": lon,
         "difficulty": "Intermediate",
-        "type": "reef",  # default, app maps unknowns to .reef/.other
+        "type": site_type,
         "description": desc,
-        "averageDepth": 15,
-        "maxDepth": 30,
+        "averageDepth": (max_depth / 2) if max_depth else 15,
+        "maxDepth": max_depth or 30,
         "averageTemp": 26,
         "averageVisibility": 20,
+        "imageUrl": image_url if image_url else None,
+        "website": website if website else None,
+        "locatedIn": located_in if located_in else None,
+        "wreckDate": wreck_date,
+        "commonsCategory": commons if commons else None,
+        "wikidataId": qid,
         "wishlist": False,
         "visitedCount": 0,
         "createdAt": datetime.utcnow().isoformat(timespec='seconds') + 'Z'

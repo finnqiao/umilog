@@ -1,6 +1,11 @@
 {
   "countries": [
     {
+      "id": "AE",
+      "name": "United Arab Emirates",
+      "continent": "Asia"
+    },
+    {
       "id": "AU",
       "name": "Australia",
       "continent": "Oceania"
@@ -11,13 +16,58 @@
       "continent": "North America"
     },
     {
+      "id": "BR",
+      "name": "Brazil",
+      "continent": "South America"
+    },
+    {
+      "id": "CA",
+      "name": "Canada",
+      "continent": "North America"
+    },
+    {
+      "id": "CU",
+      "name": "Cuba",
+      "continent": "North America"
+    },
+    {
+      "id": "CY",
+      "name": "Cyprus",
+      "continent": "Europe"
+    },
+    {
       "id": "EG",
       "name": "Egypt",
       "continent": "Africa"
     },
     {
+      "id": "ES",
+      "name": "Spain",
+      "continent": "Europe"
+    },
+    {
+      "id": "FR",
+      "name": "France",
+      "continent": "Europe"
+    },
+    {
       "id": "GB",
       "name": "United Kingdom",
+      "continent": "Europe"
+    },
+    {
+      "id": "GR",
+      "name": "Greece",
+      "continent": "Europe"
+    },
+    {
+      "id": "ID",
+      "name": "Indonesia",
+      "continent": "Asia"
+    },
+    {
+      "id": "IE",
+      "name": "Ireland",
       "continent": "Europe"
     },
     {
@@ -26,8 +76,23 @@
       "continent": "Asia"
     },
     {
+      "id": "IS",
+      "name": "Iceland",
+      "continent": "Europe"
+    },
+    {
+      "id": "IT",
+      "name": "Italy",
+      "continent": "Europe"
+    },
+    {
       "id": "JP",
       "name": "Japan",
+      "continent": "Asia"
+    },
+    {
+      "id": "LK",
+      "name": "Sri Lanka",
       "continent": "Asia"
     },
     {
@@ -36,9 +101,59 @@
       "continent": "Asia"
     },
     {
+      "id": "MY",
+      "name": "Malaysia",
+      "continent": "Asia"
+    },
+    {
+      "id": "NO",
+      "name": "Norway",
+      "continent": "Europe"
+    },
+    {
+      "id": "NZ",
+      "name": "New Zealand",
+      "continent": "Oceania"
+    },
+    {
+      "id": "PH",
+      "name": "Philippines",
+      "continent": "Asia"
+    },
+    {
+      "id": "PT",
+      "name": "Portugal",
+      "continent": "Europe"
+    },
+    {
+      "id": "TH",
+      "name": "Thailand",
+      "continent": "Asia"
+    },
+    {
+      "id": "TR",
+      "name": "Turkey",
+      "continent": "Europe"
+    },
+    {
       "id": "US",
       "name": "United States",
       "continent": "North America"
+    },
+    {
+      "id": "VE",
+      "name": "Venezuela",
+      "continent": "South America"
+    },
+    {
+      "id": "VG",
+      "name": "British Virgin Islands",
+      "continent": "North America"
+    },
+    {
+      "id": "VN",
+      "name": "Vietnam",
+      "continent": "Asia"
     },
     {
       "id": "ZA",
