@@ -44,16 +44,70 @@ MARINE_PHYLA = {
 CLASS_TO_CATEGORY = {
     "Actinopterygii": "Fish",
     "Chondrichthyes": "Fish",  # Sharks, rays
+    "Elasmobranchii": "Fish",  # Sharks, rays (subclass)
     "Reptilia": "Reptile",
+    "Testudines": "Reptile",  # Sea turtles
     "Mammalia": "Mammal",
     "Anthozoa": "Coral",
+    "Hydrozoa": "Coral",
+    "Scyphozoa": "Invertebrate",  # Jellyfish
     "Cephalopoda": "Invertebrate",
     "Gastropoda": "Invertebrate",
+    "Bivalvia": "Invertebrate",
     "Malacostraca": "Invertebrate",
+    "Maxillopoda": "Invertebrate",
+    "Copepoda": "Invertebrate",
     "Echinoidea": "Invertebrate",
     "Asteroidea": "Invertebrate",
     "Holothuroidea": "Invertebrate",
+    "Ophiuroidea": "Invertebrate",
     "Crinoidea": "Invertebrate",
+    "Polychaeta": "Invertebrate",
+}
+
+# Classes that are definitely marine (filter out terrestrial)
+MARINE_CLASSES = {
+    # Fish
+    "Actinopterygii", "Chondrichthyes", "Myxini", "Cephalaspidomorphi", "Elasmobranchii",
+    # Marine reptiles
+    "Reptilia",  # Will filter to sea turtles/snakes
+    # Marine mammals
+    "Mammalia",  # Will filter to cetaceans, pinnipeds, sirenians
+    # Invertebrates
+    "Anthozoa", "Hydrozoa", "Scyphozoa",  # Cnidaria
+    "Cephalopoda", "Bivalvia", "Gastropoda",  # Molluscs
+    "Malacostraca", "Maxillopoda", "Copepoda",  # Crustaceans
+    "Echinoidea", "Asteroidea", "Holothuroidea", "Ophiuroidea", "Crinoidea",  # Echinoderms
+    "Polychaeta",  # Marine worms
+}
+
+# Non-marine orders to exclude (even if class is valid)
+EXCLUDE_ORDERS = {
+    "Passeriformes", "Accipitriformes", "Anseriformes", "Charadriiformes",  # Birds
+    "Lepidoptera", "Coleoptera", "Diptera", "Hymenoptera",  # Insects
+    "Rodentia", "Carnivora", "Artiodactyla", "Primates",  # Terrestrial mammals (except marine)
+    "Squamata",  # Most lizards/snakes (except sea snakes)
+    "Monotremata",  # Platypus, echidna
+    "Crocodylia",  # Crocodiles (mostly freshwater/estuarine)
+    "Salmoniformes",  # Salmon, trout (freshwater/anadromous)
+    "Decapoda",  # Only marine decapods should be kept (handled separately)
+}
+
+# Freshwater families to exclude
+FRESHWATER_FAMILIES = {
+    "Salmonidae",  # Trout, salmon
+    "Astacidae", "Cambaridae", "Parastacidae",  # Freshwater crayfish
+    "Ornithorhynchidae",  # Platypus
+}
+
+# Marine mammal orders to keep
+MARINE_MAMMAL_ORDERS = {"Cetacea", "Sirenia", "Carnivora"}  # Carnivora includes seals
+MARINE_MAMMAL_FAMILIES = {"Phocidae", "Otariidae", "Odobenidae", "Dugongidae", "Trichechidae"}
+
+# Marine decapod families (crabs, shrimp, lobsters)
+MARINE_DECAPOD_FAMILIES = {
+    "Penaeidae", "Portunidae", "Palinuridae", "Nephropidae", "Scyllaridae",
+    "Majidae", "Cancridae", "Grapsidae", "Xanthidae", "Palaemonidae",
 }
 
 
@@ -153,6 +207,7 @@ def main():
     print(f"Fetching details for top {len(significant_species)} species...")
 
     species_output = []
+    skipped_non_marine = 0
     for i, (gbif_key, occurrence_data) in enumerate(significant_species):
         if i % 50 == 0:
             print(f"  Progress: {i}/{len(significant_species)}")
@@ -165,10 +220,65 @@ def main():
         canonical_name = details.get("canonicalName", "")
         vernacular = details.get("vernacularName", "")
         class_name = details.get("class", "")
+        order_name = details.get("order", "")
         family = details.get("family", "")
+        phylum = details.get("phylum", "")
 
-        # Determine category
-        category = CLASS_TO_CATEGORY.get(class_name, "Invertebrate")
+        # Filter out non-marine species
+        family_lower = family.lower() if family else ""
+
+        # 1. Skip freshwater families explicitly
+        if family in FRESHWATER_FAMILIES:
+            skipped_non_marine += 1
+            continue
+
+        # 2. Skip if order is in exclude list (birds, insects, terrestrial mammals)
+        if order_name in EXCLUDE_ORDERS:
+            # Exception: marine mammals in Carnivora (seals)
+            if not (order_name == "Carnivora" and family in MARINE_MAMMAL_FAMILIES):
+                # Exception: marine decapods
+                if not (order_name == "Decapoda" and family in MARINE_DECAPOD_FAMILIES):
+                    skipped_non_marine += 1
+                    continue
+
+        # 3. Skip birds entirely (Aves class)
+        if class_name == "Aves":
+            skipped_non_marine += 1
+            continue
+
+        # 4. Skip insects (Insecta class)
+        if class_name == "Insecta":
+            skipped_non_marine += 1
+            continue
+
+        # 5. For mammals, only keep cetaceans, sirenians, and pinnipeds
+        if class_name == "Mammalia":
+            if order_name not in MARINE_MAMMAL_ORDERS:
+                skipped_non_marine += 1
+                continue
+            if order_name == "Carnivora" and family not in MARINE_MAMMAL_FAMILIES:
+                skipped_non_marine += 1
+                continue
+
+        # 6. For reptiles, only keep sea turtles
+        if class_name == "Reptilia" and order_name != "Testudines":
+            skipped_non_marine += 1
+            continue
+
+        # Determine category - try class first, then order
+        category = CLASS_TO_CATEGORY.get(class_name)
+        if not category:
+            # Fallback based on order
+            if order_name == "Testudines":
+                category = "Reptile"
+            elif order_name in {"Cetacea", "Sirenia"}:
+                category = "Mammal"
+            elif order_name in MARINE_MAMMAL_ORDERS:
+                category = "Mammal"
+            elif phylum == "Chordata":
+                category = "Fish"  # Default for chordates
+            else:
+                category = "Invertebrate"
 
         # Generate readable name
         name = vernacular or canonical_name.split()[-1].title() if canonical_name else scientific_name
@@ -215,7 +325,8 @@ def main():
     with open(output_file, 'w', encoding='utf-8') as f:
         json.dump(output, f, ensure_ascii=False, indent=2)
 
-    print(f"\nWrote {len(species_output)} species -> {output_file}")
+    print(f"\nSkipped {skipped_non_marine} non-marine species (birds, insects, terrestrial)")
+    print(f"Wrote {len(species_output)} marine species -> {output_file}")
 
 
 if __name__ == "__main__":

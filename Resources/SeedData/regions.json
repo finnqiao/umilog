@@ -1,16 +1,10 @@
 {
   "regions": [
     {
-      "id": "caribbean",
-      "name": "Caribbean",
-      "latitude": 12.60194444,
-      "longitude": -70.05777778
-    },
-    {
-      "id": "red-sea",
-      "name": "Red Sea",
-      "latitude": 28.40979882683333,
-      "longitude": 34.36677973427778
+      "id": "atlantic",
+      "name": "Atlantic",
+      "latitude": 42.698506666,
+      "longitude": -58.069316666
     },
     {
       "id": "australia",
@@ -19,28 +13,34 @@
       "longitude": 149.77869172459998
     },
     {
-      "id": "japan",
-      "name": "Japan",
-      "latitude": 31.233004006756758,
-      "longitude": 130.4134201477027
-    },
-    {
-      "id": "atlantic",
-      "name": "Atlantic",
-      "latitude": 42.698506666,
-      "longitude": -58.069316666
-    },
-    {
       "id": "africa",
       "name": "Africa",
       "latitude": -34.14949689450174,
       "longitude": 18.507925314560975
     },
     {
+      "id": "japan",
+      "name": "Japan",
+      "latitude": 31.233004006756758,
+      "longitude": 130.4134201477027
+    },
+    {
+      "id": "caribbean",
+      "name": "Caribbean",
+      "latitude": 12.60194444,
+      "longitude": -70.05777778
+    },
+    {
       "id": "indian-ocean",
       "name": "Indian Ocean",
       "latitude": 4.023480109375,
       "longitude": 73.60674224791667
+    },
+    {
+      "id": "red-sea",
+      "name": "Red Sea",
+      "latitude": 28.40979882683333,
+      "longitude": 34.36677973427778
     }
   ]
 }

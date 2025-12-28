@@ -115,12 +115,46 @@ def parse_osm_json(filepath):
 
         # Extract additional metadata
         description = tags.get('description') or tags.get('note') or ''
-        depth = None
-        if tags.get('depth'):
+
+        # Parse depth values
+        def parse_depth(val):
+            if not val:
+                return None
             try:
-                depth = float(tags['depth'].replace('m', '').strip())
+                # Handle ranges like "5-27"
+                if '-' in str(val):
+                    parts = str(val).replace('m', '').split('-')
+                    return float(parts[-1].strip())  # Return max
+                return float(str(val).replace('m', '').strip())
             except ValueError:
-                pass
+                return None
+
+        # Extract dive-specific OSM tags
+        max_depth = parse_depth(tags.get('scuba_diving:maxdepth') or tags.get('depth'))
+        min_depth = parse_depth(tags.get('scuba_diving:mindepth'))
+
+        # Difficulty mapping (OSM uses 1-5 scale)
+        difficulty_map = {'1': 'Beginner', '2': 'Easy', '3': 'Intermediate', '4': 'Advanced', '5': 'Expert'}
+        osm_difficulty = tags.get('scuba_diving:difficulty', '')
+        difficulty = difficulty_map.get(str(osm_difficulty), 'Intermediate')
+
+        # Current strength (1-5)
+        current = tags.get('scuba_diving:current')
+
+        # Entry method
+        entry = tags.get('scuba_diving:entry') or ('boat' if tags.get('scuba_diving:entry:boat') else None)
+
+        # Dangers
+        dangers = tags.get('scuba_diving:dangers', '')
+
+        # Website/links
+        website = tags.get('website') or tags.get('url')
+        wikidata_id = tags.get('wikidata')
+        wikipedia = tags.get('wikipedia')
+
+        # Wreck-specific data
+        wreck_date = tags.get('wreck:date_sunk')
+        wreck_type = tags.get('wreck:type')
 
         site = {
             "id": osm_id,
@@ -129,13 +163,22 @@ def parse_osm_json(filepath):
             "region": region,
             "latitude": lat,
             "longitude": lon,
-            "difficulty": "Intermediate",  # Default
+            "difficulty": difficulty,
             "type": site_type.lower(),
             "description": description,
-            "averageDepth": depth or 15,
-            "maxDepth": (depth * 1.5) if depth else 30,
+            "minDepth": min_depth,
+            "maxDepth": max_depth or 30,
+            "averageDepth": min_depth if min_depth else (max_depth / 2 if max_depth else 15),
+            "currentStrength": int(current) if current and current.isdigit() else None,
+            "entryType": entry,
+            "dangers": dangers if dangers else None,
             "averageTemp": 26,
             "averageVisibility": 20,
+            "website": website,
+            "wikidataId": wikidata_id,
+            "wikipedia": wikipedia,
+            "wreckDate": wreck_date,
+            "wreckType": wreck_type,
             "wishlist": False,
             "visitedCount": 0,
             "osmId": osm_id,
@@ -144,7 +187,7 @@ def parse_osm_json(filepath):
             "createdAt": datetime.utcnow().isoformat(timespec='seconds') + 'Z'
         }
 
-        # Add tags from OSM
+        # Add tags from OSM - including dive type tags
         site_tags = []
         if tags.get("sport") == "scuba_diving":
             site_tags.append("Scuba Diving")
@@ -154,6 +197,24 @@ def parse_osm_json(filepath):
             site_tags.append("Wreck")
         if tags.get("natural") == "sinkhole":
             site_tags.append("Cenote")
+
+        # Dive type tags from scuba_diving:type:*
+        dive_type_map = {
+            "drift": "Drift Dive",
+            "wall": "Wall Dive",
+            "cave": "Cave Dive",
+            "cavern": "Cavern Dive",
+            "night": "Night Dive",
+            "wreck": "Wreck Dive",
+            "reef": "Reef Dive",
+            "muck": "Muck Dive",
+            "sharks": "Shark Dive",
+            "bigfish": "Big Fish",
+            "snorkeling": "Snorkeling",
+        }
+        for dive_type, label in dive_type_map.items():
+            if tags.get(f"scuba_diving:type:{dive_type}") == "yes":
+                site_tags.append(label)
 
         site["tags"] = site_tags
 
