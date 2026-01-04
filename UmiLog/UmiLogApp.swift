@@ -9,6 +9,7 @@ import FeatureSettings
 import UmiDesignSystem
 import UmiDB
 import UmiLocationKit
+import UmiAnalytics
 import os
 
 @main
@@ -26,22 +27,37 @@ struct UmiLogApp: App {
 /// Root view with tab navigation (map-first design)
 struct ContentView: View {
     @EnvironmentObject var appState: AppState
-    @State private var selectedTab: Tab = .map
+    @AppStorage("selectedTab") private var selectedTabRaw: String = Tab.map.rawValue
     @State private var showingWizard = false
+
+    /// Computed binding for tab selection with persistence
+    private var selectedTab: Binding<Tab> {
+        Binding(
+            get: { Tab(rawValue: selectedTabRaw) ?? .map },
+            set: { selectedTabRaw = $0.rawValue }
+        )
+    }
     @State private var showingQuickLog = false
     @State private var showingLogLauncher = false
     @State private var pendingLiveLogSite: DiveSite?
     @State private var isTabBarHidden = false
-    
+
     var body: some View {
         ZStack {
-            if appState.underwaterThemeEnabled {
-                UnderwaterThemeView { tabs }
-                    .wateryTransition()
+            if appState.isDatabaseSeeded {
+                if appState.underwaterThemeEnabled {
+                    UnderwaterThemeView { tabs }
+                        .wateryTransition()
+                } else {
+                    tabs
+                }
             } else {
-                tabs
+                // Show loading state while database seeds
+                seedingLoadingView
+                    .transition(.opacity)
             }
         }
+        .animation(.easeOut(duration: 0.3), value: appState.isDatabaseSeeded)
         .environment(\.underwaterThemeBinding, underwaterThemeBinding)
         .onReceive(NotificationCenter.default.publisher(for: .tabBarVisibilityShouldChange)) { notification in
             guard let hidden = notification.userInfo?["hidden"] as? Bool else { return }
@@ -49,10 +65,21 @@ struct ContentView: View {
                 isTabBarHidden = hidden
             }
         }
-        .onChange(of: selectedTab) { newTab in
+        .onChange(of: selectedTab.wrappedValue) { oldTab, newTab in
+            // Reset tab bar visibility when switching tabs (fix for UX-008)
+            // Always reset, not just when hidden, to fix potential state desync
+            withAnimation(.easeInOut(duration: 0.15)) {
+                isTabBarHidden = false
+            }
             if newTab == .log {
-                selectedTab = .map
+                selectedTab.wrappedValue = .map
                 showingLogLauncher = true
+            }
+        }
+        .task(id: appState.isDatabaseSeeded) {
+            // Initialize geofencing after database is seeded (deferred to avoid white screen)
+            if appState.isDatabaseSeeded {
+                appState.initializeGeofencing()
             }
         }
         .sheet(isPresented: $showingWizard) {
@@ -89,6 +116,16 @@ struct ContentView: View {
             pendingLiveLogSite = site
             showingWizard = true
         }
+        .onReceive(NotificationCenter.default.publisher(for: .diveLogSavedSuccessfully)) { _ in
+            // Navigate to History tab after successful save
+            withAnimation {
+                selectedTab.wrappedValue = .history
+            }
+        }
+        .onReceive(NotificationCenter.default.publisher(for: .showLogLauncher)) { _ in
+            // Fix UX-013: Show log launcher from empty state CTAs
+            showingLogLauncher = true
+        }
         .onChange(of: showingWizard) { isPresented in
             if !isPresented {
                 pendingLiveLogSite = nil
@@ -105,8 +142,35 @@ private extension ContentView {
         )
     }
 
+    /// Loading view shown while database is seeding
+    var seedingLoadingView: some View {
+        ZStack {
+            LinearGradient(colors: [.oceanBlue, .diveTeal], startPoint: .topLeading, endPoint: .bottomTrailing)
+                .ignoresSafeArea()
+
+            VStack(spacing: 24) {
+                Image(systemName: "water.waves")
+                    .font(.system(size: 64))
+                    .foregroundStyle(.white)
+                    .symbolEffect(.pulse.byLayer, options: .repeating)
+
+                Text("UmiLog")
+                    .font(.largeTitle.bold())
+                    .foregroundStyle(.white)
+
+                ProgressView()
+                    .progressViewStyle(CircularProgressViewStyle(tint: .white))
+                    .scaleEffect(1.2)
+
+                Text("Loading dive sites...")
+                    .font(.subheadline)
+                    .foregroundStyle(.white.opacity(0.8))
+            }
+        }
+    }
+
     @ViewBuilder var tabs: some View {
-        TabView(selection: $selectedTab) {
+        TabView(selection: selectedTab) {
             NavigationStack {
                 NewMapView()
                     .navigationBarTitleDisplayMode(.inline)
@@ -188,7 +252,7 @@ struct LogLauncherView: View {
     }
 }
 
-enum Tab: Hashable {
+enum Tab: String, Hashable {
     case map
     case history
     case log  // FAB trigger
@@ -214,35 +278,74 @@ class AppState: ObservableObject {
     private let geofenceManager = GeofenceManager.shared
     private var seedTask: Task<Void, Never>?
     
+    /// Whether geofencing has been initialized (deferred to avoid blocking launch)
+    private(set) var geofencingInitialized = false
+
     init(defaults: UserDefaults = .standard) {
         self.defaults = defaults
         let storedThemeEnabled = defaults.object(forKey: Self.underwaterThemeDefaultsKey) as? Bool ?? true
         self.underwaterThemeEnabled = storedThemeEnabled
         logger.log("AppState init, underwaterThemeEnabled=\(self.underwaterThemeEnabled, privacy: .public)")
 
-        // Setup notification categories for geofencing
-        geofenceManager.setupNotificationCategories()
-
-        // Start geofence monitoring
-        geofenceManager.startMonitoring()
+        // NOTE: Crash reporting and analytics deferred to after first frame for faster cold start
+        // NOTE: Geofence setup moved to initializeGeofencing() to avoid blocking launch UI
 
         // Seed database with test data on first launch
-        seedTask = Task.detached(priority: .background) { [weak self] in
-            do {
-                try DatabaseSeeder.seedIfNeeded()
-                await MainActor.run {
-                    self?.logger.log("Seed complete")
-                    self?.isDatabaseSeeded = true
+        // Start seeding immediately - the loading view will be shown by SwiftUI
+        seedTask = Task { [weak self] in
+            // CRITICAL: Yield to allow SwiftUI to render the loading view first
+            // This prevents the white screen on cold launch (UX-001)
+            await Task.yield()
+            try? await Task.sleep(nanoseconds: 16_000_000) // ~1 frame at 60fps
+
+            let startTime = Date()
+
+            await Task.detached(priority: .userInitiated) {
+                do {
+                    try DatabaseSeeder.seedIfNeeded()
+                } catch {
+                    await MainActor.run {
+                        self?.logger.error("Seed failed: \(error.localizedDescription, privacy: .public)")
+                    }
                 }
-            } catch {
-                await MainActor.run {
-                    self?.logger.error("Seed failed: \(error.localizedDescription, privacy: .public)")
+            }.value
+
+            // Ensure minimum splash duration for smooth UX (prevents flash)
+            let elapsed = Date().timeIntervalSince(startTime)
+            let minimumDuration: TimeInterval = 0.8  // 800ms minimum
+            if elapsed < minimumDuration {
+                try? await Task.sleep(nanoseconds: UInt64((minimumDuration - elapsed) * 1_000_000_000))
+            }
+
+            await MainActor.run { [defaults] in
+                self?.logger.log("Seed complete, transitioning to main app")
+
+                // Initialize crash reporting after first frame (deferred for faster cold start)
+                CrashReporter.start()
+
+                // Track app launch after first frame
+                let isFirstLaunch = !defaults.bool(forKey: "app.umilog.hasLaunchedBefore")
+                if isFirstLaunch {
+                    defaults.set(true, forKey: "app.umilog.hasLaunchedBefore")
+                }
+                AnalyticsService.trackAppLaunch(isFirstLaunch: isFirstLaunch)
+
+                withAnimation(.easeOut(duration: 0.3)) {
                     self?.isDatabaseSeeded = true
                 }
             }
         }
     }
     
+    /// Initialize geofencing after the UI is ready (deferred from init to avoid blocking launch)
+    func initializeGeofencing() {
+        guard !geofencingInitialized else { return }
+        geofencingInitialized = true
+        logger.log("Initializing geofencing...")
+        geofenceManager.setupNotificationCategories()
+        geofenceManager.startMonitoring()
+    }
+
     func ensureDatabaseSeeded() async {
         if isDatabaseSeeded {
             return

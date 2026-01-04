@@ -28,6 +28,7 @@ settings:
       DEBUG_INFORMATION_FORMAT: "dwarf-with-dsym"
       SWIFT_COMPILATION_MODE: "wholemodule"
       VALIDATE_PRODUCT: YES
+      LLVM_LTO: YES
 
 packages:
   GRDB:
@@ -73,8 +74,7 @@ targets:
         buildPhase: resources
       - path: Resources/SeedData/sites_extended2.json
         buildPhase: resources
-      - path: Resources/SeedData/sites_wikidata.json
-        buildPhase: resources
+      # REMOVED: sites_wikidata.json (10MB) - redundant, optimized tiles used instead
       - path: Resources/SeedData/optimized/tiles/manifest.json
         buildPhase: resources
       - path: Resources/SeedData/optimized/tiles/australia-pacific-islands.json
