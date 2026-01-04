@@ -1,6 +1,10 @@
 import Foundation
 
 /// Handles persistence of map state to UserDefaults.
+///
+/// Privacy note: GPS coordinates are intentionally NOT persisted to avoid
+/// storing sensitive location data in UserDefaults. Only non-sensitive
+/// preferences like filters and zoom level are stored.
 final class MapStatePersistence {
     static let shared = MapStatePersistence()
 
@@ -11,12 +15,23 @@ final class MapStatePersistence {
     private enum Keys {
         static let exploreFilters = "map.exploreFilters"
         static let filterLens = "map.filterLens"
-        static let cameraLat = "map.camera.lat"
-        static let cameraLon = "map.camera.lon"
         static let cameraZoom = "map.camera.zoom"
+        static let hasLaunchedBefore = "map.hasLaunchedBefore"
+        // Deprecated - no longer used for privacy reasons
+        // static let cameraLat = "map.camera.lat"
+        // static let cameraLon = "map.camera.lon"
     }
 
-    private init() {}
+    private init() {
+        // Clean up any previously stored GPS coordinates
+        migrateRemoveGPSData()
+    }
+
+    /// Removes any previously stored GPS coordinates (privacy migration)
+    private func migrateRemoveGPSData() {
+        defaults.removeObject(forKey: "map.camera.lat")
+        defaults.removeObject(forKey: "map.camera.lon")
+    }
 
     // MARK: - Explore Filters
 
@@ -50,33 +65,35 @@ final class MapStatePersistence {
 
     // MARK: - Camera Position
 
+    /// Saves only zoom level (lat/lon not persisted for privacy)
     func saveCamera(lat: Double, lon: Double, zoom: Double) {
-        defaults.set(lat, forKey: Keys.cameraLat)
-        defaults.set(lon, forKey: Keys.cameraLon)
+        // Privacy: Only store zoom level, not GPS coordinates
         defaults.set(zoom, forKey: Keys.cameraZoom)
     }
 
+    /// Returns nil as GPS coordinates are no longer persisted for privacy.
+    /// Callers should use default map center instead.
     func loadCamera() -> (lat: Double, lon: Double, zoom: Double)? {
-        guard defaults.object(forKey: Keys.cameraLat) != nil else { return nil }
+        // GPS coordinates are no longer stored for privacy reasons
+        // Return nil so caller uses default map center
+        return nil
+    }
 
-        let lat = defaults.double(forKey: Keys.cameraLat)
-        let lon = defaults.double(forKey: Keys.cameraLon)
+    /// Returns the last saved zoom level, if any
+    func loadZoomLevel() -> Double? {
         let zoom = defaults.double(forKey: Keys.cameraZoom)
-
-        // Validate reasonable values
-        guard lat >= -90 && lat <= 90 &&
-              lon >= -180 && lon <= 180 &&
-              zoom > 0 else {
-            return nil
-        }
-
-        return (lat, lon, zoom)
+        return zoom > 0 ? zoom : nil
     }
 
     func clearCamera() {
-        defaults.removeObject(forKey: Keys.cameraLat)
-        defaults.removeObject(forKey: Keys.cameraLon)
         defaults.removeObject(forKey: Keys.cameraZoom)
+    }
+
+    // MARK: - First Launch
+
+    var hasLaunchedBefore: Bool {
+        get { defaults.bool(forKey: Keys.hasLaunchedBefore) }
+        set { defaults.set(newValue, forKey: Keys.hasLaunchedBefore) }
     }
 
     // MARK: - Reset All

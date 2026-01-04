@@ -10,12 +10,24 @@ options:
 
 settings:
   base:
-    DEVELOPMENT_TEAM: "" # Set your team ID here
+    # IMPORTANT: Set your Apple Developer Team ID before building
+    # Find it at: https://developer.apple.com/account -> Membership -> Team ID
+    DEVELOPMENT_TEAM: "YOUR_TEAM_ID"
     SWIFT_VERSION: "5.9"
     IPHONEOS_DEPLOYMENT_TARGET: "17.0"
     WATCHOS_DEPLOYMENT_TARGET: "10.0"
     ENABLE_PREVIEWS: YES
     SWIFT_STRICT_CONCURRENCY: complete
+  configs:
+    Debug:
+      SWIFT_OPTIMIZATION_LEVEL: "-Onone"
+      DEBUG_INFORMATION_FORMAT: "dwarf"
+      SWIFT_ACTIVE_COMPILATION_CONDITIONS: "DEBUG"
+    Release:
+      SWIFT_OPTIMIZATION_LEVEL: "-O"
+      DEBUG_INFORMATION_FORMAT: "dwarf-with-dsym"
+      SWIFT_COMPILATION_MODE: "wholemodule"
+      VALIDATE_PRODUCT: YES
 
 packages:
   GRDB:
@@ -23,7 +35,10 @@ packages:
     version: 6.29.2
   MapLibre:
     url: https://github.com/maplibre/maplibre-gl-native-distribution
-    branch: main
+    version: 6.9.0
+  Sentry:
+    url: https://github.com/getsentry/sentry-cocoa
+    version: 8.40.1
 
 targets:
   UmiLog:
@@ -32,6 +47,8 @@ targets:
     deploymentTarget: "17.0"
     sources:
       - path: UmiLog/
+      - path: UmiLog/Assets.xcassets
+        buildPhase: resources
       - path: Resources/SeedData/sites_seed.json
         buildPhase: resources
       - path: Resources/Maps/dive_light.json
@@ -70,6 +87,13 @@ targets:
         buildPhase: resources
       - path: Resources/SeedData/optimized/tiles/red-sea-indian-ocean.json
         buildPhase: resources
+      - path: Resources/SeedData/site_media.json
+        buildPhase: resources
+        optional: true
+      - path: Resources/SiteImages/
+        buildPhase: resources
+        excludes:
+          - "*.md"
     dependencies:
       - target: UmiDesignSystem
         embed: true
@@ -89,12 +113,17 @@ targets:
         embed: true
       - target: UmiLocationKit
         embed: true
+      - target: UmiWatchKit
+        embed: true
       - target: DiveMap
         embed: true
       - target: UmiDB
         embed: true
+      - target: UmiAnalytics
+        embed: true
       - package: MapLibre
       - package: GRDB
+      - package: Sentry
     settings:
       base:
         INFOPLIST_FILE: UmiLog/Info.plist
@@ -105,7 +134,8 @@ targets:
     info:
       path: UmiLog/Info.plist
       properties:
-        UILaunchScreen: {}
+        UILaunchScreen:
+          UIColorName: LaunchBackground
         UISupportedInterfaceOrientations:
           - UIInterfaceOrientationPortrait
           - UIInterfaceOrientationLandscapeLeft
@@ -114,7 +144,7 @@ targets:
           - arm64
         CFBundleDisplayName: UmiLog
         CFBundleName: UmiLog
-        CFBundleShortVersionString: "0.1.0"
+        CFBundleShortVersionString: "1.0.0"
         CFBundleVersion: "1"
         NSLocationWhenInUseUsageDescription: "UmiLog uses your location to suggest nearby dive sites and automatically fill site information."
         NSLocationAlwaysUsageDescription: "UmiLog uses your location to track dives and provide site recommendations."
@@ -128,6 +158,9 @@ targets:
     platform: iOS
     sources:
       - UmiLogTests/
+      - UmiLogTests/Fixtures/
+      - UmiLogTests/Database/
+      - UmiLogTests/ViewModels/
     settings:
       GENERATE_INFOPLIST_FILE: YES
     dependencies:
@@ -135,6 +168,8 @@ targets:
       - target: UmiDB
       - target: UmiCoreKit
       - target: FeatureMap
+      - target: FeatureLiveLog
+      - package: GRDB
 
   UmiLogUITests:
     type: bundle.ui-testing
@@ -150,6 +185,8 @@ targets:
     platform: iOS
     sources:
       - Modules/UmiCoreKit/Sources/
+    dependencies:
+      - sdk: Security.framework
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: app.umilog.corekit
@@ -283,6 +320,7 @@ targets:
       - target: UmiCoreKit
       - target: UmiDB
       - target: UmiLocationKit
+      - target: UmiWatchKit
       - target: FeatureLiveLog
       - target: DiveMap
       - package: GRDB
@@ -326,6 +364,37 @@ targets:
         SWIFT_INSTALL_OBJC_HEADER: NO
         INFOPLIST_KEY_NSLocationAlwaysAndWhenInUseUsageDescription: "UmiLog uses your location to automatically detect when you're at a dive site and suggest logging your dive."
         INFOPLIST_KEY_NSLocationWhenInUseUsageDescription: "UmiLog uses your location to suggest nearby dive sites."
+
+  UmiWatchKit:
+    type: framework
+    platform: iOS
+    sources:
+      - Modules/UmiWatchKit/Sources/
+    dependencies:
+      - target: UmiCoreKit
+      - target: UmiDB
+      - package: GRDB
+      - sdk: WatchConnectivity.framework
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: app.umilog.watchkit
+        GENERATE_INFOPLIST_FILE: YES
+        DEFINES_MODULE: YES
+        SWIFT_INSTALL_OBJC_HEADER: NO
+
+  UmiAnalytics:
+    type: framework
+    platform: iOS
+    sources:
+      - Modules/UmiAnalytics/Sources/
+    dependencies:
+      - package: Sentry
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: app.umilog.analytics
+        GENERATE_INFOPLIST_FILE: YES
+        DEFINES_MODULE: YES
+        SWIFT_INSTALL_OBJC_HEADER: NO
 
 schemes:
   UmiLog:
