@@ -1,10 +1,11 @@
 import Foundation
 
 /// Represents the current drill-down level in the map hierarchy.
-/// Replaces the previous `tier`, `selectedRegion`, `selectedArea` pattern.
+/// Full hierarchy: World → Country → Region → Area
 enum HierarchyLevel: Equatable, Hashable {
     case world
-    case region(String)
+    case country(String)
+    case region(countryId: String?, regionId: String)
     case area(regionId: String, areaId: String)
 
     /// Navigate one level up in the hierarchy.
@@ -13,20 +14,29 @@ enum HierarchyLevel: Equatable, Hashable {
         switch self {
         case .world:
             return nil
-        case .region:
+        case .country:
+            return .world
+        case .region(let countryId, _):
+            if let countryId = countryId {
+                return .country(countryId)
+            }
             return .world
         case .area(let regionId, _):
-            return .region(regionId)
+            return .region(countryId: nil, regionId: regionId)
         }
     }
 
     /// Returns the breadcrumb path as an array of display names.
-    /// World level returns empty array, region returns [regionName], area returns [regionId, areaId].
     var breadcrumbPath: [String] {
         switch self {
         case .world:
             return []
-        case .region(let regionId):
+        case .country(let countryId):
+            return [countryId]
+        case .region(let countryId, let regionId):
+            if let countryId = countryId {
+                return [countryId, regionId]
+            }
             return [regionId]
         case .area(let regionId, let areaId):
             return [regionId, areaId]
@@ -39,12 +49,32 @@ enum HierarchyLevel: Equatable, Hashable {
         return false
     }
 
-    /// Extract the region ID if at region or area level.
-    var regionId: String? {
+    /// Whether this level is at country view.
+    var isCountry: Bool {
+        if case .country = self { return true }
+        return false
+    }
+
+    /// Extract the country ID if at country, region, or area level.
+    var countryId: String? {
         switch self {
         case .world:
             return nil
-        case .region(let id):
+        case .country(let id):
+            return id
+        case .region(let countryId, _):
+            return countryId
+        case .area:
+            return nil
+        }
+    }
+
+    /// Extract the region ID if at region or area level.
+    var regionId: String? {
+        switch self {
+        case .world, .country:
+            return nil
+        case .region(_, let id):
             return id
         case .area(let regionId, _):
             return regionId

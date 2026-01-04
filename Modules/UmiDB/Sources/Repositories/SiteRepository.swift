@@ -34,45 +34,83 @@ public final class SiteRepository {
     
     public func fetchAll() throws -> [DiveSite] {
         try database.read { db in
-            try DiveSite
-                .order(DiveSite.Columns.name)
-                .fetchAll(db)
+            // Sort by species diversity (popularity proxy), then by name
+            let sql = """
+            SELECT s.*
+            FROM sites s
+            LEFT JOIN (
+                SELECT site_id, COUNT(*) as species_count
+                FROM site_species
+                GROUP BY site_id
+            ) sc ON s.id = sc.site_id
+            ORDER BY COALESCE(sc.species_count, 0) DESC, s.name
+            """
+            return try DiveSite.fetchAll(db, sql: sql)
         }
     }
     
     public func fetchInBounds(minLat: Double, maxLat: Double, minLon: Double, maxLon: Double) throws -> [DiveSite] {
         try database.read { db in
-            try DiveSite
-                .filter(DiveSite.Columns.latitude >= minLat && DiveSite.Columns.latitude <= maxLat)
-                .filter(DiveSite.Columns.longitude >= minLon && DiveSite.Columns.longitude <= maxLon)
-                .order(DiveSite.Columns.name)
-                .fetchAll(db)
+            // Sort by species diversity (popularity proxy), then by name
+            let sql = """
+            SELECT s.*
+            FROM sites s
+            LEFT JOIN (
+                SELECT site_id, COUNT(*) as species_count
+                FROM site_species
+                GROUP BY site_id
+            ) sc ON s.id = sc.site_id
+            WHERE s.latitude BETWEEN ? AND ?
+              AND s.longitude BETWEEN ? AND ?
+            ORDER BY COALESCE(sc.species_count, 0) DESC, s.name
+            """
+            return try DiveSite.fetchAll(db, sql: sql, arguments: [minLat, maxLat, minLon, maxLon])
         }
     }
     
     /// v3: Viewport-first with lightweight SiteLite payload and optional filters
+    /// Sorted by species diversity (popularity proxy), then by name
     public func fetchInBoundsLite(minLat: Double, maxLat: Double, minLon: Double, maxLon: Double,
                                    filters: SiteFilters = SiteFilters(), limit: Int = 500) throws -> [SiteLite] {
         try database.read { db in
-            let sites = try DiveSite
-                .filter(DiveSite.Columns.latitude >= minLat && DiveSite.Columns.latitude <= maxLat)
-                .filter(DiveSite.Columns.longitude >= minLon && DiveSite.Columns.longitude <= maxLon)
-                .limit(limit)
-                .order(DiveSite.Columns.name)
-                .fetchAll(db)
-            
-            return sites.map { site in
-                SiteLite(
-                    id: site.id,
-                    name: site.name,
-                    latitude: site.latitude,
-                    longitude: site.longitude,
-                    difficulty: site.difficulty.rawValue,
-                    type: site.type.rawValue,
-                    tags: Array(site.tags.prefix(3)),
-                    region: site.region,
-                    visitedCount: site.visitedCount,
-                    wishlist: site.wishlist
+            // Sort by species diversity (popularity proxy), then by name
+            let sql = """
+            SELECT s.id, s.name, s.latitude, s.longitude, s.difficulty, s.type,
+                   s.tags, s.region, s.visitedCount, s.wishlist
+            FROM sites s
+            LEFT JOIN (
+                SELECT site_id, COUNT(*) as species_count
+                FROM site_species
+                GROUP BY site_id
+            ) sc ON s.id = sc.site_id
+            WHERE s.latitude BETWEEN ? AND ?
+              AND s.longitude BETWEEN ? AND ?
+            ORDER BY COALESCE(sc.species_count, 0) DESC, s.name
+            LIMIT ?
+            """
+
+            let rows = try Row.fetchAll(db, sql: sql, arguments: [minLat, maxLat, minLon, maxLon, limit])
+            return rows.map { row in
+                let tagsString = row["tags"] as? String ?? "[]"
+                let tags: [String]
+                if let data = tagsString.data(using: .utf8),
+                   let decoded = try? JSONDecoder().decode([String].self, from: data) {
+                    tags = Array(decoded.prefix(3))
+                } else {
+                    tags = []
+                }
+
+                return SiteLite(
+                    id: row["id"],
+                    name: row["name"],
+                    latitude: row["latitude"],
+                    longitude: row["longitude"],
+                    difficulty: row["difficulty"],
+                    type: row["type"],
+                    tags: tags,
+                    region: row["region"],
+                    visitedCount: row["visitedCount"],
+                    wishlist: row["wishlist"]
                 )
             }
         }
@@ -244,7 +282,17 @@ public final class SiteRepository {
                 .fetchAll(db)
         }
     }
-    
+
+    /// v6: Fetch all planned sites
+    public func fetchPlanned() throws -> [DiveSite] {
+        try database.read { db in
+            try DiveSite
+                .filter(DiveSite.Columns.isPlanned == true)
+                .order(DiveSite.Columns.name)
+                .fetchAll(db)
+        }
+    }
+
     // MARK: - Update
     
     public func update(_ site: DiveSite) throws {
@@ -256,7 +304,7 @@ public final class SiteRepository {
     
     public func toggleWishlist(siteId: String) throws {
         try database.write { db in
-            guard var site = try DiveSite.fetchOne(db, key: siteId) else { return }
+            guard let site = try DiveSite.fetchOne(db, key: siteId) else { return }
             // Need to reconstruct since fields are let
             let updated = DiveSite(
                 id: site.id,
@@ -273,14 +321,88 @@ public final class SiteRepository {
                 type: site.type,
                 description: site.description,
                 wishlist: !site.wishlist,
+                isPlanned: site.isPlanned,
                 visitedCount: site.visitedCount,
                 tags: site.tags,
-                createdAt: site.createdAt
+                createdAt: site.createdAt,
+                countryId: site.countryId,
+                regionId: site.regionId,
+                areaId: site.areaId,
+                wikidataId: site.wikidataId,
+                osmId: site.osmId
             )
             try updated.update(db)
         }
     }
-    
+
+    /// v6: Toggle planned status for a site
+    public func togglePlanned(siteId: String) throws {
+        try database.write { db in
+            guard let site = try DiveSite.fetchOne(db, key: siteId) else { return }
+            // Need to reconstruct since fields are let
+            let updated = DiveSite(
+                id: site.id,
+                name: site.name,
+                location: site.location,
+                latitude: site.latitude,
+                longitude: site.longitude,
+                region: site.region,
+                averageDepth: site.averageDepth,
+                maxDepth: site.maxDepth,
+                averageTemp: site.averageTemp,
+                averageVisibility: site.averageVisibility,
+                difficulty: site.difficulty,
+                type: site.type,
+                description: site.description,
+                wishlist: site.wishlist,
+                isPlanned: !site.isPlanned,
+                visitedCount: site.visitedCount,
+                tags: site.tags,
+                createdAt: site.createdAt,
+                countryId: site.countryId,
+                regionId: site.regionId,
+                areaId: site.areaId,
+                wikidataId: site.wikidataId,
+                osmId: site.osmId
+            )
+            try updated.update(db)
+        }
+    }
+
+    /// v6: Set planned status for a site (without toggling)
+    public func setPlanned(siteId: String, isPlanned: Bool) throws {
+        try database.write { db in
+            guard let site = try DiveSite.fetchOne(db, key: siteId) else { return }
+            guard site.isPlanned != isPlanned else { return }  // No change needed
+            let updated = DiveSite(
+                id: site.id,
+                name: site.name,
+                location: site.location,
+                latitude: site.latitude,
+                longitude: site.longitude,
+                region: site.region,
+                averageDepth: site.averageDepth,
+                maxDepth: site.maxDepth,
+                averageTemp: site.averageTemp,
+                averageVisibility: site.averageVisibility,
+                difficulty: site.difficulty,
+                type: site.type,
+                description: site.description,
+                wishlist: site.wishlist,
+                isPlanned: isPlanned,
+                visitedCount: site.visitedCount,
+                tags: site.tags,
+                createdAt: site.createdAt,
+                countryId: site.countryId,
+                regionId: site.regionId,
+                areaId: site.areaId,
+                wikidataId: site.wikidataId,
+                osmId: site.osmId
+            )
+            try updated.update(db)
+        }
+    }
+
     // MARK: - Delete
 
     public func delete(id: String) throws {

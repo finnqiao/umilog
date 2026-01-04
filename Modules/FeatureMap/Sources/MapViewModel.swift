@@ -4,6 +4,7 @@ import CoreLocation  // For CLLocationCoordinate2D
 import UmiDB
 import DiveMap
 import UmiCoreKit
+import os
 
 // MARK: - Map Bounds
 
@@ -152,7 +153,7 @@ class MapViewModel: ObservableObject {
             case .wishlist:
                 return site.wishlist
             case .planned:
-                return false // TODO: planned sites support
+                return site.isPlanned
             }
         }
     }
@@ -196,14 +197,14 @@ class MapViewModel: ObservableObject {
     ///   - filters: The ExploreFilters from MapUIViewModel
     ///   - lens: Optional FilterLens for "My Sites" mode
     ///   - hierarchy: The current hierarchy level
-    /// - Returns: Filtered sites
+    /// - Returns: Filtered and sorted sites (by popularity: logged > wishlist > planned > alphabetical)
     func applyFilters(
         to sites: [DiveSite],
         filters: ExploreFilters,
         lens: FilterLens?,
         hierarchy: HierarchyLevel
     ) -> [DiveSite] {
-        sites.filter { site in
+        let filtered = sites.filter { site in
             // Apply hierarchy filter
             guard matchesHierarchy(site, level: hierarchy) else { return false }
 
@@ -215,7 +216,7 @@ class MapViewModel: ObservableObject {
                 case .logged:
                     guard site.visitedCount > 0 else { return false }
                 case .planned:
-                    return false // TODO: planned sites support
+                    guard site.isPlanned else { return false }
                 }
             }
 
@@ -234,6 +235,27 @@ class MapViewModel: ObservableObject {
 
             return true
         }
+
+        // Sort by popularity: logged sites first, then wishlist, then planned, then alphabetically
+        return filtered.sorted { a, b in
+            // Priority: visited > wishlist > planned > others
+            let aPriority = sitePopularityScore(a)
+            let bPriority = sitePopularityScore(b)
+            if aPriority != bPriority {
+                return aPriority > bPriority
+            }
+            // Same priority - sort alphabetically
+            return a.name.localizedCaseInsensitiveCompare(b.name) == .orderedAscending
+        }
+    }
+
+    /// Calculate a popularity score for sorting (higher = more popular/engaged).
+    private func sitePopularityScore(_ site: DiveSite) -> Int {
+        var score = 0
+        if site.visitedCount > 0 { score += 100 + site.visitedCount }
+        if site.wishlist { score += 50 }
+        if site.isPlanned { score += 25 }
+        return score
     }
 
     /// Check if a site matches the given hierarchy level.
@@ -241,12 +263,14 @@ class MapViewModel: ObservableObject {
         switch level {
         case .world:
             return true
-        case .region(let regionId):
-            return site.region == regionId
+        case .country(let countryId):
+            return site.countryId == countryId
+        case .region(_, let regionId):
+            return site.regionId == regionId || site.region == regionId
         case .area(let regionId, let areaId):
-            guard site.region == regionId else { return false }
+            guard site.regionId == regionId || site.region == regionId else { return false }
             let (siteArea, _) = parseAreaCountry(site.location)
-            return siteArea == areaId
+            return siteArea == areaId || site.areaId == areaId
         }
     }
 
@@ -363,7 +387,7 @@ class MapViewModel: ObservableObject {
                 visibleSites[index] = updatedSite
             }
         } catch {
-            print("❌ Failed to refresh wishlist state: \(error)")
+            Log.map.error("Failed to refresh wishlist state: \(error.localizedDescription)")
         }
     }
 
@@ -385,7 +409,7 @@ class MapViewModel: ObservableObject {
             do {
                 try DatabaseSeeder.seedIfNeeded()
             } catch {
-                print("Failed to seed database before loading sites: \(error)")
+                Log.database.error("Failed to seed database before loading sites: \(error.localizedDescription)")
             }
             let fetchedSites = try siteRepo.fetchAll()
             let fetchedShops = try shopRepo.fetchAll()
@@ -410,7 +434,7 @@ class MapViewModel: ObservableObject {
                 self.visibleSites = fetchedSites
             }
         } catch {
-            print("Failed to load sites: \(error)")
+            Log.map.error("Failed to load sites: \(error.localizedDescription)")
             await MainActor.run {
                 self.sites = []
                 self.shops = []
@@ -466,14 +490,40 @@ class MapViewModel: ObservableObject {
                     self.visibleSites = sitesToShow
                 }
             }
+
+            // Prefetch images for visible sites (fire-and-forget)
+            await prefetchImagesForSites(sitesToShow)
         } catch {
-            print("Failed to fetch box sites: \(error)")
+            Log.map.debug("Failed to fetch box sites: \(error.localizedDescription)")
             // On error, show all sites
             await MainActor.run {
                 if self.visibleSites.count != self.sites.count {
                     self.visibleSites = self.sites
                 }
             }
+        }
+    }
+
+    /// Prefetch images for visible sites in the viewport.
+    private func prefetchImagesForSites(_ sites: [DiveSite]) async {
+        guard !sites.isEmpty else { return }
+
+        let siteIds = sites.prefix(50).map(\.id)  // Limit to 50 sites
+        let mediaRepo = SiteMediaRepository(database: AppDatabase.shared)
+
+        do {
+            let mediaMap = try mediaRepo.fetchMediaBatch(siteIds: Array(siteIds))
+            var urlMap: [String: URL] = [:]
+            for (siteId, media) in mediaMap {
+                if let url = URL(string: media.url) {
+                    urlMap[siteId] = url
+                }
+            }
+
+            // Fire-and-forget prefetch via ImageCacheService
+            await ImageCacheService.shared.prefetch(siteIds: Array(siteIds), urls: urlMap)
+        } catch {
+            Log.images.debug("Failed to fetch media for prefetch: \(error.localizedDescription)")
         }
     }
 }

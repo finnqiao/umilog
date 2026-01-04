@@ -170,3 +170,16 @@ data/export/
 
 # Allow seed artifact; do not ignore the app resource
 # Resources/SeedData/sites_wikidata.json
+
+# Large screenshot artifacts (regeneratable)
+ux_audit/ARTIFACTS/
+docs/screens/*.png
+
+# Root-level merged data (duplicate of SeedData)
+seed_data_merged.json
+
+# Python virtual environments
+.venv/
+venv/
+__pycache__/
+*.pyc

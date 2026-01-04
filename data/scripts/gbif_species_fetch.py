@@ -111,7 +111,7 @@ MARINE_DECAPOD_FAMILIES = {
 }
 
 
-def fetch_species_in_region(bbox, phylum_key, limit=100):
+def fetch_species_in_region(bbox, phylum_key, limit=300):
     """Fetch species occurrences in a bounding box for a phylum."""
     url = f"{GBIF_API}/occurrence/search"
     params = {
@@ -197,12 +197,12 @@ def main():
     # Filter to species with significant occurrences
     print(f"\nTotal unique species keys: {len(species_occurrences)}")
 
-    # Get details for top species
+    # Get details for all species (sorted by occurrence count)
     significant_species = sorted(
         species_occurrences.items(),
         key=lambda x: x[1]["total_count"],
         reverse=True
-    )[:500]  # Top 500 species
+    )  # No limit - fetch all
 
     print(f"Fetching details for top {len(significant_species)} species...")
 

@@ -1,6 +1,8 @@
 import Foundation
 import SwiftUI
 import UmiDB
+import UmiCoreKit
+import os
 
 @MainActor
 public class DiveLoggerViewModel: ObservableObject {
@@ -107,11 +109,11 @@ public class DiveLoggerViewModel: ObservableObject {
             
             try database.diveRepository.create(dive)
             isSaved = true
-            print("✅ Dive saved successfully")
+            Log.diveLog.info("Dive saved successfully")
             return true
         } catch {
             self.error = "Failed to save dive: \(error.localizedDescription)"
-            print("❌ Error saving dive: \(error)")
+            Log.diveLog.error("Error saving dive: \(error.localizedDescription)")
             return false
         }
     }

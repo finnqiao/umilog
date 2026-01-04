@@ -25,6 +25,10 @@ class MapUIViewModel: ObservableObject {
 
     private var cancellables = Set<AnyCancellable>()
 
+    /// Cooldown tracking for proximity prompts per site (30 minute cooldown)
+    private var promptCooldowns: [String: Date] = [:]
+    private let cooldownDuration: TimeInterval = 1800 // 30 minutes
+
     // MARK: - Initialization
 
     init() {
@@ -103,7 +107,21 @@ class MapUIViewModel: ObservableObject {
 
     private func handleGeofenceArrival(_ notification: Notification) {
         guard let site = notification.userInfo?["site"] as? DiveSite else { return }
-        send(.showProximityPrompt(site))
+
+        // Check cooldown before showing prompt
+        if shouldShowPrompt(for: site.id) {
+            send(.showProximityPrompt(site))
+        }
+    }
+
+    /// Check if a prompt should be shown for a site (respects 30-minute cooldown)
+    private func shouldShowPrompt(for siteId: String) -> Bool {
+        // Don't show if there's already an active prompt
+        if proximityPrompt != nil { return false }
+
+        // Check cooldown
+        guard let lastDismiss = promptCooldowns[siteId] else { return true }
+        return Date().timeIntervalSince(lastDismiss) > cooldownDuration
     }
 
     private func handleSideEffects(for action: MapUIAction) {
@@ -122,15 +140,22 @@ class MapUIViewModel: ObservableObject {
             proximityPrompt = ProximityPromptState(site: site)
 
         case .dismissProximityPrompt:
+            // Record cooldown time for this site
+            if let siteId = proximityPrompt?.site.id {
+                promptCooldowns[siteId] = Date()
+            }
             proximityPrompt?.isDismissed = true
+            // Clear prompt after animation completes
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { [weak self] in
+                self?.proximityPrompt = nil
+            }
 
         case .acceptProximityPrompt:
             if let prompt = proximityPrompt {
-                // Post notification to start live log
+                // Post notification to start live log (use object for consistency with receiver)
                 NotificationCenter.default.post(
                     name: .startLiveLogRequested,
-                    object: nil,
-                    userInfo: ["site": prompt.site]
+                    object: prompt.site
                 )
             }
             proximityPrompt = nil
@@ -149,8 +174,5 @@ class MapUIViewModel: ObservableObject {
 }
 
 // MARK: - Notification Names
-
-extension Notification.Name {
-    static let arrivedAtDiveSite = Notification.Name("arrivedAtDiveSite")
-    static let startLiveLogRequested = Notification.Name("startLiveLogRequested")
-}
+// Note: startLiveLogRequested is defined in UmiCoreKit/Notifications.swift
+// arrivedAtDiveSite is defined in UmiLocationKit/GeofenceManager.swift

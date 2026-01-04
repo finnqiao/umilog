@@ -28,10 +28,10 @@ public struct MapTheme {
         public static var planned: UIColor { .umiStatusPlanned }
         public static var defaultGlow: UIColor { .umiLagoon.withAlphaComponent(0.2) }
 
-        // Cluster colors
-        public static var clusterFill: UIColor { .umiLagoon }
-        public static var clusterStroke: UIColor { .umiReef }
-        public static var clusterText: UIColor { .umiFoam }
+        // Cluster colors - using bright orange for visibility against blue map
+        public static var clusterFill: UIColor { .umiReef }  // Orange/coral color
+        public static var clusterStroke: UIColor { .white }
+        public static var clusterText: UIColor { .white }
 
         // Selection highlight
         public static var selectionRing: UIColor { .umiFoam }

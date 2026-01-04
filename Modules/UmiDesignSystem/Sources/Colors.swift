@@ -1,11 +1,11 @@
 import SwiftUI
 
 public extension Color {
-    // MARK: - Core Underwater Palette (Dark-first)
-    static let abyss = Color(hex: "0A0F1F")
-    static let midnight = Color(hex: "0D2239")
-    static let trench = Color(hex: "132A45")
-    static let ocean = Color(hex: "1E4B7A")
+    // MARK: - Core Underwater Palette (Ocean Blue Theme)
+    static let abyss = Color(hex: "0A2342")       // Deep ocean blue (was nearly black)
+    static let midnight = Color(hex: "0D3B66")    // Rich midnight blue
+    static let trench = Color(hex: "1A4068")      // Medium ocean depth
+    static let ocean = Color(hex: "1E5688")       // Ocean blue
     static let lagoon = Color(hex: "2D7FBF")
     static let reef = Color(hex: "5EEAD4")
     static let amber = Color(hex: "F59E0B")

@@ -4,6 +4,7 @@ import os
 public struct UnderwaterThemeView<Content: View>: View {
     private let logger = Logger(subsystem: "app.umilog", category: "UnderwaterTheme")
     @Environment(\.colorScheme) private var colorScheme
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var t: Double = 0
     let content: Content
 
@@ -17,30 +18,36 @@ public struct UnderwaterThemeView<Content: View>: View {
             oceanBackground
                 .blur(radius: 16)
                 .opacity(colorScheme == .dark ? 0.9 : 0.8)
-                .animation(.easeInOut(duration: 6).repeatForever(autoreverses: true), value: t)
+                .animation(reduceMotion ? nil : .easeInOut(duration: 6).repeatForever(autoreverses: true), value: t)
 
-            // 2) Caustics-like shimmering overlay using Canvas
-            CausticsOverlay(amplitude: 0.25, speed: 0.25)
-                .allowsHitTesting(false)
-                .blendMode(.screen)
-                .opacity(0.22)
-                .ignoresSafeArea()
+            // 2) Caustics-like shimmering overlay - disabled with reduce motion
+            if !reduceMotion {
+                CausticsOverlay(amplitude: 0.25, speed: 0.25)
+                    .allowsHitTesting(false)
+                    .blendMode(.screen)
+                    .opacity(0.22)
+                    .ignoresSafeArea()
+            }
 
-            // 3) Floating bubbles (subtle)
-            BubblesOverlay()
-                .allowsHitTesting(false)
-                .opacity(0.11)
-                .ignoresSafeArea()
+            // 3) Floating bubbles - disabled with reduce motion
+            if !reduceMotion {
+                BubblesOverlay()
+                    .allowsHitTesting(false)
+                    .opacity(0.11)
+                    .ignoresSafeArea()
+            }
 
             // App content on top with glassy feel
             content
-                .environment(\.waterTransitionEnabled, true)
+                .environment(\.waterTransitionEnabled, !reduceMotion)
         }
         .onAppear {
-            logger.log("UnderwaterThemeView started")
+            logger.log("UnderwaterThemeView started, reduceMotion=\(reduceMotion)")
             // Defer animation to avoid state mutation during render
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
-                withAnimation { t = 1 }
+            if !reduceMotion {
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
+                    withAnimation { t = 1 }
+                }
             }
         }
     }
@@ -88,11 +95,29 @@ public extension View {
             .shadow(color: Color.black.opacity(0.15), radius: 8, x: 0, y: 6)
     }
 
+    /// Applies an underwater-themed transition, simplified when Reduce Motion is enabled
     func wateryTransition() -> some View {
-        self.transition(.asymmetric(
-            insertion: .move(edge: .trailing).combined(with: .opacity).combined(with: .scale(scale: 0.98)).animation(.smooth(duration: 0.45)),
-            removal: .move(edge: .leading).combined(with: .opacity).animation(.smooth(duration: 0.35))
-        ))
+        self.modifier(WateryTransitionModifier())
+    }
+
+    /// Applies subtle underwater accent styling for visual consistency across tabs
+    func underwaterAccent() -> some View {
+        self.tint(.oceanBlue)
+    }
+}
+
+private struct WateryTransitionModifier: ViewModifier {
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
+    func body(content: Content) -> some View {
+        if reduceMotion {
+            content.transition(.opacity)
+        } else {
+            content.transition(.asymmetric(
+                insertion: .move(edge: .trailing).combined(with: .opacity).combined(with: .scale(scale: 0.98)).animation(.smooth(duration: 0.45)),
+                removal: .move(edge: .leading).combined(with: .opacity).animation(.smooth(duration: 0.35))
+            ))
+        }
     }
 }
 

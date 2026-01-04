@@ -2,6 +2,8 @@ import SwiftUI
 import UmiDB
 import UmiDesignSystem
 import UmiLocationKit
+import UmiCoreKit
+import os
 
 /// Quick log view for one-tap dive logging with smart defaults
 
@@ -13,10 +15,20 @@ public struct QuickLogView: View {
     @StateObject private var viewModel = QuickLogViewModel()
     @Environment(\.dismiss) private var dismiss
     @FocusState private var focusedField: QuickLogField?
-    
+
+    // State for post-save site creation
+    @State private var showingCreateSite = false
+    @State private var savedDiveId: String?
+    @State private var savedGPSLatitude: Double?
+    @State private var savedGPSLongitude: Double?
+    @State private var savedGPSLocationName: String?
+
+    // Permission denial state
+    @State private var showingLocationPermissionAlert = false
+
     // Optional pre-filled site from geofencing
     private let suggestedSite: DiveSite?
-    
+
     public init(suggestedSite: DiveSite? = nil) {
         self.suggestedSite = suggestedSite
     }
@@ -67,16 +79,60 @@ public struct QuickLogView: View {
             } message: {
                 Text(viewModel.errorMessage ?? "Failed to save dive")
             }
+            .alert("Location Access Needed", isPresented: $showingLocationPermissionAlert) {
+                Button("Open Settings") {
+                    if let url = URL(string: UIApplication.openSettingsURLString) {
+                        UIApplication.shared.open(url)
+                    }
+                }
+                Button("Cancel", role: .cancel) { }
+            } message: {
+                Text("Enable location access in Settings to use your current GPS position for dive logging.")
+            }
+            .onReceive(NotificationCenter.default.publisher(for: .locationPermissionDenied)) { _ in
+                showingLocationPermissionAlert = true
+            }
         }
         .task {
             await viewModel.initialize(with: suggestedSite)
         }
+        .sheet(isPresented: $showingCreateSite) {
+            if let diveId = savedDiveId,
+               let lat = savedGPSLatitude,
+               let lon = savedGPSLongitude {
+                CreateSiteFromGPSView(
+                    diveId: diveId,
+                    latitude: lat,
+                    longitude: lon,
+                    locationName: savedGPSLocationName
+                ) { _ in
+                    // Site was created, dismiss QuickLogView
+                    dismiss()
+                }
+            }
+        }
     }
-    
+
     private func saveDive() async {
-        let success = await viewModel.saveDive()
-        if success {
-            dismiss()
+        // Check if this is a GPS-only dive before saving
+        let isGPSDive = viewModel.selectedSite == nil &&
+                        viewModel.gpsLatitude != nil &&
+                        viewModel.gpsLongitude != nil
+
+        let result = await viewModel.saveDiveWithResult()
+
+        if let diveId = result {
+            if isGPSDive {
+                // Show site creation flow
+                savedDiveId = diveId
+                savedGPSLatitude = viewModel.gpsLatitude
+                savedGPSLongitude = viewModel.gpsLongitude
+                savedGPSLocationName = viewModel.gpsLocationName
+                showingCreateSite = true
+            } else {
+                // Normal flow - just dismiss
+                dismiss()
+            }
         }
     }
 }
@@ -85,13 +141,13 @@ public struct QuickLogView: View {
 
 struct QuickActionsSection: View {
     @ObservedObject var viewModel: QuickLogViewModel
-    
+
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             Text("Quick Actions")
                 .font(SwiftUI.Font.caption)
                 .foregroundStyle(.secondary)
-            
+
             HStack(spacing: 12) {
                 // Same as last dive
                 Button(action: { viewModel.fillFromLastDive() }) {
@@ -101,9 +157,11 @@ struct QuickActionsSection: View {
                 }
                 .buttonStyle(.bordered)
                 .disabled(!viewModel.hasLastDive)
-                
+                .accessibilityLabel("Copy from last dive")
+                .accessibilityHint(viewModel.hasLastDive ? "Fills in details from your most recent dive" : "No previous dive to copy from")
+
                 // Use current location
-                Button(action: { 
+                Button(action: {
                     Task { await viewModel.useCurrentLocation() }
                 }) {
                     Label("Current Location", systemImage: "location.fill")
@@ -111,6 +169,8 @@ struct QuickActionsSection: View {
                         .frame(maxWidth: .infinity)
                 }
                 .buttonStyle(.bordered)
+                .accessibilityLabel("Use current location")
+                .accessibilityHint("Sets dive site to your GPS coordinates")
             }
         }
     }
@@ -125,7 +185,7 @@ struct SiteSelectionSection: View {
             Text("Dive Site")
                 .font(SwiftUI.Font.caption)
                 .foregroundStyle(.secondary)
-            
+
             Button(action: { showingSitePicker = true }) {
                 HStack {
                     VStack(alignment: .leading, spacing: 4) {
@@ -136,14 +196,25 @@ struct SiteSelectionSection: View {
                             Text(site.location)
                                 .font(SwiftUI.Font.caption)
                                 .foregroundStyle(.secondary)
+                        } else if viewModel.isUsingGPS, let lat = viewModel.gpsLatitude, let lon = viewModel.gpsLongitude {
+                            HStack(spacing: 6) {
+                                Image(systemName: "location.fill")
+                                    .foregroundStyle(Color.oceanBlue)
+                                Text("GPS Location")
+                                    .font(SwiftUI.Font.headline)
+                                    .foregroundStyle(.primary)
+                            }
+                            Text(viewModel.gpsLocationName ?? formatCoordinates(lat: lat, lon: lon))
+                                .font(SwiftUI.Font.caption)
+                                .foregroundStyle(.secondary)
                         } else {
                             Text("Select dive site")
                                 .foregroundStyle(.secondary)
                         }
                     }
-                    
+
                     Spacer()
-                    
+
                     Image(systemName: "chevron.right")
                         .font(SwiftUI.Font.caption)
                         .foregroundStyle(.secondary)
@@ -154,8 +225,24 @@ struct SiteSelectionSection: View {
             }
         }
         .sheet(isPresented: $showingSitePicker) {
-            SitePickerView(selectedSite: $viewModel.selectedSite)
+            SitePickerView(
+                selectedSite: $viewModel.selectedSite,
+                onUseGPS: {
+                    Task {
+                        await viewModel.useGPSCoordinates()
+                    }
+                },
+                gpsLatitude: viewModel.gpsLatitude,
+                gpsLongitude: viewModel.gpsLongitude,
+                gpsLocationName: viewModel.gpsLocationName
+            )
         }
+    }
+
+    private func formatCoordinates(lat: Double, lon: Double) -> String {
+        let latDir = lat >= 0 ? "N" : "S"
+        let lonDir = lon >= 0 ? "E" : "W"
+        return String(format: "%.4f°%@ %.4f°%@", abs(lat), latDir, abs(lon), lonDir)
     }
 }
 
@@ -346,10 +433,15 @@ struct SaveButton: View {
 
 struct SitePickerView: View {
     @Binding var selectedSite: DiveSite?
+    var onUseGPS: (() -> Void)?
+    var gpsLatitude: Double?
+    var gpsLongitude: Double?
+    var gpsLocationName: String?
+
     @Environment(\.dismiss) private var dismiss
     @State private var searchText = ""
     @State private var sites: [DiveSite] = []
-    
+
     var filteredSites: [DiveSite] {
         if searchText.isEmpty {
             return sites
@@ -360,34 +452,90 @@ struct SitePickerView: View {
             }
         }
     }
-    
+
+    private var hasGPS: Bool {
+        gpsLatitude != nil && gpsLongitude != nil
+    }
+
     var body: some View {
         NavigationStack {
             List {
-                ForEach(filteredSites) { site in
-                    Button(action: {
-                        selectedSite = site
-                        dismiss()
-                    }) {
-                        HStack {
-                            VStack(alignment: .leading, spacing: 4) {
-                                Text(site.name)
-                                    .font(SwiftUI.Font.headline)
-                                    .foregroundStyle(.primary)
-                                
-                                Text(site.location)
-                                    .font(SwiftUI.Font.caption)
-                                    .foregroundStyle(.secondary)
+                // GPS Option Section
+                if let onUseGPS = onUseGPS {
+                    Section {
+                        Button(action: {
+                            onUseGPS()
+                            dismiss()
+                        }) {
+                            HStack(spacing: 12) {
+                                ZStack {
+                                    Circle()
+                                        .fill(Color.oceanBlue.opacity(0.15))
+                                        .frame(width: 44, height: 44)
+                                    Image(systemName: "location.fill")
+                                        .font(.system(size: 20))
+                                        .foregroundStyle(Color.oceanBlue)
+                                }
+
+                                VStack(alignment: .leading, spacing: 4) {
+                                    Text("Use Current Location")
+                                        .font(.headline)
+                                        .foregroundStyle(.primary)
+
+                                    if hasGPS {
+                                        Text(gpsLocationName ?? formatCoordinates())
+                                            .font(.caption)
+                                            .foregroundStyle(.secondary)
+                                    } else {
+                                        Text("Log at your current GPS coordinates")
+                                            .font(.caption)
+                                            .foregroundStyle(.secondary)
+                                    }
+                                }
+
+                                Spacer()
+
+                                if hasGPS && selectedSite == nil {
+                                    Image(systemName: "checkmark.circle.fill")
+                                        .foregroundStyle(Color.oceanBlue)
+                                }
                             }
-                            
-                            Spacer()
-                            
-                            if site.id == selectedSite?.id {
-                                Image(systemName: "checkmark")
-                                    .foregroundStyle(Color.oceanBlue)
+                            .padding(.vertical, 4)
+                        }
+                    } header: {
+                        Text("Quick Option")
+                    }
+                }
+
+                // Sites List
+                Section {
+                    ForEach(filteredSites) { site in
+                        Button(action: {
+                            selectedSite = site
+                            dismiss()
+                        }) {
+                            HStack {
+                                VStack(alignment: .leading, spacing: 4) {
+                                    Text(site.name)
+                                        .font(SwiftUI.Font.headline)
+                                        .foregroundStyle(.primary)
+
+                                    Text(site.location)
+                                        .font(SwiftUI.Font.caption)
+                                        .foregroundStyle(.secondary)
+                                }
+
+                                Spacer()
+
+                                if site.id == selectedSite?.id {
+                                    Image(systemName: "checkmark")
+                                        .foregroundStyle(Color.oceanBlue)
+                                }
                             }
                         }
                     }
+                } header: {
+                    Text("Dive Sites")
                 }
             }
             .searchable(text: $searchText, prompt: "Search dive sites")
@@ -403,14 +551,21 @@ struct SitePickerView: View {
             }
         }
     }
-    
+
     private func loadSites() async {
         do {
             let repository = SiteRepository(database: AppDatabase.shared)
             sites = try repository.fetchAll()
         } catch {
-            print("Failed to load sites: \(error)")
+            Log.map.debug("Failed to load sites: \(error.localizedDescription)")
         }
+    }
+
+    private func formatCoordinates() -> String {
+        guard let lat = gpsLatitude, let lon = gpsLongitude else { return "" }
+        let latDir = lat >= 0 ? "N" : "S"
+        let lonDir = lon >= 0 ? "E" : "W"
+        return String(format: "%.4f°%@ %.4f°%@", abs(lat), latDir, abs(lon), lonDir)
     }
 }
 

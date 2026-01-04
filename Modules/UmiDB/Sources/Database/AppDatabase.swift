@@ -62,12 +62,9 @@ public final class AppDatabase {
             // WAL mode for better concurrency
             try db.execute(sql: "PRAGMA journal_mode = WAL")
 
-            // NOTE: SQLCipher encryption requires switching to GRDBCipher package.
-            // When ready to enable encryption:
-            // 1. Replace GRDB with GRDBCipher in project.yml
-            // 2. Uncomment the following:
-            // let key = try KeychainService.getDatabaseKey()
-            // try db.usePassphrase(key)
+            // NOTE: SQLCipher encryption is deferred due to SPM/XCFramework compatibility
+            // issues. iOS File Protection (.complete) provides security when device is locked.
+            // Consider CocoaPods for GRDBCipher in a future release.
         }
 
         // Create database pool
@@ -125,8 +122,26 @@ extension AppDatabase {
     public var diveRepository: DiveRepository {
         DiveRepository(database: self)
     }
-    
+
     public var siteRepository: SiteRepository {
         SiteRepository(database: self)
+    }
+}
+
+// MARK: - User Data Management
+extension AppDatabase {
+    /// Deletes all user-generated content while preserving seed data.
+    /// Use this for "Delete All Data" functionality.
+    public func deleteAllUserData() throws {
+        try dbPool.write { db in
+            // Delete user content tables (order matters due to foreign keys)
+            try db.execute(sql: "DELETE FROM sightings")
+            try db.execute(sql: "DELETE FROM dives")
+
+            // Note: We keep sites, species, geographic data as they are seed data
+            // site_media is also preserved as it's curated content
+
+            logger.info("All user data deleted successfully")
+        }
     }
 }

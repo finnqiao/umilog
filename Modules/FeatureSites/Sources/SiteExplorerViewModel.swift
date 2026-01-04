@@ -1,6 +1,8 @@
 import Foundation
 import SwiftUI
 import UmiDB
+import UmiCoreKit
+import os
 
 @MainActor
 public class SiteExplorerViewModel: ObservableObject {
@@ -29,9 +31,9 @@ public class SiteExplorerViewModel: ObservableObject {
         
         do {
             sites = try database.siteRepository.fetchAll()
-            print("📊 Loaded \(sites.count) sites")
+            Log.map.debug("Loaded \(self.sites.count) sites")
         } catch {
-            print("❌ Error loading sites: \(error)")
+            Log.map.error("Error loading sites: \(error.localizedDescription)")
         }
     }
     
@@ -65,7 +67,7 @@ public class SiteExplorerViewModel: ObservableObject {
             try database.siteRepository.toggleWishlist(siteId: site.id)
             await loadSites()
         } catch {
-            print("❌ Error toggling wishlist: \(error)")
+            Log.map.error("Error toggling wishlist: \(error.localizedDescription)")
         }
     }
     

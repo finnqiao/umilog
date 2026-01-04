@@ -9,6 +9,9 @@ public enum Haptics {
     public static func success() {
         UINotificationFeedbackGenerator().notificationOccurred(.success)
     }
+    public static func error() {
+        UINotificationFeedbackGenerator().notificationOccurred(.error)
+    }
     public static func soft() {
         let generator = UIImpactFeedbackGenerator(style: .soft)
         generator.impactOccurred()

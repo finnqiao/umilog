@@ -63,4 +63,51 @@ public struct MapIcons {
         default: return siteGeneric
         }
     }
+
+    // MARK: - SF Symbol Mappings
+    // Maps site types to SF Symbols for rendering custom icons
+    public struct SFSymbols {
+        /// Get the SF Symbol name for a given site type.
+        /// Falls back to mappin.circle.fill for unknown types.
+        public static func symbol(for type: String) -> String {
+            switch type.lowercased() {
+            case "reef":
+                return "leaf.fill"
+            case "wreck":
+                return "ferry.fill"
+            case "wall":
+                return "rectangle.3.group.fill"
+            case "cave", "cavern":
+                return "mountain.2.fill"
+            case "shore", "beach":
+                if #available(iOS 17.0, *) {
+                    return "beach.umbrella.fill"
+                }
+                return "sun.horizon.fill"
+            case "drift":
+                return "wind"
+            default:
+                return "mappin.circle.fill"
+            }
+        }
+
+        // Cluster icon
+        public static var cluster: String { "circle.grid.3x3.fill" }
+
+        // Selected marker highlight
+        public static var selected: String { "circle.fill" }
+    }
+
+    // MARK: - Animation Configuration
+    public struct AnimationConfig {
+        // Selection pulse animation
+        public static var selectionPulseDuration: TimeInterval = 0.6
+        public static var selectionPulseScale: CGFloat = 1.3
+        public static var selectionFinalScale: CGFloat = 1.2
+
+        // Cluster bounce animation
+        public static var bounceStaggerDelay: TimeInterval = 0.05
+        public static var bounceDuration: TimeInterval = 0.4
+        public static var bounceOffsetY: CGFloat = -20
+    }
 }

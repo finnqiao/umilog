@@ -47,9 +47,7 @@ def fetch_gbif_species_near_site(lat, lon, radius_km=SEARCH_RADIUS_KM):
     """Fetch species occurrences near a coordinate from GBIF."""
     url = f"{GBIF_API}/occurrence/search"
     params = {
-        "decimalLatitude": lat,
-        "decimalLongitude": lon,
-        "radius": f"{radius_km}km",
+        "geoDistance": f"{lat},{lon},{radius_km}km",
         "limit": 0,
         "facet": "speciesKey",
         "facetLimit": 100,

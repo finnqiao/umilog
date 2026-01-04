@@ -19,6 +19,8 @@ struct ExploreContent: View {
     var onOpenFilter: () -> Void
     var onNavigateUp: () -> Void
     var onDrillDown: (String) -> Void
+    var onClearFilters: () -> Void = {}
+    var onAddSite: () -> Void = {}
 
     // MARK: - State
 
@@ -31,8 +33,17 @@ struct ExploreContent: View {
         VStack(alignment: .leading, spacing: 0) {
             peekHeader
                 .padding(.horizontal, 16)
-                .padding(.top, 4)
+                .padding(.top, 8)
                 .padding(.bottom, 12)
+
+            // Show horizontal carousel at peek detent
+            if detent == .peek && !sites.isEmpty {
+                HorizontalSiteCarousel(
+                    sites: sites,
+                    onSiteTap: onSiteTap
+                )
+                .padding(.bottom, 12)
+            }
 
             if detent != .peek {
                 // Quick filter pills row
@@ -71,8 +82,41 @@ struct ExploreContent: View {
                 lensChip(for: lens)
             }
 
+            // Show reset button when any filters are active
+            if hasActiveFilters {
+                resetButton
+            }
+
             filterEntryButton
         }
+    }
+
+    private var hasActiveFilters: Bool {
+        filterLens != nil || !filterDifficulties.isEmpty || !context.hierarchyLevel.isWorld
+    }
+
+    private var resetButton: some View {
+        Button {
+            withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) {
+                onClearFilters()
+            }
+            Haptics.soft()
+        } label: {
+            HStack(spacing: 4) {
+                Image(systemName: "arrow.counterclockwise")
+                    .font(.system(size: 12, weight: .medium))
+                Text("Reset")
+                    .font(.caption)
+                    .fontWeight(.medium)
+            }
+            .foregroundStyle(Color.foam)
+            .padding(.horizontal, 10)
+            .padding(.vertical, 6)
+            .background(Color.trench)
+            .clipShape(Capsule())
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel("Reset all filters")
     }
 
     private var countLabel: Text {
@@ -98,7 +142,10 @@ struct ExploreContent: View {
     }
 
     private var filterEntryButton: some View {
-        Button(action: onOpenFilter) {
+        Button {
+            Haptics.soft()  // Fix UX-007: Add haptic feedback
+            onOpenFilter()
+        } label: {
             Image(systemName: "slider.horizontal.3")
                 .font(.system(size: 16, weight: .medium))
                 .foregroundStyle(Color.lagoon)
@@ -123,7 +170,11 @@ struct ExploreContent: View {
                     ForEach(sites) { site in
                         ExploreSiteRow(site: site, isHighlighted: flashId == site.id)
                             .id(site.id)
-                            .onTapGesture { onSiteTap(site) }
+                            .contentShape(Rectangle())  // Fix UX-002: Define tap hit area
+                            .onTapGesture {
+                                Haptics.soft()  // Fix UX-007: Add haptic feedback
+                                onSiteTap(site)
+                            }
                     }
                 }
                 .padding(.bottom, 24)
@@ -145,6 +196,31 @@ struct ExploreContent: View {
                 .font(.subheadline)
                 .foregroundStyle(Color.mist)
                 .multilineTextAlignment(.center)
+
+            VStack(spacing: 12) {
+                Button(action: onClearFilters) {
+                    HStack(spacing: 8) {
+                        Image(systemName: "xmark.circle")
+                        Text("Reset All Filters")
+                    }
+                    .font(.subheadline.weight(.semibold))
+                    .foregroundStyle(Color.foam)
+                    .padding(.horizontal, 20)
+                    .padding(.vertical, 12)
+                    .background(Color.lagoon)
+                    .clipShape(Capsule())
+                }
+
+                Button(action: onAddSite) {
+                    HStack(spacing: 8) {
+                        Image(systemName: "plus.circle")
+                        Text("Add a New Dive Site")
+                    }
+                    .font(.subheadline)
+                    .foregroundStyle(Color.lagoon)
+                }
+            }
+            .padding(.top, 8)
         }
         .frame(maxWidth: .infinity)
         .padding(.top, 32)

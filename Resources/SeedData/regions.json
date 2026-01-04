@@ -65,6 +65,18 @@
       "name": "Caribbean",
       "latitude": 18.16594814666667,
       "longitude": -72.22402592666667
+    },
+    {
+      "id": "central-america",
+      "name": "Central America",
+      "latitude": 15.0,
+      "longitude": -86.0
+    },
+    {
+      "id": "global",
+      "name": "Global",
+      "latitude": 0.0,
+      "longitude": 0.0
     }
   ]
 }

@@ -320,16 +320,3 @@ private struct FlowLayout: Layout {
     }
 }
 
-// MARK: - CaseIterable Extensions
-
-extension DiveSite.Difficulty: CaseIterable {
-    public static var allCases: [DiveSite.Difficulty] {
-        [.beginner, .intermediate, .advanced]
-    }
-}
-
-extension DiveSite.SiteType: CaseIterable {
-    public static var allCases: [DiveSite.SiteType] {
-        [.reef, .wreck, .wall, .cave, .shore, .drift]
-    }
-}

@@ -3,6 +3,7 @@ import UmiDB
 import UmiDesignSystem
 import UmiCoreKit
 import FeatureLiveLog
+import os
 
 /// Content view for Inspect mode in the unified bottom surface.
 /// Shows site details at medium detent, full details when expanded.
@@ -24,6 +25,7 @@ struct InspectContent: View {
     @State private var isUpdatingWishlist = false
     @State private var wishlistError: String?
     @State private var showingLogWizard = false
+    @State private var mediaURL: URL?
 
     // MARK: - Init
 
@@ -53,7 +55,7 @@ struct InspectContent: View {
             VStack(alignment: .leading, spacing: 0) {
                 siteHeader(site: site)
                     .padding(.horizontal, 16)
-                    .padding(.top, 4)
+                    .padding(.top, 8)
                     .padding(.bottom, 12)
 
                 if detent == .medium || detent == .expanded {
@@ -94,19 +96,23 @@ struct InspectContent: View {
     // MARK: - Hero Image
 
     private func heroImage(for site: DiveSite) -> some View {
-        ZStack(alignment: .bottomLeading) {
-            Rectangle()
-                .fill(LinearGradient(
-                    colors: [Color.ocean, Color.lagoon.opacity(0.7)],
-                    startPoint: .topLeading,
-                    endPoint: .bottomTrailing
-                ))
-                .frame(height: detent == .medium ? 100 : 140)
-                .clipShape(RoundedRectangle(cornerRadius: 12))
-                .overlay(
-                    RoundedRectangle(cornerRadius: 12)
-                        .strokeBorder(Color.ocean.opacity(0.3), lineWidth: 1)
-                )
+        let imageHeight: CGFloat = detent == .medium ? 100 : 140
+
+        return ZStack(alignment: .bottomLeading) {
+            // Use AsyncSiteImage to load actual site photo
+            AsyncSiteImage(
+                site: site,
+                mediaURL: mediaURL,
+                size: imageHeight,
+                cornerRadius: 12
+            )
+            .frame(maxWidth: .infinity)
+            .frame(height: imageHeight)
+            .clipShape(RoundedRectangle(cornerRadius: 12))
+            .overlay(
+                RoundedRectangle(cornerRadius: 12)
+                    .strokeBorder(Color.ocean.opacity(0.3), lineWidth: 1)
+            )
 
             // Site type badge
             Text(site.type.rawValue)
@@ -118,6 +124,24 @@ struct InspectContent: View {
                 .background(Color.abyss.opacity(0.7))
                 .clipShape(Capsule())
                 .padding(10)
+        }
+        .task(id: site.id) {
+            await loadMedia(for: site.id)
+        }
+    }
+
+    // MARK: - Media Loading
+
+    private func loadMedia(for siteId: String) async {
+        let mediaRepo = SiteMediaRepository(database: AppDatabase.shared)
+        do {
+            if let media = try mediaRepo.fetchMedia(for: siteId) {
+                mediaURL = URL(string: media.url)
+            } else {
+                mediaURL = nil
+            }
+        } catch {
+            mediaURL = nil
         }
     }
 
@@ -168,14 +192,9 @@ struct InspectContent: View {
             }
 
             Spacer()
-
-            Button(action: onDismiss) {
-                Image(systemName: "xmark.circle.fill")
-                    .font(.title2)
-                    .foregroundStyle(Color.mist)
-            }
-            .accessibilityLabel("Dismiss")
         }
+        .accessibilityAddTraits(.allowsDirectInteraction)
+        .accessibilityHint("Swipe down to dismiss")
     }
 
     // MARK: - Actions Row
@@ -219,7 +238,7 @@ struct InspectContent: View {
 
     private func expandedContent(site: DiveSite) -> some View {
         ScrollView {
-            VStack(alignment: .leading, spacing: 20) {
+            VStack(alignment: .leading, spacing: 16) {
                 // Description
                 if let description = site.description, !description.isEmpty {
                     VStack(alignment: .leading, spacing: 8) {
@@ -249,7 +268,7 @@ struct InspectContent: View {
                 .cornerRadius(12)
                 .padding(.horizontal, 16)
             }
-            .padding(.bottom, 32)
+            .padding(.bottom, 24)
         }
     }
 
@@ -316,7 +335,7 @@ struct InspectContent: View {
             } catch {
                 isUpdatingWishlist = false
                 wishlistError = "Couldn't update wishlist: \(error.localizedDescription)"
-                print("Wishlist error for site \(targetId): \(error)")
+                Log.map.error("Wishlist error for site \(targetId): \(error.localizedDescription)")
             }
         }
     }

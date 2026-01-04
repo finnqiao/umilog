@@ -62,15 +62,20 @@ struct ExploreContext: Equatable {
     /// Site ID being previewed (quick peek, not full inspection).
     var previewingSite: String?
 
+    /// Optional species ID filter (show only sites with this species).
+    var speciesFilter: String?
+
     /// Create a default explore context.
     init(
         hierarchyLevel: HierarchyLevel = .world,
         filterLens: FilterLens? = nil,
-        previewingSite: String? = nil
+        previewingSite: String? = nil,
+        speciesFilter: String? = nil
     ) {
         self.hierarchyLevel = hierarchyLevel
         self.filterLens = filterLens
         self.previewingSite = previewingSite
+        self.speciesFilter = speciesFilter
     }
 }
 

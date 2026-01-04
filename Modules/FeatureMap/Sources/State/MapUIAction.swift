@@ -6,11 +6,16 @@ import UmiDB
 enum MapUIAction: Equatable {
     // MARK: - Hierarchy Navigation
 
+    /// Drill down into a specific country.
+    case drillDownToCountry(String)
+
     /// Drill down into a specific region.
     case drillDownToRegion(String)
 
-    /// Drill down into a specific area within the current region.
-    case drillDownToArea(String)
+    /// Drill down into a specific area within a region.
+    /// If region is provided, navigates directly to that area in the given region.
+    /// If region is nil, uses the current region from the hierarchy level.
+    case drillDownToArea(String, region: String?)
 
     /// Navigate up one level in the hierarchy.
     case navigateUp
@@ -84,4 +89,12 @@ enum MapUIAction: Equatable {
 
     /// Close plan mode and return to explore.
     case closePlan
+
+    // MARK: - Species Filtering
+
+    /// Show sites where a specific species can be found.
+    case showSpeciesSites(String)
+
+    /// Clear the species filter.
+    case clearSpeciesFilter
 }

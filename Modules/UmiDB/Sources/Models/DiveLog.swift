@@ -4,7 +4,9 @@ import GRDB
 /// Core dive log entry
 public struct DiveLog: Codable, Identifiable {
     public let id: String
-    public let siteId: String
+    public let siteId: String?
+    public let pendingLatitude: Double?
+    public let pendingLongitude: Double?
     public let date: Date
     public let startTime: Date
     public let endTime: Date?
@@ -23,10 +25,17 @@ public struct DiveLog: Codable, Identifiable {
     public let signed: Bool
     public let createdAt: Date
     public let updatedAt: Date
+
+    /// Whether this dive has a pending GPS location (no site assigned yet).
+    public var hasPendingLocation: Bool {
+        siteId == nil && pendingLatitude != nil && pendingLongitude != nil
+    }
     
     public init(
         id: String = UUID().uuidString,
-        siteId: String,
+        siteId: String? = nil,
+        pendingLatitude: Double? = nil,
+        pendingLongitude: Double? = nil,
         date: Date,
         startTime: Date,
         endTime: Date? = nil,
@@ -48,6 +57,8 @@ public struct DiveLog: Codable, Identifiable {
     ) {
         self.id = id
         self.siteId = siteId
+        self.pendingLatitude = pendingLatitude
+        self.pendingLongitude = pendingLongitude
         self.date = date
         self.startTime = startTime
         self.endTime = endTime
@@ -90,6 +101,8 @@ extension DiveLog: FetchableRecord, PersistableRecord {
     public enum Columns {
         static let id = Column(CodingKeys.id)
         static let siteId = Column(CodingKeys.siteId)
+        static let pendingLatitude = Column(CodingKeys.pendingLatitude)
+        static let pendingLongitude = Column(CodingKeys.pendingLongitude)
         static let date = Column(CodingKeys.date)
         static let startTime = Column(CodingKeys.startTime)
         static let endTime = Column(CodingKeys.endTime)

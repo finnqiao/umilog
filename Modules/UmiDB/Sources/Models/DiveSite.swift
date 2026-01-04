@@ -18,6 +18,7 @@ public struct DiveSite: Codable, Identifiable, Hashable {
     public let type: SiteType
     public let description: String?
     public let wishlist: Bool
+    public let isPlanned: Bool  // v6: Trip planning support
     public let visitedCount: Int
     public let createdAt: Date
     public let tags: [String]  // v3: Wildlife, features, conditions, activities, characteristics
@@ -48,6 +49,7 @@ public struct DiveSite: Codable, Identifiable, Hashable {
         type: SiteType,
         description: String? = nil,
         wishlist: Bool = false,
+        isPlanned: Bool = false,
         visitedCount: Int = 0,
         tags: [String] = [],
         createdAt: Date = Date(),
@@ -71,6 +73,7 @@ public struct DiveSite: Codable, Identifiable, Hashable {
         self.type = type
         self.description = description
         self.wishlist = wishlist
+        self.isPlanned = isPlanned
         self.visitedCount = visitedCount
         self.tags = tags
         self.createdAt = createdAt
@@ -81,13 +84,13 @@ public struct DiveSite: Codable, Identifiable, Hashable {
         self.osmId = osmId
     }
     
-    public enum Difficulty: String, Codable {
+    public enum Difficulty: String, Codable, CaseIterable {
         case beginner = "Beginner"
         case intermediate = "Intermediate"
         case advanced = "Advanced"
     }
-    
-    public enum SiteType: String, Codable {
+
+    public enum SiteType: String, Codable, CaseIterable {
         case reef = "Reef"
         case wreck = "Wreck"
         case wall = "Wall"
@@ -116,6 +119,7 @@ extension DiveSite: FetchableRecord, PersistableRecord {
         static let type = Column(CodingKeys.type)
         static let description = Column(CodingKeys.description)
         static let wishlist = Column(CodingKeys.wishlist)
+        static let isPlanned = Column(CodingKeys.isPlanned)
         static let visitedCount = Column(CodingKeys.visitedCount)
         static let tags = Column(CodingKeys.tags)
         static let createdAt = Column(CodingKeys.createdAt)
@@ -130,7 +134,7 @@ extension DiveSite: FetchableRecord, PersistableRecord {
     enum CodingKeys: String, CodingKey {
         case id, name, location, latitude, longitude, region
         case averageDepth, maxDepth, averageTemp, averageVisibility
-        case difficulty, type, description, wishlist, visitedCount, tags, createdAt
+        case difficulty, type, description, wishlist, isPlanned, visitedCount, tags, createdAt
         case countryId = "country_id"
         case regionId = "region_id"
         case areaId = "area_id"

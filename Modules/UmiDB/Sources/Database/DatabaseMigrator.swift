@@ -314,6 +314,77 @@ public enum DatabaseMigrator {
             }
         }
 
+        // MARK: - v6: GPS Draft Logging & Planned Sites
+        migrator.registerMigration("v6_gps_draft_planned_sites") { db in
+            // Add isPlanned column to sites
+            try db.alter(table: "sites") { t in
+                t.add(column: "isPlanned", .boolean).notNull().defaults(to: false)
+            }
+            try db.create(index: "idx_sites_planned", on: "sites", columns: ["isPlanned"])
+
+            // Rebuild dives table to make siteId nullable and add GPS columns.
+            // SQLite doesn't support ALTER COLUMN, so we must recreate the table.
+
+            // 1. Create new dives table with nullable siteId and GPS columns
+            try db.execute(sql: """
+                CREATE TABLE dives_new (
+                    id TEXT PRIMARY KEY,
+                    siteId TEXT REFERENCES sites(id) ON DELETE RESTRICT,
+                    pendingLatitude REAL,
+                    pendingLongitude REAL,
+                    date DATETIME NOT NULL,
+                    startTime DATETIME NOT NULL,
+                    endTime DATETIME,
+                    maxDepth REAL NOT NULL,
+                    averageDepth REAL,
+                    bottomTime INTEGER NOT NULL,
+                    startPressure INTEGER NOT NULL,
+                    endPressure INTEGER NOT NULL,
+                    temperature REAL NOT NULL,
+                    visibility REAL NOT NULL,
+                    current TEXT NOT NULL,
+                    conditions TEXT NOT NULL,
+                    notes TEXT NOT NULL DEFAULT '',
+                    instructorName TEXT,
+                    instructorNumber TEXT,
+                    signed INTEGER NOT NULL DEFAULT 0,
+                    createdAt DATETIME NOT NULL,
+                    updatedAt DATETIME NOT NULL,
+                    CHECK (siteId IS NOT NULL OR (pendingLatitude IS NOT NULL AND pendingLongitude IS NOT NULL))
+                )
+            """)
+
+            // 2. Copy existing data (all existing dives have siteId, GPS fields will be NULL)
+            try db.execute(sql: """
+                INSERT INTO dives_new (
+                    id, siteId, pendingLatitude, pendingLongitude, date, startTime, endTime,
+                    maxDepth, averageDepth, bottomTime, startPressure, endPressure,
+                    temperature, visibility, current, conditions, notes,
+                    instructorName, instructorNumber, signed, createdAt, updatedAt
+                )
+                SELECT
+                    id, siteId, NULL, NULL, date, startTime, endTime,
+                    maxDepth, averageDepth, bottomTime, startPressure, endPressure,
+                    temperature, visibility, current, conditions, notes,
+                    instructorName, instructorNumber, signed, createdAt, updatedAt
+                FROM dives
+            """)
+
+            // 3. Drop old table and rename new one
+            try db.execute(sql: "DROP TABLE dives")
+            try db.execute(sql: "ALTER TABLE dives_new RENAME TO dives")
+
+            // 4. Recreate indexes
+            try db.create(index: "idx_dives_start_time", on: "dives", columns: ["startTime"])
+            try db.create(index: "idx_dives_site", on: "dives", columns: ["siteId"])
+            try db.create(index: "idx_dives_date", on: "dives", columns: ["date"])
+            try db.create(
+                index: "idx_dives_pending_gps",
+                on: "dives",
+                columns: ["pendingLatitude", "pendingLongitude"]
+            )
+        }
+
         // Run migrations
         try migrator.migrate(writer)
     }

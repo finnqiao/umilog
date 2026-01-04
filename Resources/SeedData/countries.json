@@ -3,162 +3,296 @@
     {
       "id": "AE",
       "name": "United Arab Emirates",
-      "continent": "Asia"
+      "continent": "Asia",
+      "region_id": "indian-ocean"
     },
     {
       "id": "AU",
       "name": "Australia",
-      "continent": "Oceania"
+      "continent": "Oceania",
+      "region_id": "australia"
     },
     {
       "id": "AW",
       "name": "Aruba",
-      "continent": "North America"
+      "continent": "North America",
+      "region_id": "caribbean"
     },
     {
       "id": "BR",
       "name": "Brazil",
-      "continent": "South America"
+      "continent": "South America",
+      "region_id": "south-america"
     },
     {
       "id": "CA",
       "name": "Canada",
-      "continent": "North America"
+      "continent": "North America",
+      "region_id": "atlantic"
     },
     {
       "id": "CU",
       "name": "Cuba",
-      "continent": "North America"
+      "continent": "North America",
+      "region_id": "caribbean"
     },
     {
       "id": "CY",
       "name": "Cyprus",
-      "continent": "Europe"
+      "continent": "Europe",
+      "region_id": "mediterranean"
     },
     {
       "id": "EG",
       "name": "Egypt",
-      "continent": "Africa"
+      "continent": "Africa",
+      "region_id": "red-sea"
     },
     {
       "id": "ES",
       "name": "Spain",
-      "continent": "Europe"
+      "continent": "Europe",
+      "region_id": "mediterranean"
     },
     {
       "id": "FR",
       "name": "France",
-      "continent": "Europe"
+      "continent": "Europe",
+      "region_id": "mediterranean"
     },
     {
       "id": "GB",
       "name": "United Kingdom",
-      "continent": "Europe"
+      "continent": "Europe",
+      "region_id": "atlantic"
     },
     {
       "id": "GR",
       "name": "Greece",
-      "continent": "Europe"
+      "continent": "Europe",
+      "region_id": "mediterranean"
     },
     {
       "id": "ID",
       "name": "Indonesia",
-      "continent": "Asia"
+      "continent": "Asia",
+      "region_id": "southeast-asia"
     },
     {
       "id": "IE",
       "name": "Ireland",
-      "continent": "Europe"
+      "continent": "Europe",
+      "region_id": "atlantic"
     },
     {
       "id": "IL",
       "name": "Israel",
-      "continent": "Asia"
+      "continent": "Asia",
+      "region_id": "red-sea"
     },
     {
       "id": "IS",
       "name": "Iceland",
-      "continent": "Europe"
+      "continent": "Europe",
+      "region_id": "atlantic"
     },
     {
       "id": "IT",
       "name": "Italy",
-      "continent": "Europe"
+      "continent": "Europe",
+      "region_id": "mediterranean"
     },
     {
       "id": "JP",
       "name": "Japan",
-      "continent": "Asia"
+      "continent": "Asia",
+      "region_id": "japan"
     },
     {
       "id": "LK",
       "name": "Sri Lanka",
-      "continent": "Asia"
+      "continent": "Asia",
+      "region_id": "indian-ocean"
     },
     {
       "id": "MV",
       "name": "Maldives",
-      "continent": "Asia"
+      "continent": "Asia",
+      "region_id": "indian-ocean"
     },
     {
       "id": "MY",
       "name": "Malaysia",
-      "continent": "Asia"
+      "continent": "Asia",
+      "region_id": "southeast-asia"
     },
     {
       "id": "NO",
       "name": "Norway",
-      "continent": "Europe"
+      "continent": "Europe",
+      "region_id": "atlantic"
     },
     {
       "id": "NZ",
       "name": "New Zealand",
-      "continent": "Oceania"
+      "continent": "Oceania",
+      "region_id": "pacific-islands"
     },
     {
       "id": "PH",
       "name": "Philippines",
-      "continent": "Asia"
+      "continent": "Asia",
+      "region_id": "southeast-asia"
     },
     {
       "id": "PT",
       "name": "Portugal",
-      "continent": "Europe"
+      "continent": "Europe",
+      "region_id": "atlantic"
     },
     {
       "id": "TH",
       "name": "Thailand",
-      "continent": "Asia"
+      "continent": "Asia",
+      "region_id": "southeast-asia"
     },
     {
       "id": "TR",
       "name": "Turkey",
-      "continent": "Europe"
+      "continent": "Europe",
+      "region_id": "mediterranean"
     },
     {
       "id": "US",
       "name": "United States",
-      "continent": "North America"
+      "continent": "North America",
+      "region_id": "caribbean"
     },
     {
       "id": "VE",
       "name": "Venezuela",
-      "continent": "South America"
+      "continent": "South America",
+      "region_id": "caribbean"
     },
     {
       "id": "VG",
       "name": "British Virgin Islands",
-      "continent": "North America"
+      "continent": "North America",
+      "region_id": "caribbean"
     },
     {
       "id": "VN",
       "name": "Vietnam",
-      "continent": "Asia"
+      "continent": "Asia",
+      "region_id": "southeast-asia"
     },
     {
       "id": "ZA",
       "name": "South Africa",
-      "continent": "Africa"
+      "continent": "Africa",
+      "region_id": "africa"
+    },
+    {
+      "id": "CW",
+      "name": "Cura\u00e7ao",
+      "continent": "North America",
+      "region_id": "caribbean"
+    },
+    {
+      "id": "MX",
+      "name": "Mexico",
+      "continent": "North America",
+      "region_id": "central-america"
+    },
+    {
+      "id": "FJ",
+      "name": "Fiji",
+      "continent": "Oceania",
+      "region_id": "pacific-islands"
+    },
+    {
+      "id": "HN",
+      "name": "Honduras",
+      "continent": "North America",
+      "region_id": "central-america"
+    },
+    {
+      "id": "SA",
+      "name": "Saudi Arabia",
+      "continent": "Asia",
+      "region_id": "red-sea"
+    },
+    {
+      "id": "DJ",
+      "name": "Djibouti",
+      "continent": "Africa",
+      "region_id": "red-sea"
+    },
+    {
+      "id": "PW",
+      "name": "Palau",
+      "continent": "Oceania",
+      "region_id": "pacific-islands"
+    },
+    {
+      "id": "FM",
+      "name": "Micronesia",
+      "continent": "Oceania",
+      "region_id": "pacific-islands"
+    },
+    {
+      "id": "MH",
+      "name": "Marshall Islands",
+      "continent": "Oceania",
+      "region_id": "pacific-islands"
+    },
+    {
+      "id": "PG",
+      "name": "Papua New Guinea",
+      "continent": "Oceania",
+      "region_id": "pacific-islands"
+    },
+    {
+      "id": "SB",
+      "name": "Solomon Islands",
+      "continent": "Oceania",
+      "region_id": "pacific-islands"
+    },
+    {
+      "id": "VU",
+      "name": "Vanuatu",
+      "continent": "Oceania",
+      "region_id": "pacific-islands"
+    },
+    {
+      "id": "TO",
+      "name": "Tonga",
+      "continent": "Oceania",
+      "region_id": "pacific-islands"
+    },
+    {
+      "id": "WS",
+      "name": "Samoa",
+      "continent": "Oceania",
+      "region_id": "pacific-islands"
+    },
+    {
+      "id": "KI",
+      "name": "Kiribati",
+      "continent": "Oceania",
+      "region_id": "pacific-islands"
+    },
+    {
+      "id": "NC",
+      "name": "New Caledonia",
+      "continent": "Oceania",
+      "region_id": "pacific-islands"
+    },
+    {
+      "id": "GU",
+      "name": "Guam",
+      "continent": "Oceania",
+      "region_id": "pacific-islands"
     }
   ]
 }

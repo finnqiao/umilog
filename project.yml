@@ -12,7 +12,7 @@ settings:
   base:
     # IMPORTANT: Set your Apple Developer Team ID before building
     # Find it at: https://developer.apple.com/account -> Membership -> Team ID
-    DEVELOPMENT_TEAM: "YOUR_TEAM_ID"
+    DEVELOPMENT_TEAM: "ZK79P5HJFM"
     SWIFT_VERSION: "5.9"
     IPHONEOS_DEPLOYMENT_TARGET: "17.0"
     WATCHOS_DEPLOYMENT_TARGET: "10.0"
@@ -31,6 +31,10 @@ settings:
       LLVM_LTO: YES
 
 packages:
+  # GRDB for SQLite database access
+  # NOTE: SQLCipher encryption deferred - XCFramework forks have CSQLite module
+  # issues with Xcode's explicit module builds. iOS File Protection (.complete)
+  # is already enabled. Consider CocoaPods for SQLCipher in future.
   GRDB:
     url: https://github.com/groue/GRDB.swift
     version: 6.29.2
@@ -146,8 +150,7 @@ targets:
         CFBundleName: UmiLog
         CFBundleShortVersionString: "1.0.0"
         CFBundleVersion: "1"
-        NSLocationWhenInUseUsageDescription: "UmiLog uses your location to suggest nearby dive sites and automatically fill site information."
-        NSLocationAlwaysUsageDescription: "UmiLog uses your location to track dives and provide site recommendations."
+        NSLocationWhenInUseUsageDescription: "UmiLog uses your location to detect nearby dive sites, show your position on the map, and notify you when you arrive at a dive site for easy logging."
         NSSpeechRecognitionUsageDescription: "UmiLog uses voice recognition for hands-free dive logging. All processing happens on your device."
         NSMicrophoneUsageDescription: "UmiLog uses the microphone for voice input during dive logging."
         NSPhotoLibraryUsageDescription: "UmiLog accesses your photos to attach images to dive logs."
@@ -187,6 +190,7 @@ targets:
       - Modules/UmiCoreKit/Sources/
     dependencies:
       - sdk: Security.framework
+      - sdk: LocalAuthentication.framework
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: app.umilog.corekit
@@ -362,8 +366,7 @@ targets:
         GENERATE_INFOPLIST_FILE: YES
         DEFINES_MODULE: YES
         SWIFT_INSTALL_OBJC_HEADER: NO
-        INFOPLIST_KEY_NSLocationAlwaysAndWhenInUseUsageDescription: "UmiLog uses your location to automatically detect when you're at a dive site and suggest logging your dive."
-        INFOPLIST_KEY_NSLocationWhenInUseUsageDescription: "UmiLog uses your location to suggest nearby dive sites."
+        INFOPLIST_KEY_NSLocationWhenInUseUsageDescription: "UmiLog uses your location to detect nearby dive sites and notify you when you arrive."
 
   UmiWatchKit:
     type: framework

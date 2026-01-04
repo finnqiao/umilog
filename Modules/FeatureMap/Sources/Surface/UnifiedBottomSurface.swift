@@ -32,24 +32,46 @@ struct UnifiedBottomSurface: View {
     var onApplyFilters: () -> Void
     var onCancelFilters: () -> Void
     var onSearchSelect: (DiveSite) -> Void
+    var onSearchSelectCountry: ((UmiDB.Country) -> Void)?
+    var onSearchSelectRegion: ((String, [DiveSite]) -> Void)?
+    var onSearchSelectArea: ((String, String, [DiveSite]) -> Void)?
+    var onSearchSelectSpecies: ((WildlifeSpecies) -> Void)?
     var onOpenFilter: () -> Void
     var onOpenSearch: () -> Void
     var onNavigateUp: () -> Void
+    var onResetToWorld: () -> Void
     var onDrillDown: (String) -> Void
     var onOpenPlan: (String?) -> Void
     var onAddSiteToPlan: (String) -> Void
     var onRemoveSiteFromPlan: (String) -> Void
     var onClosePlan: () -> Void
+    var onUpdateSearchQuery: (String) -> Void
 
     // MARK: - State
 
     @GestureState private var dragTranslation: CGFloat = 0
     @State private var isAnimating = false
-    @State private var searchQuery: String = ""
 
     // MARK: - Environment
 
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
+    // MARK: - Computed Bindings
+
+    /// Binding that reads/writes search query through the reducer context
+    private var searchQueryBinding: Binding<String> {
+        Binding(
+            get: {
+                if case .search(let ctx) = mode {
+                    return ctx.query
+                }
+                return ""
+            },
+            set: { newValue in
+                onUpdateSearchQuery(newValue)
+            }
+        )
+    }
 
     // MARK: - Body
 
@@ -83,7 +105,8 @@ struct UnifiedBottomSurface: View {
                         .background(surfaceBackground)
                         .clipShape(RoundedRectangle(cornerRadius: 24, style: .continuous))
                         .shadow(color: Color.black.opacity(0.18), radius: 10, y: -4)
-                        .gesture(dragGesture(containerHeight: containerHeight, allowedDetents: allowedDetents))
+                        // Fix UX-002: Use simultaneousGesture so taps on site cards can still register
+                        .simultaneousGesture(dragGesture(containerHeight: containerHeight, allowedDetents: allowedDetents))
                 }
                 .ignoresSafeArea(edges: .bottom)
                 .animation(surfaceAnimation, value: detent)
@@ -126,7 +149,15 @@ struct UnifiedBottomSurface: View {
                     onSiteTap: onSiteTap,
                     onOpenFilter: onOpenFilter,
                     onNavigateUp: onNavigateUp,
-                    onDrillDown: onDrillDown
+                    onDrillDown: onDrillDown,
+                    onClearFilters: {
+                        exploreFilters.reset()
+                        filterLens = nil
+                        onResetToWorld()
+                    },
+                    onAddSite: {
+                        // TODO: Navigate to site creation flow
+                    }
                 )
                 .transition(contentTransition)
 
@@ -151,9 +182,13 @@ struct UnifiedBottomSurface: View {
 
             case .search:
                 SearchContent(
-                    query: $searchQuery,
+                    query: searchQueryBinding,
                     sites: allSites,
                     onSelect: onSearchSelect,
+                    onSelectCountry: onSearchSelectCountry,
+                    onSelectRegion: onSearchSelectRegion,
+                    onSelectArea: onSearchSelectArea,
+                    onSelectSpecies: onSearchSelectSpecies,
                     onDismiss: { }
                 )
                 .transition(contentTransition)
@@ -186,7 +221,7 @@ struct UnifiedBottomSurface: View {
     }
 
     private var contentAnimation: Animation? {
-        reduceMotion ? nil : .easeInOut(duration: 0.25)
+        reduceMotion ? nil : .easeInOut(duration: 0.22)
     }
 
     // MARK: - Drag Handle
@@ -240,14 +275,37 @@ struct UnifiedBottomSurface: View {
     // MARK: - Gesture
 
     private func dragGesture(containerHeight: CGFloat, allowedDetents: [SurfaceDetent]) -> some Gesture {
-        DragGesture(minimumDistance: 5, coordinateSpace: .global)
+        // Fix UX-002: Increased minimum distance from 5 to 10 to reduce interference with tap gestures
+        DragGesture(minimumDistance: 10, coordinateSpace: .global)
             .updating($dragTranslation) { value, state, _ in
                 state = value.translation.height
             }
             .onEnded { value in
+                let velocity = value.predictedEndTranslation.height - value.translation.height
+                let translation = value.translation.height
+
+                // Check for dismiss gesture: flicking down while in inspect mode at lowest detent
+                if case .inspectSite = mode {
+                    let lowestDetent = allowedDetents.min { $0.height(in: containerHeight) < $1.height(in: containerHeight) }
+                    let isAtLowest = detent == lowestDetent
+                    let isFlickingDown = velocity > 500 || translation > 100
+
+                    if isAtLowest && isFlickingDown {
+                        // Dismiss inspect mode
+                        if reduceMotion {
+                            onDismissInspect()
+                        } else {
+                            withAnimation(.spring(response: 0.35, dampingFraction: 0.85)) {
+                                onDismissInspect()
+                            }
+                        }
+                        return
+                    }
+                }
+
                 let newDetent = SurfaceGestures.finalizeDrag(
-                    translation: value.translation.height,
-                    velocity: value.predictedEndTranslation.height - value.translation.height,
+                    translation: translation,
+                    velocity: velocity,
                     containerHeight: containerHeight,
                     currentDetent: detent,
                     allowedDetents: allowedDetents

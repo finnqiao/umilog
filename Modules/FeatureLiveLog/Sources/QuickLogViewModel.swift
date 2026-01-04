@@ -4,6 +4,7 @@ import CoreLocation
 import UmiDB
 import UmiLocationKit
 import UmiCoreKit
+import os
 
 @MainActor
 public final class QuickLogViewModel: ObservableObject {
@@ -16,7 +17,13 @@ public final class QuickLogViewModel: ObservableObject {
     @Published public var visibility: Double?
     @Published public var buddy: String = ""
     @Published public var notes: String = ""
-    
+
+    // v6: GPS draft logging support
+    @Published public var gpsLatitude: Double?
+    @Published public var gpsLongitude: Double?
+    @Published public var gpsLocationName: String?
+    @Published public var isUsingGPS = false
+
     // UI state
     @Published public var hasLastDive = false
     @Published public var isSaving = false
@@ -75,7 +82,7 @@ public final class QuickLogViewModel: ObservableObject {
         
         // Try to find the site
         Task {
-            if let site = try? siteRepository.fetch(id: dive.siteId) {
+            if let siteId = dive.siteId, let site = try? siteRepository.fetch(id: siteId) {
                 selectedSite = site
             }
         }
@@ -96,16 +103,79 @@ public final class QuickLogViewModel: ObservableObject {
     public func useCurrentLocation() async {
         do {
             let location = try await locationService.getCurrentLocation()
-            
+
             // Find nearest dive site
             let nearestSite = await findNearestSite(to: location)
             if let site = nearestSite {
                 selectedSite = site
                 applySmartDefaults(for: site)
             }
+        } catch let error as LocationError {
+            Log.location.error("Failed to get location: \(error.localizedDescription)")
+            if case .permissionDenied = error {
+                NotificationCenter.default.post(name: .locationPermissionDenied, object: nil)
+            } else {
+                errorMessage = error.localizedDescription
+                showingError = true
+            }
         } catch {
-            print("Failed to get location: \(error)")
+            Log.location.error("Failed to get location: \(error.localizedDescription)")
+            errorMessage = "Failed to get location"
+            showingError = true
         }
+    }
+
+    /// Use current GPS coordinates without requiring a known site.
+    /// This enables draft logging at new/unknown dive sites.
+    public func useGPSCoordinates() async {
+        do {
+            let location = try await locationService.getCurrentLocation()
+
+            // Clear any selected site
+            selectedSite = nil
+            isUsingGPS = true
+
+            // Store GPS coordinates
+            gpsLatitude = location.coordinate.latitude
+            gpsLongitude = location.coordinate.longitude
+
+            // Attempt reverse geocoding for display name
+            await reverseGeocode(location: location)
+        } catch {
+            errorMessage = "Failed to get location: \(error.localizedDescription)"
+            showingError = true
+        }
+    }
+
+    private func reverseGeocode(location: CLLocation) async {
+        let geocoder = CLGeocoder()
+        do {
+            let placemarks = try await geocoder.reverseGeocodeLocation(location)
+            if let placemark = placemarks.first {
+                var components: [String] = []
+                if let locality = placemark.locality {
+                    components.append(locality)
+                }
+                if let administrativeArea = placemark.administrativeArea {
+                    components.append(administrativeArea)
+                }
+                if let country = placemark.country {
+                    components.append(country)
+                }
+                gpsLocationName = components.isEmpty ? nil : "Near " + components.joined(separator: ", ")
+            }
+        } catch {
+            // Geocoding failed - that's okay, just use coordinates
+            gpsLocationName = nil
+        }
+    }
+
+    /// Clear GPS and return to site selection mode.
+    public func clearGPS() {
+        gpsLatitude = nil
+        gpsLongitude = nil
+        gpsLocationName = nil
+        isUsingGPS = false
     }
     
     // MARK: - Smart Defaults
@@ -168,7 +238,7 @@ public final class QuickLogViewModel: ObservableObject {
                 bottomTime = avgTime
             }
         } catch {
-            print("Failed to apply location defaults: \(error)")
+            Log.diveLog.debug("Failed to apply location defaults: \(error.localizedDescription)")
         }
     }
     
@@ -180,7 +250,7 @@ public final class QuickLogViewModel: ObservableObject {
             lastDive = dives.first
             hasLastDive = lastDive != nil
         } catch {
-            print("Failed to load last dive: \(error)")
+            Log.diveLog.debug("Failed to load last dive: \(error.localizedDescription)")
         }
     }
     
@@ -197,7 +267,7 @@ public final class QuickLogViewModel: ObservableObject {
                 return location.distance(from: loc1) < location.distance(from: loc2)
             }
         } catch {
-            print("Failed to load nearby sites: \(error)")
+            Log.map.debug("Failed to load nearby sites: \(error.localizedDescription)")
         }
     }
     
@@ -221,7 +291,8 @@ public final class QuickLogViewModel: ObservableObject {
     // MARK: - Save
     
     public var canSave: Bool {
-        selectedSite != nil && maxDepth > 0 && bottomTime > 0
+        let hasLocation = selectedSite != nil || (gpsLatitude != nil && gpsLongitude != nil)
+        return hasLocation && maxDepth > 0 && bottomTime > 0
     }
     
     public var saveButtonTitle: String {
@@ -234,23 +305,33 @@ public final class QuickLogViewModel: ObservableObject {
     }
     
     public func saveDive() async -> Bool {
-        guard canSave, let site = selectedSite else {
-            errorMessage = "Please select a dive site and enter depth/time"
+        let result = await saveDiveWithResult()
+        return result != nil
+    }
+
+    /// Save dive and return the dive ID if successful (for GPS draft flow)
+    public func saveDiveWithResult() async -> String? {
+        guard canSave else {
+            errorMessage = "Please select a dive site or use GPS, and enter depth/time"
             showingError = true
-            return false
+            return nil
         }
-        
+
         isSaving = true
         defer { isSaving = false }
-        
+
         do {
             // Calculate end time
             let endTime = diveDate.addingTimeInterval(Double(bottomTime) * 60)
-            
-            // Create dive log
+
+            let diveId = UUID().uuidString
+
+            // Create dive log with either site or GPS coordinates
             let dive = DiveLog(
-                id: UUID().uuidString,
-                siteId: site.id,
+                id: diveId,
+                siteId: selectedSite?.id,
+                pendingLatitude: selectedSite == nil ? gpsLatitude : nil,
+                pendingLongitude: selectedSite == nil ? gpsLongitude : nil,
                 date: diveDate,
                 startTime: diveDate,
                 endTime: endTime,
@@ -266,43 +347,50 @@ public final class QuickLogViewModel: ObservableObject {
                 createdAt: Date(),
                 updatedAt: Date()
             )
-            
+
             // Save to database
             try diveRepository.create(dive)
-            
-            // Update site visited count
-            var updatedSite = site
-            try database.write { db in
-                updatedSite = DiveSite(
-                    id: site.id,
-                    name: site.name,
-                    location: site.location,
-                    latitude: site.latitude,
-                    longitude: site.longitude,
-                    region: site.region,
-                    averageDepth: site.averageDepth,
-                    maxDepth: site.maxDepth,
-                    averageTemp: site.averageTemp,
-                    averageVisibility: site.averageVisibility,
-                    difficulty: site.difficulty,
-                    type: site.type,
-                    description: site.description,
-                    wishlist: false, // No longer wishlist if we dove there
-                    visitedCount: site.visitedCount + 1,
-                    createdAt: site.createdAt
-                )
-                try updatedSite.update(db)
+
+            // Update site visited count if we have a site
+            if let site = selectedSite {
+                try database.write { db in
+                    let updatedSite = DiveSite(
+                        id: site.id,
+                        name: site.name,
+                        location: site.location,
+                        latitude: site.latitude,
+                        longitude: site.longitude,
+                        region: site.region,
+                        averageDepth: site.averageDepth,
+                        maxDepth: site.maxDepth,
+                        averageTemp: site.averageTemp,
+                        averageVisibility: site.averageVisibility,
+                        difficulty: site.difficulty,
+                        type: site.type,
+                        description: site.description,
+                        wishlist: false, // No longer wishlist if we dove there
+                        isPlanned: site.isPlanned,
+                        visitedCount: site.visitedCount + 1,
+                        createdAt: site.createdAt,
+                        countryId: site.countryId,
+                        regionId: site.regionId,
+                        areaId: site.areaId,
+                        wikidataId: site.wikidataId,
+                        osmId: site.osmId
+                    )
+                    try updatedSite.update(db)
+                }
             }
-            
+
             // Post notification for map update
-            NotificationCenter.default.post(name: Notification.Name("diveLogUpdated"), object: nil)
-            
-            return true
-            
+            NotificationCenter.default.post(name: .diveLogUpdated, object: nil)
+
+            return diveId
+
         } catch {
             errorMessage = "Failed to save dive: \(error.localizedDescription)"
             showingError = true
-            return false
+            return nil
         }
     }
 }

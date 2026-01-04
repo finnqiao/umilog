@@ -133,6 +133,26 @@ site-species-link: dirs
 data-validate: dirs
 	python3 data/scripts/data_validator.py $(EXPORT_DIR)
 
+# Link sites to geographic hierarchy (country_id, region_id)
+.PHONY: sites-link-hierarchy
+sites-link-hierarchy: dirs
+	python3 data/scripts/link_sites_to_hierarchy.py $(EXPORT_DIR)/sites_merged.json $(EXPORT_DIR)/sites_linked.json
+
+# Add location qualifiers to duplicate names
+.PHONY: sites-add-qualifiers
+sites-add-qualifiers: dirs
+	python3 data/scripts/add_location_qualifiers.py $(EXPORT_DIR)/sites_linked.json $(EXPORT_DIR)/sites_qualified.json
+
+# Merge species catalogs (v1 curated + v2 GBIF)
+.PHONY: species-merge
+species-merge: dirs
+	python3 data/scripts/merge_species_catalogs.py \
+		Resources/SeedData/species_catalog.json \
+		$(EXPORT_DIR)/species_catalog_v2.json \
+		$(EXPORT_DIR)/families_catalog.json \
+		$(EXPORT_DIR)/species_catalog_merged.json
+	cp $(EXPORT_DIR)/species_catalog_merged.json $(EXPORT_DIR)/species_catalog_v2.json
+
 # Merge all site sources into one file
 .PHONY: sites-merge
 sites-merge: dirs
@@ -161,8 +181,45 @@ seed-deploy:
 	cp $(EXPORT_DIR)/site_species.json Resources/SeedData/
 	@echo "Seed files deployed"
 
+# ============================================================
+# Site Images Pipeline (Wikimedia Commons → Cloudflare R2)
+# ============================================================
+
+IMAGES_DIR=$(PWD)/data/images
+
+# Fetch images from Wikimedia Commons
+.PHONY: images-fetch
+images-fetch: dirs
+	@echo "Fetching site images from Wikimedia Commons..."
+	@echo "This downloads ~1000 images and may take 10-15 minutes."
+	python3 data/scripts/site_images_fetch.py $(EXPORT_DIR)/sites_validated.json $(IMAGES_DIR)
+
+# Upload images to Cloudflare R2
+# Requires: R2_ACCOUNT_ID, R2_ACCESS_KEY_ID, R2_SECRET_ACCESS_KEY
+.PHONY: images-upload
+images-upload:
+	@echo "Uploading images to Cloudflare R2..."
+	python3 data/scripts/upload_to_r2.py $(IMAGES_DIR)
+
+# Deploy site_media seed file to app resources
+.PHONY: images-deploy
+images-deploy:
+	@echo "Deploying site_media seed file..."
+	cp $(IMAGES_DIR)/site_media_seed.json Resources/SeedData/site_media.json
+	@echo "Deployed to Resources/SeedData/site_media.json"
+
+# Full image pipeline: fetch → upload → deploy
+.PHONY: images-all
+images-all: images-fetch images-upload images-deploy
+	@echo "Image pipeline complete!"
+
 # Clean generated files
 .PHONY: clean-data
 clean-data:
 	rm -rf $(RAW_DIR)/*.json $(STAGE_DIR)/*.json $(EXPORT_DIR)/*.json
 	@echo "Cleaned data directories"
+
+.PHONY: clean-images
+clean-images:
+	rm -rf $(IMAGES_DIR)
+	@echo "Cleaned images directory"

@@ -1,6 +1,8 @@
 import SwiftUI
 import UmiDB
 import UmiLocationKit
+import UmiCoreKit
+import os
 
 /// Coordinates the 4-step logging wizard. For P1 we wire Step 1 & 2.
 public struct LiveLogWizardView: View {
@@ -80,6 +82,11 @@ public struct LiveLogWizardView: View {
                 showSuccessBanner = true
             }
             try? await Task.sleep(nanoseconds: 500_000_000) // half sec to show banner
+
+            // Post notification to navigate to History tab
+            await MainActor.run {
+                NotificationCenter.default.post(name: .diveLogSavedSuccessfully, object: nil)
+            }
             dismiss()
         }
     }
@@ -356,7 +363,7 @@ struct StepReviewSave: View {
                             Text(speciesNames[id] ?? id)
                                 .font(.caption)
                                 .padding(6)
-                                .background(Color.purple.opacity(0.15))
+                                .background(Color.diveTeal.opacity(0.15))
                                 .cornerRadius(8)
                         }
                     }
@@ -385,7 +392,7 @@ struct StepReviewSave: View {
             }
             speciesNames = Dictionary(uniqueKeysWithValues: species.map { ($0.id, $0.name) })
         } catch {
-            print("Failed to load species names: \(error)")
+            Log.wildlife.debug("Failed to load species names: \(error.localizedDescription)")
         }
     }
     
@@ -485,7 +492,7 @@ enum WizardSaver {
             NotificationCenter.default.post(name: .diveLogUpdated, object: nil)
             return true
         } catch {
-            print("Wizard save failed: \(error)")
+            Log.diveLog.error("Wizard save failed: \(error.localizedDescription)")
             return false
         }
     }

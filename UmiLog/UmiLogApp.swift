@@ -10,6 +10,7 @@ import UmiDesignSystem
 import UmiDB
 import UmiLocationKit
 import UmiAnalytics
+import UmiCoreKit
 import os
 
 @main
@@ -27,6 +28,7 @@ struct UmiLogApp: App {
 /// Root view with tab navigation (map-first design)
 struct ContentView: View {
     @EnvironmentObject var appState: AppState
+    @Environment(\.scenePhase) private var scenePhase
     @AppStorage("selectedTab") private var selectedTabRaw: String = Tab.map.rawValue
     @State private var showingWizard = false
 
@@ -56,9 +58,19 @@ struct ContentView: View {
                 seedingLoadingView
                     .transition(.opacity)
             }
+
+            // Lock screen overlay
+            if appState.isLockEnabled && !appState.isUnlocked {
+                lockScreenView
+                    .transition(.opacity)
+            }
         }
         .animation(.easeOut(duration: 0.3), value: appState.isDatabaseSeeded)
+        .animation(.easeOut(duration: 0.2), value: appState.isUnlocked)
         .environment(\.underwaterThemeBinding, underwaterThemeBinding)
+        .onChange(of: scenePhase) { oldPhase, newPhase in
+            handleScenePhaseChange(from: oldPhase, to: newPhase)
+        }
         .onReceive(NotificationCenter.default.publisher(for: .tabBarVisibilityShouldChange)) { notification in
             guard let hidden = notification.userInfo?["hidden"] as? Bool else { return }
             withAnimation(.easeInOut(duration: 0.2)) {
@@ -169,6 +181,62 @@ private extension ContentView {
         }
     }
 
+    /// Lock screen shown when app lock is enabled
+    var lockScreenView: some View {
+        ZStack {
+            LinearGradient(colors: [.oceanBlue, .diveTeal], startPoint: .topLeading, endPoint: .bottomTrailing)
+                .ignoresSafeArea()
+
+            VStack(spacing: 32) {
+                Image(systemName: "lock.fill")
+                    .font(.system(size: 64))
+                    .foregroundStyle(.white)
+
+                Text("UmiLog is Locked")
+                    .font(.title2.bold())
+                    .foregroundStyle(.white)
+
+                Button {
+                    Task {
+                        await appState.unlockApp()
+                    }
+                } label: {
+                    HStack {
+                        Image(systemName: "faceid")
+                        Text("Unlock with Face ID")
+                    }
+                    .font(.headline)
+                    .foregroundStyle(Color.oceanBlue)
+                    .padding(.horizontal, 24)
+                    .padding(.vertical, 14)
+                    .background(.white)
+                    .cornerRadius(12)
+                }
+            }
+        }
+    }
+
+    /// Handle scene phase changes for app lock
+    private func handleScenePhaseChange(from oldPhase: ScenePhase, to newPhase: ScenePhase) {
+        switch newPhase {
+        case .background:
+            // Lock the app when going to background
+            appState.lockApp()
+        case .active:
+            // Attempt to unlock when becoming active (if locked)
+            if appState.isLockEnabled && !appState.isUnlocked {
+                Task {
+                    await appState.unlockApp()
+                }
+            }
+        case .inactive:
+            // No action needed for inactive state
+            break
+        @unknown default:
+            break
+        }
+    }
+
     @ViewBuilder var tabs: some View {
         TabView(selection: selectedTab) {
             NavigationStack {
@@ -263,8 +331,10 @@ enum Tab: String, Hashable {
 /// Global app state
 @MainActor
 class AppState: ObservableObject {
-    @Published var isAuthenticated: Bool = false
-    @Published var requiresFaceID: Bool = false
+    /// Whether the app is currently unlocked (used for Face ID lock)
+    @Published var isUnlocked: Bool = true
+    /// Whether Face ID lock is enabled (loaded from Keychain)
+    @Published var isLockEnabled: Bool = false
     @Published var underwaterThemeEnabled: Bool {
         didSet {
             guard oldValue != underwaterThemeEnabled else { return }
@@ -286,6 +356,19 @@ class AppState: ObservableObject {
         let storedThemeEnabled = defaults.object(forKey: Self.underwaterThemeDefaultsKey) as? Bool ?? true
         self.underwaterThemeEnabled = storedThemeEnabled
         logger.log("AppState init, underwaterThemeEnabled=\(self.underwaterThemeEnabled, privacy: .public)")
+
+        // Load lock preference from Keychain
+        Task {
+            let lockEnabled = await AppLockService.shared.isLockEnabled()
+            await MainActor.run {
+                self.isLockEnabled = lockEnabled
+                // If lock is enabled, start locked
+                if lockEnabled {
+                    self.isUnlocked = false
+                }
+            }
+            self.logger.log("App lock enabled=\(lockEnabled, privacy: .public)")
+        }
 
         // NOTE: Crash reporting and analytics deferred to after first frame for faster cold start
         // NOTE: Geofence setup moved to initializeGeofencing() to avoid blocking launch UI
@@ -370,6 +453,50 @@ class AppState: ObservableObject {
                 }
             }
         }.value
+    }
+
+    // MARK: - App Lock
+
+    /// Lock the app (called when going to background)
+    func lockApp() {
+        guard isLockEnabled else { return }
+        isUnlocked = false
+        logger.log("App locked")
+    }
+
+    /// Attempt to unlock the app with biometrics
+    func unlockApp() async {
+        guard !isUnlocked else { return }
+
+        let success = await AppLockService.shared.authenticate(reason: "Unlock UmiLog to access your dive logs")
+        await MainActor.run {
+            if success {
+                self.isUnlocked = true
+                self.logger.log("App unlocked")
+            }
+        }
+    }
+
+    /// Toggle the app lock setting
+    func toggleLock(enabled: Bool) async {
+        if enabled {
+            // Verify with biometrics before enabling
+            let success = await AppLockService.shared.authenticate(reason: "Enable Face ID Lock")
+            if success {
+                await AppLockService.shared.setLockEnabled(true)
+                await MainActor.run {
+                    self.isLockEnabled = true
+                    self.logger.log("App lock enabled")
+                }
+            }
+        } else {
+            await AppLockService.shared.setLockEnabled(false)
+            await MainActor.run {
+                self.isLockEnabled = false
+                self.isUnlocked = true
+                self.logger.log("App lock disabled")
+            }
+        }
     }
 }
 

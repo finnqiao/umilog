@@ -3,6 +3,7 @@ import CoreLocation
 import Combine
 import UmiDB
 import UmiCoreKit
+import os
 
 /// Manages geofences around dive sites for automatic detection
 @MainActor
@@ -53,16 +54,37 @@ public final class GeofenceManager: NSObject, ObservableObject {
     // MARK: - Public Methods
     
     public func startMonitoring() {
-        // Request permission if needed
+        // Request location permission if needed (WhenInUse is sufficient for foreground geofencing)
         if locationManager.authorizationStatus == .notDetermined {
-            locationManager.requestAlwaysAuthorization()
+            locationManager.requestWhenInUseAuthorization()
         }
-        
+
+        // Request notification permission for dive reminders
+        Task {
+            await requestNotificationPermission()
+        }
+
         // Start with current location if available
         if let location = locationManager.location {
             Task {
                 await updateGeofences(around: location)
             }
+        }
+    }
+
+    /// Request notification permission for geofence-triggered dive reminders
+    private func requestNotificationPermission() async {
+        let center = UNUserNotificationCenter.current()
+        do {
+            let granted = try await center.requestAuthorization(options: [.alert, .sound, .badge])
+            if granted {
+                Log.location.info("Notification permission granted")
+                setupNotificationCategories()
+            } else {
+                Log.location.warning("Notification permission denied - dive reminders will be disabled")
+            }
+        } catch {
+            Log.location.error("Failed to request notification permission: \(error.localizedDescription)")
         }
     }
     
@@ -92,7 +114,7 @@ public final class GeofenceManager: NSObject, ObservableObject {
             }
             
         } catch {
-            print("Failed to update geofences: \(error)")
+            Log.location.error("Failed to update geofences: \(error.localizedDescription)")
         }
     }
     
@@ -182,7 +204,7 @@ public final class GeofenceManager: NSObject, ObservableObject {
                     await scheduleAutoLogReminder(for: site)
                 }
             } catch {
-                print("Failed to handle site entry: \(error)")
+                Log.location.error("Failed to handle site entry: \(error.localizedDescription)")
             }
         }
     }
@@ -227,7 +249,7 @@ public final class GeofenceManager: NSObject, ObservableObject {
         
         UNUserNotificationCenter.current().add(request, withCompletionHandler: { error in
             if let error = error {
-                print("Failed to schedule notification: \(error)")
+                Log.location.error("Failed to schedule notification: \(error.localizedDescription)")
             }
         })
     }
@@ -249,7 +271,7 @@ public final class GeofenceManager: NSObject, ObservableObject {
         
         UNUserNotificationCenter.current().add(request, withCompletionHandler: { error in
             if let error = error {
-                print("Failed to send notification: \(error)")
+                Log.location.error("Failed to send notification: \(error.localizedDescription)")
             }
         })
         
@@ -280,7 +302,7 @@ extension GeofenceManager: CLLocationManagerDelegate {
     }
     
     public func locationManager(_ manager: CLLocationManager, monitoringDidFailFor region: CLRegion?, withError error: Error) {
-        print("Geofence monitoring failed: \(error)")
+        Log.location.error("Geofence monitoring failed: \(error.localizedDescription)")
         if let region = region {
             monitoredRegions.remove(region)
         }
@@ -311,8 +333,9 @@ extension GeofenceManager: CLLocationManagerDelegate {
 // MARK: - Notifications
 
 extension Notification.Name {
-    public static let arrivedAtDiveSite = Notification.Name("arrivedAtDiveSite")
-    public static let shouldPromptDiveLog = Notification.Name("shouldPromptDiveLog")
+    // Namespaced to prevent cross-app notification conflicts
+    public static let arrivedAtDiveSite = Notification.Name("app.umilog.arrivedAtDiveSite")
+    public static let shouldPromptDiveLog = Notification.Name("app.umilog.shouldPromptDiveLog")
 }
 
 // MARK: - Notification Helpers

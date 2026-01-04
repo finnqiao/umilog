@@ -25,11 +25,8 @@ public final class LocationService: NSObject, ObservableObject {
         locationManager.desiredAccuracy = kCLLocationAccuracyBest
         locationManager.distanceFilter = 50 // Update every 50 meters
         locationManager.pausesLocationUpdatesAutomatically = true
-        // Only enable background updates if already authorized; will be set in delegate callback
-        if locationManager.authorizationStatus == .authorizedAlways {
-            locationManager.allowsBackgroundLocationUpdates = true
-        }
-        
+        // Background updates not needed - geofencing works with WhenInUse while app is active
+
         authorizationStatus = locationManager.authorizationStatus
     }
     
@@ -38,10 +35,10 @@ public final class LocationService: NSObject, ObservableObject {
     public func requestPermission() {
         switch authorizationStatus {
         case .notDetermined:
-            locationManager.requestAlwaysAuthorization()
+            locationManager.requestWhenInUseAuthorization()
         case .authorizedWhenInUse:
-            // Upgrade to always if needed for geofencing
-            locationManager.requestAlwaysAuthorization()
+            // Already have sufficient permission for geofencing while app is active
+            break
         default:
             break
         }
@@ -90,13 +87,10 @@ public final class LocationService: NSObject, ObservableObject {
 extension LocationService: CLLocationManagerDelegate {
     public func locationManagerDidChangeAuthorization(_ manager: CLLocationManager) {
         authorizationStatus = manager.authorizationStatus
-        
+
         switch authorizationStatus {
-        case .authorizedAlways:
-            manager.allowsBackgroundLocationUpdates = true
-            startLocationUpdates()
-        case .authorizedWhenInUse:
-            manager.allowsBackgroundLocationUpdates = false
+        case .authorizedAlways, .authorizedWhenInUse:
+            // Both permission levels work for foreground geofencing
             startLocationUpdates()
         case .denied, .restricted:
             lastError = .permissionDenied
@@ -172,5 +166,7 @@ public enum LocationError: LocalizedError {
 // MARK: - Notifications
 
 extension Notification.Name {
-    public static let locationUpdated = Notification.Name("locationUpdated")
+    // Namespaced to prevent cross-app notification conflicts
+    public static let locationUpdated = Notification.Name("app.umilog.locationUpdated")
+    public static let locationPermissionDenied = Notification.Name("app.umilog.locationPermissionDenied")
 }

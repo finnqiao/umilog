@@ -1,6 +1,7 @@
 import SwiftUI
 import UmiDB
 import UmiDesignSystem
+import UmiCoreKit
 
 public struct DiveHistoryView: View {
     @StateObject private var viewModel = DiveHistoryViewModel()
@@ -13,11 +14,23 @@ public struct DiveHistoryView: View {
                 ProgressView()
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
             } else if viewModel.filteredDives.isEmpty {
-                ContentUnavailableView(
-                    "No Dives Found",
-                    systemImage: "fish",
-                    description: Text(viewModel.searchText.isEmpty ? "Log your first dive to see it here" : "No dives match your search")
-                )
+                // Fix UX-013: Add action CTA to empty state
+                ContentUnavailableView {
+                    Label("No Dives Found", systemImage: "fish")
+                } description: {
+                    Text(viewModel.searchText.isEmpty ? "Log your first dive to see it here" : "No dives match your search")
+                } actions: {
+                    if viewModel.searchText.isEmpty {
+                        Button {
+                            Haptics.soft()
+                            NotificationCenter.default.post(name: .showLogLauncher, object: nil)
+                        } label: {
+                            Text("Start Logging")
+                        }
+                        .buttonStyle(.borderedProminent)
+                        .tint(.oceanBlue)
+                    }
+                }
             } else {
                 List {
                     ForEach(viewModel.filteredDives) { dive in

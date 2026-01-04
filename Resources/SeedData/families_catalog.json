@@ -342,6 +342,31 @@
       "scientific_name": "Labridae",
       "category": "Fish",
       "worms_aphia_id": 125541
+    },
+    {
+      "id": "sphyraenidae",
+      "name": "Barracudas",
+      "category": "Fish"
+    },
+    {
+      "id": "scombridae",
+      "name": "Tunas and Mackerels",
+      "category": "Fish"
+    },
+    {
+      "id": "elapidae",
+      "name": "Sea Snakes",
+      "category": "Reptile"
+    },
+    {
+      "id": "cubozoa",
+      "name": "Box Jellyfish",
+      "category": "Invertebrate"
+    },
+    {
+      "id": "molidae",
+      "name": "Ocean Sunfishes",
+      "category": "Fish"
     }
   ],
   "metadata": {

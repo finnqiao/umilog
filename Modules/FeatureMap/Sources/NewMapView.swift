@@ -1,5 +1,5 @@
 import SwiftUI
-import MapKit  // Only for MKCoordinateRegion/Span types - not using MapKit views
+import MapKit
 import UmiDB
 import FeatureLiveLog
 import UmiDesignSystem
@@ -8,7 +8,255 @@ import UmiCoreKit
 import UmiLocationKit
 import UIKit
 
-typealias MapDiveShop = UmiDB.DiveShop
+// MARK: - Native MapKit View (iOS 18 compatible)
+
+struct NativeMapView: UIViewRepresentable {
+    let sites: [DiveSite]
+    @Binding var region: MKCoordinateRegion
+    var onSelect: (String) -> Void
+    var onRegionChange: (MKCoordinateRegion) -> Void
+
+    func makeUIView(context: Context) -> MKMapView {
+        let mapView = MKMapView()
+        mapView.delegate = context.coordinator
+        mapView.setRegion(region, animated: false)
+
+        // Dark ocean style
+        mapView.overrideUserInterfaceStyle = .dark
+
+        // Register custom annotation view
+        mapView.register(SiteAnnotationView.self, forAnnotationViewWithReuseIdentifier: SiteAnnotationView.reuseIdentifier)
+        mapView.register(ClusterAnnotationView.self, forAnnotationViewWithReuseIdentifier: MKMapViewDefaultClusterAnnotationViewReuseIdentifier)
+
+        return mapView
+    }
+
+    func updateUIView(_ mapView: MKMapView, context: Context) {
+        // Update annotations only - don't touch the region to avoid feedback loops
+        // The map controls its own camera; we just read the region via onRegionChange
+        let existingIds = Set(mapView.annotations.compactMap { ($0 as? SiteAnnotation)?.siteId })
+        let newIds = Set(sites.map { $0.id })
+
+        // Remove old
+        let toRemove = mapView.annotations.filter {
+            guard let site = $0 as? SiteAnnotation else { return false }
+            return !newIds.contains(site.siteId)
+        }
+        mapView.removeAnnotations(toRemove)
+
+        // Add new
+        let toAdd = sites.filter { !existingIds.contains($0.id) }
+        let newAnnotations = toAdd.map { SiteAnnotation(site: $0) }
+        mapView.addAnnotations(newAnnotations)
+    }
+
+    func makeCoordinator() -> Coordinator {
+        Coordinator(self)
+    }
+
+    class Coordinator: NSObject, MKMapViewDelegate {
+        var parent: NativeMapView
+
+        init(_ parent: NativeMapView) {
+            self.parent = parent
+        }
+
+        func mapView(_ mapView: MKMapView, viewFor annotation: MKAnnotation) -> MKAnnotationView? {
+            if let cluster = annotation as? MKClusterAnnotation {
+                let view = mapView.dequeueReusableAnnotationView(withIdentifier: MKMapViewDefaultClusterAnnotationViewReuseIdentifier, for: annotation) as? ClusterAnnotationView
+                    ?? ClusterAnnotationView(annotation: cluster, reuseIdentifier: MKMapViewDefaultClusterAnnotationViewReuseIdentifier)
+                view.annotation = cluster
+                return view
+            }
+
+            guard let siteAnnotation = annotation as? SiteAnnotation else { return nil }
+
+            let view = mapView.dequeueReusableAnnotationView(withIdentifier: SiteAnnotationView.reuseIdentifier, for: annotation) as? SiteAnnotationView
+                ?? SiteAnnotationView(annotation: siteAnnotation, reuseIdentifier: SiteAnnotationView.reuseIdentifier)
+            view.annotation = siteAnnotation
+            view.clusteringIdentifier = "site"
+            return view
+        }
+
+        func mapView(_ mapView: MKMapView, didSelect annotation: MKAnnotation) {
+            if let cluster = annotation as? MKClusterAnnotation {
+                // Zoom into cluster - calculate bounding rect of member annotations
+                var minLat = Double.greatestFiniteMagnitude
+                var maxLat = -Double.greatestFiniteMagnitude
+                var minLon = Double.greatestFiniteMagnitude
+                var maxLon = -Double.greatestFiniteMagnitude
+
+                for member in cluster.memberAnnotations {
+                    minLat = min(minLat, member.coordinate.latitude)
+                    maxLat = max(maxLat, member.coordinate.latitude)
+                    minLon = min(minLon, member.coordinate.longitude)
+                    maxLon = max(maxLon, member.coordinate.longitude)
+                }
+
+                // Add padding and ensure minimum zoom
+                let latPadding = max((maxLat - minLat) * 0.3, 0.01)
+                let lonPadding = max((maxLon - minLon) * 0.3, 0.01)
+
+                let region = MKCoordinateRegion(
+                    center: CLLocationCoordinate2D(
+                        latitude: (minLat + maxLat) / 2,
+                        longitude: (minLon + maxLon) / 2
+                    ),
+                    span: MKCoordinateSpan(
+                        latitudeDelta: (maxLat - minLat) + latPadding,
+                        longitudeDelta: (maxLon - minLon) + lonPadding
+                    )
+                )
+
+                mapView.deselectAnnotation(annotation, animated: false)
+                mapView.setRegion(region, animated: true)
+                return
+            }
+
+            guard let siteAnnotation = annotation as? SiteAnnotation else { return }
+            mapView.deselectAnnotation(annotation, animated: false)
+            parent.onSelect(siteAnnotation.siteId)
+        }
+
+        func mapView(_ mapView: MKMapView, regionDidChangeAnimated animated: Bool) {
+            parent.onRegionChange(mapView.region)
+        }
+    }
+}
+
+// MARK: - Site Annotation
+
+class SiteAnnotation: NSObject, MKAnnotation {
+    let siteId: String
+    let siteName: String
+    let coordinate: CLLocationCoordinate2D
+
+    init(site: DiveSite) {
+        self.siteId = site.id
+        self.siteName = site.name
+        self.coordinate = CLLocationCoordinate2D(latitude: site.latitude, longitude: site.longitude)
+    }
+
+    var title: String? { siteName }
+}
+
+// MARK: - Site Annotation View (Tan/Cream Pin)
+
+class SiteAnnotationView: MKAnnotationView {
+    static let reuseIdentifier = "SiteAnnotation"
+
+    override init(annotation: MKAnnotation?, reuseIdentifier: String?) {
+        super.init(annotation: annotation, reuseIdentifier: reuseIdentifier)
+        clusteringIdentifier = "site"
+        collisionMode = .circle
+        setupView()
+    }
+
+    required init?(coder aDecoder: NSCoder) {
+        fatalError("init(coder:) not implemented")
+    }
+
+    private func setupView() {
+        // Enable selection (GAP-011 fix)
+        canShowCallout = false  // We handle selection via delegate
+        isEnabled = true  // Make tappable
+
+        // Tan/cream colored pin like reference images
+        let size: CGFloat = 24
+        let pinView = UIView(frame: CGRect(x: 0, y: 0, width: size, height: size))
+        pinView.backgroundColor = UIColor(red: 0.96, green: 0.87, blue: 0.70, alpha: 1.0) // Tan/cream
+        pinView.layer.cornerRadius = size / 2
+        pinView.layer.borderWidth = 2
+        pinView.layer.borderColor = UIColor.white.cgColor
+        pinView.layer.shadowColor = UIColor.black.cgColor
+        pinView.layer.shadowOffset = CGSize(width: 0, height: 2)
+        pinView.layer.shadowRadius = 4
+        pinView.layer.shadowOpacity = 0.3
+
+        // Ensure tap target is at least 44x44 (Apple HIG)
+        let tapSize: CGFloat = 44
+        frame = CGRect(x: 0, y: 0, width: tapSize, height: tapSize)
+        centerOffset = CGPoint(x: 0, y: -tapSize / 2)
+
+        pinView.center = CGPoint(x: tapSize / 2, y: tapSize / 2)
+        addSubview(pinView)
+
+        // Accessibility
+        isAccessibilityElement = true
+        accessibilityTraits = .button
+    }
+
+    override func prepareForDisplay() {
+        super.prepareForDisplay()
+        if let siteAnnotation = annotation as? SiteAnnotation {
+            accessibilityLabel = "Dive site: \(siteAnnotation.siteName)"
+            accessibilityHint = "Double tap to view site details"
+        }
+    }
+}
+
+// MARK: - Cluster Annotation View (Tan circle with count)
+
+class ClusterAnnotationView: MKAnnotationView {
+    private let countLabel = UILabel()
+
+    override init(annotation: MKAnnotation?, reuseIdentifier: String?) {
+        super.init(annotation: annotation, reuseIdentifier: reuseIdentifier)
+        setupView()
+    }
+
+    required init?(coder aDecoder: NSCoder) {
+        fatalError("init(coder:) not implemented")
+    }
+
+    override var annotation: MKAnnotation? {
+        didSet {
+            guard let cluster = annotation as? MKClusterAnnotation else { return }
+            countLabel.text = "\(cluster.memberAnnotations.count)"
+
+            // Adjust size based on count
+            let count = cluster.memberAnnotations.count
+            let size: CGFloat = count > 100 ? 56 : count > 50 ? 48 : count > 10 ? 40 : 32
+            frame.size = CGSize(width: size, height: size)
+            layer.cornerRadius = size / 2
+            countLabel.frame = bounds
+        }
+    }
+
+    private func setupView() {
+        // Enable selection (GAP-011 fix)
+        canShowCallout = false  // We handle selection via delegate
+        isEnabled = true  // Make tappable
+
+        // Tan/cream background like reference
+        backgroundColor = UIColor(red: 0.96, green: 0.87, blue: 0.70, alpha: 1.0)
+        layer.borderWidth = 2.5
+        layer.borderColor = UIColor.white.cgColor
+        layer.shadowColor = UIColor.black.cgColor
+        layer.shadowOffset = CGSize(width: 0, height: 2)
+        layer.shadowRadius = 4
+        layer.shadowOpacity = 0.3
+
+        // Count label
+        countLabel.textAlignment = .center
+        countLabel.textColor = UIColor(red: 0.2, green: 0.15, blue: 0.1, alpha: 1.0) // Dark brown
+        countLabel.font = UIFont.boldSystemFont(ofSize: 14)
+        addSubview(countLabel)
+
+        // Accessibility
+        isAccessibilityElement = true
+        accessibilityTraits = .button
+    }
+
+    override func prepareForDisplay() {
+        super.prepareForDisplay()
+        if let cluster = annotation as? MKClusterAnnotation {
+            let count = cluster.memberAnnotations.count
+            accessibilityLabel = "\(count) dive sites grouped"
+            accessibilityHint = "Double tap to zoom in"
+        }
+    }
+}
 
 struct MapLayerSettings: Equatable {
     var showUnderwaterGlow: Bool = true
@@ -36,17 +284,26 @@ public struct NewMapView: View {
     private let appearance: MapAppearance
     @StateObject private var viewModel = MapViewModel()
     @StateObject private var uiViewModel = MapUIViewModel()
+    @StateObject private var featuredService = FeaturedDestinationService.shared
     @Environment(\.safeAreaInsets) private var safeAreaInsets
     private let tabBarHeight: CGFloat = 72
+    // Start with world view to avoid flashing a hardcoded location
     @State private var mapRegion = MKCoordinateRegion(
         center: CLLocationCoordinate2D(latitude: 0, longitude: 0),
-        span: MKCoordinateSpan(latitudeDelta: 120, longitudeDelta: 180)
+        span: MKCoordinateSpan(latitudeDelta: 180, longitudeDelta: 360)
     )
+    @State private var isMapInitialized = false
     @State private var selectedSite: DiveSite?
 
     // Unified surface state
     @State private var surfaceDetent: SurfaceDetent = .peek
     @State private var isProgrammaticCameraChange = false
+    @State private var showFeaturedCard = false
+
+    // Site callout state
+    @State private var showCallout = false
+    @State private var calloutSite: DiveSite?
+    @State private var calloutMediaURL: URL?
 #if DEBUG
     @State private var showDebugHUD = false
 #endif
@@ -63,11 +320,18 @@ public struct NewMapView: View {
     @ObservedObject private var locationService = LocationService.shared
     @ObservedObject private var geofenceManager = GeofenceManager.shared
 
+    // Repositories for bounds lookups and queries
+    private let geographyRepository = GeographyRepository(database: AppDatabase.shared)
+    private let siteRepository = SiteRepository(database: AppDatabase.shared)
+
     // V3 scope and entity tabs
     @State private var scope: Scope = .discover
     @State private var entityTab: EntityTab = .sites
     @State private var mySitesTab: MySitesTab = .saved
-    @State private var showShops: Bool = false
+
+    // Coming Soon toast state
+    @State private var showingComingSoonToast = false
+    @State private var comingSoonFeature = ""
     
     public init(appearance: MapAppearance = .default) {
         self.appearance = appearance
@@ -129,6 +393,8 @@ public struct NewMapView: View {
         switch currentHierarchy {
         case .world:
             return .regions
+        case .country:
+            return .regions  // At country level, show regions within that country
         case .region:
             return .areas
         case .area:
@@ -260,7 +526,7 @@ public struct NewMapView: View {
             if uiViewModel.exploreFilters.isActive {
                 parts.append("\(uiViewModel.exploreFilters.activeCount) filters")
             }
-            if showShops {
+            if uiViewModel.exploreFilters.showShops {
                 parts.append("Shops")
             }
             return parts.isEmpty ? nil : parts.joined(separator: ", ")
@@ -278,7 +544,7 @@ public struct NewMapView: View {
 
     private func fitToVisible() {
         followMap = true
-        if scope == .discover && entityTab == .sites && showShops {
+        if scope == .discover && entityTab == .sites && uiViewModel.exploreFilters.showShops {
             focusMap(onShops: discoverShopsList, including: baseSitesForCounts)
             return
         }
@@ -286,9 +552,7 @@ public struct NewMapView: View {
     }
 
     private var activeFilterCount: Int {
-        var count = uiViewModel.exploreFilters.activeCount
-        if showShops { count += 1 }
-        return count
+        uiViewModel.exploreFilters.activeCount
     }
 
     // Use the correct list for annotations to avoid accidental filtering to wishlist-only
@@ -329,7 +593,7 @@ public struct NewMapView: View {
             }
         }
 
-        if scope == .discover && entityTab == .sites && showShops {
+        if scope == .discover && entityTab == .sites && uiViewModel.exploreFilters.showShops {
             annotations += shopAnnotations
         }
 
@@ -399,12 +663,14 @@ public struct NewMapView: View {
             let kind: DiveMapAnnotation.Kind = site.type == .wreck ? .wreck : .site
             let status: DiveMapAnnotation.Status = site.visitedCount > 0 ? .logged : (site.wishlist ? .saved : .baseline)
             let difficulty = DiveMapAnnotation.Difficulty(rawValue: site.difficulty.rawValue) ?? .other
+            let siteType = DiveMapAnnotation.SiteType(rawValue: site.type.rawValue.lowercased()) ?? .generic
             return DiveMapAnnotation(
                 id: site.id,
                 coordinate: CLLocationCoordinate2D(latitude: site.latitude, longitude: site.longitude),
                 kind: kind,
                 status: status,
                 difficulty: difficulty,
+                siteType: siteType,
                 visited: site.visitedCount > 0,
                 wishlist: site.wishlist,
                 isSelected: selectedId == site.id
@@ -513,13 +779,31 @@ public struct NewMapView: View {
             latitude: (minLat + maxLat) / 2.0,
             longitude: (minLon + maxLon) / 2.0
         )
-        
+
         let latRange = maxLat - minLat
         let lonRange = maxLon - minLon
         let padding = 0.15  // 15% padding on each side
         let latSpan = max(latRange * (1.0 + padding * 2), 0.5)
         let lonSpan = max(lonRange * (1.0 + padding * 2), 0.75)
-        
+
+        mapRegion = MKCoordinateRegion(
+            center: center,
+            span: MKCoordinateSpan(latitudeDelta: latSpan, longitudeDelta: lonSpan)
+        )
+        lastFittedRegion = mapRegion
+    }
+
+    /// Focus map on geographic bounds with padding
+    private func focusMap(onBounds bounds: GeographyRepository.Bounds) {
+        beginProgrammaticCameraChange()
+        let center = CLLocationCoordinate2D(
+            latitude: bounds.centerLat,
+            longitude: bounds.centerLon
+        )
+        let padding = 0.15  // 15% padding on each side
+        let latSpan = max(bounds.latSpan * (1.0 + padding * 2), 0.5)
+        let lonSpan = max(bounds.lonSpan * (1.0 + padding * 2), 0.75)
+
         mapRegion = MKCoordinateRegion(
             center: center,
             span: MKCoordinateSpan(latitudeDelta: latSpan, longitudeDelta: lonSpan)
@@ -603,7 +887,7 @@ public struct NewMapView: View {
                     uiViewModel.send(.clearFilterLens)
                     entityTab = .sites
                 } else {
-                    showShops = false
+                    uiViewModel.exploreFilters.showShops = false
                     syncFilterLensToMySitesTab(mySitesTab)
                 }
             }
@@ -612,6 +896,13 @@ public struct NewMapView: View {
             }
             .onChange(of: surfaceDetent) { newDetent in
                 updateTabBarVisibility(for: newDetent)
+            }
+            .onChange(of: uiViewModel.mode) { newMode in
+                // Dismiss callout when entering inspect mode (mutual exclusivity)
+                if newMode.isInspecting && showCallout {
+                    showCallout = false
+                    calloutSite = nil
+                }
             }
             .task {
                 // Load sites and center map - called once on appear
@@ -623,15 +914,45 @@ public struct NewMapView: View {
                 // US-1: Smart initial positioning
                 let sitesToCenter = await MainActor.run { viewModel.sites }
                 if !sitesToCenter.isEmpty {
-                    let initialCenter = determineInitialMapCenter()
+                    // Check for featured destination (first-time user)
+                    if let featured = featuredService.checkAndSelectFeatured() {
+                        // Animate to featured destination with fly-in effect
+                        try? await Task.sleep(nanoseconds: 300_000_000) // 300ms delay
 
-                    withAnimation(.easeInOut(duration: 0.5)) {
-                        focusMap(onCoordinates: [initialCenter.coordinate], singleSpan: initialCenter.span)
+                        isProgrammaticCameraChange = true
+                        withAnimation(.easeInOut(duration: 1.5)) {
+                            focusMap(onCoordinates: [featured.coordinate], singleSpan: zoomToSpan(featured.zoomLevel))
+                        }
+
+                        // Show info card after animation settles
+                        try? await Task.sleep(nanoseconds: 2_000_000_000) // 2s for animation + settle
+                        await MainActor.run {
+                            showFeaturedCard = true
+                            isProgrammaticCameraChange = false
+                            isMapInitialized = true
+                        }
+                    } else {
+                        // Returning user: use existing smart positioning
+                        let initialCenter = determineInitialMapCenter()
+
+                        withAnimation(.easeInOut(duration: 0.5)) {
+                            focusMap(onCoordinates: [initialCenter.coordinate], singleSpan: initialCenter.span)
+                        }
+
+                        // Mark map as initialized after positioning
+                        await MainActor.run {
+                            isMapInitialized = true
+                        }
                     }
 
                     // Refresh visible sites based on current map viewport
                     try? await Task.sleep(nanoseconds: 100_000_000)
                     await viewModel.refreshVisibleSites(in: mapRegion)
+                } else {
+                    // No sites, but still show the map
+                    await MainActor.run {
+                        isMapInitialized = true
+                    }
                 }
             }
             .onAppear {
@@ -649,9 +970,146 @@ public struct NewMapView: View {
     private var mapView: some View {
         ZStack {
             mapLayer
-            overlayControls
+            featuredDestinationOverlay
+                .allowsHitTesting(showFeaturedCard)  // Fix UX-003: Disable hit test when hidden
             unifiedSurfaceOverlay
+            siteCalloutOverlay          // Fix UX-004: Render callout ABOVE surface
             proximityPromptOverlay
+                .allowsHitTesting(uiViewModel.proximityPrompt != nil)  // Fix UX-003: Disable hit test when hidden
+            comingSoonToastOverlay
+                .allowsHitTesting(showingComingSoonToast)  // Fix UX-003: Disable hit test when hidden
+            overlayControls  // Fix UX-003: Render HUD controls LAST so search button is clickable
+        }
+    }
+
+    // MARK: - Coming Soon Toast
+
+    @ViewBuilder
+    private var comingSoonToastOverlay: some View {
+        if showingComingSoonToast {
+            VStack {
+                HStack(spacing: 12) {
+                    Image(systemName: "hammer.fill")
+                        .foregroundStyle(.orange)
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text("\(comingSoonFeature) Coming Soon")
+                            .font(.subheadline.weight(.semibold))
+                        Text("This feature is under development")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
+                }
+                .padding(.horizontal, 16)
+                .padding(.vertical, 12)
+                .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 16))
+                .shadow(radius: 8)
+                .padding(.top, safeAreaInsets.top + 60)
+
+                Spacer()
+            }
+            .transition(.move(edge: .top).combined(with: .opacity))
+            .onAppear {
+                DispatchQueue.main.asyncAfter(deadline: .now() + 2.5) {
+                    withAnimation(.spring(response: 0.3)) {
+                        showingComingSoonToast = false
+                    }
+                }
+            }
+        }
+    }
+
+    private func showComingSoonToast(feature: String) {
+        comingSoonFeature = feature
+        withAnimation(.spring(response: 0.3)) {
+            showingComingSoonToast = true
+        }
+        Haptics.soft()
+    }
+
+    // MARK: - Site Callout Overlay
+
+    @ViewBuilder
+    private var siteCalloutOverlay: some View {
+        // Fix UX-004: Removed isInspecting check - we already dismiss inspection before showing callout
+        // The onChange(of: uiViewModel.mode) handler will dismiss callout if user enters inspect mode
+        if showCallout, let site = calloutSite {
+            GeometryReader { geometry in
+                let surfaceHeight = surfaceDetent.height(in: geometry.size.height)
+                let topInset = geometry.safeAreaInsets.top
+                let availableHeight = geometry.size.height - surfaceHeight - topInset
+                // Position callout in the center of the visible map area
+                let centerY = topInset + (availableHeight / 2)
+
+                SiteCalloutCard(
+                    site: site,
+                    mediaURL: calloutMediaURL,
+                    onViewDetails: {
+                        dismissCallout()
+                        uiViewModel.send(.openSiteInspection(site.id))
+                        surfaceDetent = .medium
+                    },
+                    onLogDive: {
+                        dismissCallout()
+                        startLiveLog(at: site)
+                    },
+                    onDismiss: {
+                        dismissCallout()
+                    }
+                )
+                .padding(.horizontal, 24)
+                .position(x: geometry.size.width / 2, y: centerY)
+            }
+            .transition(.opacity.combined(with: .scale(scale: 0.95)))
+            .animation(.spring(response: 0.4, dampingFraction: 0.8), value: showCallout)
+            .task(id: calloutSite?.id) {
+                await fetchCalloutMedia()
+            }
+        }
+    }
+
+    private func fetchCalloutMedia() async {
+        guard let siteId = calloutSite?.id else {
+            calloutMediaURL = nil
+            return
+        }
+        let mediaRepo = SiteMediaRepository(database: AppDatabase.shared)
+        do {
+            if let media = try mediaRepo.fetchMedia(for: siteId) {
+                calloutMediaURL = URL(string: media.url)
+            } else {
+                calloutMediaURL = nil
+            }
+        } catch {
+            calloutMediaURL = nil
+        }
+    }
+
+    private func dismissCallout() {
+        withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) {
+            showCallout = false
+            calloutSite = nil
+            calloutMediaURL = nil
+        }
+    }
+
+    // MARK: - Featured Destination Overlay
+
+    @ViewBuilder
+    private var featuredDestinationOverlay: some View {
+        if showFeaturedCard, let destination = featuredService.activeDestination {
+            VStack {
+                FeaturedDestinationCard(
+                    destination: destination,
+                    onDismiss: {
+                        showFeaturedCard = false
+                        featuredService.completeFeaturedExperience()
+                    }
+                )
+                .padding(.top, safeAreaInsets.top + 8)
+                Spacer()
+            }
+            .transition(.opacity.combined(with: .move(edge: .top)))
+            .animation(.spring(response: 0.4, dampingFraction: 0.8), value: showFeaturedCard)
         }
     }
 
@@ -732,6 +1190,107 @@ public struct NewMapView: View {
 
                 Haptics.soft()
             },
+            onSearchSelectCountry: { country in
+                // Dismiss keyboard first
+                UIApplication.shared.sendAction(
+                    #selector(UIResponder.resignFirstResponder),
+                    to: nil, from: nil, for: nil
+                )
+
+                // Navigate to country level in hierarchy
+                withAnimation(.spring(response: 0.35, dampingFraction: 0.85)) {
+                    uiViewModel.send(.drillDownToCountry(country.id))
+                    uiViewModel.send(.closeSearch(selectedSite: nil))
+                    surfaceDetent = .medium
+                }
+
+                // Auto-zoom to country bounds
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                    if let bounds = try? geographyRepository.fetchBounds(countryId: country.id) {
+                        focusMap(onBounds: bounds)
+                    }
+                }
+
+                Haptics.soft()
+            },
+            onSearchSelectRegion: { regionName, sites in
+                // Dismiss keyboard first
+                UIApplication.shared.sendAction(
+                    #selector(UIResponder.resignFirstResponder),
+                    to: nil, from: nil, for: nil
+                )
+
+                // Navigate to explore mode showing region sites
+                withAnimation(.spring(response: 0.35, dampingFraction: 0.85)) {
+                    uiViewModel.send(.drillDownToRegion(regionName))
+                    uiViewModel.send(.closeSearch(selectedSite: nil))
+                    surfaceDetent = .medium
+                }
+
+                // Auto-zoom to region sites
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                    if !sites.isEmpty {
+                        let coordinates = sites.map {
+                            CLLocationCoordinate2D(latitude: $0.latitude, longitude: $0.longitude)
+                        }
+                        focusMap(onCoordinates: coordinates)
+                    }
+                }
+
+                Haptics.soft()
+            },
+            onSearchSelectArea: { areaName, regionName, sites in
+                // Dismiss keyboard first
+                UIApplication.shared.sendAction(
+                    #selector(UIResponder.resignFirstResponder),
+                    to: nil, from: nil, for: nil
+                )
+
+                // Navigate to explore mode showing area sites
+                withAnimation(.spring(response: 0.35, dampingFraction: 0.85)) {
+                    uiViewModel.send(.drillDownToArea(areaName, region: regionName))
+                    uiViewModel.send(.closeSearch(selectedSite: nil))
+                    surfaceDetent = .medium
+                }
+
+                // Auto-zoom to area sites
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                    if !sites.isEmpty {
+                        let coordinates = sites.map {
+                            CLLocationCoordinate2D(latitude: $0.latitude, longitude: $0.longitude)
+                        }
+                        focusMap(onCoordinates: coordinates)
+                    }
+                }
+
+                Haptics.soft()
+            },
+            onSearchSelectSpecies: { species in
+                // Dismiss keyboard first
+                UIApplication.shared.sendAction(
+                    #selector(UIResponder.resignFirstResponder),
+                    to: nil, from: nil, for: nil
+                )
+
+                // Show sites where this species can be found
+                withAnimation(.spring(response: 0.35, dampingFraction: 0.85)) {
+                    uiViewModel.send(.showSpeciesSites(species.id))
+                    uiViewModel.send(.closeSearch(selectedSite: nil))
+                    surfaceDetent = .medium
+                }
+
+                // Auto-zoom to sites with this species
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                    if let sites = try? siteRepository.fetchForSpecies(species.id), !sites.isEmpty {
+                        let coordinates = sites.map {
+                            CLLocationCoordinate2D(latitude: $0.latitude, longitude: $0.longitude)
+                        }
+                        focusMap(onCoordinates: coordinates)
+                    }
+                }
+
+                Haptics.soft()
+            },
             onOpenFilter: {
                 uiViewModel.send(.openFilter)
                 surfaceDetent = .expanded
@@ -743,26 +1302,26 @@ public struct NewMapView: View {
             onNavigateUp: {
                 uiViewModel.send(.navigateUp)
             },
+            onResetToWorld: {
+                uiViewModel.send(.resetToWorld)
+            },
             onDrillDown: { regionId in
                 uiViewModel.send(.drillDownToRegion(regionId))
             },
-            onOpenPlan: { siteId in
-                withAnimation(.spring(response: 0.35, dampingFraction: 0.85)) {
-                    uiViewModel.send(.openPlan(siteId: siteId))
-                    surfaceDetent = .expanded
-                }
+            onOpenPlan: { _ in
+                showComingSoonToast(feature: "Trip Planning")
             },
-            onAddSiteToPlan: { siteId in
-                uiViewModel.send(.addSiteToPlan(siteId))
+            onAddSiteToPlan: { _ in
+                showComingSoonToast(feature: "Trip Planning")
             },
-            onRemoveSiteFromPlan: { siteId in
-                uiViewModel.send(.removeSiteFromPlan(siteId))
+            onRemoveSiteFromPlan: { _ in
+                showComingSoonToast(feature: "Trip Planning")
             },
             onClosePlan: {
-                withAnimation(.spring(response: 0.35, dampingFraction: 0.85)) {
-                    uiViewModel.send(.closePlan)
-                    surfaceDetent = .peek
-                }
+                // No-op since plan mode is not implemented
+            },
+            onUpdateSearchQuery: { query in
+                uiViewModel.send(.updateSearchQuery(query))
             }
         )
     }
@@ -827,11 +1386,91 @@ public struct NewMapView: View {
     
     private var mapLayer: some View {
         ZStack {
-            MapBackgroundOverlay(appearance: appearance)
-            mapLibreView
+            // Use native MapKit instead of MapLibre (iOS 18 compatibility)
+            nativeMapKitView
+                .opacity(isMapInitialized ? 1 : 0)
+
+            // Show loading indicator until map is positioned
+            if !isMapInitialized {
+                Color(.systemBackground)
+                    .ignoresSafeArea()
+                VStack(spacing: 12) {
+                    ProgressView()
+                        .scaleEffect(1.2)
+                    Text("Loading dive sites...")
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
+                }
+            }
         }
     }
-    
+
+    private var nativeMapKitView: some View {
+        NativeMapView(
+            sites: viewModel.sites,
+            region: $mapRegion,
+            onSelect: { siteId in
+                // Wrap in DispatchQueue.main.async to avoid SwiftUI state mutation during view update
+                DispatchQueue.main.async {
+                    if let site = viewModel.sites.first(where: { $0.id == siteId }) {
+                        selectedSiteIdForScroll = site.id
+
+                        // Close any existing inspection first (mutual exclusivity)
+                        if uiViewModel.mode.isInspecting {
+                            uiViewModel.send(.closeSiteInspection)
+                        }
+
+                        // Show callout card
+                        withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) {
+                            calloutSite = site
+                            showCallout = true
+                            surfaceDetent = .peek
+                        }
+                        Haptics.soft()
+                    }
+                }
+            },
+            onRegionChange: { newRegion in
+                // Wrap in DispatchQueue.main.async to avoid SwiftUI state mutation during view update
+                DispatchQueue.main.async {
+                    if !isProgrammaticCameraChange {
+                        followMap = false
+
+                        // Dismiss callout on pan
+                        if showCallout {
+                            dismissCallout()
+                        }
+
+                        // Dismiss featured card
+                        if featuredService.isShowingFeatured {
+                            showFeaturedCard = false
+                            featuredService.completeFeaturedExperience()
+                        }
+                    }
+
+                    // Update visible sites
+                    let bounds = MapBounds(
+                        minLatitude: newRegion.center.latitude - newRegion.span.latitudeDelta / 2,
+                        maxLatitude: newRegion.center.latitude + newRegion.span.latitudeDelta / 2,
+                        minLongitude: newRegion.center.longitude - newRegion.span.longitudeDelta / 2,
+                        maxLongitude: newRegion.center.longitude + newRegion.span.longitudeDelta / 2
+                    )
+                    viewModel.scheduleRefreshVisibleSites(bounds: bounds)
+                    viewModel.saveMapState(center: newRegion.center, zoom: 10)  // Approximate zoom
+
+                    // Post viewport change for Wildlife "This area" filter
+                    NotificationCenter.default.post(
+                        name: .mapViewportChanged,
+                        object: nil,
+                        userInfo: ["bounds": bounds]
+                    )
+                }
+            }
+        )
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .ignoresSafeArea()
+    }
+
     private var mapLibreView: some View {
         DiveMapView(
             annotations: mapLibreAnnotations,
@@ -842,52 +1481,77 @@ public struct NewMapView: View {
                 colorByDifficulty: viewModel.layerSettings.colorByDifficulty
             ),
             onSelect: { identifier in
-                if let site = viewModel.sites.first(where: { $0.id == identifier }) {
-                    selectedSiteIdForScroll = site.id
+                // Wrap in DispatchQueue.main.async to avoid SwiftUI state mutation during view update
+                DispatchQueue.main.async {
+                    if let site = viewModel.sites.first(where: { $0.id == identifier }) {
+                        selectedSiteIdForScroll = site.id
 
-                    // Route to unified surface
-                    uiViewModel.send(.openSiteInspection(site.id))
-                    surfaceDetent = .medium
-                    focusMap(on: [site], singleSpan: 2.5)
-                    Haptics.soft()
-                    return
-                }
-                if identifier.hasPrefix("shop:"),
-                   let rawId = identifier.split(separator: ":").last {
-                    let shopId = String(rawId)
-                    if let shop = viewModel.shops.first(where: { $0.id == shopId }) {
-                        handleShopTap(shop)
+                        // Close any existing inspection first (mutual exclusivity)
+                        if uiViewModel.mode.isInspecting {
+                            uiViewModel.send(.closeSiteInspection)
+                        }
+
+                        // Show callout card instead of immediately opening inspection
+                        withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) {
+                            calloutSite = site
+                            showCallout = true
+                            surfaceDetent = .peek  // Ensure bottom sheet is minimal
+                        }
+                        focusMap(on: [site], singleSpan: 2.5)
+                        Haptics.soft()
+                        return
+                    }
+                    if identifier.hasPrefix("shop:"),
+                       let rawId = identifier.split(separator: ":").last {
+                        let shopId = String(rawId)
+                        if let shop = viewModel.shops.first(where: { $0.id == shopId }) {
+                            handleShopTap(shop)
+                        }
                     }
                 }
             },
             onRegionChange: { viewport in
-                lastViewport = viewport
-                let bounds = MapBounds(viewport: viewport)
-                mapRegion = bounds.toRegion()
-                if !isProgrammaticCameraChange {
-                    followMap = false
+                // Wrap in DispatchQueue.main.async to avoid SwiftUI state mutation during view update
+                DispatchQueue.main.async {
+                    lastViewport = viewport
+                    let bounds = MapBounds(viewport: viewport)
+                    mapRegion = bounds.toRegion()
+                    if !isProgrammaticCameraChange {
+                        followMap = false
 
-                    // Dismiss inspection if site scrolls offscreen
-                    if let siteId = uiViewModel.inspectedSiteId,
-                       let site = viewModel.sites.first(where: { $0.id == siteId }) {
-                        let isVisible = viewport.minLatitude <= site.latitude &&
-                                        site.latitude <= viewport.maxLatitude &&
-                                        viewport.minLongitude <= site.longitude &&
-                                        site.longitude <= viewport.maxLongitude
-                        if !isVisible {
-                            uiViewModel.send(.closeSiteInspection)
-                            surfaceDetent = .peek
+                        // Dismiss callout on user pan
+                        if showCallout {
+                            dismissCallout()
+                        }
+
+                        // Dismiss featured card on user interaction
+                        if featuredService.isShowingFeatured {
+                            showFeaturedCard = false
+                            featuredService.completeFeaturedExperience()
+                        }
+
+                        // Dismiss inspection if site scrolls offscreen
+                        if let siteId = uiViewModel.inspectedSiteId,
+                           let site = viewModel.sites.first(where: { $0.id == siteId }) {
+                            let isVisible = viewport.minLatitude <= site.latitude &&
+                                            site.latitude <= viewport.maxLatitude &&
+                                            viewport.minLongitude <= site.longitude &&
+                                            site.longitude <= viewport.maxLongitude
+                            if !isVisible {
+                                uiViewModel.send(.closeSiteInspection)
+                                surfaceDetent = .peek
+                            }
                         }
                     }
-                }
-                viewModel.scheduleRefreshVisibleSites(bounds: bounds)
+                    viewModel.scheduleRefreshVisibleSites(bounds: bounds)
 
-                // US-2: Save map state for persistence
-                let center = CLLocationCoordinate2D(
-                    latitude: (viewport.minLatitude + viewport.maxLatitude) / 2,
-                    longitude: (viewport.minLongitude + viewport.maxLongitude) / 2
-                )
-                viewModel.saveMapState(center: center, zoom: diveMapCamera.zoomLevel)
+                    // US-2: Save map state for persistence
+                    let center = CLLocationCoordinate2D(
+                        latitude: (viewport.minLatitude + viewport.maxLatitude) / 2,
+                        longitude: (viewport.minLongitude + viewport.maxLongitude) / 2
+                    )
+                    viewModel.saveMapState(center: center, zoom: diveMapCamera.zoomLevel)
+                }
             }
         )
         .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -936,20 +1600,27 @@ public struct NewMapView: View {
             VStack {
                 HStack {
                     Spacer()
+                        .allowsHitTesting(false)  // Allow map touches to pass through
                     MinimalSearchButton {
                         uiViewModel.send(.openSearch)
                         surfaceDetent = .expanded
                         Haptics.soft()
                     }
+                    // Note: 44x44 tap target now defined in MinimalSearchButton itself
                     .padding(.trailing, safeAreaInsets.trailing + 16)
                     .padding(.top, safeAreaInsets.top + 8)
+                    .zIndex(1000)  // Fix UX-003: Ensure search button is above all other overlays
                 }
                 Spacer()
+                    .allowsHitTesting(false)  // Allow map touches to pass through
             }
+            .allowsHitTesting(true)  // Fix UX-003: Ensure VStack receives hits
+            .zIndex(1000)  // Fix UX-003: Ensure search overlay is on top
 
             // Context label - bottom left, above surface
             VStack {
                 Spacer()
+                    .allowsHitTesting(false)  // Allow map touches to pass through
                 HStack {
                     ContextLabel(
                         mode: uiViewModel.mode,
@@ -960,6 +1631,7 @@ public struct NewMapView: View {
                     .padding(.leading, safeAreaInsets.leading + 16)
                     .padding(.bottom, surfaceDetent.height(in: UIScreen.main.bounds.height) + 12)
                     Spacer()
+                        .allowsHitTesting(false)  // Allow map touches to pass through
                 }
             }
             .animation(.easeOut(duration: 0.2), value: uiViewModel.mode)
@@ -1062,7 +1734,6 @@ public struct NewMapView: View {
             uiViewModel.exploreFilters.reset()
             uiViewModel.send(.resetToWorld)
             entityTab = .sites
-            showShops = false
         }
         followMap = true
         fitToVisible()
@@ -1144,7 +1815,7 @@ private func overlayMetrics(for size: CGSize) -> OverlayMetrics {
         withAnimation(.easeInOut(duration: 0.3)) {
             focusMap(on: areaSites)
             // Use new unified state for hierarchy navigation
-            uiViewModel.send(.drillDownToArea(area.id))
+            uiViewModel.send(.drillDownToArea(area.id, region: nil))
             surfaceDetent = .medium
             followMap = true
             entityTab = .sites
@@ -1199,9 +1870,9 @@ private func overlayMetrics(for size: CGSize) -> OverlayMetrics {
             return (location.coordinate, 6.0)
         }
 
-        // 3. Fallback: World view centered on Caribbean/Southeast Asia dive regions
-        // Shows visible land and popular dive destinations at an engaging zoom level
-        return (CLLocationCoordinate2D(latitude: 15.0, longitude: 0.0), 2.5)
+        // 3. Fallback: Phuket, Thailand - a beautiful diving destination
+        // Shows visible land and ocean at an engaging zoom level
+        return (CLLocationCoordinate2D(latitude: 8.0, longitude: 98.3), 7.0)
     }
 
     /// Convert zoom level to approximate span (latitude delta)
@@ -1249,72 +1920,6 @@ private func overlayMetrics(for size: CGSize) -> OverlayMetrics {
     }
     
 
-}
-
-private struct EmptyStateView: View {
-    let icon: String
-    let title: String
-    let message: String
-    var primaryTitle: String? = nil
-    var primaryAction: (() -> Void)? = nil
-    var secondaryTitle: String? = nil
-    var secondaryAction: (() -> Void)? = nil
-    
-    var body: some View {
-        VStack(spacing: 8) {
-            Image(systemName: icon)
-                .font(.system(size: 28, weight: .semibold))
-                .foregroundStyle(Color.mist)
-            Text(title)
-                .font(.subheadline.weight(.semibold))
-                .foregroundStyle(Color.foam)
-            Text(message)
-                .font(.caption)
-                .multilineTextAlignment(.center)
-                .foregroundStyle(Color.mist)
-            if let primaryTitle, let primaryAction {
-                Button(action: primaryAction) {
-                    Text(primaryTitle)
-                        .font(.footnote.weight(.semibold))
-                        .padding(.horizontal, 14)
-                        .padding(.vertical, 8)
-                        .background(Capsule().fill(Color.reef.opacity(0.8)))
-                        .foregroundStyle(Color.white)
-                }
-                .buttonStyle(.plain)
-            }
-            if let secondaryTitle, let secondaryAction {
-                Button(action: secondaryAction) {
-                    Text(secondaryTitle)
-                        .font(.footnote)
-                        .underline()
-                        .foregroundStyle(Color.foam.opacity(0.8))
-                }
-                .buttonStyle(.plain)
-            }
-        }
-        .frame(maxWidth: .infinity)
-        .padding(.vertical, 24)
-        .padding(.horizontal, 24)
-        .accessibilityElement(children: .combine)
-    }
-}
-
-struct EmptyStateConfiguration {
-    let icon: String
-    let title: String
-    let message: String
-    var primaryTitle: String? = nil
-    var primaryAction: (() -> Void)? = nil
-    var secondaryTitle: String? = nil
-    var secondaryAction: (() -> Void)? = nil
-}
-
-fileprivate func abbreviatedCount(_ value: Int) -> String {
-    guard value >= 1_000 else { return "\(value)" }
-    let formatted = Double(value) / 1_000
-    let text = String(format: "%.1fk", formatted)
-    return text.replacingOccurrences(of: ".0k", with: "k")
 }
 
 // MARK: - Environment Helpers
@@ -1375,470 +1980,6 @@ struct PinView: View {
     }
 }
 
-// MARK: - Breadcrumb Header & Areas
-
-struct BreadcrumbHeader: View {
-    let tier: Tier
-    let regionName: String?
-    let regionsCount: Int
-    let areasCount: Int
-    let sitesCount: Int
-    var onResetToWorld: () -> Void
-    var onResetToRegion: () -> Void
-
-    var body: some View {
-        HStack(spacing: 8) {
-            // Breadcrumb
-            HStack(spacing: 6) {
-                Text("Regions")
-                    .foregroundStyle(tier == .regions ? Color.lagoon : Color.mist)
-                    .onTapGesture { onResetToWorld() }
-                Text("›").foregroundStyle(Color.mist.opacity(0.6))
-                Text(regionName ?? "Areas")
-                    .foregroundStyle(tier == .areas ? Color.lagoon : Color.mist)
-                    .onTapGesture {
-                        if regionName != nil {
-                            onResetToRegion()
-                        }
-                    }
-                Text("›").foregroundStyle(Color.mist.opacity(0.6))
-                Text("Sites")
-                    .foregroundStyle(tier == .sites ? Color.lagoon : Color.mist)
-            }
-            Spacer()
-            // Counts
-            Text(countText)
-                .font(.caption)
-                .foregroundStyle(Color.mist)
-        }
-    }
-
-    private var countText: String {
-        switch tier {
-        case .regions: return "\(abbreviatedCount(regionsCount)) regions"
-        case .areas: return "\(abbreviatedCount(areasCount)) areas"
-        case .sites: return "\(abbreviatedCount(sitesCount)) sites"
-        }
-    }
-}
-
-struct AreasListView: View {
-    let areas: [Area]
-    let onAreaTap: (Area) -> Void
-    var body: some View {
-        if areas.isEmpty {
-            EmptyStateView(
-                icon: "mappin.slash",
-                title: "No areas yet",
-                message: "Pick a region or clear filters to browse dive areas."
-            )
-        } else {
-            ScrollView {
-                LazyVStack(spacing: 0) {
-                    ForEach(areas) { area in
-                        HStack {
-                            VStack(alignment: .leading) {
-                                Text(area.name).font(.body)
-                                    .accessibilityLabel("Area: \(area.name)")
-                                Text(summary(for: area))
-                                    .font(.caption).foregroundStyle(SwiftUI.Color(UIColor.secondaryLabel))
-                                    .accessibilityLabel(accessibilitySummary(for: area))
-                            }
-                            Spacer()
-                            Image(systemName: "chevron.right").foregroundStyle(.secondary)
-                                .accessibilityLabel("Open area")
-                        }
-                        .contentShape(Rectangle())
-                        .onTapGesture { onAreaTap(area) }
-                        .padding(.horizontal, 16)
-                        .padding(.vertical, 10)
-                        .accessibilityElement(children: .combine)
-                    }
-                }
-            }
-        }
-    }
-    
-    private func summary(for area: Area) -> String {
-        var components: [String] = []
-        if !area.country.isEmpty {
-            components.append(area.country)
-        }
-        components.append("\(area.siteCount) sites")
-        if area.shopCount > 0 {
-            components.append("\(area.shopCount) shops")
-        }
-        return components.joined(separator: " · ")
-    }
-    
-    private func accessibilitySummary(for area: Area) -> String {
-        var sentence = "Located in \(area.country.isEmpty ? "this region" : area.country) with \(area.siteCount) dive sites"
-        if area.shopCount > 0 {
-            sentence += " and \(area.shopCount) dive shops"
-        }
-        return sentence
-    }
-}
-// MARK: - Regions List
-
-struct RegionsListView: View {
-    let regions: [Region]
-    @Binding var selectedRegion: Region?
-    var onRegionTap: (Region) -> Void
-    
-    var body: some View {
-        if regions.isEmpty {
-            EmptyStateView(
-                icon: "globe.europe.africa",
-                title: "No regions found",
-                message: "Zoom out or clear filters to explore all regions."
-            )
-        } else {
-            ScrollView {
-                VStack(spacing: 0) {
-                    Text("All Regions")
-                        .font(.headline)
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                        .padding(.horizontal, 16)
-                        .padding(.top, 16)
-                    
-                    Text(summaryLine)
-                        .font(.subheadline)
-                        .foregroundStyle(SwiftUI.Color(UIColor.secondaryLabel))
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                        .padding(.horizontal, 16)
-                        .padding(.bottom, 8)
-                    
-                    ForEach(regions) { region in
-                        RegionRow(region: region, isSelected: selectedRegion?.id == region.id)
-                            .contentShape(Rectangle())
-                            .onTapGesture { onRegionTap(region) }
-                    }
-                }
-            }
-        }
-    }
-    
-    private var summaryLine: String {
-        guard !regions.isEmpty else { return "No regions yet" }
-        let visitedTotal = regions.reduce(0) { $0 + $1.visitedCount }
-        let sitesTotal = regions.reduce(0) { $0 + $1.totalSites }
-        let shopTotal = regions.reduce(0) { $0 + $1.shopCount }
-        var parts = ["\(visitedTotal)/\(sitesTotal) visited"]
-        if shopTotal > 0 {
-            parts.append("\(shopTotal) shops")
-        }
-        return parts.joined(separator: " • ")
-    }
-}
-
-struct RegionRow: View {
-    let region: Region
-    var isSelected: Bool = false
-    
-    var body: some View {
-        HStack {
-            Circle()
-                .fill(region.visitedCount > 0 ? Color.oceanBlue : Color.gray.opacity(0.3))
-                .frame(width: 8, height: 8)
-                .accessibilityLabel(region.visitedCount > 0 ? "Visited" : "Not visited")
-            
-            VStack(alignment: .leading, spacing: 2) {
-                Text(region.name)
-                    .font(.body)
-                    .accessibilityLabel("Region: \(region.name)")
-                Text(detailText)
-                    .font(.caption)
-                    .foregroundStyle(SwiftUI.Color(UIColor.secondaryLabel))
-                    .accessibilityLabel(accessibilityDetail)
-            }
-            
-            Spacer()
-            
-            if region.visitedCount > 0 {
-                Image(systemName: "star.fill")
-                    .foregroundStyle(.yellow)
-                    .font(.caption)
-                    .accessibilityLabel("Has visited sites")
-            }
-        }
-        .padding(.horizontal, 16)
-        .padding(.vertical, 8)
-        .background(
-            RoundedRectangle(cornerRadius: 12, style: .continuous)
-                .fill(isSelected ? Color.glass.opacity(0.6) : Color.clear)
-        )
-        .accessibilityElement(children: .combine)
-    }
-    
-    private var detailText: String {
-        let visited = "\(region.visitedCount)/\(region.totalSites) visited"
-        guard region.shopCount > 0 else { return visited }
-        return "\(visited) • \(region.shopCount) shops"
-    }
-    
-    private var accessibilityDetail: String {
-        if region.shopCount > 0 {
-            return "\(region.visitedCount) of \(region.totalSites) sites visited, \(region.shopCount) dive shops"
-        }
-        return "\(region.visitedCount) of \(region.totalSites) sites visited"
-    }
-}
-
-// MARK: - Sites List
-
-struct SitesListView: View {
-    let sites: [DiveSite]
-    let selectedSiteId: String?
-    let onSiteTap: (DiveSite) -> Void
-    var limit: Int? = nil
-    var scrollDisabled: Bool = false
-    var emptyState: EmptyStateConfiguration? = nil
-    @State private var flashId: String?
-    
-    var body: some View {
-        ScrollViewReader { proxy in
-            let displayed = limit.map { Array(sites.prefix($0)) } ?? sites
-            if sites.isEmpty {
-                if let emptyState {
-                    EmptyStateView(
-                        icon: emptyState.icon,
-                        title: emptyState.title,
-                        message: emptyState.message,
-                        primaryTitle: emptyState.primaryTitle,
-                        primaryAction: emptyState.primaryAction,
-                        secondaryTitle: emptyState.secondaryTitle,
-                        secondaryAction: emptyState.secondaryAction
-                    )
-                } else {
-                    EmptyStateView(
-                        icon: "tray",
-                        title: "No sites found",
-                        message: "Clear filters or zoom out to reveal more dive sites."
-                    )
-                }
-            } else if displayed.isEmpty {
-                EmptyStateView(
-                    icon: "arrow.up.left.and.arrow.down.right",
-                    title: "Expand to see more",
-                    message: "Pull the sheet up or zoom the map to browse sites here."
-                )
-            } else {
-                ScrollView {
-                    LazyVStack(spacing: 0) {
-                        ForEach(displayed) { site in
-                            SiteRow(site: site, isHighlighted: flashId == site.id)
-                                .id(site.id)
-                                .onTapGesture { onSiteTap(site) }
-                        }
-                    }
-                }
-                .scrollDisabled(scrollDisabled)
-            }
-        }
-        // Scroll to selection when a pin is tapped
-        .onChange(of: selectedSiteId) { newId in
-            guard let id = newId else { return }
-            DispatchQueue.main.async {
-                withAnimation(.easeInOut(duration: 0.3)) {
-                    flashId = id
-                }
-            }
-            DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
-                withAnimation(.easeInOut(duration: 0.3)) { flashId = nil }
-            }
-        }
-    }
-}
-
-struct ShopsListView: View {
-    let shops: [MapDiveShop]
-    let onShopTap: (MapDiveShop) -> Void
-    var limit: Int? = nil
-    var scrollDisabled: Bool = false
-    var emptyState: EmptyStateConfiguration? = nil
-    
-    private var displayedShops: [MapDiveShop] {
-        guard let limit else { return shops }
-        return Array(shops.prefix(limit))
-    }
-    
-    var body: some View {
-        if shops.isEmpty {
-            if let emptyState {
-                EmptyStateView(
-                    icon: emptyState.icon,
-                    title: emptyState.title,
-                    message: emptyState.message,
-                    primaryTitle: emptyState.primaryTitle,
-                    primaryAction: emptyState.primaryAction,
-                    secondaryTitle: emptyState.secondaryTitle,
-                    secondaryAction: emptyState.secondaryAction
-                )
-            } else {
-                EmptyStateView(
-                    icon: "building.2",
-                    title: "No shops found",
-                    message: "Zoom out or clear filters to see nearby dive shops."
-                )
-            }
-        } else if displayedShops.isEmpty {
-            EmptyStateView(
-                icon: "arrow.up.left.and.arrow.down.right",
-                title: "Expand to see more",
-                message: "Pull the sheet up or zoom the map to browse dive shops in this area."
-            )
-        } else {
-            ScrollView {
-                LazyVStack(spacing: 0) {
-                    ForEach(displayedShops) { shop in
-                        ShopRow(shop: shop)
-                            .contentShape(Rectangle())
-                            .onTapGesture { onShopTap(shop) }
-                    }
-                }
-            }
-            .scrollDisabled(scrollDisabled)
-        }
-    }
-}
-
-
-struct ShopRow: View {
-    let shop: MapDiveShop
-    
-    var body: some View {
-        HStack(spacing: 12) {
-            Image(systemName: "building.2.crop.circle")
-                .font(.system(size: 24))
-                .foregroundStyle(Color.oceanBlue)
-                .accessibilityHidden(true)
-            VStack(alignment: .leading, spacing: 2) {
-                Text(shop.name)
-                    .font(.body)
-                    .foregroundStyle(Color.foam)
-                    .accessibilityLabel("Shop: \(shop.name)")
-                if let subtitle = subtitle, !subtitle.isEmpty {
-                    Text(subtitle)
-                        .font(.caption)
-                        .foregroundStyle(SwiftUI.Color(UIColor.secondaryLabel))
-                }
-                if let detail = detail {
-                    Text(detail)
-                        .font(.caption2)
-                        .foregroundStyle(SwiftUI.Color(UIColor.tertiaryLabel))
-                }
-            }
-            Spacer()
-            Image(systemName: "chevron.right")
-                .foregroundStyle(.secondary)
-                .accessibilityHidden(true)
-        }
-        .padding(.horizontal, 16)
-        .padding(.vertical, 10)
-        .accessibilityElement(children: .combine)
-    }
-    
-    private var subtitle: String? {
-        var components: [String] = []
-        if let area = shop.area, !area.isEmpty {
-            components.append(area)
-        }
-        if let country = shop.country, !country.isEmpty {
-            components.append(country)
-        } else if let region = shop.region, !region.isEmpty {
-            components.append(region)
-        }
-        return components.joined(separator: " · ")
-    }
-    
-    private var detail: String? {
-        if let service = shop.services.first, !service.isEmpty {
-            return service
-        }
-        if let phone = shop.phone, !phone.isEmpty {
-            return phone
-        }
-        if let website = shop.website, !website.isEmpty {
-            return website
-        }
-        return nil
-    }
-}
-
-
-struct SiteRow: View {
-    let site: DiveSite
-    var isHighlighted: Bool = false
-    
-    var statusLabel: String {
-        if site.visitedCount > 0 {
-            return "Logged, \(site.visitedCount) dive(s)"
-        } else if site.wishlist {
-            return "Wishlist"
-        } else {
-            return "Not visited"
-        }
-    }
-    
-    var body: some View {
-        HStack(spacing: 12) {
-            // Status indicator
-            Circle()
-                .fill(site.visitedCount > 0 ? Color.oceanBlue : (site.wishlist ? Color.yellow : Color.gray.opacity(0.3)))
-                .frame(width: 8, height: 8)
-                .accessibilityLabel(statusLabel)
-            
-            VStack(alignment: .leading, spacing: 4) {
-                Text(site.name)
-                    .font(.body)
-                    .fontWeight(.medium)
-                    .accessibilityLabel("Site: \(site.name)")
-                
-                Text(site.location)
-                    .font(.caption)
-                    .foregroundStyle(SwiftUI.Color(UIColor.secondaryLabel))
-                    .accessibilityLabel("Location: \(site.location)")
-                
-                // Quick facts chips
-                HStack(spacing: 6) {
-                    QuickFactChip(text: site.difficulty.rawValue)
-                    QuickFactChip(text: "Max \(Int(site.maxDepth))m")
-                    QuickFactChip(text: "\(Int(site.averageTemp))°C")
-                }
-                .accessibilityLabel("\(site.difficulty.rawValue) difficulty, maximum depth \(Int(site.maxDepth)) meters, average temperature \(Int(site.averageTemp)) degrees")
-            }
-            
-            Spacer()
-        }
-        .padding(.horizontal, 16)
-        .padding(.vertical, 12)
-        .background(
-            RoundedRectangle(cornerRadius: 12)
-                .fill(Color.oceanBlue.opacity(isHighlighted ? 0.12 : 0.0))
-        )
-        .scaleEffect(isHighlighted ? 1.03 : 1.0)
-        .shadow(color: isHighlighted ? Color.oceanBlue.opacity(0.25) : .clear, radius: 8, y: 4)
-        .animation(.spring(response: 0.3, dampingFraction: 0.75), value: isHighlighted)
-        .accessibilityElement(children: .combine)
-    }
-}
-
-struct QuickFactChip: View {
-    let text: String
-
-    var body: some View {
-        Text(text)
-            .font(.caption2)
-            .foregroundStyle(Color.mist)
-            .padding(.horizontal, 8)
-            .padding(.vertical, 4)
-            .background(Color.trench)
-            .cornerRadius(8)
-            .accessibilityLabel(text)
-    }
-}
-
 // MARK: - Helper Extensions
 
 extension View {
@@ -1865,167 +2006,6 @@ struct RoundedCorner: Shape {
             cornerRadii: CGSize(width: radius, height: radius)
         )
         return Path(path.cgPath)
-    }
-}
-
-// MARK: - Sheets
-
-struct SearchSheet: View {
-    @Binding var searchText: String
-    let sites: [DiveSite]
-    let onSelect: (DiveSite) -> Void
-    @Environment(\.dismiss) private var dismiss
-    
-    var filtered: [DiveSite] {
-        if searchText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty { return sites }
-        let q = searchText.lowercased()
-        return sites.filter { $0.name.lowercased().contains(q) || $0.location.lowercased().contains(q) }
-    }
-    
-    var body: some View {
-        NavigationStack {
-            List(filtered) { site in
-                VStack(alignment: .leading, spacing: 4) {
-                    Text(site.name).font(.body)
-                    Text(site.location).font(.caption).foregroundStyle(.secondary)
-                }
-                .contentShape(Rectangle())
-                .onTapGesture { Haptics.soft(); onSelect(site); dismiss() }
-            }
-            .searchable(text: $searchText, placement: .navigationBarDrawer(displayMode: .always))
-            .navigationTitle("Search Sites")
-            .toolbar {
-                ToolbarItem(placement: .topBarTrailing) { Button("Done") { dismiss() } }
-            }
-        }
-    }
-}
-
-struct FilterSheet: View {
-    @Binding var mode: MapMode
-    @Binding var statusFilter: StatusFilter
-    @Binding var exploreFilter: ExploreFilter
-    var onDismiss: () -> Void
-    @Environment(\.dismiss) private var dismiss
-    
-    var body: some View {
-        NavigationStack {
-            Form {
-                Section("Mode") {
-                    Picker("Mode", selection: $mode) {
-                        Text("My Map").tag(MapMode.myMap)
-                        Text("Explore").tag(MapMode.explore)
-                    }.pickerStyle(.segmented)
-                    .onChange(of: mode) {
-                        Haptics.soft()
-                    }
-                }
-                
-                if mode == .myMap {
-                    Section("Status Filter") {
-                        Picker("Status", selection: $statusFilter) {
-                            Text("Visited").tag(StatusFilter.visited)
-                            Text("Wishlist").tag(StatusFilter.wishlist)
-                            Text("Planned").tag(StatusFilter.planned)
-                        }.pickerStyle(.segmented)
-                        .onChange(of: statusFilter) {
-                            Haptics.tap()
-                        }
-                    }
-                } else {
-                    Section("Explore Filter") {
-                        Picker("Explore", selection: $exploreFilter) {
-                            Text("All").tag(ExploreFilter.all)
-                            Text("Nearby").tag(ExploreFilter.nearby)
-                            Text("Popular").tag(ExploreFilter.popular)
-                            Text("Beginner").tag(ExploreFilter.beginner)
-                        }.pickerStyle(.segmented)
-                        .onChange(of: exploreFilter) {
-                            Haptics.tap()
-                        }
-                    }
-                }
-            }
-            .navigationTitle("Filters")
-            .toolbar { ToolbarItem(placement: .topBarTrailing) { Button("Done") { onDismiss(); dismiss() } } }
-        }
-    }
-}
-
-struct LayerSheet: View {
-    @Binding var layerSettings: MapLayerSettings
-    var onDismiss: () -> Void
-    @Environment(\.dismiss) private var dismiss
-    
-    var body: some View {
-        NavigationStack {
-            Form {
-                Section("Visuals") {
-                    Toggle("Underwater glow", isOn: $layerSettings.showUnderwaterGlow)
-                        .onChange(of: layerSettings.showUnderwaterGlow) { _ in Haptics.tap() }
-                    Toggle("Cluster rings", isOn: $layerSettings.showClusters)
-                        .onChange(of: layerSettings.showClusters) { _ in Haptics.tap() }
-                    Toggle("Status glows", isOn: $layerSettings.showStatusGlows)
-                        .onChange(of: layerSettings.showStatusGlows) { _ in Haptics.tap() }
-                    Toggle("Color by difficulty", isOn: $layerSettings.colorByDifficulty)
-                        .onChange(of: layerSettings.colorByDifficulty) { _ in Haptics.tap() }
-                }
-            }
-            .navigationTitle("Map Layers")
-            .toolbar { ToolbarItem(placement: .topBarTrailing) { Button("Done") { onDismiss(); dismiss() } } }
-        }
-    }
-}
-
-struct CombinedFilterLayersSheet: View {
-    @Binding var mode: MapMode
-    @Binding var statusFilter: StatusFilter
-    @Binding var exploreFilter: ExploreFilter
-    @Binding var layerSettings: MapLayerSettings
-    var onDismiss: () -> Void
-    @Environment(\.dismiss) private var dismiss
-
-    var body: some View {
-        NavigationStack {
-            Form {
-                Section("Mode") {
-                    Picker("Mode", selection: $mode) {
-                        Text("My Map").tag(MapMode.myMap)
-                        Text("Explore").tag(MapMode.explore)
-                    }
-                    .pickerStyle(.segmented)
-                }
-                if mode == .myMap {
-                    Section("Status Filter") {
-                        Picker("Status", selection: $statusFilter) {
-                            Text("Visited").tag(StatusFilter.visited)
-                            Text("Wishlist").tag(StatusFilter.wishlist)
-                            Text("Planned").tag(StatusFilter.planned)
-                        }
-                        .pickerStyle(.segmented)
-                    }
-                } else {
-                    Section("Explore Filter") {
-                        Picker("Explore", selection: $exploreFilter) {
-                            Text("All").tag(ExploreFilter.all)
-                            Text("Nearby").tag(ExploreFilter.nearby)
-                            Text("Popular").tag(ExploreFilter.popular)
-                            Text("Beginner").tag(ExploreFilter.beginner)
-                        }
-                        .pickerStyle(.segmented)
-                    }
-                }
-
-                Section("Layers") {
-                    Toggle("Underwater glow", isOn: $layerSettings.showUnderwaterGlow)
-                    Toggle("Cluster rings", isOn: $layerSettings.showClusters)
-                    Toggle("Status glows", isOn: $layerSettings.showStatusGlows)
-                    Toggle("Color by difficulty", isOn: $layerSettings.colorByDifficulty)
-                }
-            }
-            .navigationTitle("Filters & Layers")
-            .toolbar { ToolbarItem(placement: .topBarTrailing) { Button("Done") { onDismiss(); dismiss() } } }
-        }
     }
 }
 

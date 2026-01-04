@@ -2,6 +2,7 @@ import Foundation
 import SwiftUI
 import UmiDB
 import UmiCoreKit
+import os
 
 @MainActor
 public class DiveHistoryViewModel: ObservableObject {
@@ -49,9 +50,10 @@ public class DiveHistoryViewModel: ObservableObject {
             let allSites = try database.siteRepository.fetchAll()
             sites = Dictionary(uniqueKeysWithValues: allSites.map { ($0.id, $0) })
             
-            print("📊 Loaded \(dives.count) dives")
+            let count = dives.count
+            Log.diveLog.debug("Loaded \(count) dives")
         } catch {
-            print("❌ Error loading dives: \(error)")
+            Log.diveLog.error("Error loading dives: \(error.localizedDescription)")
         }
     }
     
@@ -67,17 +69,18 @@ public class DiveHistoryViewModel: ObservableObject {
             }
             
             // Search in site name/location
-            if let site = sites[dive.siteId] {
+            if let siteId = dive.siteId, let site = sites[siteId] {
                 return site.name.localizedCaseInsensitiveContains(searchText) ||
                        site.location.localizedCaseInsensitiveContains(searchText)
             }
-            
+
             return false
         }
     }
-    
+
     public func getSite(for dive: DiveLog) -> DiveSite? {
-        sites[dive.siteId]
+        guard let siteId = dive.siteId else { return nil }
+        return sites[siteId]
     }
     
     public func refresh() async {
@@ -90,7 +93,7 @@ public class DiveHistoryViewModel: ObservableObject {
                 try database.diveRepository.delete(id: dive.id)
                 await loadData()
             } catch {
-                print("❌ Error deleting dive: \(error)")
+                Log.diveLog.error("Error deleting dive: \(error.localizedDescription)")
             }
         }
     }

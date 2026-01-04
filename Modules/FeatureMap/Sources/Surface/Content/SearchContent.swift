@@ -1,9 +1,11 @@
 import SwiftUI
 import UmiDB
 import UmiDesignSystem
+import UmiLocationKit
+import CoreLocation
 
 /// Content view for Search mode in the unified bottom surface.
-/// Shows hierarchical search results: Regions → Areas → Sites
+/// Shows hierarchical search results: Countries → Regions → Areas → Sites → Species
 struct SearchContent: View {
     // MARK: - Properties
 
@@ -11,6 +13,10 @@ struct SearchContent: View {
     let sites: [DiveSite]
 
     var onSelect: (DiveSite) -> Void
+    var onSelectCountry: ((UmiDB.Country) -> Void)?
+    var onSelectRegion: ((String, [DiveSite]) -> Void)?
+    var onSelectArea: ((String, String, [DiveSite]) -> Void)?
+    var onSelectSpecies: ((WildlifeSpecies) -> Void)?
     var onDismiss: () -> Void
 
     // MARK: - State
@@ -18,19 +24,38 @@ struct SearchContent: View {
     @FocusState private var isSearchFocused: Bool
     @State private var hasAppeared = false
     @State private var expandedSections: Set<SearchSection> = [.sites]
+    @State private var countryResults: [UmiDB.Country] = []
+    @State private var speciesResults: [WildlifeSpecies] = []
+
+    // Site type filter state
+    @State private var selectedSiteTypes: Set<DiveSite.SiteType> = []
+    @State private var nightDivingOnly: Bool = false
+
+    // MARK: - Location
+
+    @ObservedObject private var locationService = LocationService.shared
+
+    // MARK: - Repositories
+
+    private let geographyRepository = GeographyRepository(database: AppDatabase.shared)
+    private let speciesRepository = SpeciesRepository(database: AppDatabase.shared)
 
     // MARK: - Search Sections
 
     private enum SearchSection: String, CaseIterable {
+        case countries = "Countries"
         case regions = "Regions"
         case areas = "Areas"
         case sites = "Sites"
+        case species = "Species"
 
         var icon: String {
             switch self {
+            case .countries: return "flag"
             case .regions: return "globe.americas"
             case .areas: return "map"
             case .sites: return "mappin.circle"
+            case .species: return "fish"
             }
         }
     }
@@ -41,7 +66,14 @@ struct SearchContent: View {
         VStack(spacing: 0) {
             searchField
                 .padding(.horizontal, 16)
-                .padding(.bottom, 12)
+                .padding(.bottom, 8)
+
+            // Site type filter chips
+            SiteTypeFilterRow(
+                selectedTypes: $selectedSiteTypes,
+                nightDivingOnly: $nightDivingOnly
+            )
+            .padding(.bottom, 12)
 
             if query.isEmpty {
                 placeholderView
@@ -59,6 +91,33 @@ struct SearchContent: View {
                     isSearchFocused = true
                 }
             }
+        }
+        .onChange(of: query) { _, newQuery in
+            performDatabaseSearch(query: newQuery)
+        }
+    }
+
+    // MARK: - Database Search
+
+    private func performDatabaseSearch(query: String) {
+        guard !query.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
+            countryResults = []
+            speciesResults = []
+            return
+        }
+
+        // Search countries
+        do {
+            countryResults = try geographyRepository.searchCountries(query: query, limit: 5)
+        } catch {
+            countryResults = []
+        }
+
+        // Search species
+        do {
+            speciesResults = try speciesRepository.search(query).prefix(5).map { $0 }
+        } catch {
+            speciesResults = []
         }
     }
 
@@ -100,7 +159,7 @@ struct SearchContent: View {
     // MARK: - Hierarchical Results
 
     private var hasNoResults: Bool {
-        filteredRegions.isEmpty && filteredAreas.isEmpty && filteredSites.isEmpty
+        countryResults.isEmpty && filteredRegions.isEmpty && filteredAreas.isEmpty && filteredSites.isEmpty && speciesResults.isEmpty
     }
 
     private var filteredRegions: [SearchRegionResult] {
@@ -148,12 +207,25 @@ struct SearchContent: View {
     private var filteredSites: [DiveSite] {
         guard !query.isEmpty else { return [] }
         let lowercased = query.lowercased()
-        return sites.filter {
+
+        var results = sites.filter {
             $0.name.lowercased().contains(lowercased) ||
             $0.location.lowercased().contains(lowercased)
         }
-        .prefix(15)
-        .map { $0 }
+
+        // Apply site type filters
+        if !selectedSiteTypes.isEmpty {
+            results = results.filter { selectedSiteTypes.contains($0.type) }
+        }
+
+        // Apply night diving filter (check tags for "night")
+        if nightDivingOnly {
+            results = results.filter { site in
+                site.tags.contains { $0.lowercased().contains("night") }
+            }
+        }
+
+        return Array(results.prefix(15))
     }
 
     private func parseAreaFromLocation(_ location: String) -> String {
@@ -166,6 +238,19 @@ struct SearchContent: View {
     private var hierarchicalResultsList: some View {
         ScrollView {
             LazyVStack(spacing: 0) {
+                // Countries section (NEW)
+                if !countryResults.isEmpty {
+                    sectionHeader(for: .countries, count: countryResults.count)
+
+                    if expandedSections.contains(.countries) {
+                        ForEach(countryResults) { (country: UmiDB.Country) in
+                            SearchCountryRow(country: country) {
+                                selectCountry(country)
+                            }
+                        }
+                    }
+                }
+
                 // Regions section
                 if !filteredRegions.isEmpty {
                     sectionHeader(for: .regions, count: filteredRegions.count)
@@ -173,10 +258,7 @@ struct SearchContent: View {
                     if expandedSections.contains(.regions) {
                         ForEach(filteredRegions, id: \.name) { result in
                             SearchRegionRow(result: result) {
-                                // Select first site in region
-                                if let site = result.sites.first {
-                                    selectSite(site)
-                                }
+                                selectRegion(result)
                             }
                         }
                     }
@@ -189,10 +271,7 @@ struct SearchContent: View {
                     if expandedSections.contains(.areas) {
                         ForEach(filteredAreas, id: \.name) { result in
                             SearchAreaRow(result: result) {
-                                // Select first site in area
-                                if let site = result.sites.first {
-                                    selectSite(site)
-                                }
+                                selectArea(result)
                             }
                         }
                     }
@@ -204,8 +283,24 @@ struct SearchContent: View {
 
                     if expandedSections.contains(.sites) {
                         ForEach(filteredSites) { site in
-                            SearchSiteRow(site: site) {
+                            SearchSiteRow(
+                                site: site,
+                                userLocation: locationService.currentLocation
+                            ) {
                                 selectSite(site)
+                            }
+                        }
+                    }
+                }
+
+                // Species section (NEW)
+                if !speciesResults.isEmpty {
+                    sectionHeader(for: .species, count: speciesResults.count)
+
+                    if expandedSections.contains(.species) {
+                        ForEach(speciesResults) { species in
+                            SearchSpeciesRow(species: species) {
+                                selectSpecies(species)
                             }
                         }
                     }
@@ -260,6 +355,38 @@ struct SearchContent: View {
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
             Haptics.soft()
             onSelect(site)
+        }
+    }
+
+    private func selectCountry(_ country: UmiDB.Country) {
+        isSearchFocused = false
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
+            Haptics.soft()
+            onSelectCountry?(country)
+        }
+    }
+
+    private func selectRegion(_ result: SearchRegionResult) {
+        isSearchFocused = false
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
+            Haptics.soft()
+            onSelectRegion?(result.name, result.sites)
+        }
+    }
+
+    private func selectArea(_ result: SearchAreaResult) {
+        isSearchFocused = false
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
+            Haptics.soft()
+            onSelectArea?(result.name, result.region, result.sites)
+        }
+    }
+
+    private func selectSpecies(_ species: WildlifeSpecies) {
+        isSearchFocused = false
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
+            Haptics.soft()
+            onSelectSpecies?(species)
         }
     }
 
@@ -399,25 +526,45 @@ private struct SearchAreaRow: View {
 
 private struct SearchSiteRow: View {
     let site: DiveSite
+    let userLocation: CLLocation?
     let onTap: () -> Void
 
     var body: some View {
         Button(action: onTap) {
             HStack(spacing: 12) {
-                // Status indicator
-                Circle()
-                    .fill(statusColor)
-                    .frame(width: 8, height: 8)
+                // Site thumbnail
+                SiteImage(
+                    siteId: site.id,
+                    siteType: site.type,
+                    size: 56,
+                    cornerRadius: 8
+                )
 
                 VStack(alignment: .leading, spacing: 4) {
-                    Text(site.name)
+                    // Site name with area suffix
+                    Text("\(site.name) - \(areaName)")
                         .font(.body)
                         .fontWeight(.medium)
                         .foregroundStyle(Color.foam)
+                        .lineLimit(1)
 
-                    Text(site.location)
-                        .font(.caption)
+                    HStack(spacing: 12) {
+                        // Depth info
+                        HStack(spacing: 2) {
+                            Image(systemName: "arrow.down")
+                                .font(.caption2)
+                            Text(depthText)
+                                .font(.caption)
+                        }
                         .foregroundStyle(Color.mist)
+
+                        // Distance from user
+                        if let distance = formattedDistance {
+                            Text(distance)
+                                .font(.caption)
+                                .foregroundStyle(Color.mist)
+                        }
+                    }
                 }
 
                 Spacer()
@@ -431,17 +578,158 @@ private struct SearchSiteRow: View {
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
-        .accessibilityLabel("\(site.name), \(site.location)")
+        .accessibilityLabel("\(site.name), \(areaName), depth \(depthText)")
         .accessibilityHint("Double tap to view site details")
     }
 
-    private var statusColor: Color {
-        if site.visitedCount > 0 {
-            return Color.lagoon
-        } else if site.wishlist {
-            return Color.amber
+    private var areaName: String {
+        let components = site.location.split(separator: ",").map { $0.trimmingCharacters(in: .whitespaces) }
+        return components.first ?? site.location
+    }
+
+    private var depthText: String {
+        if site.averageDepth > 0 && site.maxDepth > 0 && site.averageDepth != site.maxDepth {
+            return "\(Int(site.averageDepth))-\(Int(site.maxDepth))m"
+        } else if site.maxDepth > 0 {
+            return "\(Int(site.maxDepth))m"
         } else {
-            return Color.mist.opacity(0.3)
+            return "--m"
+        }
+    }
+
+    private var formattedDistance: String? {
+        guard let userLocation else { return nil }
+        let siteLocation = CLLocation(latitude: site.latitude, longitude: site.longitude)
+        let distanceMeters = userLocation.distance(from: siteLocation)
+        let distanceKm = distanceMeters / 1000
+
+        if distanceKm < 1 {
+            return String(format: "%.0fm", distanceMeters)
+        } else if distanceKm < 100 {
+            return String(format: "%.0f km", distanceKm)
+        } else {
+            return String(format: "%.0f km", distanceKm)
+        }
+    }
+}
+
+// MARK: - Country Row
+
+private struct SearchCountryRow: View {
+    let country: UmiDB.Country
+    let onTap: () -> Void
+
+    var body: some View {
+        Button(action: onTap) {
+            HStack(spacing: 12) {
+                Text(countryFlag)
+                    .font(.title2)
+                    .frame(width: 28)
+
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(country.name)
+                        .font(.body)
+                        .fontWeight(.medium)
+                        .foregroundStyle(Color.foam)
+
+                    Text(country.continent)
+                        .font(.caption)
+                        .foregroundStyle(Color.mist)
+                }
+
+                Spacer()
+
+                Image(systemName: "chevron.right")
+                    .font(.caption)
+                    .foregroundStyle(Color.mist.opacity(0.5))
+            }
+            .padding(.horizontal, 16)
+            .padding(.vertical, 10)
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel("\(country.name), \(country.continent)")
+    }
+
+    private var countryFlag: String {
+        let base: UInt32 = 127397
+        var flag = ""
+        // Country ID is the ISO code string
+        for scalar in country.id.uppercased().unicodeScalars {
+            if let unicode = Unicode.Scalar(base + scalar.value) {
+                flag.append(Character(unicode))
+            }
+        }
+        return flag.isEmpty ? "🌍" : flag
+    }
+}
+
+// MARK: - Species Row
+
+private struct SearchSpeciesRow: View {
+    let species: WildlifeSpecies
+    let onTap: () -> Void
+
+    var body: some View {
+        Button(action: onTap) {
+            HStack(spacing: 12) {
+                Image(systemName: categoryIcon)
+                    .font(.system(size: 18))
+                    .foregroundStyle(categoryColor)
+                    .frame(width: 24)
+
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(species.name)
+                        .font(.body)
+                        .fontWeight(.medium)
+                        .foregroundStyle(Color.foam)
+
+                    Text(species.scientificName)
+                        .font(.caption)
+                        .italic()
+                        .foregroundStyle(Color.mist)
+                }
+
+                Spacer()
+
+                // Category badge
+                Text(species.category.rawValue)
+                    .font(.caption2)
+                    .foregroundStyle(categoryColor)
+                    .padding(.horizontal, 6)
+                    .padding(.vertical, 2)
+                    .background(categoryColor.opacity(0.15))
+                    .clipShape(Capsule())
+
+                Image(systemName: "chevron.right")
+                    .font(.caption)
+                    .foregroundStyle(Color.mist.opacity(0.5))
+            }
+            .padding(.horizontal, 16)
+            .padding(.vertical, 10)
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel("\(species.name), \(species.scientificName)")
+    }
+
+    private var categoryIcon: String {
+        switch species.category {
+        case .fish: return "fish"
+        case .coral: return "leaf"
+        case .mammal: return "hare"
+        case .invertebrate: return "ant"
+        case .reptile: return "lizard"
+        }
+    }
+
+    private var categoryColor: Color {
+        switch species.category {
+        case .fish: return Color.lagoon
+        case .coral: return Color.coralRed
+        case .mammal: return Color.ocean
+        case .invertebrate: return Color.mist
+        case .reptile: return Color.seaGreen
         }
     }
 }

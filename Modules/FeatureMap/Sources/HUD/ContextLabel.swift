@@ -27,13 +27,13 @@ struct ContextLabel: View {
                 .padding(.vertical, 5)
                 .background(
                     Capsule()
-                        .fill(Color.glass)
+                        .fill(Color.trench)
                         .overlay(
                             Capsule()
-                                .stroke(Color.foam.opacity(0.1), lineWidth: 0.5)
+                                .stroke(Color.lagoon.opacity(0.4), lineWidth: 1)
                         )
                 )
-                .shadow(color: Color.black.opacity(0.1), radius: 2, y: 1)
+                .shadow(color: Color.black.opacity(0.3), radius: 6, y: 2)
                 .transition(.opacity.combined(with: .scale(scale: 0.9)))
         }
     }

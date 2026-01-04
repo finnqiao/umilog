@@ -25,11 +25,22 @@ public struct DiveMapAnnotation: Identifiable {
         case other = "Other"
     }
 
+    public enum SiteType: String {
+        case reef = "reef"
+        case wreck = "wreck"
+        case wall = "wall"
+        case cave = "cave"
+        case shore = "shore"
+        case drift = "drift"
+        case generic = "generic"
+    }
+
     public let id: String
     public let coordinate: CLLocationCoordinate2D
     public let kind: Kind
     public let status: Status
     public let difficulty: Difficulty
+    public let siteType: SiteType
     public let visited: Bool
     public let wishlist: Bool
     public let isSelected: Bool
@@ -40,6 +51,7 @@ public struct DiveMapAnnotation: Identifiable {
         kind: Kind,
         status: Status,
         difficulty: Difficulty,
+        siteType: SiteType = .generic,
         visited: Bool,
         wishlist: Bool,
         isSelected: Bool
@@ -49,6 +61,7 @@ public struct DiveMapAnnotation: Identifiable {
         self.kind = kind
         self.status = status
         self.difficulty = difficulty
+        self.siteType = siteType
         self.visited = visited
         self.wishlist = wishlist
         self.isSelected = isSelected
@@ -61,6 +74,7 @@ extension DiveMapAnnotation: Equatable {
         lhs.kind == rhs.kind &&
         lhs.status == rhs.status &&
         lhs.difficulty == rhs.difficulty &&
+        lhs.siteType == rhs.siteType &&
         lhs.visited == rhs.visited &&
         lhs.wishlist == rhs.wishlist &&
         lhs.isSelected == rhs.isSelected &&
@@ -101,15 +115,32 @@ extension DiveMapCamera: Equatable {
     }
 }
 
+/// Map style mode for switching between dark (underwater) and light (daylight) themes.
+public enum MapStyleMode: String {
+    case underwater  // Dark theme, default
+    case daylight    // High-contrast light theme for outdoor visibility
+}
+
 public final class MapVC: UIViewController, MLNMapViewDelegate, UIGestureRecognizerDelegate {
     private var map: MLNMapView!
     private let fallbackBackground = UIView()
     private let logger = Logger(subsystem: "app.umilog", category: "DiveMap")
     private var didFallbackToOfflineStyle = false
+    // NOTE: MapLibre has rendering issues on iOS 18 simulator. Using MapKit instead.
+    // These style URLs are kept for future use when MapLibre is fixed.
     private lazy var primaryStyleURL: URL? = Bundle.main.url(forResource: "umilog_underwater", withExtension: "json")
+    private lazy var daylightStyleURL: URL? = Bundle.main.url(forResource: "umilog_daylight", withExtension: "json")
     private lazy var offlineStyleURL: URL? = Bundle.main.url(forResource: "dive_offline", withExtension: "json")
     private var hasAttemptedPrimarySwitch = false
     private let vectorTileTemplates = ["https://demotiles.maplibre.org/tiles/tiles/{z}/{x}/{y}.pbf"]
+
+    /// Current map style mode (underwater or daylight).
+    public var styleMode: MapStyleMode = .underwater {
+        didSet {
+            guard oldValue != styleMode, map != nil else { return }
+            switchToStyle(for: styleMode)
+        }
+    }
 
     // Runtime callbacks
     public var onSelectAnnotation: ((String) -> Void)?
@@ -155,8 +186,8 @@ public final class MapVC: UIViewController, MLNMapViewDelegate, UIGestureRecogni
         super.viewDidLoad()
         logger.log("mapvc_viewdidload")
         
-        // Placeholder background while style loads - dark blue to match underwater theme
-        fallbackBackground.backgroundColor = UIColor(red: 0.04, green: 0.09, blue: 0.16, alpha: 1.0)
+        // Placeholder background while style loads - ocean blue to match underwater theme
+        fallbackBackground.backgroundColor = UIColor(red: 0.04, green: 0.14, blue: 0.26, alpha: 1.0)
         view.addSubview(fallbackBackground)
         let w = view.bounds.size.width
         let h = view.bounds.size.height
@@ -172,10 +203,13 @@ public final class MapVC: UIViewController, MLNMapViewDelegate, UIGestureRecogni
         map = MLNMapView(frame: view.bounds, styleURL: initialURL)
         map.autoresizingMask = [.flexibleWidth, .flexibleHeight]
         map.backgroundColor = fallbackBackground.backgroundColor
+        map.isOpaque = true
+        map.layer.isOpaque = true
         map.logoView.isHidden = true
         map.attributionButton.isHidden = true
         map.automaticallyAdjustsContentInset = false
         map.delegate = self
+        logger.log("map_created: frame=\(self.view.bounds.width, privacy: .public)x\(self.view.bounds.height, privacy: .public) opaque=\(self.map.isOpaque, privacy: .public)")
         
         // Enable gestures for zoom/pan
         map.allowsZooming = true
@@ -195,10 +229,10 @@ public final class MapVC: UIViewController, MLNMapViewDelegate, UIGestureRecogni
             automaticallyAdjustsScrollViewInsets = false
         }
 
-        // Set initial camera (world view showing dive regions - land visible, not empty ocean)
+        // Set initial camera - default to Phuket (smart camera will reposition based on data)
         let camera = initialCamera ?? DiveMapCamera(
-            center: CLLocationCoordinate2D(latitude: 15.0, longitude: 0.0),
-            zoomLevel: 2.5
+            center: CLLocationCoordinate2D(latitude: 8.0, longitude: 98.3),
+            zoomLevel: 8.0
         )
         map.setCenter(camera.center, zoomLevel: camera.zoomLevel, animated: false)
         logger.log("camera_set lat=\(camera.center.latitude, privacy: .public) lon=\(camera.center.longitude, privacy: .public) zoom=\(camera.zoomLevel, privacy: .public)")
@@ -241,7 +275,7 @@ public final class MapVC: UIViewController, MLNMapViewDelegate, UIGestureRecogni
     // MARK: - MLNMapViewDelegate
 
     public func mapView(_ mapView: MLNMapView, didFinishLoading style: MLNStyle) {
-        logger.log("style_loaded")
+        logger.log("style_loaded: name=\(style.name ?? "unknown", privacy: .public) layers=\(style.layers.count, privacy: .public) sources=\(style.sources.count, privacy: .public)")
         configureStyle(style)
         styleIsReady = true
         updateAnnotationsIfReady()
@@ -326,12 +360,46 @@ public final class MapVC: UIViewController, MLNMapViewDelegate, UIGestureRecogni
 
     // MARK: - Private Helpers
 
+    private func switchToStyle(for mode: MapStyleMode) {
+        let styleURL: URL?
+        switch mode {
+        case .underwater:
+            styleURL = primaryStyleURL
+            fallbackBackground.backgroundColor = UIColor(red: 0.04, green: 0.14, blue: 0.26, alpha: 1.0)
+        case .daylight:
+            styleURL = daylightStyleURL
+            fallbackBackground.backgroundColor = UIColor(red: 0.84, green: 0.92, blue: 0.97, alpha: 1.0)
+        }
+
+        guard let url = styleURL else {
+            logger.error("style_switch_failed: missing style for \(mode.rawValue, privacy: .public)")
+            return
+        }
+
+        styleIsReady = false
+        map.styleURL = url
+        map.backgroundColor = fallbackBackground.backgroundColor
+        logger.log("style_switch mode=\(mode.rawValue, privacy: .public)")
+    }
+
     private func configureStyle(_ style: MLNStyle) {
         logger.log("configureStyle: starting with layers=\(style.layers.count, privacy: .public) sources=\(style.sources.count, privacy: .public)")
+
+        registerIcons(in: style)
         ensureBaseLayers(in: style)
         ensureDataSources(in: style)
         ensureOverlayLayers(in: style)
+
         logger.log("configureStyle: complete with layers=\(style.layers.count, privacy: .public) sources=\(style.sources.count, privacy: .public)")
+    }
+
+    private func registerIcons(in style: MLNStyle) {
+        let renderer = MapIconRenderer()
+        let icons = renderer.prerenderAllIcons()
+        for (name, image) in icons {
+            style.setImage(image, forName: name)
+        }
+        logger.log("icons_registered: \(icons.count, privacy: .public) icons")
     }
 
     private func ensureDataSources(in style: MLNStyle) {
@@ -342,17 +410,11 @@ public final class MapVC: UIViewController, MLNMapViewDelegate, UIGestureRecogni
 
         if siteSource == nil {
             let empty = MLNShapeCollectionFeature(shapes: [])
-            // CUSTOMIZE: Edit MapTheme.Clustering to change clustering behavior
-            let clusterRadius = MapTheme.Clustering.clusterRadius
-            let maxClusterZoom = MapTheme.Clustering.maxClusterZoom
-            let sites = MLNShapeSource(identifier: "sites", shape: empty, options: [
-                .clustered: true as NSNumber,
-                .clusterRadius: clusterRadius as NSNumber,
-                .maximumZoomLevelForClustering: maxClusterZoom as NSNumber
-            ])
+            // TEMPORARILY disable clustering to debug rendering
+            let sites = MLNShapeSource(identifier: "sites", shape: empty, options: nil)
             style.addSource(sites)
             siteSource = sites
-            logger.log("source_added: sites with clustering radius=\(clusterRadius, privacy: .public) maxZoom=\(maxClusterZoom, privacy: .public)")
+            logger.log("source_added: sites WITHOUT clustering (debugging)")
         }
     }
 
@@ -375,17 +437,8 @@ public final class MapVC: UIViewController, MLNMapViewDelegate, UIGestureRecogni
             cluster.circleStrokeColor = NSExpression(forConstantValue: clusterStroke.withAlphaComponent(0.95))
             cluster.circleStrokeWidth = NSExpression(forConstantValue: MapTheme.Sizing.clusterStrokeWidth)
 
-            // Data-driven radius based on point_count (larger clusters = bigger circles)
-            // Uses interpolation: 2 sites = 18pt, 10 = 22pt, 50 = 28pt, 100+ = 34pt
-            let clusterRadiusExpression = NSExpression(format: """
-                mgl_interpolate:withCurveType:parameters:stops:(point_count, 'linear', nil, %@)
-                """, [
-                    2: 18,
-                    10: 22,
-                    50: 28,
-                    100: 34
-                ])
-            cluster.circleRadius = clusterRadiusExpression
+            // Static cluster radius - iOS 18+ blocks mgl_interpolate NSExpression functions
+            cluster.circleRadius = NSExpression(forConstantValue: 24)
             cluster.isVisible = true
             style.addLayer(cluster)
         }
@@ -405,22 +458,16 @@ public final class MapVC: UIViewController, MLNMapViewDelegate, UIGestureRecogni
 
         // MARK: - Status Glows
         // CUSTOMIZE: Status glow colors from MapTheme.Colors
+        // NOTE: Use "cluster != TRUE OR cluster == NIL" to handle features without cluster attribute
         let glowSpecs: [(String, NSPredicate, UIColor)] = [
-            ("site-glow-logged", NSPredicate(format: "cluster != YES AND status == %@", DiveMapAnnotation.Status.logged.rawValue), MapTheme.Colors.logged.withAlphaComponent(0.28)),
-            ("site-glow-saved", NSPredicate(format: "cluster != YES AND status == %@", DiveMapAnnotation.Status.saved.rawValue), MapTheme.Colors.saved.withAlphaComponent(0.26)),
-            ("site-glow-planned", NSPredicate(format: "cluster != YES AND status == %@", DiveMapAnnotation.Status.planned.rawValue), MapTheme.Colors.planned.withAlphaComponent(0.28)),
-            ("site-glow-default", NSPredicate(format: "cluster != YES AND (status == %@ OR status == NULL)", DiveMapAnnotation.Status.baseline.rawValue), MapTheme.Colors.defaultGlow)
+            ("site-glow-logged", NSPredicate(format: "(cluster != TRUE OR cluster == NIL) AND status == %@", DiveMapAnnotation.Status.logged.rawValue), MapTheme.Colors.logged.withAlphaComponent(0.28)),
+            ("site-glow-saved", NSPredicate(format: "(cluster != TRUE OR cluster == NIL) AND status == %@", DiveMapAnnotation.Status.saved.rawValue), MapTheme.Colors.saved.withAlphaComponent(0.26)),
+            ("site-glow-planned", NSPredicate(format: "(cluster != TRUE OR cluster == NIL) AND status == %@", DiveMapAnnotation.Status.planned.rawValue), MapTheme.Colors.planned.withAlphaComponent(0.28)),
+            ("site-glow-default", NSPredicate(format: "(cluster != TRUE OR cluster == NIL) AND (status == %@ OR status == NIL)", DiveMapAnnotation.Status.baseline.rawValue), MapTheme.Colors.defaultGlow)
         ]
 
-        // Zoom-responsive glow radius (scales with marker size)
-        let glowRadiusExpression = NSExpression(format: """
-            mgl_interpolate:withCurveType:parameters:stops:($zoomLevel, 'linear', nil, %@)
-            """, [
-                3: 10,
-                8: 14,
-                12: 20,
-                16: 28
-            ])
+        // Static glow radius - iOS 18+ blocks mgl_interpolate NSExpression functions
+        let glowRadiusExpression = NSExpression(forConstantValue: 16)
 
         var insertionReference: MLNStyleLayer? = style.layer(withIdentifier: "site-cluster-count")
         for spec in glowSpecs {
@@ -443,24 +490,17 @@ public final class MapVC: UIViewController, MLNMapViewDelegate, UIGestureRecogni
 
         // MARK: - Difficulty Markers
         // CUSTOMIZE: Difficulty colors from MapTheme.Colors
+        // NOTE: Use "cluster != TRUE OR cluster == NIL" to handle features without cluster attribute
         let difficultySpecs: [(String, NSPredicate, UIColor)] = [
-            ("site-layer-beginner", NSPredicate(format: "cluster != YES AND difficulty == %@", DiveMapAnnotation.Difficulty.beginner.rawValue), MapTheme.Colors.beginner),
-            ("site-layer-intermediate", NSPredicate(format: "cluster != YES AND difficulty == %@", DiveMapAnnotation.Difficulty.intermediate.rawValue), MapTheme.Colors.intermediate),
-            ("site-layer-advanced", NSPredicate(format: "cluster != YES AND difficulty == %@", DiveMapAnnotation.Difficulty.advanced.rawValue), MapTheme.Colors.advanced),
-            ("site-layer-expert", NSPredicate(format: "cluster != YES AND difficulty == %@", DiveMapAnnotation.Difficulty.expert.rawValue), MapTheme.Colors.expert),
-            ("site-layer-default", NSPredicate(format: "cluster != YES AND (difficulty == %@ OR difficulty == NULL)", DiveMapAnnotation.Difficulty.other.rawValue), MapTheme.Colors.default)
+            ("site-layer-beginner", NSPredicate(format: "(cluster != TRUE OR cluster == NIL) AND difficulty == %@", DiveMapAnnotation.Difficulty.beginner.rawValue), MapTheme.Colors.beginner),
+            ("site-layer-intermediate", NSPredicate(format: "(cluster != TRUE OR cluster == NIL) AND difficulty == %@", DiveMapAnnotation.Difficulty.intermediate.rawValue), MapTheme.Colors.intermediate),
+            ("site-layer-advanced", NSPredicate(format: "(cluster != TRUE OR cluster == NIL) AND difficulty == %@", DiveMapAnnotation.Difficulty.advanced.rawValue), MapTheme.Colors.advanced),
+            ("site-layer-expert", NSPredicate(format: "(cluster != TRUE OR cluster == NIL) AND difficulty == %@", DiveMapAnnotation.Difficulty.expert.rawValue), MapTheme.Colors.expert),
+            ("site-layer-default", NSPredicate(format: "(cluster != TRUE OR cluster == NIL) AND (difficulty == %@ OR difficulty == NIL)", DiveMapAnnotation.Difficulty.other.rawValue), MapTheme.Colors.default)
         ]
 
-        // Zoom-responsive marker radius: small dots at low zoom, larger at high zoom
-        // zoom 3 = 4pt (tiny dots), zoom 8 = 6pt, zoom 12 = 9pt, zoom 16 = 14pt (tappable)
-        let markerRadiusExpression = NSExpression(format: """
-            mgl_interpolate:withCurveType:parameters:stops:($zoomLevel, 'linear', nil, %@)
-            """, [
-                3: 4,
-                8: 6,
-                12: 9,
-                16: 14
-            ])
+        // Static marker radius - iOS 18+ blocks mgl_interpolate NSExpression functions
+        let markerRadiusExpression = NSExpression(forConstantValue: 8)
 
         var lastLayer: MLNStyleLayer? = insertionReference
         for spec in difficultySpecs {
@@ -483,15 +523,8 @@ public final class MapVC: UIViewController, MLNMapViewDelegate, UIGestureRecogni
         }
 
         // MARK: - Selection Highlight
-        // Zoom-responsive selection radius (slightly larger than marker)
-        let selectionRadiusExpression = NSExpression(format: """
-            mgl_interpolate:withCurveType:parameters:stops:($zoomLevel, 'linear', nil, %@)
-            """, [
-                3: 6,
-                8: 9,
-                12: 14,
-                16: 18
-            ])
+        // Static selection radius - iOS 18+ blocks mgl_interpolate NSExpression functions
+        let selectionRadiusExpression = NSExpression(forConstantValue: 12)
 
         if style.layer(withIdentifier: "site-selected") == nil {
             let selected = MLNCircleStyleLayer(identifier: "site-selected", source: siteSource)
@@ -601,6 +634,18 @@ public final class MapVC: UIViewController, MLNMapViewDelegate, UIGestureRecogni
         }
 
         logger.log("updateAnnotationsIfReady: updating \(self.annotations.count, privacy: .public) annotations")
+
+        // DEBUG: Log difficulty distribution
+        var diffCounts: [String: Int] = [:]
+        for a in annotations.prefix(1000) {
+            diffCounts[a.difficulty.rawValue, default: 0] += 1
+        }
+        for (diff, count) in diffCounts {
+            logger.log("  difficulty '\(diff, privacy: .public)': \(count, privacy: .public) annotations")
+        }
+        if let first = annotations.first {
+            logger.log("  first annotation: id=\(first.id, privacy: .public) lat=\(first.coordinate.latitude, privacy: .public) lon=\(first.coordinate.longitude, privacy: .public) difficulty=\(first.difficulty.rawValue, privacy: .public)")
+        }
         pendingStyleWork?.cancel()
         let work = DispatchWorkItem { [weak self] in
             guard let self else { return }
@@ -612,6 +657,7 @@ public final class MapVC: UIViewController, MLNMapViewDelegate, UIGestureRecogni
                     "kind": annotation.kind.rawValue,
                     "status": annotation.status.rawValue,
                     "difficulty": annotation.difficulty.rawValue,
+                    "siteType": annotation.siteType.rawValue,
                     "visited": annotation.visited ? 1 : 0,
                     "wishlist": annotation.wishlist ? 1 : 0,
                     "selected": annotation.isSelected ? 1 : 0,
@@ -619,9 +665,37 @@ public final class MapVC: UIViewController, MLNMapViewDelegate, UIGestureRecogni
                 ]
                 return feature
             }
-            let collection = MLNShapeCollectionFeature(shapes: features)
-            siteSource.shape = collection
-            logger.log("source_updated: \(features.count, privacy: .public) features in collection")
+            // IMPORTANT: Setting .shape doesn't update layers for clustered sources
+            // We need to recreate the source with features in the constructor
+            if let style = self.map.style {
+                // Remove old layers that use this source
+                let layersToRemove = [
+                    "site-cluster", "site-cluster-count",
+                    "site-glow-logged", "site-glow-saved", "site-glow-planned", "site-glow-default",
+                    "site-layer-beginner", "site-layer-intermediate", "site-layer-advanced",
+                    "site-layer-expert", "site-layer-default", "site-selected"
+                ]
+                for layerId in layersToRemove {
+                    if let layer = style.layer(withIdentifier: layerId) {
+                        style.removeLayer(layer)
+                    }
+                }
+
+                // Remove old source
+                if let oldSource = style.source(withIdentifier: "sites") {
+                    style.removeSource(oldSource)
+                }
+
+                // Create new source with features (not setting .shape later)
+                let newSource = MLNShapeSource(identifier: "sites", features: features, options: nil)
+                style.addSource(newSource)
+                self.siteSource = newSource
+
+                // Re-add the overlay layers
+                self.ensureOverlayLayers(in: style)
+
+                self.logger.log("source_recreated: \(features.count, privacy: .public) features")
+            }
 
             self.logger.log("annotations_applied count=\(self.annotations.count, privacy: .public)")
 

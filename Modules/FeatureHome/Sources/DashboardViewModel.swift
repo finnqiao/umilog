@@ -1,6 +1,8 @@
 import Foundation
 import SwiftUI
 import UmiDB
+import UmiCoreKit
+import os
 
 @MainActor
 public class DashboardViewModel: ObservableObject {
@@ -28,10 +30,11 @@ public class DashboardViewModel: ObservableObject {
             // Load recent dives
             recentDives = try database.diveRepository.fetchRecent(limit: 5)
             
-            print("📊 Loaded stats: \(stats.totalDives) dives")
+            let totalDives = stats.totalDives
+            Log.app.debug("Loaded stats: \(totalDives) dives")
         } catch {
             self.error = "Failed to load data: \(error.localizedDescription)"
-            print("❌ Error loading data: \(error)")
+            Log.app.error("Error loading data: \(error.localizedDescription)")
         }
     }
     

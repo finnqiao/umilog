@@ -1,0 +1,900 @@
+bucket,scientific_name,common_name,description
+Common,Mugil incilis,Parassi mullet,"Parassi mullet, Stripped mullet: marine fish with typical reef fish body shape, scales, and fins"
+Common,Carcharhinus melanopterus,Blacktip Reef Shark,"Blacktip Reef Shark, Blacktip Shark: sleek grey shark with streamlined body, white underside, prominent dorsal fin, dark eyes"
+Common,Penaeus notialis,southern pink shrimp,southern pink shrimp: marine invertebrate found on coral reefs
+Common,Callinectes bocourti,Blunttooth swimcrab,"Blunttooth swimcrab: swimming crab with paddle-shaped rear legs, broad carapace"
+Common,Thalassoma bifasciatum,Bluehead,"Bluehead: elongated colorful fish with thick lips, continuous dorsal fin, often with intricate patterns"
+Common,Carcharhinus amblyrhynchos,Grey Shark,"Grey Shark, Blacktail reef shark, Grey reef shark: sleek grey shark with streamlined body, white underside, prominent dorsal fin, dark eyes"
+Common,Callinectes sapidus,American Blue Crab,"American Blue Crab: swimming crab with paddle-shaped rear legs, broad carapace"
+Common,Scarus iseri,Striped parrotfish,"Striped parrotfish: robust colorful fish with fused beak-like teeth, often blue, green, or pink coloring"
+Common,Sparisoma aurofrenatum,Redband parrotfish,"Redband parrotfish: robust colorful fish with fused beak-like teeth, often blue, green, or pink coloring"
+Common,Ocyurus chrysurus,yellowtail snapper,"yellowtail snapper: medium-sized fish with sloping head profile, often reddish or yellowish, forked tail"
+Common,Stegastes partitus,Bicolor Damselfish,"Bicolor Damselfish: small oval-shaped fish, often brightly colored, territorial behavior near coral"
+Common,Oligoplites saurus,Leatherjack,"Leatherjack, Leatherjacket: powerful silvery fish with forked tail, streamlined body, large eyes"
+Common,Acanthurus coeruleus,Blue Barber,"Blue Barber: oval compressed fish with small mouth, often blue or yellow, scalpel-like spine near tail"
+Common,Halichoeres bivittatus,Slippery Dick,"Slippery Dick: elongated colorful fish with thick lips, continuous dorsal fin, often with intricate patterns"
+Common,Halichoeres garnoti,Yellowhead Wrasse,"Yellowhead Wrasse: elongated colorful fish with thick lips, continuous dorsal fin, often with intricate patterns"
+Common,Acanthurus bahianus,Barber,"Barber: oval compressed fish with small mouth, often blue or yellow, scalpel-like spine near tail"
+Common,Haemulon plumierii,White grunt,"White grunt: oval fish with thick lips, often silvery with stripes, named for grunting sounds"
+Common,Sparisoma viride,Stoplight parrotfish,"Stoplight parrotfish: robust colorful fish with fused beak-like teeth, often blue, green, or pink coloring"
+Common,Caretta caretta,loggerhead sea turtle,"loggerhead sea turtle: large sea turtle with heart-shaped shell, non-retractable flippers, rounded head"
+Common,Caranx hippos,Black Cavalli,"Black Cavalli: powerful silvery fish with forked tail, streamlined body, large eyes"
+Common,Mugil liza,Lebranche mullet,"Lebranche mullet: marine fish with typical reef fish body shape, scales, and fins"
+Common,Penaeus schmitti,southern white shrimp,southern white shrimp: marine invertebrate found on coral reefs
+Common,Plectropomus leopardus,Leopard coralgrouper,"Leopard coralgrouper: robust stocky fish with large mouth, mottled coloring, heavy body"
+Common,Chelonia mydas,green turtle,"large sea turtle with olive-brown heart-shaped shell, pale plastron, serrated beak, approximately 1m long"
+Common,Carcharhinus leucas,Bull shark,"Bull shark: sleek grey shark with streamlined body, white underside, prominent dorsal fin, dark eyes"
+Common,Galeocerdo cuvier,Tiger shark,"tiger shark with dark vertical stripes on grey body, broad flat head, serrated teeth"
+Uncommon,Siganus rivulatus,Marbled spinefoot,"Marbled spinefoot: marine fish with typical reef fish body shape, scales, and fins"
+Uncommon,Megaptera novaeangliae,humpback whale,"massive humpback whale with long white flippers, knobby head, pleated throat, barnacles on skin"
+Uncommon,Octopus vulgaris,Common Octopus,"large octopus with reddish-brown mottled skin, eight arms with suckers, large intelligent eyes with horizontal pupils"
+Uncommon,Panulirus argus,Bermuda lobster,"large spiny lobster with reddish-brown carapace, extremely long antennae, no claws, white spots on segmented tail"
+Uncommon,Kyphosus vaigiensis,Lowfin Chub,"Lowfin Chub, Brassy chub: marine fish with typical reef fish body shape, scales, and fins"
+Uncommon,Rhinogobius brunneus,Amur goby,"Amur goby: small bottom-dwelling fish with fused pelvic fins forming suction disc, large head"
+Uncommon,Carcharhinus albimarginatus,Silvertip Shark,"Silvertip Shark: sleek grey shark with streamlined body, white underside, prominent dorsal fin, dark eyes"
+Uncommon,Carcharhinus limbatus,Blacktip Shark,"Blacktip Shark, Blackfin Shark: sleek grey shark with streamlined body, white underside, prominent dorsal fin, dark eyes"
+Uncommon,Scarus rivulatus,Surf parrotfish,"Surf parrotfish: robust colorful fish with fused beak-like teeth, often blue, green, or pink coloring"
+Uncommon,Carcharhinus amboinensis,pigeye shark,"pigeye shark: sleek grey shark with streamlined body, white underside, prominent dorsal fin, dark eyes"
+Uncommon,Sepia officinalis,Common Cuttlefish,"Common Cuttlefish: cuttlefish with W-shaped pupils, undulating fin fringe, eight arms plus two tentacles"
+Uncommon,Lethrinus nebulosus,Spangled emperor,"Spangled emperor: marine fish with typical reef fish body shape, scales, and fins"
+Uncommon,Penaeus duorarum,northern pink shrimp,northern pink shrimp: marine invertebrate found on coral reefs
+Uncommon,Sphyrna mokarran,Great Hammerhead Shark,"Great Hammerhead Shark: distinctive hammer-shaped head with eyes at tips, grey body, tall dorsal fin"
+Uncommon,Lethrinus miniatus,Trumpet emperor,"Trumpet emperor: marine fish with typical reef fish body shape, scales, and fins"
+Uncommon,Aliger gigas,Queen conch,Queen conch: marine invertebrate found on coral reefs
+Uncommon,Plectropomus maculatus,Spotted coralgrouper,"Spotted coralgrouper: robust stocky fish with large mouth, mottled coloring, heavy body"
+Uncommon,Carcharhinus fitzroyensis,creek whaler,"creek whaler: sleek grey shark with streamlined body, white underside, prominent dorsal fin, dark eyes"
+Uncommon,Siganus doliatus,Barred spinefoot,"Barred spinefoot: marine fish with typical reef fish body shape, scales, and fins"
+Uncommon,Loligo vulgaris,Common Squid,"Common Squid: torpedo-shaped squid with triangular fins, ten arms, large eyes"
+Uncommon,Dugong dugon,Dugong mudip,Dugong mudip: marine mammal with streamlined body for ocean life
+Uncommon,Mobula alfredi,Reef Manta Ray,"Reef Manta Ray, Alfred manta, Inshore manta ray, Prince Alfred’s ray: ray with broad triangular wings, pronounced head, long whip tail with spine"
+Rare,Panulirus guttatus,spotted spiny lobster,"spotted spiny lobster: spiny lobster with long antennae, no large claws, segmented tail, armored body"
+Rare,Acanthochromis polyacanthus,Spiny chromis,"Spiny chromis: small oval-shaped fish, often brightly colored, territorial behavior near coral"
+Rare,Peltodoris atromaculata,Dotted sea slug,"Dotted sea slug, Sea cow, Cow snail: marine invertebrate found on coral reefs"
+Rare,Chamelea gallina,Striped Venus Clam,Striped Venus Clam: marine invertebrate found on coral reefs
+Rare,Triaenodon obesus,Whitetip Shark,"Whitetip Shark, Whitetip reef shark: sleek grey shark with streamlined body, white underside, prominent dorsal fin, dark eyes"
+Rare,Pomacentrus moluccensis,Lemon damsel,"Lemon damsel: small oval-shaped fish, often brightly colored, territorial behavior near coral"
+Rare,Hexaplex trunculus,banded dye-murex,banded dye-murex: marine invertebrate found on coral reefs
+Rare,Caranx ignobilis,Giant Jack,"Giant Jack, Giant trevally: powerful silvery fish with forked tail, streamlined body, large eyes"
+Rare,Lutjanus argentimaculatus,Mangrove red snapper,"Mangrove red snapper: medium-sized fish with sloping head profile, often reddish or yellowish, forked tail"
+Rare,Rhizoprionodon taylori,Australian sharpnose shark,"Australian sharpnose shark: sleek grey shark with streamlined body, white underside, prominent dorsal fin, dark eyes"
+Rare,Pinna nobilis,fan mussel,fan mussel: marine invertebrate found on coral reefs
+Rare,Cuapetes americanus,American grass shrimp,"American grass shrimp: translucent shrimp with long antennae, often with colored markings"
+Rare,Flabellina affinis,Mediterranean violet aeolid,Mediterranean violet aeolid: marine invertebrate found on coral reefs
+Rare,Chione elevata,Elevata,Elevata: marine invertebrate found on coral reefs
+Rare,Chione cancellata,Cross-Barred Venus,Cross-Barred Venus: marine invertebrate found on coral reefs
+Rare,Tridentiger brevispinis,Brevispinis,"Brevispinis: small bottom-dwelling fish with fused pelvic fins forming suction disc, large head"
+Rare,Mugil cephalus,Black Mullet,"Black Mullet: marine fish with typical reef fish body shape, scales, and fins"
+Rare,Argopecten gibbus,Atlantic Calico Scallop,Atlantic Calico Scallop: marine invertebrate found on coral reefs
+Rare,Ancylomenes pedersoni,anemone cleaner shrimp,"anemone cleaner shrimp: translucent shrimp with long antennae, often with colored markings"
+Rare,Stramonita haemastoma,Florida Rocksnail,Florida Rocksnail: marine invertebrate found on coral reefs
+Rare,Trachemys scripta,slider,slider: marine reptile with flippers adapted for swimming
+Rare,Venus verrucosa,clam,clam: marine invertebrate found on coral reefs
+Rare,Ruditapes philippinarum,Manila Clam,Manila Clam: marine invertebrate found on coral reefs
+Rare,Grapsus grapsus,Sally Lightfoot Crab,Sally Lightfoot Crab: marine invertebrate found on coral reefs
+Rare,Bolinus brandaris,dye murex,dye murex: marine invertebrate found on coral reefs
+Rare,Mimachlamys varia,Variegated Scallop,Variegated Scallop: marine invertebrate found on coral reefs
+Rare,Strombus pugilis,West Indian Fighting Conch,West Indian Fighting Conch: marine invertebrate found on coral reefs
+Rare,Reishia clavigera,Clavigera,Clavigera: marine invertebrate found on coral reefs
+Rare,Pteria colymbus,Atlantic Wing Oyster,Atlantic Wing Oyster: marine invertebrate found on coral reefs
+Rare,Felimare tricolor,tricolor doris,"tricolor doris: soft-bodied sea slug with vibrant colors, rhinophores on head, feathery gills on back"
+Rare,Macrostrombus costatus,milk conch,milk conch: marine invertebrate found on coral reefs
+Rare,Phyllonotus pomum,apple murex,apple murex: marine invertebrate found on coral reefs
+Rare,Coralliophila salebrosa,Caribbean Coralsnail,Caribbean Coralsnail: marine invertebrate found on coral reefs
+Rare,Phyllidia varicosa,Variable Wart Slug,"Variable Wart Slug: rounded nudibranch with tubercles on back, often black and pink or yellow patterns"
+Rare,Mercenaria campechiensis,Südliche Quahog-Muschel,Südliche Quahog-Muschel: marine invertebrate found on coral reefs
+Rare,Conus ventricosus,Mediterranean cone,Mediterranean cone: marine invertebrate found on coral reefs
+Rare,Edmundsella pedata,violet sea slug,violet sea slug: marine invertebrate found on coral reefs
+Rare,Stramonita rustica,Rustic Rocksnail,Rustic Rocksnail: marine invertebrate found on coral reefs
+Rare,Callista chione,Smooth Venus,Smooth Venus: marine invertebrate found on coral reefs
+Rare,Urocaris longicaudata,longtail grass shrimp,"longtail grass shrimp: translucent shrimp with long antennae, often with colored markings"
+Rare,Ruditapes decussatus,Chequered carpet shell,"Chequered carpet shell, Cross-cut carpet shell: marine invertebrate found on coral reefs"
+Rare,Felimare picta,giant doris,"giant doris: soft-bodied sea slug with vibrant colors, rhinophores on head, feathery gills on back"
+Rare,Amphiprion bicinctus,Twoband anemonefish,"Twoband anemonefish: small oval-shaped fish, often brightly colored, territorial behavior near coral"
+Rare,Loligo forbesii,veined squid,"veined squid: torpedo-shaped squid with triangular fins, ten arms, large eyes"
+Rare,Strombus alatus,Florida fighting conch,Florida fighting conch: marine invertebrate found on coral reefs
+Rare,Pseudanthias squamipinnis,Sea goldie,"Sea goldie: robust stocky fish with large mouth, mottled coloring, heavy body"
+Rare,Portunus pelagicus,blue swimming crab,"blue swimming crab: swimming crab with paddle-shaped rear legs, broad carapace"
+Rare,Dosinia lupinus,Smooth Artemis,Smooth Artemis: marine invertebrate found on coral reefs
+Rare,Megapitaria maculata,Calico Clam,Calico Clam: marine invertebrate found on coral reefs
+Rare,Reishia luteostoma,Luteostoma,Luteostoma: marine invertebrate found on coral reefs
+Rare,Taeniura lymma,Bluespotted ribbontail ray,"Bluespotted ribbontail ray, Ribbontail stingray: flat diamond-shaped ray with whip-like tail, smooth body, spiracles behind eyes"
+Rare,Conus spurius,alphabet cone,alphabet cone: marine invertebrate found on coral reefs
+Rare,Polititapes aureus,golden carpet shell,golden carpet shell: marine invertebrate found on coral reefs
+Rare,Timoclea ovata,oval venus,oval venus: marine invertebrate found on coral reefs
+Rare,Phyllidiella pustulosa,Warty Wart Slug,"Warty Wart Slug: rounded nudibranch with tubercles on back, often black and pink or yellow patterns"
+Rare,Macrocallista nimbosa,sunray venus,sunray venus: marine invertebrate found on coral reefs
+Rare,Lindapecten muscosus,rough scallop,rough scallop: marine invertebrate found on coral reefs
+Rare,Pterois miles,Miles' firefish,"Miles' firefish: heavily camouflaged fish with venomous spines, elaborate fin rays, mottled coloring"
+Rare,Penaeus monodon,Asian tiger shrimp,Asian tiger shrimp: marine invertebrate found on coral reefs
+Rare,Chicoreus florifer,flowery lace murex,flowery lace murex: marine invertebrate found on coral reefs
+Rare,Gymnothorax javanicus,Giant Moray,"massive moray eel with leopard-like dark brown spots on tan body, constantly gaping mouth, small eyes"
+Rare,Conasprella jaspidea,Jasper Cone,Jasper Cone: marine invertebrate found on coral reefs
+Rare,Monetaria annulus,ring cowrie,ring cowrie: marine invertebrate found on coral reefs
+Rare,Cypraea tigris,tiger cowrie,tiger cowrie: marine invertebrate found on coral reefs
+Rare,Rhombosepion elegans,elegant cuttlefish,"elegant cuttlefish: cuttlefish with W-shaped pupils, undulating fin fringe, eight arms plus two tentacles"
+Rare,Heniochus intermedius,Red Sea bannerfish,"Red Sea bannerfish: disc-shaped fish with pointed snout, bold stripes or spots, often yellow and white coloring"
+Rare,Zebrasoma desjardinii,ringed tang,"ringed tang: oval compressed fish with small mouth, often blue or yellow, scalpel-like spine near tail"
+Rare,Pygoplites diacanthus,Regal angelfish,"Regal angelfish, Royal angelfish: laterally compressed fish with vivid colors, often with blue, yellow, or orange patterns, extended fins"
+Rare,Chromodoris annae,Annae,"Annae: soft-bodied sea slug with vibrant colors, rhinophores on head, feathery gills on back"
+Rare,Paracirrhites forsteri,Forster's Hawkfish,"Forster's Hawkfish, Blackside hawkfish: marine fish with typical reef fish body shape, scales, and fins"
+Rare,Chlorurus sordidus,Daisy parrotfish,"Daisy parrotfish: robust colorful fish with fused beak-like teeth, often blue, green, or pink coloring"
+Rare,Ascarosepion latimanus,Broadclub cuttlefish,"Broadclub cuttlefish: cuttlefish with W-shaped pupils, undulating fin fringe, eight arms plus two tentacles"
+Rare,Phyllidia ocellata,Ocellated Wart Slug,"Ocellated Wart Slug: rounded nudibranch with tubercles on back, often black and pink or yellow patterns"
+Rare,Octopus cyanea,Cyane's octopus,"Cyane's octopus: eight arms with suckers, large intelligent eyes, highly textured skin that changes color"
+Rare,Doriprismatica atromarginata,Atromarginata,"Atromarginata: soft-bodied sea slug with vibrant colors, rhinophores on head, feathery gills on back"
+Rare,Mauritia arabica,Arabian cowrie,Arabian cowrie: marine invertebrate found on coral reefs
+Rare,Erronea errones,mistaken cowrie,mistaken cowrie: marine invertebrate found on coral reefs
+Rare,Felimare orsinii,Orsinii,"Orsinii: soft-bodied sea slug with vibrant colors, rhinophores on head, feathery gills on back"
+Rare,Hypselodoris tryoni,Tryoni,"Tryoni: soft-bodied sea slug with vibrant colors, rhinophores on head, feathery gills on back"
+Rare,Thalassoma rueppellii,Klunzinger's wrasse,"Klunzinger's wrasse: elongated colorful fish with thick lips, continuous dorsal fin, often with intricate patterns"
+Rare,Paraflabellina ischitana,Ischitana,Ischitana: marine invertebrate found on coral reefs
+Rare,Rhombosepion orbignyanum,Orbigny's cuttlefish,"Orbigny's cuttlefish: cuttlefish with W-shaped pupils, undulating fin fringe, eight arms plus two tentacles"
+Rare,Pecten jacobaeus,St.James's scallop,St.James's scallop: marine invertebrate found on coral reefs
+Rare,Conus adversarius,Adversarius,Adversarius: marine invertebrate found on coral reefs
+Rare,Sepioteuthis sepioidea,Atlantic oval squid,"Atlantic oval squid: torpedo-shaped squid with triangular fins, ten arms, large eyes"
+Rare,Abudefduf vaigiensis,Damselfish,"Damselfish: small oval-shaped fish, often brightly colored, territorial behavior near coral"
+Rare,Rapana venosa,Mangrove oyster,Mangrove oyster: marine invertebrate found on coral reefs
+Rare,Chionopsis intapurpurea,Intapurpurea,Intapurpurea: marine invertebrate found on coral reefs
+Rare,Monomia rubromarginatus,Rubromarginatus,"Rubromarginatus: swimming crab with paddle-shaped rear legs, broad carapace"
+Rare,Chaetodon auriga,Threadfin Butterflyfish,"Threadfin Butterflyfish: disc-shaped fish with pointed snout, bold stripes or spots, often yellow and white coloring"
+Rare,Monetaria moneta,money cowrie,money cowrie: marine invertebrate found on coral reefs
+Rare,Conus scalaris,Scalaris,Scalaris: marine invertebrate found on coral reefs
+Rare,Fistularia commersonii,Cornetfish,"Cornetfish, Bluespotted cornetfish: marine fish with typical reef fish body shape, scales, and fins"
+Rare,Aequipecten opercularis,Queen Scallop,Queen Scallop: marine invertebrate found on coral reefs
+Rare,Spondylus gaederopus,European thorny oyster,European thorny oyster: marine invertebrate found on coral reefs
+Rare,Luria lurida,brown cowry,brown cowry: marine invertebrate found on coral reefs
+Rare,Acanthurus sohal,Red Sea surgeonfish,"Red Sea surgeonfish: oval compressed fish with small mouth, often blue or yellow, scalpel-like spine near tail"
+Rare,Dosinia concentrica,elegant dosinia,elegant dosinia: marine invertebrate found on coral reefs
+Rare,Cephalopholis argus,Bluespotted grouper,"Bluespotted grouper: robust stocky fish with large mouth, mottled coloring, heavy body"
+Rare,Ctenochaetus striatus,Striated surgeonfish,"Striated surgeonfish: oval compressed fish with small mouth, often blue or yellow, scalpel-like spine near tail"
+Rare,Arothron diadematus,masked puffer,"masked puffer: rounded fish that can inflate with water, beak-like fused teeth, often spotted"
+Rare,Pitar rudis,Rudis,Rudis: marine invertebrate found on coral reefs
+Rare,Nembrotha kubaryana,Trance Wrinkle Dorid,Trance Wrinkle Dorid: marine invertebrate found on coral reefs
+Rare,Pomacentrus sulfureus,sulphur damsel,"sulphur damsel: small oval-shaped fish, often brightly colored, territorial behavior near coral"
+Rare,Strombus floridanus,Floridanus,Floridanus: marine invertebrate found on coral reefs
+Rare,Lobatus raninus,hawkwing conch,hawkwing conch: marine invertebrate found on coral reefs
+Rare,Conus ebraeus,Hebrew cone,Hebrew cone: marine invertebrate found on coral reefs
+Rare,Cephalopholis miniata,Coral hind,"Coral hind, Vermilion seabas: robust stocky fish with large mouth, mottled coloring, heavy body"
+Rare,Lambis lambis,common spider conch,common spider conch: marine invertebrate found on coral reefs
+VeryRare,Conomurex persicus,Persicus,Persicus: marine invertebrate found on coral reefs
+VeryRare,Chaetodon fasciatus,diagonal butterflyfish,"diagonal butterflyfish: disc-shaped fish with pointed snout, bold stripes or spots, often yellow and white coloring"
+VeryRare,Phyllidia elegans,Elegans,"Elegans: rounded nudibranch with tubercles on back, often black and pink or yellow patterns"
+VeryRare,Vasula deltoidea,deltoid dog winkle,deltoid dog winkle: marine invertebrate found on coral reefs
+VeryRare,Ocenebra erinaceus,Oyster Drill,Oyster Drill: marine invertebrate found on coral reefs
+VeryRare,Flexopecten glaber,bald scallop,bald scallop: marine invertebrate found on coral reefs
+VeryRare,Atrina rigida,stiff penshell,stiff penshell: marine invertebrate found on coral reefs
+VeryRare,Calotrophon ostrearum,mauve-mouth drill,mauve-mouth drill: marine invertebrate found on coral reefs
+VeryRare,Naso elegans,Elegant Unicornfish,"Elegant Unicornfish: oval compressed fish with small mouth, often blue or yellow, scalpel-like spine near tail"
+VeryRare,Lirophora latilirata,Imperial Venus,Imperial Venus: marine invertebrate found on coral reefs
+VeryRare,Claremontiella nodulosa,Blackberry Drupe,Blackberry Drupe: marine invertebrate found on coral reefs
+VeryRare,Chaetodon austriacus,blacktail butterflyfish,"blacktail butterflyfish: disc-shaped fish with pointed snout, bold stripes or spots, often yellow and white coloring"
+VeryRare,Chioneryx grus,Grus,Grus: marine invertebrate found on coral reefs
+VeryRare,Pinna rudis,Rough Penshell,Rough Penshell: marine invertebrate found on coral reefs
+VeryRare,Ergalatax contracta,Contracta,Contracta: marine invertebrate found on coral reefs
+VeryRare,Lyncina lynx,bobcat cowrie,bobcat cowrie: marine invertebrate found on coral reefs
+VeryRare,Naria erosa,eroded cowrie,eroded cowrie: marine invertebrate found on coral reefs
+VeryRare,Gouldia cerina,waxy gouldclam,waxy gouldclam: marine invertebrate found on coral reefs
+VeryRare,Chicoreus floridanus,Floridanus,Floridanus: marine invertebrate found on coral reefs
+VeryRare,Rhinecanthus assasi,Picasso triggerfish,"Picasso triggerfish: oval-shaped fish with tough skin, small mouth with strong teeth, can lock dorsal spine"
+VeryRare,Odontodactylus scyllarus,Coloured mantis shrimp,"Coloured mantis shrimp, Peacock mantis shrimp, Harlequin mantis shrimp, Painted mantis shrimp: marine invertebrate found on coral reefs"
+VeryRare,Jorunna funebris,Ringed Velvet Dorid,Ringed Velvet Dorid: marine invertebrate found on coral reefs
+VeryRare,Plicopurpura patula,widemouth rocksnail,widemouth rocksnail: marine invertebrate found on coral reefs
+VeryRare,Felimare villafranca,Villafranca,"Villafranca: soft-bodied sea slug with vibrant colors, rhinophores on head, feathery gills on back"
+VeryRare,Arothron hispidus,Whitespotted Puffer,"Whitespotted Puffer, White-spotted puffer: rounded fish that can inflate with water, beak-like fused teeth, often spotted"
+VeryRare,Argopecten irradians,Atlantic Bay Scallop,Atlantic Bay Scallop: marine invertebrate found on coral reefs
+VeryRare,Luria cinerea,Atlantic gray cowrie,Atlantic gray cowrie: marine invertebrate found on coral reefs
+VeryRare,Chaetodon semilarvatus,bluecheek butterflyfish,"bluecheek butterflyfish: disc-shaped fish with pointed snout, bold stripes or spots, often yellow and white coloring"
+VeryRare,Monetaria caputserpentis,serpent's head cowrie,serpent's head cowrie: marine invertebrate found on coral reefs
+VeryRare,Gouldia minima,Minima,Minima: marine invertebrate found on coral reefs
+VeryRare,Phyllidia coelestis,Heavenly Wart Slug,"Heavenly Wart Slug: rounded nudibranch with tubercles on back, often black and pink or yellow patterns"
+VeryRare,Conomurex luhuanus,blood-mouth conch,blood-mouth conch: marine invertebrate found on coral reefs
+VeryRare,Pitar fulminatus,Lightning Pitar,Lightning Pitar: marine invertebrate found on coral reefs
+VeryRare,Purpuradusta gracilis,graceful cowrie,graceful cowrie: marine invertebrate found on coral reefs
+VeryRare,Aplysia fasciata,banded sea hare,banded sea hare: marine invertebrate found on coral reefs
+VeryRare,Chromis dimidiata,Bicolor Reeffish,"Bicolor Reeffish: small oval-shaped fish, often brightly colored, territorial behavior near coral"
+VeryRare,Conus textile,Cloth-of-gold cone,"Cloth-of-gold cone, Textile cone shell: marine invertebrate found on coral reefs"
+VeryRare,Amblyglyphidodon indicus,Indicus,"Indicus: small oval-shaped fish, often brightly colored, territorial behavior near coral"
+VeryRare,Metapenaeus endeavouri,brown prawn,brown prawn: marine invertebrate found on coral reefs
+VeryRare,Zebrasoma xanthurum,purple tang,"purple tang: oval compressed fish with small mouth, often blue or yellow, scalpel-like spine near tail"
+VeryRare,Gomphosus klunzingeri,Klunzingeri,"Klunzingeri: elongated colorful fish with thick lips, continuous dorsal fin, often with intricate patterns"
+VeryRare,Scarus ferrugineus,rusty parrotfish,"rusty parrotfish: robust colorful fish with fused beak-like teeth, often blue, green, or pink coloring"
+VeryRare,Ascarosepion papuense,Papuan cuttlefish,"Papuan cuttlefish: cuttlefish with W-shaped pupils, undulating fin fringe, eight arms plus two tentacles"
+VeryRare,Aplysia dactylomela,Spotted Seahare,Spotted Seahare: marine invertebrate found on coral reefs
+VeryRare,Vokesimurex rubidus,Rubidus,Rubidus: marine invertebrate found on coral reefs
+VeryRare,Aplysia punctata,Sea Hare,Sea Hare: marine invertebrate found on coral reefs
+VeryRare,Coris aygula,Clown coris,"Clown coris, Clown wrasse: elongated colorful fish with thick lips, continuous dorsal fin, often with intricate patterns"
+VeryRare,Cheilinus lunulatus,broomtail wrasse,"broomtail wrasse: elongated colorful fish with thick lips, continuous dorsal fin, often with intricate patterns"
+VeryRare,Microcirce consternans,Consternans,Consternans: marine invertebrate found on coral reefs
+VeryRare,Drupella margariticola,shouldered castor bean,shouldered castor bean: marine invertebrate found on coral reefs
+VeryRare,Muricopsis cristata,Cristata,Cristata: marine invertebrate found on coral reefs
+VeryRare,Lyncina carneola,purple-mouthed cowry,purple-mouthed cowry: marine invertebrate found on coral reefs
+VeryRare,Lyncina vitellus,Pacific deer cowrie,Pacific deer cowrie: marine invertebrate found on coral reefs
+VeryRare,Conus mus,mouse cone,mouse cone: marine invertebrate found on coral reefs
+VeryRare,Conus coronatus,coronated cone,coronated cone: marine invertebrate found on coral reefs
+VeryRare,Caribachlamys sentis,scaly scallop,scaly scallop: marine invertebrate found on coral reefs
+VeryRare,Favartia cellulosa,pitted murex,pitted murex: marine invertebrate found on coral reefs
+VeryRare,Goniobranchus geometricus,Geometric Rainbow Dorid,"Geometric Rainbow Dorid: soft-bodied sea slug with vibrant colors, rhinophores on head, feathery gills on back"
+VeryRare,Spathochlamys benedicti,Yellow-Spot Scallop,Yellow-Spot Scallop: marine invertebrate found on coral reefs
+VeryRare,Venerupis corrugata,corrugated venus,corrugated venus: marine invertebrate found on coral reefs
+VeryRare,Polititapes rhomboides,banded carpet shell,banded carpet shell: marine invertebrate found on coral reefs
+VeryRare,Cyclina sinensis,Sinensis,Sinensis: marine invertebrate found on coral reefs
+VeryRare,Conus regius,crown cone,crown cone: marine invertebrate found on coral reefs
+VeryRare,Trionectes tenuipes,Tenuipes,"Tenuipes: swimming crab with paddle-shaped rear legs, broad carapace"
+VeryRare,Conus arenatus,sand-dusted cone,sand-dusted cone: marine invertebrate found on coral reefs
+VeryRare,Spondylus tenuis,digitate thorny oyster,digitate thorny oyster: marine invertebrate found on coral reefs
+VeryRare,Panulirus versicolor,painted spiny lobster,"painted spiny lobster: spiny lobster with long antennae, no large claws, segmented tail, armored body"
+VeryRare,Ascarosepion plangon,Striking cuttlefish,"Striking cuttlefish: cuttlefish with W-shaped pupils, undulating fin fringe, eight arms plus two tentacles"
+VeryRare,Penaeus esculentus,brown tiger prawn,brown tiger prawn: marine invertebrate found on coral reefs
+VeryRare,Euvola raveneli,Round-Rib Scallop,Round-Rib Scallop: marine invertebrate found on coral reefs
+VeryRare,Anomalocardia cuneimeris,Cuneimeris,Cuneimeris: marine invertebrate found on coral reefs
+VeryRare,Nembrotha cristata,Cristata,Cristata: marine invertebrate found on coral reefs
+VeryRare,Eupleura sulcidentata,sharp-rib drill,sharp-rib drill: marine invertebrate found on coral reefs
+VeryRare,Charybdis truncata,Truncata,"Truncata: swimming crab with paddle-shaped rear legs, broad carapace"
+VeryRare,Chromodoris magnifica,Magnifica,"Magnifica: soft-bodied sea slug with vibrant colors, rhinophores on head, feathery gills on back"
+VeryRare,Hypselodoris bullockii,Lavender Split-tooth Dorid,"Lavender Split-tooth Dorid: soft-bodied sea slug with vibrant colors, rhinophores on head, feathery gills on back"
+VeryRare,Pinna carnea,amber pen shell,amber pen shell: marine invertebrate found on coral reefs
+VeryRare,Chicoreus brunneus,adusta murex,adusta murex: marine invertebrate found on coral reefs
+VeryRare,Hypselodoris zephyra,Zephyra,"Zephyra: soft-bodied sea slug with vibrant colors, rhinophores on head, feathery gills on back"
+VeryRare,Lupocycloporus gracilimanus,Gracilimanus,"Gracilimanus: swimming crab with paddle-shaped rear legs, broad carapace"
+VeryRare,Octopus briareus,Caribbean Reef Octopus,"Caribbean Reef Octopus: eight arms with suckers, large intelligent eyes, highly textured skin that changes color"
+VeryRare,Naria acicularis,Atlantic Yellow Cowrie,Atlantic Yellow Cowrie: marine invertebrate found on coral reefs
+VeryRare,Octopus insularis,Brazil reef octopus,"Brazil reef octopus: eight arms with suckers, large intelligent eyes, highly textured skin that changes color"
+VeryRare,Chromodoris lochi,Pyjama Rainbow Dorid,"Pyjama Rainbow Dorid: soft-bodied sea slug with vibrant colors, rhinophores on head, feathery gills on back"
+VeryRare,Caribachlamys ornata,ornate scallop,ornate scallop: marine invertebrate found on coral reefs
+VeryRare,Macrocypraea zebra,measled cowrie,measled cowrie: marine invertebrate found on coral reefs
+VeryRare,Erronea caurica,caurica cowrie,caurica cowrie: marine invertebrate found on coral reefs
+VeryRare,Coryphellina exoptata,Orange-nosed Triple-tooth,Orange-nosed Triple-tooth: marine invertebrate found on coral reefs
+VeryRare,Chromodoris orientalis,Orientalis,"Orientalis: soft-bodied sea slug with vibrant colors, rhinophores on head, feathery gills on back"
+VeryRare,Chlamys farreri,Farreri,Farreri: marine invertebrate found on coral reefs
+VeryRare,Dosinia discus,disk dosinia,disk dosinia: marine invertebrate found on coral reefs
+VeryRare,Coralliophila violacea,purple coral snail,purple coral snail: marine invertebrate found on coral reefs
+VeryRare,Thalamita prymna,Prymna,"Prymna: swimming crab with paddle-shaped rear legs, broad carapace"
+VeryRare,Argopecten nucleus,Nucleus Scallop,Nucleus Scallop: marine invertebrate found on coral reefs
+VeryRare,Conus marmoreus,Marbled cone,Marbled cone: marine invertebrate found on coral reefs
+VeryRare,Monomia argentata,Argentata,"Argentata: swimming crab with paddle-shaped rear legs, broad carapace"
+VeryRare,Chromodoris willani,Willani,"Willani: soft-bodied sea slug with vibrant colors, rhinophores on head, feathery gills on back"
+VeryRare,Luria isabella,Isabell cowry,Isabell cowry: marine invertebrate found on coral reefs
+VeryRare,Pedum spondyloideum,Spondyloideum,Spondyloideum: marine invertebrate found on coral reefs
+VeryRare,Periglypta listeri,princess venus,princess venus: marine invertebrate found on coral reefs
+VeryRare,Stramonita floridana,Florida Rocksnail,Florida Rocksnail: marine invertebrate found on coral reefs
+VeryRare,Halgerda batangas,Batangas,Batangas: marine invertebrate found on coral reefs
+VeryRare,Conus magus,magical cone,magical cone: marine invertebrate found on coral reefs
+VeryRare,Acanthosepion pharaonis,Pharaoh cuttlefish,"Pharaoh cuttlefish: cuttlefish with W-shaped pupils, undulating fin fringe, eight arms plus two tentacles"
+VeryRare,Thunnus obesus,Bigeye tuna,"Bigeye tuna: marine fish with typical reef fish body shape, scales, and fins"
+VeryRare,Conus miles,soldier cone,soldier cone: marine invertebrate found on coral reefs
+VeryRare,Lupocyclus rotundatus,rounded swimming crab,"rounded swimming crab: swimming crab with paddle-shaped rear legs, broad carapace"
+VeryRare,Ascarosepion pfefferi,Flamboyant cuttlefish,"Flamboyant cuttlefish: cuttlefish with W-shaped pupils, undulating fin fringe, eight arms plus two tentacles"
+VeryRare,Metapenaeopsis palmensis,southern velvet prawn,southern velvet prawn: marine invertebrate found on coral reefs
+VeryRare,Conus eburneus,ivory cone,ivory cone: marine invertebrate found on coral reefs
+VeryRare,Carolinapecten eboreus,Eboreus,Eboreus: marine invertebrate found on coral reefs
+VeryRare,Goniobranchus hintuanensis,Hintuanensis,"Hintuanensis: soft-bodied sea slug with vibrant colors, rhinophores on head, feathery gills on back"
+VeryRare,Acanthosepion smithi,Smith’s cuttlefish,"Smith’s cuttlefish: cuttlefish with W-shaped pupils, undulating fin fringe, eight arms plus two tentacles"
+VeryRare,Euvola ziczac,Zigzag Scallop,Zigzag Scallop: marine invertebrate found on coral reefs
+VeryRare,Megokris granulosus,coarse shrimp,coarse shrimp: marine invertebrate found on coral reefs
+VeryRare,Ceratostoma rorifluum,Rorifluum,Rorifluum: marine invertebrate found on coral reefs
+VeryRare,Leukoma jedoensis,Jedoensis,Jedoensis: marine invertebrate found on coral reefs
+VeryRare,Antillipecten antillarum,Antillean Scallop,Antillean Scallop: marine invertebrate found on coral reefs
+VeryRare,Sepioteuthis lessoniana,Lessoniana,"Lessoniana: torpedo-shaped squid with triangular fins, ten arms, large eyes"
+VeryRare,Ylistrum balloti,Balloti,Balloti: marine invertebrate found on coral reefs
+VeryRare,Saxidomus purpurata,Purpurata,Purpurata: marine invertebrate found on coral reefs
+VeryRare,Vokesinotus perrugatus,Perrugatus,Perrugatus: marine invertebrate found on coral reefs
+VeryRare,Anomalodiscus squamosus,Squamosus,Squamosus: marine invertebrate found on coral reefs
+VeryRare,Acanthosepion ellipticum,Ovalbone cuttlefish,"Ovalbone cuttlefish: cuttlefish with W-shaped pupils, undulating fin fringe, eight arms plus two tentacles"
+VeryRare,Hypselodoris festiva,Festiva,"Festiva: soft-bodied sea slug with vibrant colors, rhinophores on head, feathery gills on back"
+VeryRare,Conasprella stearnsii,Stearnsii,Stearnsii: marine invertebrate found on coral reefs
+VeryRare,Nembrotha chamberlaini,Chamberlaini,Chamberlaini: marine invertebrate found on coral reefs
+VeryRare,Conus daucus,carrot cone,carrot cone: marine invertebrate found on coral reefs
+VeryRare,Mexichromis multituberculata,Multituberculata,"Multituberculata: soft-bodied sea slug with vibrant colors, rhinophores on head, feathery gills on back"
+VeryRare,Annachlamys flabellata,Flabellata,Flabellata: marine invertebrate found on coral reefs
+VeryRare,Thalamita sima,Sima,"Sima: swimming crab with paddle-shaped rear legs, broad carapace"
+VeryRare,Goniobranchus coi,Coi,"Coi: soft-bodied sea slug with vibrant colors, rhinophores on head, feathery gills on back"
+VeryRare,Conus striatus,Striated cone,Striated cone: marine invertebrate found on coral reefs
+VeryRare,Ceratosoma gracillimum,Gracillimum,"Gracillimum: soft-bodied sea slug with vibrant colors, rhinophores on head, feathery gills on back"
+VeryRare,Gafrarium pectinatum,Pectinatum,Pectinatum: marine invertebrate found on coral reefs
+VeryRare,Nautilus pompilius,pearly nautilus,"pearly nautilus: spiral chambered shell, many small tentacles, primitive appearance"
+VeryRare,Acanthurus leucosternon,Powderblue surgeonfish,"Powderblue surgeonfish: oval compressed fish with small mouth, often blue or yellow, scalpel-like spine near tail"
+VeryRare,Aplysia kurodai,Kurodai,Kurodai: marine invertebrate found on coral reefs
+VeryRare,Amusium pleuronectes,Asian moon scallop,Asian moon scallop: marine invertebrate found on coral reefs
+VeryRare,Canarium mutabile,Mutabile,Mutabile: marine invertebrate found on coral reefs
+VeryRare,Phyllidia picta,black-rayed phyllidia,"black-rayed phyllidia: rounded nudibranch with tubercles on back, often black and pink or yellow patterns"
+VeryRare,Eretmochelys imbricata,hawksbill turtle,"hawksbill turtle with amber tortoiseshell-patterned shell, pointed hawk-like beak, overlapping scutes"
+VeryRare,Canarium urceus,little bear conch,little bear conch: marine invertebrate found on coral reefs
+VeryRare,Spondylus squamosus,bearded thorny oyster,bearded thorny oyster: marine invertebrate found on coral reefs
+VeryRare,Discodoris boholiensis,Boholiensis,Boholiensis: marine invertebrate found on coral reefs
+VeryRare,Chromodoris quadricolor,striped pyjama nudibranch,"striped pyjama nudibranch: soft-bodied sea slug with vibrant colors, rhinophores on head, feathery gills on back"
+VeryRare,Tambja morosa,Blue-spotted Wrinkle Dorid,Blue-spotted Wrinkle Dorid: marine invertebrate found on coral reefs
+VeryRare,Doxander campbellii,Campbellii,Campbellii: marine invertebrate found on coral reefs
+VeryRare,Phyllidiella nigra,Nigra,"Nigra: rounded nudibranch with tubercles on back, often black and pink or yellow patterns"
+VeryRare,Plectorhinchus vittatus,Oriental sweetlips,"Oriental sweetlips: oval fish with thick lips, often silvery with stripes, named for grunting sounds"
+VeryRare,Conus lividus,Livid cone,Livid cone: marine invertebrate found on coral reefs
+VeryRare,Goniobranchus kuniei,Kuniei,"Kuniei: soft-bodied sea slug with vibrant colors, rhinophores on head, feathery gills on back"
+VeryRare,Venerupis aspera,Aspera,Aspera: marine invertebrate found on coral reefs
+VeryRare,Naria miliaris,millet cowrie,millet cowrie: marine invertebrate found on coral reefs
+VeryRare,Conus musicus,music cone,music cone: marine invertebrate found on coral reefs
+VeryRare,Dosinia japonica,Japonica,Japonica: marine invertebrate found on coral reefs
+VeryRare,Canarium labiatum,Labiatum,Labiatum: marine invertebrate found on coral reefs
+VeryRare,Gibberulus gibbosus,Gibbosus,Gibbosus: marine invertebrate found on coral reefs
+VeryRare,Goniobranchus fidelis,Fiesta Rainbow Dorid,"Fiesta Rainbow Dorid: soft-bodied sea slug with vibrant colors, rhinophores on head, feathery gills on back"
+VeryRare,Erronea cylindrica,Cylindrica,Cylindrica: marine invertebrate found on coral reefs
+VeryRare,Chicoreus ramosus,giant murex,giant murex: marine invertebrate found on coral reefs
+VeryRare,Gloripallium pallium,royal cloak scallop,royal cloak scallop: marine invertebrate found on coral reefs
+VeryRare,Amphiprion nigripes,Maldive anemonefish,"Maldive anemonefish: small oval-shaped fish, often brightly colored, territorial behavior near coral"
+VeryRare,Chromodoris alcalai,Alcalai,"Alcalai: soft-bodied sea slug with vibrant colors, rhinophores on head, feathery gills on back"
+VeryRare,Hypselodoris roo,Roo,"Roo: soft-bodied sea slug with vibrant colors, rhinophores on head, feathery gills on back"
+VeryRare,Mexichromis trilineata,Trilineata,"Trilineata: soft-bodied sea slug with vibrant colors, rhinophores on head, feathery gills on back"
+VeryRare,Drupa ricinus,castor bean drupe,castor bean drupe: marine invertebrate found on coral reefs
+VeryRare,Timoclea micra,Micra,Micra: marine invertebrate found on coral reefs
+VeryRare,Palaemonella tenuipes,Tenuipes,"Tenuipes: translucent shrimp with long antennae, often with colored markings"
+VeryRare,Conus capitaneus,captain cone,captain cone: marine invertebrate found on coral reefs
+VeryRare,Conus rattus,rat cone,rat cone: marine invertebrate found on coral reefs
+VeryRare,Conus miliaris,Miliaris,Miliaris: marine invertebrate found on coral reefs
+VeryRare,Goniobranchus sinensis,Sinensis,"Sinensis: soft-bodied sea slug with vibrant colors, rhinophores on head, feathery gills on back"
+VeryRare,Conus vexillum,flag cone,flag cone: marine invertebrate found on coral reefs
+VeryRare,Palmadusta asellus,asellus cowrie,asellus cowrie: marine invertebrate found on coral reefs
+VeryRare,Loliolus japonica,Japanese squid,"Japanese squid: torpedo-shaped squid with triangular fins, ten arms, large eyes"
+VeryRare,Hypselodoris whitei,Bumpy Split-tooth Dorid,"Bumpy Split-tooth Dorid: soft-bodied sea slug with vibrant colors, rhinophores on head, feathery gills on back"
+VeryRare,Ocinebrellus inornatus,Asian drill snail,Asian drill snail: marine invertebrate found on coral reefs
+VeryRare,Pecten albicans,Japanese baking scallop,Japanese baking scallop: marine invertebrate found on coral reefs
+VeryRare,Conus litteratus,Lettered cone,Lettered cone: marine invertebrate found on coral reefs
+VeryRare,Antigona lamellaris,lamellate venus clam,lamellate venus clam: marine invertebrate found on coral reefs
+VeryRare,Octopus conispadiceus,chestnut octopus,"chestnut octopus: eight arms with suckers, large intelligent eyes, highly textured skin that changes color"
+VeryRare,Zanclus cornutus,Moorish idol,"Moorish idol: marine fish with typical reef fish body shape, scales, and fins"
+VeryRare,Coralliophila radula,pear-shaped coralsnail,pear-shaped coralsnail: marine invertebrate found on coral reefs
+VeryRare,Reishia bitubercularis,bituberculate rock shell,bituberculate rock shell: marine invertebrate found on coral reefs
+VeryRare,Mizuhopecten yessoensis,Ezo giant scallop,Ezo giant scallop: marine invertebrate found on coral reefs
+VeryRare,Mimachlamys gloriosa,Gloriosa,Gloriosa: marine invertebrate found on coral reefs
+VeryRare,Uroteuthis chinensis,mitre squid,"mitre squid: torpedo-shaped squid with triangular fins, ten arms, large eyes"
+VeryRare,Ceratosoma trilobatum,T-bar Pantechnicon Dorid,"T-bar Pantechnicon Dorid: soft-bodied sea slug with vibrant colors, rhinophores on head, feathery gills on back"
+VeryRare,Balistapus undulatus,Striped Triggerfish,"Striped Triggerfish, Orange-lined triggerfish: oval-shaped fish with tough skin, small mouth with strong teeth, can lock dorsal spine"
+VeryRare,Petricola japonica,Japonica,Japonica: marine invertebrate found on coral reefs
+VeryRare,Staphylaea staphylaea,grape cowrie,grape cowrie: marine invertebrate found on coral reefs
+VeryRare,Macridiscus aequilatera,Aequilatera,Aequilatera: marine invertebrate found on coral reefs
+VeryRare,Jorunna rubescens,Turret Velvet Dorid,Turret Velvet Dorid: marine invertebrate found on coral reefs
+VeryRare,Harpago chiragra,gouty spider conch,gouty spider conch: marine invertebrate found on coral reefs
+VeryRare,Conus planorbis,Planorbis,Planorbis: marine invertebrate found on coral reefs
+VeryRare,Erronea onyx,onyx cowrie,onyx cowrie: marine invertebrate found on coral reefs
+VeryRare,Palaemonella pottsi,Pottsi,"Pottsi: translucent shrimp with long antennae, often with colored markings"
+VeryRare,Caranx melampygus,Bluefin trevally,"Bluefin trevally: powerful silvery fish with forked tail, streamlined body, large eyes"
+VeryRare,Amphioctopus marginatus,sand bird octopus,"sand bird octopus: eight arms with suckers, large intelligent eyes, highly textured skin that changes color"
+VeryRare,Irus mitis,Mitis,Mitis: marine invertebrate found on coral reefs
+VeryRare,Amphiprion clarkii,Clark's anemonefish,"Clark's anemonefish, Yellowtail clownfish: small oval-shaped fish, often brightly colored, territorial behavior near coral"
+VeryRare,Dolomena dilatata,Dilatata,Dilatata: marine invertebrate found on coral reefs
+VeryRare,Doxander vittatus,Vittatus,Vittatus: marine invertebrate found on coral reefs
+VeryRare,Nembrotha milleri,Shadowy Wrinkle Dorid,Shadowy Wrinkle Dorid: marine invertebrate found on coral reefs
+VeryRare,Balistoides viridescens,Titan triggerfish,"Titan triggerfish: oval-shaped fish with tough skin, small mouth with strong teeth, can lock dorsal spine"
+VeryRare,Hypselodoris infucata,Black-spotted Split-tooth Dorid,"Black-spotted Split-tooth Dorid: soft-bodied sea slug with vibrant colors, rhinophores on head, feathery gills on back"
+VeryRare,Mimachlamys sanguinea,noble scallop,noble scallop: marine invertebrate found on coral reefs
+VeryRare,Conus virgo,virgin cone,virgin cone: marine invertebrate found on coral reefs
+VeryRare,Drupella cornus,horn drupe,horn drupe: marine invertebrate found on coral reefs
+VeryRare,Naso brevirostris,spotted unicornfish,"spotted unicornfish: oval compressed fish with small mouth, often blue or yellow, scalpel-like spine near tail"
+VeryRare,Callista chinensis,Chinensis,Chinensis: marine invertebrate found on coral reefs
+VeryRare,Chaetodon trifasciatus,Lineated Butterflyfish,"Lineated Butterflyfish: disc-shaped fish with pointed snout, bold stripes or spots, often yellow and white coloring"
+VeryRare,Ceratostoma burnettii,Burnett's murex,Burnett's murex: marine invertebrate found on coral reefs
+VeryRare,Meretrix petechialis,Petechialis,Petechialis: marine invertebrate found on coral reefs
+VeryRare,Ceratosoma tenue,Elongate Pantechnicon Dorid,"Elongate Pantechnicon Dorid: soft-bodied sea slug with vibrant colors, rhinophores on head, feathery gills on back"
+VeryRare,Odonus niger,Redtooth Triggerfish,"Redtooth Triggerfish, Red-toothed triggerfish, Redtoothed triggerfish: oval-shaped fish with tough skin, small mouth with strong teeth, can lock dorsal spine"
+VeryRare,Conus flavidus,Yellow Pacific cone,Yellow Pacific cone: marine invertebrate found on coral reefs
+VeryRare,Naria helvola,honey cowrie,honey cowrie: marine invertebrate found on coral reefs
+VeryRare,Cronia aurantiaca,Aurantiaca,Aurantiaca: marine invertebrate found on coral reefs
+VeryRare,Chlorurus strongylocephalus,Steephead parrotfish,"Steephead parrotfish: robust colorful fish with fused beak-like teeth, often blue, green, or pink coloring"
+VeryRare,Goniobranchus leopardus,Leopardus,"Leopardus: soft-bodied sea slug with vibrant colors, rhinophores on head, feathery gills on back"
+VeryRare,Mauritia eglantina,dog-rose cowrie,dog-rose cowrie: marine invertebrate found on coral reefs
+VeryRare,Halichoeres hortulanus,Checkerboard wrasse,"Checkerboard wrasse: elongated colorful fish with thick lips, continuous dorsal fin, often with intricate patterns"
+VeryRare,Erronea subviridis,green-tinted cowrie,green-tinted cowrie: marine invertebrate found on coral reefs
+VeryRare,Amphioctopus fangsiao,gold-spot octopus,"gold-spot octopus: eight arms with suckers, large intelligent eyes, highly textured skin that changes color"
+VeryRare,Nebrius ferrugineus,Nurse Shark,"Nurse Shark, Tawny Nurse Shark: yellowish-brown shark with broad flat head, small eyes, barbels near nostrils"
+VeryRare,Sepia whitleyana,Whitley's Cuttlefish,"Whitley's Cuttlefish: cuttlefish with W-shaped pupils, undulating fin fringe, eight arms plus two tentacles"
+VeryRare,Thalamitoides spinigera,Spinigera,"Spinigera: swimming crab with paddle-shaped rear legs, broad carapace"
+VeryRare,Hypselodoris apolegma,Apolegma,"Apolegma: soft-bodied sea slug with vibrant colors, rhinophores on head, feathery gills on back"
+VeryRare,Laevistrombus canarium,dog conch,dog conch: marine invertebrate found on coral reefs
+VeryRare,Hexabranchus lacer,Mottled Spanish Dancer,"Mottled Spanish Dancer: large red-orange nudibranch with ruffled body edges, six feathery gills"
+VeryRare,Aetobatus ocellatus,Ocellated Eagle Ray,"Ocellated Eagle Ray, Sharpwing eagle ray: ray with broad triangular wings, pronounced head, long whip tail with spine"
+VeryRare,Euprotomus aratrum,Aratrum,Aratrum: marine invertebrate found on coral reefs
+VeryRare,Acanthurus lineatus,Striped Surgeonfish,"Striped Surgeonfish, Lined surgeonfish, Spoted box crab: oval compressed fish with small mouth, often blue or yellow, scalpel-like spine near tail"
+VeryRare,Murex brevispina,short-spined murex,short-spined murex: marine invertebrate found on coral reefs
+VeryRare,Hypselodoris paradisa,Paradisa,"Paradisa: soft-bodied sea slug with vibrant colors, rhinophores on head, feathery gills on back"
+VeryRare,Meretrix lusoria,Asian hard clam,Asian hard clam: marine invertebrate found on coral reefs
+VeryRare,Placamen retroversum,Retroversum,Retroversum: marine invertebrate found on coral reefs
+VeryRare,Phyllidiella rudmani,Peaked Wart Slug,"Peaked Wart Slug: rounded nudibranch with tubercles on back, often black and pink or yellow patterns"
+VeryRare,Scarus rubroviolaceus,Ember parrotfish,"Ember parrotfish: robust colorful fish with fused beak-like teeth, often blue, green, or pink coloring"
+VeryRare,Murichorda fiscellum,Fiscellum,Fiscellum: marine invertebrate found on coral reefs
+VeryRare,Hypselodoris emma,Triple-striped Split-tooth Dorid,"Triple-striped Split-tooth Dorid: soft-bodied sea slug with vibrant colors, rhinophores on head, feathery gills on back"
+VeryRare,Acanthosepion esculentum,Golden cuttlefish,"Golden cuttlefish: cuttlefish with W-shaped pupils, undulating fin fringe, eight arms plus two tentacles"
+VeryRare,Palmadusta artuffeli,Artuffeli,Artuffeli: marine invertebrate found on coral reefs
+VeryRare,Dolabella auricularia,Anvil Sea Hare,Anvil Sea Hare: marine invertebrate found on coral reefs
+VeryRare,Rhinecanthus aculeatus,White-banded triggerfish,"White-banded triggerfish: oval-shaped fish with tough skin, small mouth with strong teeth, can lock dorsal spine"
+VeryRare,Cheilinus undulatus,Humphead wrasse,"Humphead wrasse: elongated colorful fish with thick lips, continuous dorsal fin, often with intricate patterns"
+VeryRare,Thalassoma hardwicke,Sixbar wrasse,"Sixbar wrasse: elongated colorful fish with thick lips, continuous dorsal fin, often with intricate patterns"
+VeryRare,Balistoides conspicillum,Clown triggerfish,"Clown triggerfish: oval-shaped fish with tough skin, small mouth with strong teeth, can lock dorsal spine"
+VeryRare,Loliolus beka,Beka squid,"Beka squid: torpedo-shaped squid with triangular fins, ten arms, large eyes"
+VeryRare,Hexabranchus sanguineus,Bloody Spanish Dancer,"Bloody Spanish Dancer: large red-orange nudibranch with ruffled body edges, six feathery gills"
+VeryRare,Hemitaurichthys zoster,Brushtooth Butterflyfish,"Brushtooth Butterflyfish: disc-shaped fish with pointed snout, bold stripes or spots, often yellow and white coloring"
+VeryRare,Aplysia japonica,Japonica,Japonica: marine invertebrate found on coral reefs
+VeryRare,Pomacanthus imperator,Emperor angelfish,"Emperor angelfish: laterally compressed fish with vivid colors, often with blue, yellow, or orange patterns, extended fins"
+VeryRare,Nembrotha lineolata,Ivory Wrinkle Dorid,Ivory Wrinkle Dorid: marine invertebrate found on coral reefs
+VeryRare,Tenguella marginalba,Marginalba,Marginalba: marine invertebrate found on coral reefs
+VeryRare,Wunderpus photogenicus,Wunderpus,"Wunderpus: eight arms with suckers, large intelligent eyes, highly textured skin that changes color"
+VeryRare,Lutjanus kasmira,Common bluestripe snapper,"Common bluestripe snapper: medium-sized fish with sloping head profile, often reddish or yellowish, forked tail"
+VeryRare,Chicoreus cervicornis,deer-horn murex,deer-horn murex: marine invertebrate found on coral reefs
+VeryRare,Erronea xanthodon,yellow-toothed cowrie,yellow-toothed cowrie: marine invertebrate found on coral reefs
+VeryRare,Chaetodon falcula,saddled butterflyfish,"saddled butterflyfish: disc-shaped fish with pointed snout, bold stripes or spots, often yellow and white coloring"
+VeryRare,Carminodoris estrelyado,Estrelyado,Estrelyado: marine invertebrate found on coral reefs
+VeryRare,Dosinia circularis,Circularis,Circularis: marine invertebrate found on coral reefs
+VeryRare,Acanthurus triostegus,Convict surgeonfish,"Convict surgeonfish: oval compressed fish with small mouth, often blue or yellow, scalpel-like spine near tail"
+VeryRare,Chaetodon xanthocephalus,Yellowhead Butterflyfish,"Yellowhead Butterflyfish: disc-shaped fish with pointed snout, bold stripes or spots, often yellow and white coloring"
+VeryRare,Grapsus tenuicrustatus,Natal lightfoot crab,Natal lightfoot crab: marine invertebrate found on coral reefs
+VeryRare,Decatopecten radula,Radula,Radula: marine invertebrate found on coral reefs
+VeryRare,Conomurex fasciatus,Fasciatus,Fasciatus: marine invertebrate found on coral reefs
+VeryRare,Tenguella granulata,granular drupe,granular drupe: marine invertebrate found on coral reefs
+VeryRare,Palmadusta clandestina,Cowrie,Cowrie: marine invertebrate found on coral reefs
+VeryRare,Acanthurus nigricauda,Blackstreak Surgeonfish,"Blackstreak Surgeonfish, Epaulette surgeonfish: oval compressed fish with small mouth, often blue or yellow, scalpel-like spine near tail"
+VeryRare,Coryphellina flamma,Stubby Triple-tooth,Stubby Triple-tooth: marine invertebrate found on coral reefs
+VeryRare,Hemigymnus melapterus,Blackeye thicklip,"Blackeye thicklip: elongated colorful fish with thick lips, continuous dorsal fin, often with intricate patterns"
+VeryRare,Lioconcha castrensis,camp pitar-venus,camp pitar-venus: marine invertebrate found on coral reefs
+VeryRare,Conus spectrum,spectral cone,spectral cone: marine invertebrate found on coral reefs
+VeryRare,Dascyllus abudafur,Abudafur,"Abudafur: small oval-shaped fish, often brightly colored, territorial behavior near coral"
+VeryRare,Gafrarium dispar,Dispar,Dispar: marine invertebrate found on coral reefs
+VeryRare,Roboastra gracilis,Graceful Wrinkle Dorid,Graceful Wrinkle Dorid: marine invertebrate found on coral reefs
+VeryRare,Labroides dimidiatus,Bluestreak cleaner wrasse,"Bluestreak cleaner wrasse, Cleaner wrasse: elongated colorful fish with thick lips, continuous dorsal fin, often with intricate patterns"
+VeryRare,Hapalochlaena lunulata,greater blue-ringed octopus,"small octopus with iridescent blue rings that flash bright when threatened, highly venomous"
+VeryRare,Melichthys indicus,Indian triggerfish,"Indian triggerfish: oval-shaped fish with tough skin, small mouth with strong teeth, can lock dorsal spine"
+VeryRare,Periglypta reticulata,reticulated venus,reticulated venus: marine invertebrate found on coral reefs
+VeryRare,Mimachlamys punctata,Punctata,Punctata: marine invertebrate found on coral reefs
+VeryRare,Chaetodon kleinii,Whitespotted Butterflyfish,"Whitespotted Butterflyfish: disc-shaped fish with pointed snout, bold stripes or spots, often yellow and white coloring"
+VeryRare,Phyllidiopsis shireenae,Crested Wart Slug,"Crested Wart Slug: rounded nudibranch with tubercles on back, often black and pink or yellow patterns"
+VeryRare,Conus glans,Glans,Glans: marine invertebrate found on coral reefs
+VeryRare,Sargocentron spiniferum,Sabre Squirrelfish,"Sabre Squirrelfish: marine fish with typical reef fish body shape, scales, and fins"
+VeryRare,Timoclea marica,Marica,Marica: marine invertebrate found on coral reefs
+VeryRare,Spondylus victoriae,Wright's thorny oyster,Wright's thorny oyster: marine invertebrate found on coral reefs
+VeryRare,Cetoscarus ocellatus,Ocellated Parrotfish,"Ocellated Parrotfish: robust colorful fish with fused beak-like teeth, often blue, green, or pink coloring"
+VeryRare,Phyllidiopsis krempfi,Krempfi,"Krempfi: rounded nudibranch with tubercles on back, often black and pink or yellow patterns"
+VeryRare,Canthigaster valentini,Black-saddled Toby,"Black-saddled Toby, Valentin's sharpnose puffer: rounded fish that can inflate with water, beak-like fused teeth, often spotted"
+VeryRare,Conus suturatus,Sutured Cone,Sutured Cone: marine invertebrate found on coral reefs
+VeryRare,Gnathodentex aureolineatus,Goldlined Emperor,"Goldlined Emperor, Striped large-eye bream: marine fish with typical reef fish body shape, scales, and fins"
+VeryRare,Heniochus pleurotaenia,Indian Ocean Bannerfish,"Indian Ocean Bannerfish: disc-shaped fish with pointed snout, bold stripes or spots, often yellow and white coloring"
+VeryRare,Chromodoris strigata,Broken-line Rainbow Dorid,"Broken-line Rainbow Dorid: soft-bodied sea slug with vibrant colors, rhinophores on head, feathery gills on back"
+VeryRare,Chaetodon meyeri,Maypole Butterflyfish,"Maypole Butterflyfish: disc-shaped fish with pointed snout, bold stripes or spots, often yellow and white coloring"
+VeryRare,Platax teira,Longfin batfish,"Longfin batfish, Tiera batfish: tall disc-shaped fish with elongated dorsal and anal fins, often silvery with dark bands"
+VeryRare,Ostracion cubicus,Yellow boxfish,"Yellow boxfish: marine fish with typical reef fish body shape, scales, and fins"
+VeryRare,Glossodoris acosti,Acosti,"Acosti: soft-bodied sea slug with vibrant colors, rhinophores on head, feathery gills on back"
+VeryRare,Nucleolaria nucleus,nucleus cowrie,nucleus cowrie: marine invertebrate found on coral reefs
+VeryRare,Scolopsis bilineata,Two-lined monocle bream,"Two-lined monocle bream: marine fish with typical reef fish body shape, scales, and fins"
+VeryRare,Lutjanus gibbus,Paddletail Snapper,"Paddletail Snapper, Humpback red snapper: medium-sized fish with sloping head profile, often reddish or yellowish, forked tail"
+VeryRare,Conus biliosus,Biliosus,Biliosus: marine invertebrate found on coral reefs
+VeryRare,Halichoeres scapularis,Zigzag wrasse,"Zigzag wrasse: elongated colorful fish with thick lips, continuous dorsal fin, often with intricate patterns"
+VeryRare,Thalassoma amblycephalum,Rainbow Wrasse,"Rainbow Wrasse, Bluntheaded wrasse: elongated colorful fish with thick lips, continuous dorsal fin, often with intricate patterns"
+VeryRare,Naso vlamingii,Vlaming's Unicornfish,"Vlaming's Unicornfish, Bignose unicornfish: oval compressed fish with small mouth, often blue or yellow, scalpel-like spine near tail"
+VeryRare,Goniobranchus tumuliferus,Freckled Rainbow Dorid,"Freckled Rainbow Dorid: soft-bodied sea slug with vibrant colors, rhinophores on head, feathery gills on back"
+VeryRare,Luniella spinipes,Spinipes,Spinipes: marine invertebrate found on coral reefs
+VeryRare,Conus emaciatus,False Virgin Cone,False Virgin Cone: marine invertebrate found on coral reefs
+VeryRare,Chaetodon collare,whitecollar butterflyfish,"whitecollar butterflyfish: disc-shaped fish with pointed snout, bold stripes or spots, often yellow and white coloring"
+VeryRare,Dascyllus trimaculatus,Three-spot Dascyllus,"Three-spot Dascyllus, Threespot dascyllus: small oval-shaped fish, often brightly colored, territorial behavior near coral"
+VeryRare,Globivenus toreuma,Toreuma,Toreuma: marine invertebrate found on coral reefs
+VeryRare,Monotaxis grandoculis,Bigeye Emperor,"Bigeye Emperor, Humpnose big-eye bream: marine fish with typical reef fish body shape, scales, and fins"
+VeryRare,Chicoreus microphyllus,Microphyllus,Microphyllus: marine invertebrate found on coral reefs
+VeryRare,Scarus frenatus,Birdled parrotfish,"Birdled parrotfish, Bridled parrotfish: robust colorful fish with fused beak-like teeth, often blue, green, or pink coloring"
+VeryRare,Phyllidiopsis annae,Annae,"Annae: rounded nudibranch with tubercles on back, often black and pink or yellow patterns"
+VeryRare,Conus generalis,general cone,general cone: marine invertebrate found on coral reefs
+VeryRare,Conus catus,Cat cone,Cat cone: marine invertebrate found on coral reefs
+VeryRare,Gafrarium divaricatum,forked venus,forked venus: marine invertebrate found on coral reefs
+VeryRare,Thalassoma lunare,Moon wrasse,"Moon wrasse: elongated colorful fish with thick lips, continuous dorsal fin, often with intricate patterns"
+VeryRare,Epinephelus merra,Honeycomb Grouper,"Honeycomb Grouper: robust stocky fish with large mouth, mottled coloring, heavy body"
+VeryRare,Hypselodoris pulchella,Dottyback Split-tooth Dorid,"Dottyback Split-tooth Dorid: soft-bodied sea slug with vibrant colors, rhinophores on head, feathery gills on back"
+VeryRare,Menathais tuberosa,humped rock shell,humped rock shell: marine invertebrate found on coral reefs
+VeryRare,Pterois antennata,Spotfin Firefish,"Spotfin Firefish, Broadbarred firefish: heavily camouflaged fish with venomous spines, elaborate fin rays, mottled coloring"
+VeryRare,Thecacera picta,Picta,Picta: marine invertebrate found on coral reefs
+VeryRare,Phyllidiopsis xishaensis,Xishaensis,"Xishaensis: rounded nudibranch with tubercles on back, often black and pink or yellow patterns"
+VeryRare,Cribrarula cribraria,sieve cowrie,sieve cowrie: marine invertebrate found on coral reefs
+VeryRare,Lioconcha fastigiata,Clam,Clam: marine invertebrate found on coral reefs
+VeryRare,Ascarosepion bandense,Stumpy cuttlefish,"Stumpy cuttlefish: cuttlefish with W-shaped pupils, undulating fin fringe, eight arms plus two tentacles"
+VeryRare,Chromodoris dianae,Dianae,"Dianae: soft-bodied sea slug with vibrant colors, rhinophores on head, feathery gills on back"
+VeryRare,Murex trapa,rare spined murex,rare spined murex: marine invertebrate found on coral reefs
+VeryRare,Cypraea pantherina,panther cowrie,panther cowrie: marine invertebrate found on coral reefs
+VeryRare,Drupella rugosa,harmonious drupe,harmonious drupe: marine invertebrate found on coral reefs
+VeryRare,Glossodoris rufomarginata,Rufomarginata,"Rufomarginata: soft-bodied sea slug with vibrant colors, rhinophores on head, feathery gills on back"
+VeryRare,Gymnothorax flavimarginatus,Yellow-edged moray,"Yellow-edged moray, Yellow Margin Moray: snake-like body, no pectoral fins, constantly gaping mouth showing teeth, patterns vary"
+VeryRare,Conus distans,Distans,Distans: marine invertebrate found on coral reefs
+VeryRare,Chicoreus territus,Territus,Territus: marine invertebrate found on coral reefs
+VeryRare,Erronea pyriformis,Pyriformis,Pyriformis: marine invertebrate found on coral reefs
+VeryRare,Conus chaldaeus,astrologer's cone,astrologer's cone: marine invertebrate found on coral reefs
+VeryRare,Gomphosus caeruleus,Checkerboard wrasse,"Checkerboard wrasse: elongated colorful fish with thick lips, continuous dorsal fin, often with intricate patterns"
+VeryRare,Delectopecten alcocki,Alcocki,Alcocki: marine invertebrate found on coral reefs
+VeryRare,Talparia talpa,mole cowrie,mole cowrie: marine invertebrate found on coral reefs
+VeryRare,Forcipiger flavissimus,Forceps fish,"Forceps fish, Longnose butterfly fish, Longnose butterflyfish: disc-shaped fish with pointed snout, bold stripes or spots, often yellow and white coloring"
+VeryRare,Conus tessulatus,tessellate cone,tessellate cone: marine invertebrate found on coral reefs
+VeryRare,Diodon liturosus,Blackblotched Porcupinefish,"Blackblotched Porcupinefish, Black-blotched porcupinefish: marine fish with typical reef fish body shape, scales, and fins"
+VeryRare,Tricornis tricornis,three-cornered conch,three-cornered conch: marine invertebrate found on coral reefs
+VeryRare,Morula spinosa,Spinosa,Spinosa: marine invertebrate found on coral reefs
+VeryRare,Lentigo lentiginosus,silver conch,silver conch: marine invertebrate found on coral reefs
+VeryRare,Monotaxis heterodon,Redfin Emperor,"Redfin Emperor: marine fish with typical reef fish body shape, scales, and fins"
+VeryRare,Lutjanus bohar,Red Snapper,"Red Snapper, Two-spot red snapper: medium-sized fish with sloping head profile, often reddish or yellowish, forked tail"
+VeryRare,Gibberulus gibberulus,hump-back conch,hump-back conch: marine invertebrate found on coral reefs
+VeryRare,Thaumoctopus mimicus,mimic octopus,"mimic octopus: eight arms with suckers, large intelligent eyes, highly textured skin that changes color"
+VeryRare,Uroteuthis duvaucelii,Indian squid,"Indian squid: torpedo-shaped squid with triangular fins, ten arms, large eyes"
+VeryRare,Scarus prasiognathos,Singapore parrotfish,"Singapore parrotfish: robust colorful fish with fused beak-like teeth, often blue, green, or pink coloring"
+VeryRare,Metopograpsus messor,alamihi,alamihi: marine invertebrate found on coral reefs
+VeryRare,Pseudobalistes flavimarginatus,Giant Triggerfish,"Giant Triggerfish, Yellowmargin triggerfish: oval-shaped fish with tough skin, small mouth with strong teeth, can lock dorsal spine"
+VeryRare,Taeniurops meyeni,Blotched fantail ray,"Blotched fantail ray, Round ribbontail ray: flat diamond-shaped ray with whip-like tail, smooth body, spiracles behind eyes"
+VeryRare,Naria labrolineata,Labrolineata,Labrolineata: marine invertebrate found on coral reefs
+VeryRare,Pomacentrus indicus,Indian damsel,"Indian damsel: small oval-shaped fish, often brightly colored, territorial behavior near coral"
+VeryRare,Sufflamen bursa,Scythe Triggerfish,"Scythe Triggerfish, Boomerang triggerfish: oval-shaped fish with tough skin, small mouth with strong teeth, can lock dorsal spine"
+VeryRare,Parupeneus barberinus,Dot-dash Goatfish,"Dot-dash Goatfish, Dash-and-dot goatfish: elongated fish with pair of sensory barbels under chin, often pinkish or yellowish"
+VeryRare,Arothron nigropunctatus,Blackspotted puffer,"Blackspotted puffer: rounded fish that can inflate with water, beak-like fused teeth, often spotted"
+VeryRare,Hypselodoris decorata,Triple-banded Split-tooth Dorid,"Triple-banded Split-tooth Dorid: soft-bodied sea slug with vibrant colors, rhinophores on head, feathery gills on back"
+VeryRare,Conus imperialis,Imperial cone,Imperial cone: marine invertebrate found on coral reefs
+VeryRare,Cheilinus trilobatus,Tripletail wrasse,"Tripletail wrasse: elongated colorful fish with thick lips, continuous dorsal fin, often with intricate patterns"
+VeryRare,Rhincodon typus,Whale Shark,"enormous filter-feeding shark with dark blue-grey body covered in white spots and pale vertical stripes, wide flat head, huge terminal mouth"
+VeryRare,Gafrarium tumidum,Tumidum,Tumidum: marine invertebrate found on coral reefs
+VeryRare,Naria turdus,pear-shaped cowrie,pear-shaped cowrie: marine invertebrate found on coral reefs
+VeryRare,Laevichlamys squamosa,squamose scallop,squamose scallop: marine invertebrate found on coral reefs
+VeryRare,Macolor macularis,Midnight snapper,"Midnight snapper: medium-sized fish with sloping head profile, often reddish or yellowish, forked tail"
+VeryRare,Chaetodon lunula,Redstriped Butterflyfish,"Redstriped Butterflyfish: disc-shaped fish with pointed snout, bold stripes or spots, often yellow and white coloring"
+VeryRare,Dascyllus carneus,Bluetop Dascyllus,"Bluetop Dascyllus: small oval-shaped fish, often brightly colored, territorial behavior near coral"
+VeryRare,Chromis viridis,Blue-green Chromis,"Blue-green Chromis: small oval-shaped fish, often brightly colored, territorial behavior near coral"
+VeryRare,Pterocaesio tile,Tricoloured Fusilier,"Tricoloured Fusilier, Dark-banded fusilier: marine fish with typical reef fish body shape, scales, and fins"
+VeryRare,Gymnodoris inornata,Inornata,Inornata: marine invertebrate found on coral reefs
+VeryRare,Lambis truncata,giant spider conch,giant spider conch: marine invertebrate found on coral reefs
+VeryRare,Leptodius exaratus,Exaratus,Exaratus: marine invertebrate found on coral reefs
+VeryRare,Kaloplocamus acutus,Acutus,Acutus: marine invertebrate found on coral reefs
+VeryRare,Conus parvatus,Parvatus,Parvatus: marine invertebrate found on coral reefs
+VeryRare,Naso hexacanthus,Black Unicornfish,"Black Unicornfish, Sleek unicornfish: oval compressed fish with small mouth, often blue or yellow, scalpel-like spine near tail"
+VeryRare,Lambis millepeda,milleped spider conch,milleped spider conch: marine invertebrate found on coral reefs
+VeryRare,Naso brachycentron,Humpback unicornfish,"Humpback unicornfish: oval compressed fish with small mouth, often blue or yellow, scalpel-like spine near tail"
+VeryRare,Cryptopecten bernardi,Bernardi,Bernardi: marine invertebrate found on coral reefs
+VeryRare,Pomacanthus xanthometopon,Bluefaced angelfish,"Bluefaced angelfish: laterally compressed fish with vivid colors, often with blue, yellow, or orange patterns, extended fins"
+VeryRare,Gymnosarda unicolor,Dogtooth tuna,"Dogtooth tuna: marine fish with typical reef fish body shape, scales, and fins"
+VeryRare,Chaetodon guttatissimus,Spotted Coralfish,"Spotted Coralfish: disc-shaped fish with pointed snout, bold stripes or spots, often yellow and white coloring"
+VeryRare,Heniochus diphreutes,Pennantfish,"Pennantfish: disc-shaped fish with pointed snout, bold stripes or spots, often yellow and white coloring"
+VeryRare,Variola louti,Chameleon Grouper,"Chameleon Grouper, Moontail seabass, Yellow-edged lyretail: robust stocky fish with large mouth, mottled coloring, heavy body"
+VeryRare,Sargocentron caudimaculatum,Whitetail Squirrelfish,"Whitetail Squirrelfish, Silverspot squirrelfish: marine fish with typical reef fish body shape, scales, and fins"
+VeryRare,Scarus scaber,Fivesaddle parrotfish,"Fivesaddle parrotfish: robust colorful fish with fused beak-like teeth, often blue, green, or pink coloring"
+VeryRare,Pateobatis fai,Pink Whipray,"Pink Whipray: flat diamond-shaped ray with whip-like tail, smooth body, spiracles behind eyes"
+VeryRare,Thalamita savignyi,Savignyi,"Savignyi: swimming crab with paddle-shaped rear legs, broad carapace"
+VeryRare,Hipposcarus harid,Candelamoa parrotfish,"Candelamoa parrotfish: robust colorful fish with fused beak-like teeth, often blue, green, or pink coloring"
+VeryRare,Aluterus scriptus,Scribbled Filefish,"Scribbled Filefish: marine fish with typical reef fish body shape, scales, and fins"
+VeryRare,Chicoreus capucinus,mangrove murex,mangrove murex: marine invertebrate found on coral reefs
+VeryRare,Scarus psittacus,Palenose Parrotfish,"Palenose Parrotfish, Common parrotfish: robust colorful fish with fused beak-like teeth, often blue, green, or pink coloring"
+VeryRare,Naria nebrites,false margined cowry,false margined cowry: marine invertebrate found on coral reefs
+VeryRare,Zebrasoma scopas,Brushtail Surgeonfish,"Brushtail Surgeonfish, Twotone tang: oval compressed fish with small mouth, often blue or yellow, scalpel-like spine near tail"
+VeryRare,Siganus stellatus,Brown-spotted spinefoot,"Brown-spotted spinefoot, Brownspotted spinefoot: marine fish with typical reef fish body shape, scales, and fins"
+VeryRare,Phyllidia alyta,Four-lined Wart Slug,"Four-lined Wart Slug: rounded nudibranch with tubercles on back, often black and pink or yellow patterns"
+VeryRare,Stenella longirostris,Spinner Dolphin,"Spinner Dolphin: streamlined grey body with dorsal fin, bottle-shaped snout, intelligent dark eyes"
+VeryRare,Halgerda willeyi,Willeyi,Willeyi: marine invertebrate found on coral reefs
+VeryRare,Chaetodon trifascialis,Chevroned Butterflyfish,"Chevroned Butterflyfish, Chevron butterflyfish: disc-shaped fish with pointed snout, bold stripes or spots, often yellow and white coloring"
+VeryRare,Ecsenius minutus,Little Combtooth Blenny,"Little Combtooth Blenny: marine fish with typical reef fish body shape, scales, and fins"
+VeryRare,Sufflamen chrysopterum,Halfmoon triggerfish,"Halfmoon triggerfish: oval-shaped fish with tough skin, small mouth with strong teeth, can lock dorsal spine"
+VeryRare,Chaetodon citrinellus,Speckled Butterflyfish,"Speckled Butterflyfish: disc-shaped fish with pointed snout, bold stripes or spots, often yellow and white coloring"
+VeryRare,Hemigymnus fasciatus,Barred thicklip,"Barred thicklip: elongated colorful fish with thick lips, continuous dorsal fin, often with intricate patterns"
+VeryRare,Gymnothorax favagineus,Blackspotted moray,"Blackspotted moray, Honeycomb moray: snake-like body, no pectoral fins, constantly gaping mouth showing teeth, patterns vary"
+VeryRare,Thorunna halourga,Wide-margined Rainbow Dorid,"Wide-margined Rainbow Dorid: soft-bodied sea slug with vibrant colors, rhinophores on head, feathery gills on back"
+VeryRare,Cirrhitichthys oxycephalus,Pixy Hawkfish,"Pixy Hawkfish, Coral hawkfish: marine fish with typical reef fish body shape, scales, and fins"
+VeryRare,Pastinachus ater,Broad Cowtail Ray,"Broad Cowtail Ray: flat diamond-shaped ray with whip-like tail, smooth body, spiracles behind eyes"
+VeryRare,Chaetodon triangulum,herringbone butterflyfish,"herringbone butterflyfish: disc-shaped fish with pointed snout, bold stripes or spots, often yellow and white coloring"
+VeryRare,Anyperodon leucogrammicus,Slender grouper,"Slender grouper: robust stocky fish with large mouth, mottled coloring, heavy body"
+VeryRare,Siganus corallinus,Blue-spotted spinefoot,"Blue-spotted spinefoot: marine fish with typical reef fish body shape, scales, and fins"
+VeryRare,Parupeneus trifasciatus,Doublebar goatfish,"Doublebar goatfish: elongated fish with pair of sensory barbels under chin, often pinkish or yellowish"
+VeryRare,Plectropomus laevis,Blacksaddled Coralgrouper,"Blacksaddled Coralgrouper: robust stocky fish with large mouth, mottled coloring, heavy body"
+VeryRare,Cuapetes grandis,Grandis,"Grandis: translucent shrimp with long antennae, often with colored markings"
+VeryRare,Epinephelus spilotoceps,Foursaddle grouper,"Foursaddle grouper: robust stocky fish with large mouth, mottled coloring, heavy body"
+VeryRare,Acanthurus xanthopterus,Yellowfin surgeonfish,"Yellowfin surgeonfish: oval compressed fish with small mouth, often blue or yellow, scalpel-like spine near tail"
+VeryRare,Heniochus monoceros,Masked Bannerfish,"Masked Bannerfish: disc-shaped fish with pointed snout, bold stripes or spots, often yellow and white coloring"
+VeryRare,Amphioctopus aegina,marbled octopus,"marbled octopus: eight arms with suckers, large intelligent eyes, highly textured skin that changes color"
+VeryRare,Gymnothorax undulatus,Undulated Moray,"Undulated Moray: snake-like body, no pectoral fins, constantly gaping mouth showing teeth, patterns vary"
+VeryRare,Diodon hystrix,Porcupine Fish,"Porcupine Fish: marine fish with typical reef fish body shape, scales, and fins"
+VeryRare,Bursatella leachii,Ragged Seahare,Ragged Seahare: marine invertebrate found on coral reefs
+VeryRare,Charybdis longicollis,Longicollis,"Longicollis: swimming crab with paddle-shaped rear legs, broad carapace"
+VeryRare,Novaculichthys taeniourus,Masked Razorfish,"Masked Razorfish, Rockmover wrasse: elongated colorful fish with thick lips, continuous dorsal fin, often with intricate patterns"
+VeryRare,Ostracion meleagris,Spotted Boxfish,"Spotted Boxfish: marine fish with typical reef fish body shape, scales, and fins"
+VeryRare,Contradusta walkeri,Walker's Cowry,Walker's Cowry: marine invertebrate found on coral reefs
+VeryRare,Parupeneus macronemus,Long-barbel goatfish,"Long-barbel goatfish, Longbarbel goatfish: elongated fish with pair of sensory barbels under chin, often pinkish or yellowish"
+VeryRare,Lethrinus erythracanthus,Orange-spotted emperor,"Orange-spotted emperor: marine fish with typical reef fish body shape, scales, and fins"
+VeryRare,Lutjanus monostigma,Blackspot Snapper,"Blackspot Snapper, One-spot snapper, Onespot snapper: medium-sized fish with sloping head profile, often reddish or yellowish, forked tail"
+VeryRare,Stethojulis albovittata,Bluelined wrasse,"Bluelined wrasse: elongated colorful fish with thick lips, continuous dorsal fin, often with intricate patterns"
+VeryRare,Aethaloperca rogaa,Redmouth grouper,"Redmouth grouper: robust stocky fish with large mouth, mottled coloring, heavy body"
+VeryRare,Arothron meleagris,Spotted Puffer,"Spotted Puffer, Guineafowl puffer: rounded fish that can inflate with water, beak-like fused teeth, often spotted"
+VeryRare,Cyclodius granulatus,Granulatus,Granulatus: marine invertebrate found on coral reefs
+VeryRare,Parapercis hexophtalma,Speckled sandperch,"Speckled sandperch: marine fish with typical reef fish body shape, scales, and fins"
+VeryRare,Lethrinus harak,Thumbprint emperor,"Thumbprint emperor: marine fish with typical reef fish body shape, scales, and fins"
+VeryRare,Macolor niger,Black and white snapper,"Black and white snapper: medium-sized fish with sloping head profile, often reddish or yellowish, forked tail"
+VeryRare,Chrysiptera biocellata,Twinspot damselfish,"Twinspot damselfish: small oval-shaped fish, often brightly colored, territorial behavior near coral"
+VeryRare,Caesio xanthonota,Yellowback fusilier,"Yellowback fusilier: marine fish with typical reef fish body shape, scales, and fins"
+VeryRare,Kyphosus cinerascens,Highfin Chub,"Highfin Chub, Blue sea chub, Blue seachub: marine fish with typical reef fish body shape, scales, and fins"
+VeryRare,Apolemichthys trimaculatus,Threespot angelfish,"Threespot angelfish: laterally compressed fish with vivid colors, often with blue, yellow, or orange patterns, extended fins"
+VeryRare,Gymnothorax pictus,Peppered Moray,"Peppered Moray, Speckled sidereal moray: snake-like body, no pectoral fins, constantly gaping mouth showing teeth, patterns vary"
+VeryRare,Centropyge multispinis,Dusky angelfish,"Dusky angelfish: laterally compressed fish with vivid colors, often with blue, yellow, or orange patterns, extended fins"
+VeryRare,Chromis ternatensis,Golden Chromis,"Golden Chromis: small oval-shaped fish, often brightly colored, territorial behavior near coral"
+VeryRare,Chicoreus virgineus,virgin murex,virgin murex: marine invertebrate found on coral reefs
+VeryRare,Mauritia grayana,Grayana,Grayana: marine invertebrate found on coral reefs
+VeryRare,Canarium erythrinum,Erythrinum,Erythrinum: marine invertebrate found on coral reefs
+VeryRare,Phyllidia rueppelii,Rueppelii,"Rueppelii: rounded nudibranch with tubercles on back, often black and pink or yellow patterns"
+VeryRare,Bodianus diana,Diana's hogfish,"Diana's hogfish: elongated colorful fish with thick lips, continuous dorsal fin, often with intricate patterns"
+VeryRare,Portunus segnis,Segnis,"Segnis: swimming crab with paddle-shaped rear legs, broad carapace"
+VeryRare,Grapsus albolineatus,mottled lightfoot crab,mottled lightfoot crab: marine invertebrate found on coral reefs
+VeryRare,Plectorhinchus chaetodonoides,Harlequin Sweetlip,"Harlequin Sweetlip: oval fish with thick lips, often silvery with stripes, named for grunting sounds"
+VeryRare,Gibberulus albus,Albus,Albus: marine invertebrate found on coral reefs
+VeryRare,Etisus demani,Demani,Demani: marine invertebrate found on coral reefs
+VeryRare,Aulostomus chinensis,Trumpetfish,"Trumpetfish, Chinese trumpetfish: marine fish with typical reef fish body shape, scales, and fins"
+VeryRare,Pseudanthias evansi,purple wreckfish,"purple wreckfish: robust stocky fish with large mouth, mottled coloring, heavy body"
+VeryRare,Lyncina camelopardalis,giraffe cowrie,giraffe cowrie: marine invertebrate found on coral reefs
+VeryRare,Conus taeniatus,ringed cone,ringed cone: marine invertebrate found on coral reefs
+VeryRare,Ancylomenes longicarpus,Longicarpus,"Longicarpus: translucent shrimp with long antennae, often with colored markings"
+VeryRare,Myripristis adusta,Bronze Soldierfish,"Bronze Soldierfish, Shadowfin soldierfish: marine fish with typical reef fish body shape, scales, and fins"
+VeryRare,Myripristis vittata,Whitetip Soldierfish,"Whitetip Soldierfish: marine fish with typical reef fish body shape, scales, and fins"
+VeryRare,Parapenaeus fissuroides,Fissuroides,Fissuroides: marine invertebrate found on coral reefs
+VeryRare,Exoclimenella sudanensis,Sudanensis,"Sudanensis: translucent shrimp with long antennae, often with colored markings"
+VeryRare,Priacanthus hamrur,Crescent-tail Bigeye,"Crescent-tail Bigeye, Moontail bullseye: marine fish with typical reef fish body shape, scales, and fins"
+VeryRare,Cirrhilabrus exquisitus,Exquisite wrasse,"Exquisite wrasse: elongated colorful fish with thick lips, continuous dorsal fin, often with intricate patterns"
+VeryRare,Pomacentrus caeruleus,Caerulean damsel,"Caerulean damsel: small oval-shaped fish, often brightly colored, territorial behavior near coral"
+VeryRare,Plectroglyphidodon lacrymatus,jewel damsel,"jewel damsel: small oval-shaped fish, often brightly colored, territorial behavior near coral"
+VeryRare,Coris formosa,Queen coris,"Queen coris: elongated colorful fish with thick lips, continuous dorsal fin, often with intricate patterns"
+VeryRare,Sepioteuthis lessoniana,Bigfin Reef Squid,"Bigfin Reef Squid: torpedo-shaped squid with triangular fins, ten arms, large eyes"
+VeryRare,Murex forskoehlii,Forskoehlii,Forskoehlii: marine invertebrate found on coral reefs
+VeryRare,Myripristis murdjan,Blotcheye Soldierfish,"Blotcheye Soldierfish, Pinecone soldierfish: marine fish with typical reef fish body shape, scales, and fins"
+VeryRare,Pseudocheilinus hexataenia,Sixline Pigmy Wrasse,"Sixline Pigmy Wrasse, Sixline wrasse: elongated colorful fish with thick lips, continuous dorsal fin, often with intricate patterns"
+VeryRare,Scarus tricolor,Tricolour parrotfish,"Tricolour parrotfish: robust colorful fish with fused beak-like teeth, often blue, green, or pink coloring"
+VeryRare,Thalamita poissonii,Poissonii,"Poissonii: swimming crab with paddle-shaped rear legs, broad carapace"
+VeryRare,Cuapetes tenuipes,Tenuipes,"Tenuipes: translucent shrimp with long antennae, often with colored markings"
+VeryRare,Corythoichthys haematopterus,Messmate pipefish,"Messmate pipefish: upright posture with horse-like head, prehensile tail, bony armor plating"
+VeryRare,Valenciennea sexguttata,sixspot goby,"sixspot goby: small bottom-dwelling fish with fused pelvic fins forming suction disc, large head"
+VeryRare,Epibulus insidiator,Sling-jaw wrasse,"Sling-jaw wrasse, Slingjaw wrasse: elongated colorful fish with thick lips, continuous dorsal fin, often with intricate patterns"
+VeryRare,Forcipiger longirostris,Longnose Butterflyfish,"Longnose Butterflyfish: disc-shaped fish with pointed snout, bold stripes or spots, often yellow and white coloring"
+VeryRare,Pomacentrus chrysurus,whitetail damsel,"whitetail damsel: small oval-shaped fish, often brightly colored, territorial behavior near coral"
+VeryRare,Canthigaster bennetti,Bennett's Toby,"Bennett's Toby: rounded fish that can inflate with water, beak-like fused teeth, often spotted"
+VeryRare,Phyllidia multifaria,Multifaria,"Multifaria: rounded nudibranch with tubercles on back, often black and pink or yellow patterns"
+VeryRare,Pterois volitans,Lionfish,"striking lionfish with bold maroon and white stripes, elaborate fan-like venomous spines, feathery appendages"
+VeryRare,Ctenochaetus truncatus,Squaretail Bristletooth,"Squaretail Bristletooth: oval compressed fish with small mouth, often blue or yellow, scalpel-like spine near tail"
+VeryRare,Parapercis millepunctata,Brownspotted Sandperch,"Brownspotted Sandperch, Manyspotted sandperch: marine fish with typical reef fish body shape, scales, and fins"
+VeryRare,Stegastes nigricans,Dusky Farmerfish,"Dusky Farmerfish: small oval-shaped fish, often brightly colored, territorial behavior near coral"
+VeryRare,Pterois radiata,Radial Firefish,"Radial Firefish, Clearfin turkeyfish: heavily camouflaged fish with venomous spines, elaborate fin rays, mottled coloring"
+VeryRare,Thunnus albacares,Yellow-fin Tunny,"Yellow-fin Tunny: marine fish with typical reef fish body shape, scales, and fins"
+VeryRare,Caranx sexfasciatus,Bigeye Jack,"Bigeye Jack, Bigeye trevally: powerful silvery fish with forked tail, streamlined body, large eyes"
+VeryRare,Macropharyngodon bipartitus,Rare wrasse,"Rare wrasse, Vermiculate wrasse: elongated colorful fish with thick lips, continuous dorsal fin, often with intricate patterns"
+VeryRare,Bodianus axillaris,Axilspot hogfish,"Axilspot hogfish: elongated colorful fish with thick lips, continuous dorsal fin, often with intricate patterns"
+VeryRare,Conus pennaceus,feathered cone,feathered cone: marine invertebrate found on coral reefs
+VeryRare,Mulloidichthys flavolineatus,Yellowstripe Goatfish,"Yellowstripe Goatfish: elongated fish with pair of sensory barbels under chin, often pinkish or yellowish"
+VeryRare,Pomacentrus pavo,Peacock Damselfish,"Peacock Damselfish: small oval-shaped fish, often brightly colored, territorial behavior near coral"
+VeryRare,Prionace glauca,Blue Dog,"Blue Dog: sleek grey shark with streamlined body, white underside, prominent dorsal fin, dark eyes"
+VeryRare,Paracirrhites arcatus,Arceye Hawkfish,"Arceye Hawkfish, Arc-eye hawkfish: marine fish with typical reef fish body shape, scales, and fins"
+VeryRare,Urogymnus granulatus,Mangrove whipray,"Mangrove whipray: flat diamond-shaped ray with whip-like tail, smooth body, spiracles behind eyes"
+VeryRare,Phyllidiella rosans,Rosans,"Rosans: rounded nudibranch with tubercles on back, often black and pink or yellow patterns"
+VeryRare,Circenita callipyga,Callipyga,Callipyga: marine invertebrate found on coral reefs
+VeryRare,Grapsus granulosus,Granulosus,Granulosus: marine invertebrate found on coral reefs
+VeryRare,Echeneis naucrates,Suckerfish,"Suckerfish, Live sharksucker: marine fish with typical reef fish body shape, scales, and fins"
+VeryRare,Parupeneus cyclostomus,Yellowsaddle Goatfish,"Yellowsaddle Goatfish, Gold-saddle goatfish, Goldsaddle goatfish: elongated fish with pair of sensory barbels under chin, often pinkish or yellowish"
+VeryRare,Urogymnus asperrimus,Porcupine ray,"Porcupine ray: flat diamond-shaped ray with whip-like tail, smooth body, spiracles behind eyes"
+VeryRare,Lepidochelys olivacea,Olive Ridley,"Olive Ridley: large sea turtle with heart-shaped shell, non-retractable flippers, rounded head"
+VeryRare,Acanthurus mata,Elongate surgeonfish,"Elongate surgeonfish: oval compressed fish with small mouth, often blue or yellow, scalpel-like spine near tail"
+VeryRare,Acanthurus thompsoni,Thompson's Surgeonfish,"Thompson's Surgeonfish, Chocolate surgeonfish: oval compressed fish with small mouth, often blue or yellow, scalpel-like spine near tail"
+VeryRare,Taenianotus triacanthus,Leaffish,"Leaffish, Leaf scorpionfish: heavily camouflaged fish with venomous spines, elaborate fin rays, mottled coloring"
+VeryRare,Myripristis violacea,Violet Soldierfish,"Violet Soldierfish: marine fish with typical reef fish body shape, scales, and fins"
+VeryRare,Chaetodon madagaskariensis,Seychelles butterflyfish,"Seychelles butterflyfish: disc-shaped fish with pointed snout, bold stripes or spots, often yellow and white coloring"
+VeryRare,Neoniphon sammara,Spotfin Squirrelfish,"Spotfin Squirrelfish, Sammara squirrelfish: marine fish with typical reef fish body shape, scales, and fins"
+VeryRare,Trachinotus baillonii,Pompano,"Pompano, Small spotted dart, Smallspotted dart: powerful silvery fish with forked tail, streamlined body, large eyes"
+VeryRare,Echidna nebulosa,Snowflake moray,"Snowflake moray, Starry Moray: snake-like body, no pectoral fins, constantly gaping mouth showing teeth, patterns vary"
+VeryRare,Sargocentron diadema,Crown squirrelfish,"Crown squirrelfish: marine fish with typical reef fish body shape, scales, and fins"
+VeryRare,Dascyllus aruanus,Whitetail Damselfish,"Whitetail Damselfish, Whitetail dascyllus: small oval-shaped fish, often brightly colored, territorial behavior near coral"
+VeryRare,Conus locumtenens,vice admiral cone,vice admiral cone: marine invertebrate found on coral reefs
+VeryRare,Tylothais savignyi,Savignyi,Savignyi: marine invertebrate found on coral reefs
+VeryRare,Conus nussatella,Nussatella cone,Nussatella cone: marine invertebrate found on coral reefs
+VeryRare,Podophthalmus vigil,sentinel crab,"sentinel crab: swimming crab with paddle-shaped rear legs, broad carapace"
+VeryRare,Labroides bicolor,Bicolored Cleaner Wrasse,"Bicolored Cleaner Wrasse: elongated colorful fish with thick lips, continuous dorsal fin, often with intricate patterns"
+VeryRare,Cephalopholis leopardus,Leopard Grouper,"Leopard Grouper, Leopard hind: robust stocky fish with large mouth, mottled coloring, heavy body"
+VeryRare,Chromis fieldi,Fieldi,"Fieldi: small oval-shaped fish, often brightly colored, territorial behavior near coral"
+VeryRare,Platax orbicularis,Spadefish,"Spadefish, Orbicular batfish: tall disc-shaped fish with elongated dorsal and anal fins, often silvery with dark bands"
+VeryRare,Goniobranchus gleniei,Gleniei,"Gleniei: soft-bodied sea slug with vibrant colors, rhinophores on head, feathery gills on back"
+VeryRare,Geograpsus grayi,Grayi,Grayi: marine invertebrate found on coral reefs
+VeryRare,Phyllidiella striata,Striata,"Striata: rounded nudibranch with tubercles on back, often black and pink or yellow patterns"
+VeryRare,Chromodoris africana,African Rainbow Dorid,"African Rainbow Dorid: soft-bodied sea slug with vibrant colors, rhinophores on head, feathery gills on back"
+VeryRare,Callista florida,Florida,Florida: marine invertebrate found on coral reefs
+VeryRare,Circe rivularis,Rivularis,Rivularis: marine invertebrate found on coral reefs
+VeryRare,Harpiliopsis depressa,Flattened Shrimp,"Flattened Shrimp: translucent shrimp with long antennae, often with colored markings"
+VeryRare,Chlorodiella nigra,Nigra,Nigra: marine invertebrate found on coral reefs
+VeryRare,Epinephelus polyphekadion,Marbled Grouper,"Marbled Grouper, Camouflage grouper: robust stocky fish with large mouth, mottled coloring, heavy body"
+VeryRare,Plagiotremus rhinorhynchos,Bluestriped Fangblenny,"Bluestriped Fangblenny: marine fish with typical reef fish body shape, scales, and fins"
+VeryRare,Abudefduf septemfasciatus,Banded Sergeant,"Banded Sergeant: small oval-shaped fish, often brightly colored, territorial behavior near coral"
+VeryRare,Goniobranchus annulatus,Spectacled Rainbow Dorid,"Spectacled Rainbow Dorid: soft-bodied sea slug with vibrant colors, rhinophores on head, feathery gills on back"
+VeryRare,Thalamita crenata,crenate swimming crab,"crenate swimming crab: swimming crab with paddle-shaped rear legs, broad carapace"
+VeryRare,Naso unicornis,Brown Unicornfish,"Brown Unicornfish, Bluespine unicornfish: oval compressed fish with small mouth, often blue or yellow, scalpel-like spine near tail"
+VeryRare,Spondylus spinosus,red thorny oyster,red thorny oyster: marine invertebrate found on coral reefs
+VeryRare,Aprion virescens,Grey Jobfish,"Grey Jobfish, Green jobfish: medium-sized fish with sloping head profile, often reddish or yellowish, forked tail"
+VeryRare,Caesio varilineata,Variable-lined fusilier,"Variable-lined fusilier: marine fish with typical reef fish body shape, scales, and fins"
+VeryRare,Epinephelus fasciatus,Blacktip Grouper,"Blacktip Grouper, Redbanded grouper: robust stocky fish with large mouth, mottled coloring, heavy body"
+VeryRare,Cephalopholis nigripinnis,Duskyfin hind,"Duskyfin hind: robust stocky fish with large mouth, mottled coloring, heavy body"
+VeryRare,Circe rugifera,Rugifera,Rugifera: marine invertebrate found on coral reefs
+VeryRare,Actaeodes hirsutissimus,Hirsutissimus,Hirsutissimus: marine invertebrate found on coral reefs
+VeryRare,Panulirus penicillatus,Pronghorn Spiny Lobster,"Pronghorn Spiny Lobster: spiny lobster with long antennae, no large claws, segmented tail, armored body"
+VeryRare,Cheilinus fasciatus,Redbreast wrasse,"Redbreast wrasse, Redbreasted wrasse: elongated colorful fish with thick lips, continuous dorsal fin, often with intricate patterns"
+VeryRare,Epinephelus coeruleopunctatus,Whitespotted grouper,"Whitespotted grouper: robust stocky fish with large mouth, mottled coloring, heavy body"
+VeryRare,Arothron mappa,Map puffer,"Map puffer: rounded fish that can inflate with water, beak-like fused teeth, often spotted"
+VeryRare,Mobula birostris,Giant Manta Ray,"massive manta ray with 7m wingspan, black upper surface with white shoulder patches, cephalic fins flanking wide mouth"
+VeryRare,Phyllidia undula,Undula,"Undula: rounded nudibranch with tubercles on back, often black and pink or yellow patterns"
+VeryRare,Homalocantha anatomica,Pele's murex,Pele's murex: marine invertebrate found on coral reefs
+VeryRare,Phyllidiopsis sinaiensis,Sinaiensis,"Sinaiensis: rounded nudibranch with tubercles on back, often black and pink or yellow patterns"
+VeryRare,Xiphonectes longispinosus,Longispinosus,"Longispinosus: swimming crab with paddle-shaped rear legs, broad carapace"
+VeryRare,Chaetodon melannotus,Blackbacked Butterflyfish,"Blackbacked Butterflyfish: disc-shaped fish with pointed snout, bold stripes or spots, often yellow and white coloring"
+VeryRare,Heteroconger hassi,Spotted Garden Eel,"Spotted Garden Eel: marine fish with typical reef fish body shape, scales, and fins"
+VeryRare,Arothron stellatus,Starry Puffer,"Starry Puffer, Stellate puffer: rounded fish that can inflate with water, beak-like fused teeth, often spotted"
+VeryRare,Sepia gibba,Gibba,"Gibba: cuttlefish with W-shaped pupils, undulating fin fringe, eight arms plus two tentacles"
+VeryRare,Conus sanguinolentus,blood-stained cone,blood-stained cone: marine invertebrate found on coral reefs
+VeryRare,Drupa morum,mulberry drupe,mulberry drupe: marine invertebrate found on coral reefs
+VeryRare,Halichoeres melanurus,Tail-spot wrasse,"Tail-spot wrasse: elongated colorful fish with thick lips, continuous dorsal fin, often with intricate patterns"
+VeryRare,Thalassoma jansenii,Jansen's wrasse,"Jansen's wrasse: elongated colorful fish with thick lips, continuous dorsal fin, often with intricate patterns"
+VeryRare,Scarus ghobban,Bluebarred Parrotfish,"Bluebarred Parrotfish, Blue-barred parrotfish: robust colorful fish with fused beak-like teeth, often blue, green, or pink coloring"
+VeryRare,Chlorurus enneacanthus,Captain parrotfish,"Captain parrotfish: robust colorful fish with fused beak-like teeth, often blue, green, or pink coloring"
+VeryRare,Spondylus varius,Varius,Varius: marine invertebrate found on coral reefs
+VeryRare,Nassa situla,Situla,Situla: marine invertebrate found on coral reefs
+VeryRare,Glossodoris hikuerensis,Pastel Rainbow Dorid,"Pastel Rainbow Dorid: soft-bodied sea slug with vibrant colors, rhinophores on head, feathery gills on back"
+VeryRare,Caesio lunaris,Lunar fusilier,"Lunar fusilier: marine fish with typical reef fish body shape, scales, and fins"
+VeryRare,Amblygobius semicinctus,Halfbarred Goby,"Halfbarred Goby: small bottom-dwelling fish with fused pelvic fins forming suction disc, large head"
+VeryRare,Ecsenius lineatus,linear blenny,"linear blenny: marine fish with typical reef fish body shape, scales, and fins"
+VeryRare,Plectropomus areolatus,Squaretail coralgrouper,"Squaretail coralgrouper: robust stocky fish with large mouth, mottled coloring, heavy body"
+VeryRare,Pteria aegyptiaca,Aegyptiaca,Aegyptiaca: marine invertebrate found on coral reefs
+VeryRare,Naria macandrewi,Macandrewi,Macandrewi: marine invertebrate found on coral reefs
+VeryRare,Gymnodoris ceylonica,Polka-dot Gobble Dorid,Polka-dot Gobble Dorid: marine invertebrate found on coral reefs
+VeryRare,Drupina lobata,lobate drupe,lobate drupe: marine invertebrate found on coral reefs
+VeryRare,Periclimenes madreporae,Madreporae,"Madreporae: translucent shrimp with long antennae, often with colored markings"
+VeryRare,Chlorodiella cytherea,Cytherea,Cytherea: marine invertebrate found on coral reefs
+VeryRare,Lethrinus xanthochilus,Yellowlip Emperor,"Yellowlip Emperor: marine fish with typical reef fish body shape, scales, and fins"
+VeryRare,Heniochus acuminatus,Longfin Bannerfish,"Longfin Bannerfish, Pennant coralfish: disc-shaped fish with pointed snout, bold stripes or spots, often yellow and white coloring"
+VeryRare,Siganus argenteus,Silvery Rabbitfish,"Silvery Rabbitfish, Streamlined spinefoot: marine fish with typical reef fish body shape, scales, and fins"
+VeryRare,Plectroglyphidodon dickii,Dick's Damselfish,"Dick's Damselfish, Blackbar devil: small oval-shaped fish, often brightly colored, territorial behavior near coral"
+VeryRare,Conus nigropunctatus,Nigropunctatus,Nigropunctatus: marine invertebrate found on coral reefs
+VeryRare,Bistolida erythraeensis,Erythraeensis,Erythraeensis: marine invertebrate found on coral reefs
+VeryRare,Conus maldivus,Maldive cone,Maldive cone: marine invertebrate found on coral reefs
+VeryRare,Metapenaeus monoceros,Speckled Shrimp,Speckled Shrimp: marine invertebrate found on coral reefs
+VeryRare,Etisus frontalis,Frontalis,Frontalis: marine invertebrate found on coral reefs
+VeryRare,Siganus puelloides,Blackeye rabbitfish,"Blackeye rabbitfish: marine fish with typical reef fish body shape, scales, and fins"
+VeryRare,Morula uva,Uva,Uva: marine invertebrate found on coral reefs
+VeryRare,Liocarpilodes integerrimus,Integerrimus,Integerrimus: marine invertebrate found on coral reefs
+VeryRare,Gonioinfradens giardi,Giardi,"Giardi: swimming crab with paddle-shaped rear legs, broad carapace"
+VeryRare,Anampses meleagrides,Spotted wrasse,"Spotted wrasse: elongated colorful fish with thick lips, continuous dorsal fin, often with intricate patterns"
+VeryRare,Chaetodon bennetti,Bennett's Butterflyfish,"Bennett's Butterflyfish: disc-shaped fish with pointed snout, bold stripes or spots, often yellow and white coloring"
+VeryRare,Oxymonacanthus longirostris,Harlequin filefish,"Harlequin filefish: marine fish with typical reef fish body shape, scales, and fins"
+VeryRare,Aetobatus narinari,Spotted eagle ray,"spotted eagle ray with dark body covered in white spots and rings, pointed duck-bill snout, long whip tail"
+VeryRare,Sphyraena barracuda,Great barracuda,"Great barracuda: elongated silvery fish with pointed head, prominent underbite with sharp teeth"
+VeryRare,Chicoreus corrugatus,Corrugatus,Corrugatus: marine invertebrate found on coral reefs
+VeryRare,Gloripallium maculosum,blood-stained scallop,blood-stained scallop: marine invertebrate found on coral reefs
+VeryRare,Conus erythraeensis,Red Sea cone,Red Sea cone: marine invertebrate found on coral reefs
+VeryRare,Luria pulchra,lovely cowrie,lovely cowrie: marine invertebrate found on coral reefs
+VeryRare,Epiactaea nodulosa,Nodulosa,Nodulosa: marine invertebrate found on coral reefs
+VeryRare,Thalassoma quinquevittatum,Fivestripe wrasse,"Fivestripe wrasse: elongated colorful fish with thick lips, continuous dorsal fin, often with intricate patterns"
+VeryRare,Lioconcha ornata,Ornata,Ornata: marine invertebrate found on coral reefs
+VeryRare,Pachygrapsus minutus,Minutus,Minutus: marine invertebrate found on coral reefs
+VeryRare,Zosimus aeneus,Aeneus,Aeneus: marine invertebrate found on coral reefs
+VeryRare,Psaumis cavipes,Cavipes,Cavipes: marine invertebrate found on coral reefs
+VeryRare,Halichoeres cosmetus,Adorned wrasse,"Adorned wrasse: elongated colorful fish with thick lips, continuous dorsal fin, often with intricate patterns"
+VeryRare,Gnathanodon speciosus,Golden Jack,"Golden Jack, Golden trevally: powerful silvery fish with forked tail, streamlined body, large eyes"
+VeryRare,Ecsenius bicolor,Bicolor Blenny,"Bicolor Blenny: marine fish with typical reef fish body shape, scales, and fins"
+VeryRare,Gymnothorax thyrsoideus,White Eyed Moray,"White Eyed Moray, Greyface moray: snake-like body, no pectoral fins, constantly gaping mouth showing teeth, patterns vary"
+VeryRare,Trachinotus blochii,Snubnose dart,"Snubnose dart, Snubnose pompano: powerful silvery fish with forked tail, streamlined body, large eyes"
+VeryRare,Murex scolopax,woodcock murex,woodcock murex: marine invertebrate found on coral reefs
+VeryRare,Callistoctopus macropus,Atlantic White-Spotted Octopus,"Atlantic White-Spotted Octopus: eight arms with suckers, large intelligent eyes, highly textured skin that changes color"
+VeryRare,Morula chrysostoma,Chrysostoma,Chrysostoma: marine invertebrate found on coral reefs
+VeryRare,Halichoeres leucoxanthus,Canarytop wrasse,"Canarytop wrasse: elongated colorful fish with thick lips, continuous dorsal fin, often with intricate patterns"
+VeryRare,Gymnothorax breedeni,Masked Moray,"Masked Moray, Blackcheek moray: snake-like body, no pectoral fins, constantly gaping mouth showing teeth, patterns vary"
+VeryRare,Pristiapogon kallopterus,Iridescent Cardinalfish,"Iridescent Cardinalfish: marine fish with typical reef fish body shape, scales, and fins"
+VeryRare,Penaeus semisulcatus,Green Tiger Prawn,Green Tiger Prawn: marine invertebrate found on coral reefs
+VeryRare,Charybdis acutidens,Acutidens,"Acutidens: swimming crab with paddle-shaped rear legs, broad carapace"
+VeryRare,Pterocaesio pisang,Banana fusilier,"Banana fusilier: marine fish with typical reef fish body shape, scales, and fins"
+VeryRare,Oxycheilinus digramma,Cheeklined wrasse,"Cheeklined wrasse: elongated colorful fish with thick lips, continuous dorsal fin, often with intricate patterns"
+VeryRare,Gymnothorax fimbriatus,Fibriated Moray,"Fibriated Moray, Darkspotted moray: snake-like body, no pectoral fins, constantly gaping mouth showing teeth, patterns vary"
+VeryRare,Cantherhines pardalis,Honeycomb filefish,"Honeycomb filefish: marine fish with typical reef fish body shape, scales, and fins"
+VeryRare,Aphareus furca,Smalltooth Jobfish,"Smalltooth Jobfish, Small toothed jobfish: medium-sized fish with sloping head profile, often reddish or yellowish, forked tail"
+VeryRare,Nembrotha megalocera,Megalocera,Megalocera: marine invertebrate found on coral reefs
+VeryRare,Circenita varia,Varia,Varia: marine invertebrate found on coral reefs
+VeryRare,Tambja affinis,Springbok Wrinkle Dorid,Springbok Wrinkle Dorid: marine invertebrate found on coral reefs
+VeryRare,Thalamita quadrilobata,Quadrilobata,"Quadrilobata: swimming crab with paddle-shaped rear legs, broad carapace"
+VeryRare,Liocarpilodes armiger,Armiger,Armiger: marine invertebrate found on coral reefs
+VeryRare,Eviota mikiae,Mikiae,"Mikiae: small bottom-dwelling fish with fused pelvic fins forming suction disc, large head"
+VeryRare,Mauritia histrio,harlequin cowrie,harlequin cowrie: marine invertebrate found on coral reefs
+VeryRare,Martadoris limaciformis,Limaciformis,Limaciformis: marine invertebrate found on coral reefs
+VeryRare,Etisus electra,Electra,Electra: marine invertebrate found on coral reefs
+VeryRare,Conus quercinus,Oak cone,"Oak cone, Yellow cone: marine invertebrate found on coral reefs"
+VeryRare,Monomia gladiator,Gladiator,"Gladiator: swimming crab with paddle-shaped rear legs, broad carapace"
+VeryRare,Goniobranchus geminus,Blue-ringed Rainbow Dorid,"Blue-ringed Rainbow Dorid: soft-bodied sea slug with vibrant colors, rhinophores on head, feathery gills on back"
+VeryRare,Harpiliopsis beaupresii,Beaupresii,"Beaupresii: translucent shrimp with long antennae, often with colored markings"
+VeryRare,Periclimenella petitthouarsii,Petitthouarsii,"Petitthouarsii: translucent shrimp with long antennae, often with colored markings"
+VeryRare,Terestrombus terebellatus,Terebellatus,Terebellatus: marine invertebrate found on coral reefs
+VeryRare,Conus fumigatus,Smoky Cone,Smoky Cone: marine invertebrate found on coral reefs
+VeryRare,Zygita murinae,Murinae,"Murinae: swimming crab with paddle-shaped rear legs, broad carapace"
+VeryRare,Charybdis omanensis,Omanensis,"Omanensis: swimming crab with paddle-shaped rear legs, broad carapace"
+VeryRare,Ergalatax junionae,Junionae,Junionae: marine invertebrate found on coral reefs
+VeryRare,Tapes sulcarius,furrowed venus,furrowed venus: marine invertebrate found on coral reefs
+VeryRare,Strombus spec,Spec,Spec: marine invertebrate found on coral reefs
+VeryRare,Vir philippinensis,Philippinensis,"Philippinensis: translucent shrimp with long antennae, often with colored markings"
+VeryRare,Etisus anaglyptus,Anaglyptus,Anaglyptus: marine invertebrate found on coral reefs
+VeryRare,Thalamita chaptalii,Chaptalii,"Chaptalii: swimming crab with paddle-shaped rear legs, broad carapace"
+VeryRare,Phyllidiella zeylanica,Angular Wart Slug,"Angular Wart Slug: rounded nudibranch with tubercles on back, often black and pink or yellow patterns"
+VeryRare,Leptodius sanguineus,Sanguineus,Sanguineus: marine invertebrate found on coral reefs
+VeryRare,Fusistrombus fusiformis,Fusiformis,Fusiformis: marine invertebrate found on coral reefs
+VeryRare,Laevichlamys rubromaculata,Rubromaculata,Rubromaculata: marine invertebrate found on coral reefs
+VeryRare,Gonioinfradens paucidentatus,Paucidentatus,"Paucidentatus: swimming crab with paddle-shaped rear legs, broad carapace"
+VeryRare,Goniobranchus pseudodecorus,Pseudodecorus,"Pseudodecorus: soft-bodied sea slug with vibrant colors, rhinophores on head, feathery gills on back"
+VeryRare,Streptopinna saccata,baggy pen shell,baggy pen shell: marine invertebrate found on coral reefs
+VeryRare,Dosinia histrio,Histrio,Histrio: marine invertebrate found on coral reefs
+VeryRare,Goniobranchus tritos,Tritos,"Tritos: soft-bodied sea slug with vibrant colors, rhinophores on head, feathery gills on back"
+VeryRare,Pinna muricata,prickly pen shell,prickly pen shell: marine invertebrate found on coral reefs
+VeryRare,Laevichlamys superficialis,Superficialis,Superficialis: marine invertebrate found on coral reefs
+VeryRare,Conus geographus,Geography cone,"Geography cone, Geographer cone: marine invertebrate found on coral reefs"
+VeryRare,Dolomena plicata,Plicata,Plicata: marine invertebrate found on coral reefs
+VeryRare,Pitar hebraeus,zigzag clam,zigzag clam: marine invertebrate found on coral reefs
+VeryRare,Conus zonatus,zoned cone,zoned cone: marine invertebrate found on coral reefs
+VeryRare,Conus namocanus,namocanus cone,namocanus cone: marine invertebrate found on coral reefs
+VeryRare,Talparia exusta,Exusta,Exusta: marine invertebrate found on coral reefs
+VeryRare,Muricodrupa anaxares,diminuitive purpura,diminuitive purpura: marine invertebrate found on coral reefs
+VeryRare,Drupa rubusidaeus,porcupine castor bean,porcupine castor bean: marine invertebrate found on coral reefs
+VeryRare,Phyllidia marindica,Yellow-spined Wart Slug,"Yellow-spined Wart Slug: rounded nudibranch with tubercles on back, often black and pink or yellow patterns"
+VeryRare,Phyllidia koehleri,Koehleri,"Koehleri: rounded nudibranch with tubercles on back, often black and pink or yellow patterns"
+VeryRare,Leptodius nudipes,Nudipes,Nudipes: marine invertebrate found on coral reefs
+VeryRare,Bistolida hirundo,Cowrie,Cowrie: marine invertebrate found on coral reefs
+VeryRare,Conus mustelinus,weasel cone,weasel cone: marine invertebrate found on coral reefs
+VeryRare,Conus gubernator,Gubernator,Gubernator: marine invertebrate found on coral reefs
+VeryRare,Tambja olivaria,Olivaria,Olivaria: marine invertebrate found on coral reefs
+VeryRare,Goniobranchus setoensis,Setoensis,"Setoensis: soft-bodied sea slug with vibrant colors, rhinophores on head, feathery gills on back"
+VeryRare,Stylocheilus striatus,Striated Seahare,Striated Seahare: marine invertebrate found on coral reefs
+VeryRare,Conus bandanus,banded marble cone,banded marble cone: marine invertebrate found on coral reefs
+VeryRare,Arestorides argus,eyed cowrie,eyed cowrie: marine invertebrate found on coral reefs
+VeryRare,Aplysia nigrocincta,Black-edged Sea Hare,Black-edged Sea Hare: marine invertebrate found on coral reefs
+VeryRare,Naria poraria,Cowrie,Cowrie: marine invertebrate found on coral reefs
+VeryRare,Ancylocaris brevicarpalis,pepperoni shrimp,"pepperoni shrimp: translucent shrimp with long antennae, often with colored markings"
+VeryRare,Hapalochlaena maculosa,Southern blue-ringed octopus,"Southern blue-ringed octopus: eight arms with suckers, large intelligent eyes, highly textured skin that changes color"
+VeryRare,Hypselodoris maculosa,Double-banded Split-tooth Dorid,"Double-banded Split-tooth Dorid: soft-bodied sea slug with vibrant colors, rhinophores on head, feathery gills on back"
+VeryRare,Morula biconica,Biconica,Biconica: marine invertebrate found on coral reefs
+VeryRare,Chicoreus saulii,Saul's murex,Saul's murex: marine invertebrate found on coral reefs
+VeryRare,Conus canonicus,Canonicus,Canonicus: marine invertebrate found on coral reefs
+VeryRare,Phyllidia exquisita,Yellow-edged Wart Slug,"Yellow-edged Wart Slug: rounded nudibranch with tubercles on back, often black and pink or yellow patterns"
+VeryRare,Leptodius gracilis,Gracilis,Gracilis: marine invertebrate found on coral reefs
+VeryRare,Conus leopardus,leopard cone,leopard cone: marine invertebrate found on coral reefs
+VeryRare,Maculotriton serriale,Serriale,Serriale: marine invertebrate found on coral reefs
+VeryRare,Coralliophila clathrata,Clathrata,Clathrata: marine invertebrate found on coral reefs
+VeryRare,Mauritia scurra,jester cowrie,jester cowrie: marine invertebrate found on coral reefs
+VeryRare,Conus betulinus,birch cone,birch cone: marine invertebrate found on coral reefs
+VeryRare,Conus magnificus,Magnificus,Magnificus: marine invertebrate found on coral reefs
+VeryRare,Urocaridella antonbruunii,clear cleaner shrimp,"clear cleaner shrimp: translucent shrimp with long antennae, often with colored markings"
+VeryRare,Lissocarcinus orbicularis,sea cucumber crab,"sea cucumber crab: swimming crab with paddle-shaped rear legs, broad carapace"
+VeryRare,Geograpsus crinipes,Crinipes,Crinipes: marine invertebrate found on coral reefs
+VeryRare,Xanthias lamarckii,Lamarckii,Lamarckii: marine invertebrate found on coral reefs
+VeryRare,Cymo quadrilobatus,Quadrilobatus,Quadrilobatus: marine invertebrate found on coral reefs
+VeryRare,Pascula ochrostoma,Ochrostoma,Ochrostoma: marine invertebrate found on coral reefs
+VeryRare,Morula aspera,Aspera,Aspera: marine invertebrate found on coral reefs
+VeryRare,Morula nodicostata,Nodicostata,Nodicostata: marine invertebrate found on coral reefs
+VeryRare,Laevichlamys andamanica,Andamanica,Andamanica: marine invertebrate found on coral reefs
+VeryRare,Pteria penguin,penguin wing-oyster,penguin wing-oyster: marine invertebrate found on coral reefs
+VeryRare,Terestrombus afrobellatus,Afrobellatus,Afrobellatus: marine invertebrate found on coral reefs
+VeryRare,Conus frigidus,Frigid Cone,Frigid Cone: marine invertebrate found on coral reefs
+VeryRare,Galeropsis monodonta,Monodonta,Monodonta: marine invertebrate found on coral reefs
+VeryRare,Goniobranchus conchyliatus,Dainty Rainbow Dorid,"Dainty Rainbow Dorid: soft-bodied sea slug with vibrant colors, rhinophores on head, feathery gills on back"
+VeryRare,Pilodius areolatus,areolated xanthid crab,areolated xanthid crab: marine invertebrate found on coral reefs
+VeryRare,Hypselodoris yarae,Polka-dot Split-tooth Dorid,"Polka-dot Split-tooth Dorid: soft-bodied sea slug with vibrant colors, rhinophores on head, feathery gills on back"
+VeryRare,Bistolida rubiginosa,Rubiginosa,Rubiginosa: marine invertebrate found on coral reefs
+VeryRare,Glossodoris cincta,Cincta,"Cincta: soft-bodied sea slug with vibrant colors, rhinophores on head, feathery gills on back"
+VeryRare,Purpuradusta fimbriata,Fimbriata,Fimbriata: marine invertebrate found on coral reefs
+VeryRare,Bistolida stolida,stolid cowrie,stolid cowrie: marine invertebrate found on coral reefs
+VeryRare,Coralliophila erosa,Erosa,Erosa: marine invertebrate found on coral reefs
+VeryRare,Chicoreus palmarosae,rose-branch murex,rose-branch murex: marine invertebrate found on coral reefs
+VeryRare,Haumea minuta,Minuta,Minuta: marine invertebrate found on coral reefs
+VeryRare,Lioconcha polita,Polita,Polita: marine invertebrate found on coral reefs
+VeryRare,Phyllidiopsis gemmata,Ridged Wart Slug,"Ridged Wart Slug: rounded nudibranch with tubercles on back, often black and pink or yellow patterns"
+VeryRare,Panulirus ornatus,Ornate spiny lobster,"Ornate spiny lobster,: spiny lobster with long antennae, no large claws, segmented tail, armored body"
+VeryRare,Hymenocera picta,Harlequin Shrimp,"Harlequin Shrimp: translucent shrimp with long antennae, often with colored markings"
+VeryRare,Etisus bifrontalis,Bifrontalis,Bifrontalis: marine invertebrate found on coral reefs
+VeryRare,Cyclodius granulosus,Granulosus,Granulosus: marine invertebrate found on coral reefs
+VeryRare,Cyclodius ungulatus,Ungulatus,Ungulatus: marine invertebrate found on coral reefs
+VeryRare,Actaea spinosissima,Spinosissima,Spinosissima: marine invertebrate found on coral reefs
+VeryRare,Bruciana pediger,Pediger,Pediger: marine invertebrate found on coral reefs
+VeryRare,Pontonides ankeri,Ankeri,"Ankeri: translucent shrimp with long antennae, often with colored markings"
+VeryRare,Panulirus longipes,longlegged spiny lobster,"longlegged spiny lobster: spiny lobster with long antennae, no large claws, segmented tail, armored body"
+VeryRare,Panulirus japonicus,Japanese spiny lobster,"Japanese spiny lobster: spiny lobster with long antennae, no large claws, segmented tail, armored body"
+VeryRare,Periclimenes soror,seastar shrimp,"seastar shrimp: translucent shrimp with long antennae, often with colored markings"
+VeryRare,Conchodytes tridacnae,giant-clam shrimp,"giant-clam shrimp: translucent shrimp with long antennae, often with colored markings"
+VeryRare,Etisus splendidus,splendid pebble crab,splendid pebble crab: marine invertebrate found on coral reefs
+VeryRare,Thalamita oculea,Oculea,"Oculea: swimming crab with paddle-shaped rear legs, broad carapace"
+VeryRare,Liomera cinctimanus,Cinctimanus,Cinctimanus: marine invertebrate found on coral reefs
+VeryRare,Pseudoliomera hellerii,Hellerii,Hellerii: marine invertebrate found on coral reefs
+VeryRare,Palapedia nitida,Nitida,Nitida: marine invertebrate found on coral reefs
+VeryRare,Cyclodius nitidus,Nitidus,Nitidus: marine invertebrate found on coral reefs
+VeryRare,Cyclodius obscurus,Obscurus,Obscurus: marine invertebrate found on coral reefs
+VeryRare,Tweedieia odhneri,Odhneri,Odhneri: marine invertebrate found on coral reefs
+VeryRare,Actaeodes tomentosus,Tomentosus,Tomentosus: marine invertebrate found on coral reefs
+VeryRare,Planes minutus,Gulfweed Crab,Gulfweed Crab: marine invertebrate found on coral reefs
+VeryRare,Odontonia rufopunctata,Rufopunctata,"Rufopunctata: translucent shrimp with long antennae, often with colored markings"

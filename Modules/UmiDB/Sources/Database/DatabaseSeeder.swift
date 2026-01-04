@@ -73,6 +73,16 @@ public enum DatabaseSeeder {
             Self.logger.log("  ℹ️ Sightings already present (\\(sightingsCount, privacy: .public))")
         }
 
+        // Site media
+        let mediaCount = try db.read { db in
+            try Int.fetchOne(db, sql: "SELECT COUNT(*) FROM site_media") ?? 0
+        }
+        if mediaCount == 0 {
+            try seedSiteMedia(); seededSomething = true
+        } else {
+            Self.logger.log("  ℹ️ Site media already present (\\(mediaCount, privacy: .public))")
+        }
+
         if seededSomething {
             Self.logger.log("✅ Database seeding complete!")
         } else {
@@ -460,7 +470,40 @@ public enum DatabaseSeeder {
         
         Self.logger.log("  ✅ Loaded \\(sightingsFile.sightings.count, privacy: .public) wildlife sightings")
     }
-    
+
+    // MARK: - Site Media Seeding
+
+    private static func seedSiteMedia() throws {
+        Self.logger.log("  📷 Loading site media...")
+
+        guard let mediaFile = optionalJSON("site_media", as: SiteMediaSeedFile.self) else {
+            Self.logger.log("  ℹ️ No site_media.json found")
+            return
+        }
+
+        let db = AppDatabase.shared
+        let mediaRepo = SiteMediaRepository(database: db)
+
+        let media = mediaFile.media.map { data in
+            SiteMedia(
+                id: data.id,
+                siteId: data.siteId,
+                kind: SiteMedia.MediaKind(rawValue: data.kind) ?? .photo,
+                url: data.url,
+                width: data.width,
+                height: data.height,
+                license: data.license,
+                attribution: data.attribution,
+                sourceUrl: data.sourceUrl,
+                sha256: data.sha256,
+                isRedistributable: data.isRedistributable ?? true
+            )
+        }
+
+        try mediaRepo.upsertMany(media)
+        Self.logger.log("  ✅ Loaded \\(media.count, privacy: .public) site media records")
+    }
+
     // MARK: - JSON Loading
     
     private static func loadJSON<T: Decodable>(_ filename: String, as type: T.Type) throws -> T {
@@ -910,4 +953,24 @@ private struct SiteSpeciesSeedData: Decodable {
     let source: String?
     let source_record_count: Int?
     let last_updated: String
+}
+
+// MARK: - Site Media Seed Structures
+
+private struct SiteMediaSeedFile: Decodable {
+    let media: [SiteMediaSeedData]
+}
+
+private struct SiteMediaSeedData: Decodable {
+    let id: String
+    let siteId: String
+    let kind: String
+    let url: String
+    let width: Int?
+    let height: Int?
+    let license: String?
+    let attribution: String?
+    let sourceUrl: String?
+    let sha256: String?
+    let isRedistributable: Bool?
 }

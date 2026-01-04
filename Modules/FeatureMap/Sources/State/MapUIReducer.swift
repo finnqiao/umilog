@@ -20,17 +20,29 @@ enum MapUIReducer {
         switch (state, action) {
         // MARK: - Explore Mode Transitions
 
-        case (.explore(var ctx), .drillDownToRegion(let regionId)):
-            ctx.hierarchyLevel = .region(regionId)
+        case (.explore(var ctx), .drillDownToCountry(let countryId)):
+            ctx.hierarchyLevel = .country(countryId)
             ctx.previewingSite = nil
             return .explore(ctx)
 
-        case (.explore(var ctx), .drillDownToArea(let areaId)):
-            // Can only drill to area if currently in a region
-            guard case .region(let regionId) = ctx.hierarchyLevel else {
-                return state
+        case (.explore(var ctx), .drillDownToRegion(let regionId)):
+            // Get countryId from current level if at country
+            let countryId = ctx.hierarchyLevel.countryId
+            ctx.hierarchyLevel = .region(countryId: countryId, regionId: regionId)
+            ctx.previewingSite = nil
+            return .explore(ctx)
+
+        case (.explore(var ctx), .drillDownToArea(let areaId, let explicitRegion)):
+            // Use explicit region if provided, otherwise try to get from current level
+            let targetRegion: String
+            if let region = explicitRegion {
+                targetRegion = region
+            } else if case .region(_, let currentRegion) = ctx.hierarchyLevel {
+                targetRegion = currentRegion
+            } else {
+                return state // Can't drill to area without a region
             }
-            ctx.hierarchyLevel = .area(regionId: regionId, areaId: areaId)
+            ctx.hierarchyLevel = .area(regionId: targetRegion, areaId: areaId)
             ctx.previewingSite = nil
             return .explore(ctx)
 
@@ -158,6 +170,29 @@ enum MapUIReducer {
 
         case (.plan(let ctx), .closePlan):
             return .explore(ctx.returnContext)
+
+        // MARK: - Species Filter Transitions
+
+        case (.explore(var ctx), .showSpeciesSites(let speciesId)):
+            ctx.speciesFilter = speciesId
+            ctx.previewingSite = nil
+            return .explore(ctx)
+
+        case (.explore(var ctx), .clearSpeciesFilter):
+            ctx.speciesFilter = nil
+            return .explore(ctx)
+
+        case (.search(let ctx), .showSpeciesSites(let speciesId)):
+            // From search, go to explore with species filter
+            var exploreCtx = ctx.returnContext
+            exploreCtx.speciesFilter = speciesId
+            return .explore(exploreCtx)
+
+        case (.search(let ctx), .drillDownToCountry(let countryId)):
+            // From search, go to explore at country level
+            var exploreCtx = ctx.returnContext
+            exploreCtx.hierarchyLevel = .country(countryId)
+            return .explore(exploreCtx)
 
         // MARK: - Invalid Transitions
 

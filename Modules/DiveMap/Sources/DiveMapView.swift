@@ -1,6 +1,9 @@
 import SwiftUI
 import MapLibre
 import CoreLocation
+import os
+
+private let logger = Logger(subsystem: "com.umilog", category: "DiveMap")
 
 public struct DiveMapLayerSettings: Equatable {
     public var showClusters: Bool
@@ -30,8 +33,8 @@ public struct DiveMapView: UIViewControllerRepresentable {
     public init(
         annotations: [DiveMapAnnotation],
         initialCamera: DiveMapCamera = DiveMapCamera(
-            center: CLLocationCoordinate2D(latitude: 22.89, longitude: -109.92),
-            zoomLevel: 1.8
+            center: CLLocationCoordinate2D(latitude: 0.0, longitude: 120.0),
+            zoomLevel: 4.0
         ),
         layerSettings: DiveMapLayerSettings = .default,
         onSelect: @escaping (String) -> Void = { _ in },
@@ -45,7 +48,7 @@ public struct DiveMapView: UIViewControllerRepresentable {
     }
 
     public func makeUIViewController(context: Context) -> MapVC {
-        print("[DEBUG] Creating MapVC with \(annotations.count) annotations")
+        logger.debug("Creating MapVC with \(annotations.count) annotations")
         let controller = MapVC()
         controller.initialCamera = initialCamera
         controller.onSelectAnnotation = onSelect
@@ -56,6 +59,7 @@ public struct DiveMapView: UIViewControllerRepresentable {
     }
 
     public func updateUIViewController(_ uiViewController: MapVC, context: Context) {
+        logger.debug("updateUIViewController called with \(annotations.count) annotations")
         uiViewController.onSelectAnnotation = onSelect
         uiViewController.onRegionChange = onRegionChange
         uiViewController.initialCamera = initialCamera

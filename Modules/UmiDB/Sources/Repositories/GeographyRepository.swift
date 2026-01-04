@@ -35,6 +35,19 @@ public final class GeographyRepository {
         }
     }
 
+    /// Search countries by name
+    public func searchCountries(query: String, limit: Int = 5) throws -> [Country] {
+        guard !query.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { return [] }
+        return try database.read { db in
+            let like = "%\(query)%"
+            return try Country
+                .filter(Country.Columns.name.like(like))
+                .order(Column("name"))
+                .limit(limit)
+                .fetchAll(db)
+        }
+    }
+
     /// Get all unique continents
     public func fetchContinents() throws -> [String] {
         try database.read { db in
@@ -195,6 +208,80 @@ public final class GeographyRepository {
     public func countAreas() throws -> Int {
         try database.read { db in
             try Area.fetchCount(db)
+        }
+    }
+
+    // MARK: - Geographic Bounds
+
+    /// Geographic bounding box
+    public struct Bounds {
+        public let minLat: Double
+        public let maxLat: Double
+        public let minLon: Double
+        public let maxLon: Double
+
+        public var centerLat: Double { (minLat + maxLat) / 2 }
+        public var centerLon: Double { (minLon + maxLon) / 2 }
+        public var latSpan: Double { maxLat - minLat }
+        public var lonSpan: Double { maxLon - minLon }
+    }
+
+    /// Fetch bounds of all sites in a country
+    public func fetchBounds(countryId: String) throws -> Bounds? {
+        try database.read { db in
+            let sql = """
+            SELECT MIN(latitude) as minLat, MAX(latitude) as maxLat,
+                   MIN(longitude) as minLon, MAX(longitude) as maxLon
+            FROM sites WHERE country_id = ?
+            """
+            guard let row = try Row.fetchOne(db, sql: sql, arguments: [countryId]),
+                  let minLat: Double = row["minLat"],
+                  let maxLat: Double = row["maxLat"],
+                  let minLon: Double = row["minLon"],
+                  let maxLon: Double = row["maxLon"] else {
+                return nil
+            }
+            return Bounds(minLat: minLat, maxLat: maxLat, minLon: minLon, maxLon: maxLon)
+        }
+    }
+
+    /// Fetch bounds of all sites in a region
+    public func fetchBounds(regionId: String) throws -> Bounds? {
+        try database.read { db in
+            let sql = """
+            SELECT MIN(latitude) as minLat, MAX(latitude) as maxLat,
+                   MIN(longitude) as minLon, MAX(longitude) as maxLon
+            FROM sites WHERE region_id = ? OR region = ?
+            """
+            guard let row = try Row.fetchOne(db, sql: sql, arguments: [regionId, regionId]),
+                  let minLat: Double = row["minLat"],
+                  let maxLat: Double = row["maxLat"],
+                  let minLon: Double = row["minLon"],
+                  let maxLon: Double = row["maxLon"] else {
+                return nil
+            }
+            return Bounds(minLat: minLat, maxLat: maxLat, minLon: minLon, maxLon: maxLon)
+        }
+    }
+
+    /// Fetch bounds for a list of site IDs
+    public func fetchBounds(siteIds: [String]) throws -> Bounds? {
+        guard !siteIds.isEmpty else { return nil }
+        return try database.read { db in
+            let placeholders = siteIds.map { _ in "?" }.joined(separator: ",")
+            let sql = """
+            SELECT MIN(latitude) as minLat, MAX(latitude) as maxLat,
+                   MIN(longitude) as minLon, MAX(longitude) as maxLon
+            FROM sites WHERE id IN (\(placeholders))
+            """
+            guard let row = try Row.fetchOne(db, sql: sql, arguments: StatementArguments(siteIds)),
+                  let minLat: Double = row["minLat"],
+                  let maxLat: Double = row["maxLat"],
+                  let minLon: Double = row["minLon"],
+                  let maxLon: Double = row["maxLon"] else {
+                return nil
+            }
+            return Bounds(minLat: minLat, maxLat: maxLat, minLon: minLon, maxLon: maxLon)
         }
     }
 }

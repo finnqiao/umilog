@@ -1,207 +1,674 @@
 {
   "species": [
     {
-      "id": "gbif_2225646",
-      "name": "American Blue Crab",
-      "scientificName": "Callinectes sapidus Rathbun, 1896",
-      "category": "Invertebrate",
+      "id": "species_scalloped_hammerhead",
+      "name": "Scalloped Hammerhead",
+      "scientificName": "Sphyrna lewini",
+      "category": "Fish",
+      "rarity": "Rare",
+      "regions": [
+        "caribbean",
+        "pacific-islands",
+        "red-sea",
+        "southeast-asia"
+      ],
+      "imageUrl": null,
+      "gbif_key": 2418789,
+      "family_id": "sphyrnidae"
+    },
+    {
+      "id": "species_great_hammerhead",
+      "name": "Great Hammerhead",
+      "scientificName": "Sphyrna mokarran",
+      "category": "Fish",
+      "rarity": "VeryRare",
+      "regions": [
+        "caribbean",
+        "pacific-islands"
+      ],
+      "imageUrl": null,
+      "gbif_key": 2418792,
+      "family_id": "sphyrnidae"
+    },
+    {
+      "id": "species_whale_shark",
+      "name": "Whale Shark",
+      "scientificName": "Rhincodon typus",
+      "category": "Fish",
+      "rarity": "Rare",
+      "regions": [
+        "caribbean",
+        "pacific-islands",
+        "red-sea",
+        "southeast-asia"
+      ],
+      "imageUrl": null,
+      "gbif_key": 2417522,
+      "family_id": "rhincodontidae"
+    },
+    {
+      "id": "species_manta_ray",
+      "name": "Giant Manta Ray",
+      "scientificName": "Mobula birostris",
+      "category": "Fish",
       "rarity": "Uncommon",
-      "familyId": null,
+      "regions": [
+        "caribbean",
+        "pacific-islands",
+        "red-sea",
+        "southeast-asia"
+      ],
+      "imageUrl": null,
+      "gbif_key": 9548142,
+      "family_id": "mobulidae"
+    },
+    {
+      "id": "species_spotted_eagle_ray",
+      "name": "Spotted Eagle Ray",
+      "scientificName": "Aetobatus narinari",
+      "category": "Fish",
+      "rarity": "Uncommon",
+      "regions": [
+        "caribbean",
+        "pacific-islands",
+        "red-sea",
+        "southeast-asia"
+      ],
+      "imageUrl": null,
+      "gbif_key": 2419231,
+      "family_id": "myliobatidae"
+    },
+    {
+      "id": "species_napoleon_wrasse",
+      "name": "Napoleon Wrasse",
+      "scientificName": "Cheilinus undulatus",
+      "category": "Fish",
+      "rarity": "Uncommon",
+      "regions": [
+        "pacific-islands",
+        "red-sea",
+        "southeast-asia"
+      ],
+      "imageUrl": null,
+      "gbif_key": 2383313,
+      "family_id": "labridae"
+    },
+    {
+      "id": "species_great_barracuda",
+      "name": "Great Barracuda",
+      "scientificName": "Sphyraena barracuda",
+      "category": "Fish",
+      "rarity": "Common",
+      "regions": [
+        "caribbean",
+        "mediterranean",
+        "pacific-islands",
+        "red-sea",
+        "southeast-asia"
+      ],
+      "imageUrl": null,
+      "gbif_key": 9784990,
+      "family_id": "sphyraenidae"
+    },
+    {
+      "id": "species_green_turtle",
+      "name": "Green Sea Turtle",
+      "scientificName": "Chelonia mydas",
+      "category": "Reptile",
+      "rarity": "Common",
+      "regions": [
+        "australia",
+        "caribbean",
+        "indian-ocean",
+        "pacific-islands",
+        "red-sea",
+        "southeast-asia"
+      ],
+      "imageUrl": null,
+      "gbif_key": 2442225,
+      "family_id": "cheloniidae"
+    },
+    {
+      "id": "species_hawksbill_turtle",
+      "name": "Hawksbill Turtle",
+      "scientificName": "Eretmochelys imbricata",
+      "category": "Reptile",
+      "rarity": "Uncommon",
+      "regions": [
+        "caribbean",
+        "pacific-islands",
+        "red-sea",
+        "southeast-asia"
+      ],
+      "imageUrl": null,
+      "gbif_key": 8841716,
+      "family_id": "cheloniidae"
+    },
+    {
+      "id": "species_moray_eel",
+      "name": "Giant Moray Eel",
+      "scientificName": "Gymnothorax javanicus",
+      "category": "Fish",
+      "rarity": "Common",
+      "regions": [
+        "caribbean",
+        "mediterranean",
+        "pacific-islands",
+        "red-sea",
+        "southeast-asia"
+      ],
+      "imageUrl": null,
+      "gbif_key": 2403808,
+      "family_id": "muraenidae"
+    },
+    {
+      "id": "species_lionfish",
+      "name": "Common Lionfish",
+      "scientificName": "Pterois volitans",
+      "category": "Fish",
+      "rarity": "Common",
+      "regions": [
+        "caribbean",
+        "pacific-islands",
+        "red-sea",
+        "southeast-asia"
+      ],
+      "imageUrl": null,
+      "gbif_key": 2334438,
+      "family_id": "scorpaenidae"
+    },
+    {
+      "id": "species_octopus",
+      "name": "Day Octopus",
+      "scientificName": "Octopus cyanea",
+      "category": "Invertebrate",
+      "rarity": "Common",
+      "regions": [
+        "mediterranean",
+        "pacific-islands",
+        "red-sea",
+        "southeast-asia"
+      ],
+      "imageUrl": null,
+      "gbif_key": 2289535,
+      "family_id": "octopodidae"
+    },
+    {
+      "id": "species_coral_grouper",
+      "name": "Coral Grouper",
+      "scientificName": "Cephalopholis miniata",
+      "category": "Fish",
+      "rarity": "Common",
+      "regions": [
+        "pacific-islands",
+        "red-sea",
+        "southeast-asia"
+      ],
+      "imageUrl": null,
+      "gbif_key": 2388916,
+      "family_id": "serranidae"
+    },
+    {
+      "id": "species_stingray",
+      "name": "Blue-spotted Stingray",
+      "scientificName": "Taeniura lymma",
+      "category": "Fish",
+      "rarity": "Common",
+      "regions": [
+        "pacific-islands",
+        "red-sea",
+        "southeast-asia"
+      ],
+      "imageUrl": null,
+      "gbif_key": 5215810,
+      "family_id": "dasyatidae"
+    },
+    {
+      "id": "species_caribbean_reef_shark",
+      "name": "Caribbean Reef Shark",
+      "scientificName": "Carcharhinus perezi",
+      "category": "Fish",
+      "rarity": "Uncommon",
       "regions": [
         "caribbean"
       ],
-      "gbifKey": 2225646
+      "imageUrl": null,
+      "gbif_key": 2418059,
+      "family_id": "carcharhinidae"
+    },
+    {
+      "id": "species_grey_reef_shark",
+      "name": "Grey Reef Shark",
+      "scientificName": "Carcharhinus amblyrhynchos",
+      "category": "Fish",
+      "rarity": "Uncommon",
+      "regions": [
+        "australia",
+        "indian-ocean",
+        "pacific-islands",
+        "red-sea",
+        "southeast-asia"
+      ],
+      "imageUrl": null,
+      "gbif_key": 2418064,
+      "family_id": "carcharhinidae"
+    },
+    {
+      "id": "species_whitetip_reef_shark",
+      "name": "Whitetip Reef Shark",
+      "scientificName": "Triaenodon obesus",
+      "category": "Fish",
+      "rarity": "Common",
+      "regions": [
+        "pacific-islands",
+        "red-sea",
+        "southeast-asia"
+      ],
+      "imageUrl": null,
+      "gbif_key": 2418054,
+      "family_id": "carcharhinidae"
+    },
+    {
+      "id": "species_queen_angelfish",
+      "name": "Queen Angelfish",
+      "scientificName": "Holacanthus ciliaris",
+      "category": "Fish",
+      "rarity": "Common",
+      "regions": [
+        "caribbean"
+      ],
+      "imageUrl": null,
+      "gbif_key": 5211452,
+      "family_id": "pomacanthidae"
+    },
+    {
+      "id": "species_nassau_grouper",
+      "name": "Nassau Grouper",
+      "scientificName": "Epinephelus striatus",
+      "category": "Fish",
+      "rarity": "Uncommon",
+      "regions": [
+        "caribbean"
+      ],
+      "imageUrl": null,
+      "gbif_key": 2388300,
+      "family_id": "serranidae"
+    },
+    {
+      "id": "species_nurse_shark",
+      "name": "Nurse Shark",
+      "scientificName": "Ginglymostoma cirratum",
+      "category": "Fish",
+      "rarity": "Common",
+      "regions": [
+        "caribbean",
+        "pacific-islands"
+      ],
+      "imageUrl": null,
+      "gbif_key": 2417495,
+      "family_id": "ginglymostomatidae"
+    },
+    {
+      "id": "species_bottlenose_dolphin",
+      "name": "Bottlenose Dolphin",
+      "scientificName": "Tursiops truncatus",
+      "category": "Mammal",
+      "rarity": "Rare",
+      "regions": [
+        "caribbean",
+        "mediterranean",
+        "pacific-islands",
+        "red-sea",
+        "southeast-asia"
+      ],
+      "imageUrl": null,
+      "gbif_key": 2440447,
+      "family_id": "delphinidae"
+    },
+    {
+      "id": "species_tuna",
+      "name": "Yellowfin Tuna",
+      "scientificName": "Thunnus albacares",
+      "category": "Fish",
+      "rarity": "Uncommon",
+      "regions": [
+        "caribbean",
+        "mediterranean",
+        "pacific-islands",
+        "red-sea",
+        "southeast-asia"
+      ],
+      "imageUrl": null,
+      "gbif_key": 2374013,
+      "family_id": "scombridae"
+    },
+    {
+      "id": "species_giant_trevally",
+      "name": "Giant Trevally",
+      "scientificName": "Caranx ignobilis",
+      "category": "Fish",
+      "rarity": "Common",
+      "regions": [
+        "pacific-islands",
+        "red-sea",
+        "southeast-asia"
+      ],
+      "imageUrl": null,
+      "gbif_key": 2390805,
+      "family_id": "carangidae"
+    },
+    {
+      "id": "species_lobster",
+      "name": "Spiny Lobster",
+      "scientificName": "Panulirus argus",
+      "category": "Invertebrate",
+      "rarity": "Common",
+      "regions": [
+        "caribbean",
+        "mediterranean",
+        "pacific-islands"
+      ],
+      "imageUrl": null,
+      "gbif_key": 2221646,
+      "family_id": "palinuridae"
+    },
+    {
+      "id": "species_clownfish",
+      "name": "Clownfish",
+      "scientificName": "Amphiprion ocellaris",
+      "category": "Fish",
+      "rarity": "Common",
+      "regions": [
+        "pacific-islands",
+        "red-sea",
+        "southeast-asia"
+      ],
+      "imageUrl": null,
+      "gbif_key": 5212106,
+      "family_id": "pomacentridae"
+    },
+    {
+      "id": "species_nudibranch",
+      "name": "Spanish Dancer",
+      "scientificName": "Hexabranchus sanguineus",
+      "category": "Invertebrate",
+      "rarity": "Uncommon",
+      "regions": [
+        "pacific-islands",
+        "red-sea",
+        "southeast-asia"
+      ],
+      "imageUrl": null,
+      "gbif_key": 5724734,
+      "family_id": "chromodorididae"
+    },
+    {
+      "id": "species_frogfish",
+      "name": "Giant Frogfish",
+      "scientificName": "Antennarius commerson",
+      "category": "Fish",
+      "rarity": "Uncommon",
+      "regions": [
+        "pacific-islands",
+        "red-sea",
+        "southeast-asia"
+      ],
+      "imageUrl": null,
+      "gbif_key": 9688944,
+      "family_id": "antennariidae"
+    },
+    {
+      "id": "species_cuttlefish",
+      "name": "Broadclub Cuttlefish",
+      "scientificName": "Sepia latimanus",
+      "category": "Invertebrate",
+      "rarity": "Common",
+      "regions": [
+        "pacific-islands",
+        "red-sea",
+        "southeast-asia"
+      ],
+      "imageUrl": null,
+      "gbif_key": 11010398,
+      "family_id": "sepiidae"
+    },
+    {
+      "id": "species_mola_mola",
+      "name": "Ocean Sunfish",
+      "scientificName": "Mola mola",
+      "category": "Fish",
+      "rarity": "Rare",
+      "regions": [
+        "pacific-islands",
+        "southeast-asia"
+      ],
+      "imageUrl": null,
+      "gbif_key": 5213725,
+      "family_id": "molidae"
+    },
+    {
+      "id": "species_seahorse",
+      "name": "Pygmy Seahorse",
+      "scientificName": "Hippocampus bargibanti",
+      "category": "Fish",
+      "rarity": "Rare",
+      "regions": [
+        "pacific-islands",
+        "southeast-asia"
+      ],
+      "imageUrl": null,
+      "gbif_key": 5201130,
+      "family_id": "syngnathidae"
+    },
+    {
+      "id": "species_grouper_goliath",
+      "name": "Goliath Grouper",
+      "scientificName": "Epinephelus itajara",
+      "category": "Fish",
+      "rarity": "Rare",
+      "regions": [
+        "caribbean",
+        "pacific-islands"
+      ],
+      "imageUrl": null,
+      "gbif_key": 2388456,
+      "family_id": "serranidae"
+    },
+    {
+      "id": "species_sea_snake",
+      "name": "Yellow-bellied Sea Snake",
+      "scientificName": "Hydrophis platurus",
+      "category": "Reptile",
+      "rarity": "Uncommon",
+      "regions": [
+        "pacific-islands",
+        "southeast-asia"
+      ],
+      "imageUrl": null,
+      "gbif_key": 7674056,
+      "family_id": "elapidae"
+    },
+    {
+      "id": "species_blue_ringed_octopus",
+      "name": "Blue-ringed Octopus",
+      "scientificName": "Hapalochlaena lunulata",
+      "category": "Invertebrate",
+      "rarity": "Rare",
+      "regions": [
+        "pacific-islands",
+        "southeast-asia"
+      ],
+      "imageUrl": null,
+      "gbif_key": 2289324,
+      "family_id": "octopodidae"
+    },
+    {
+      "id": "species_bumphead_parrotfish",
+      "name": "Bumphead Parrotfish",
+      "scientificName": "Bolbometopon muricatum",
+      "category": "Fish",
+      "rarity": "Uncommon",
+      "regions": [
+        "pacific-islands",
+        "red-sea",
+        "southeast-asia"
+      ],
+      "imageUrl": null,
+      "gbif_key": 2393443,
+      "family_id": "scaridae"
+    },
+    {
+      "id": "species_jellyfish_box",
+      "name": "Box Jellyfish",
+      "scientificName": "Chironex fleckeri",
+      "category": "Invertebrate",
+      "rarity": "Rare",
+      "regions": [
+        "pacific-islands",
+        "southeast-asia"
+      ],
+      "imageUrl": null,
+      "gbif_key": 2264689,
+      "family_id": "cubozoa"
+    },
+    {
+      "id": "gbif_2225646",
+      "name": "American Blue Crab",
+      "scientificName": "Callinectes sapidus Rathbun",
+      "category": "Invertebrate",
+      "rarity": "Uncommon",
+      "regions": [
+        "caribbean"
+      ],
+      "imageUrl": null,
+      "gbif_key": 2225646,
+      "family_id": "cheloniidae"
     },
     {
       "id": "gbif_2393172",
       "name": "Barramundi, Giant seaperch",
-      "scientificName": "Lates calcarifer (Bloch, 1790)",
+      "scientificName": "Lates calcarifer",
       "category": "Fish",
       "rarity": "Rare",
-      "familyId": null,
       "regions": [
         "australia"
       ],
-      "gbifKey": 2393172
+      "imageUrl": null,
+      "gbif_key": 2393172,
+      "family_id": "carcharhinidae"
     },
     {
       "id": "gbif_2417981",
       "name": "Blacktip Reef Shark, Blacktip Shark",
-      "scientificName": "Carcharhinus melanopterus (Quoy & Gaimard, 1824)",
+      "scientificName": "Carcharhinus melanopterus",
       "category": "Fish",
       "rarity": "Common",
-      "familyId": "carcharhinidae",
       "regions": [
         "australia",
         "indian-ocean"
       ],
-      "gbifKey": 2417981
+      "imageUrl": null,
+      "gbif_key": 2417981,
+      "family_id": "carcharhinidae"
     },
     {
       "id": "gbif_2225648",
       "name": "Blunttooth swimcrab",
-      "scientificName": "Callinectes bocourti A.Milne-Edwards, 1879",
+      "scientificName": "Callinectes bocourti A.Milne-Edwards",
       "category": "Invertebrate",
       "rarity": "Uncommon",
-      "familyId": null,
       "regions": [
         "caribbean"
       ],
-      "gbifKey": 2225648
-    },
-    {
-      "id": "gbif_2114445",
-      "name": "Clausi",
-      "scientificName": "Acartia clausi Giesbrecht, 1889",
-      "category": "Invertebrate",
-      "rarity": "Rare",
-      "familyId": null,
-      "regions": [
-        "mediterranean"
-      ],
-      "gbifKey": 2114445
-    },
-    {
-      "id": "gbif_2365685",
-      "name": "European chub",
-      "scientificName": "Squalius cephalus (Linnaeus, 1758)",
-      "category": "Fish",
-      "rarity": "Common",
-      "familyId": null,
-      "regions": [
-        "mediterranean"
-      ],
-      "gbifKey": 2365685
-    },
-    {
-      "id": "gbif_2442225",
-      "name": "green turtle",
-      "scientificName": "Chelonia mydas (Linnaeus, 1758)",
-      "category": "Reptile",
-      "rarity": "Rare",
-      "familyId": "cheloniidae",
-      "regions": [
-        "australia",
-        "indian-ocean"
-      ],
-      "gbifKey": 2442225
-    },
-    {
-      "id": "gbif_2418064",
-      "name": "Grey Shark, Blacktail reef shark, Grey reef shark",
-      "scientificName": "Carcharhinus amblyrhynchos (Bleeker, 1856)",
-      "category": "Fish",
-      "rarity": "Uncommon",
-      "familyId": "carcharhinidae",
-      "regions": [
-        "australia",
-        "indian-ocean"
-      ],
-      "gbifKey": 2418064
-    },
-    {
-      "id": "gbif_4409628",
-      "name": "Gudgeon",
-      "scientificName": "Gobio gobio (Linnaeus, 1758)",
-      "category": "Fish",
-      "rarity": "Common",
-      "familyId": null,
-      "regions": [
-        "mediterranean"
-      ],
-      "gbifKey": 4409628
+      "imageUrl": null,
+      "gbif_key": 2225648,
+      "family_id": "cheloniidae"
     },
     {
       "id": "gbif_5210114",
       "name": "Leopard coralgrouper",
-      "scientificName": "Plectropomus leopardus (Lacepède, 1802)",
+      "scientificName": "Plectropomus leopardus",
       "category": "Fish",
       "rarity": "Uncommon",
-      "familyId": "serranidae",
       "regions": [
         "australia"
       ],
-      "gbifKey": 5210114
-    },
-    {
-      "id": "gbif_4409653",
-      "name": "Minnow",
-      "scientificName": "Phoxinus phoxinus (Linnaeus, 1758)",
-      "category": "Fish",
-      "rarity": "Common",
-      "familyId": null,
-      "regions": [
-        "mediterranean"
-      ],
-      "gbifKey": 4409653
+      "imageUrl": null,
+      "gbif_key": 5210114,
+      "family_id": "serranidae"
     },
     {
       "id": "gbif_2400598",
       "name": "Parassi mullet, Stripped mullet",
-      "scientificName": "Mugil incilis Hancock, 1830",
+      "scientificName": "Mugil incilis Hancock",
       "category": "Fish",
       "rarity": "Common",
-      "familyId": null,
       "regions": [
         "caribbean"
       ],
-      "gbifKey": 2400598
+      "imageUrl": null,
+      "gbif_key": 2400598,
+      "family_id": "mobulidae"
     },
     {
       "id": "gbif_2365787",
       "name": "Platypus",
-      "scientificName": "Zacco platypus (Temminck & Schlegel, 1846)",
+      "scientificName": "Zacco platypus",
       "category": "Fish",
       "rarity": "Uncommon",
-      "familyId": null,
       "regions": [
         "japan"
       ],
-      "gbifKey": 2365787
+      "imageUrl": null,
+      "gbif_key": 2365787,
+      "family_id": "serranidae"
     },
     {
       "id": "gbif_2441333",
       "name": "saltwater crocodile",
-      "scientificName": "Crocodylus porosus Schneider, 1801",
+      "scientificName": "Crocodylus porosus Schneider",
       "category": "Fish",
       "rarity": "Uncommon",
-      "familyId": null,
       "regions": [
         "australia"
       ],
-      "gbifKey": 2441333
+      "imageUrl": null,
+      "gbif_key": 2441333,
+      "family_id": "labridae"
     },
     {
       "id": "gbif_2223834",
       "name": "southern pink shrimp",
-      "scientificName": "Penaeus notialis Pérez Farfante, 1967",
+      "scientificName": "Penaeus notialis Pérez Farfante",
       "category": "Invertebrate",
       "rarity": "Common",
-      "familyId": null,
       "regions": [
         "caribbean"
       ],
-      "gbifKey": 2223834
+      "imageUrl": null,
+      "gbif_key": 2223834,
+      "family_id": "cheloniidae"
     },
     {
       "id": "gbif_2223877",
       "name": "southern white shrimp",
-      "scientificName": "Penaeus schmitti Burkenroad, 1936",
+      "scientificName": "Penaeus schmitti Burkenroad",
       "category": "Invertebrate",
       "rarity": "Uncommon",
-      "familyId": null,
       "regions": [
         "caribbean"
       ],
-      "gbifKey": 2223877
+      "imageUrl": null,
+      "gbif_key": 2223877,
+      "family_id": "cheloniidae"
     }
   ],
   "metadata": {
-    "generated_at": "2025-12-28T05:51:26.833921Z",
-    "count": 16,
-    "sources": [
-      "WoRMS",
-      "GBIF"
-    ]
+    "generated_at": "2025-12-28T10:53:51.756769+00:00",
+    "v1_source": "Resources/SeedData/species_catalog.json",
+    "v2_source": "data/export/species_catalog_v2.json",
+    "total_species": 45,
+    "species_with_family": 32,
+    "species_with_gbif": 12
   }
 }
