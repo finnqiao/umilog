@@ -183,3 +183,17 @@ seed_data_merged.json
 venv/
 __pycache__/
 *.pyc
+
+# Fastlane
+fastlane/report.xml
+fastlane/Preview.html
+fastlane/screenshots/
+fastlane/test_output/
+fastlane/builds/
+fastlane/README.md
+fastlane/api_key.json
+
+# Ruby
+vendor/bundle/
+.bundle/
+Gemfile.lock

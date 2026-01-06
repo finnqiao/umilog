@@ -1,0 +1,19 @@
+# Appfile - App Store Connect configuration
+# For more info: https://docs.fastlane.tools/advanced/Appfile/
+
+# App Identifier (Bundle ID)
+app_identifier("app.umilog")
+
+# Apple ID email (for App Store Connect)
+# Set via environment variable or uncomment and fill in
+# apple_id("your@email.com")
+
+# Team ID (from Apple Developer Portal)
+team_id("ZK79P5HJFM")
+
+# App Store Connect Team ID (may differ from Developer Portal Team ID)
+# Find it at: App Store Connect > Users and Access > Your account
+# itc_team_id("YOUR_ITC_TEAM_ID")
+
+# For CI: Use App Store Connect API Key instead of Apple ID
+# api_key_path("fastlane/api_key.json")

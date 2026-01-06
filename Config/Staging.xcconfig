@@ -1,0 +1,21 @@
+// Staging.xcconfig
+// TestFlight / QA configuration
+
+#include "Shared.xcconfig"
+
+// Build Settings - Release-like but with some debug info
+SWIFT_OPTIMIZATION_LEVEL = -O
+DEBUG_INFORMATION_FORMAT = dwarf-with-dsym
+SWIFT_COMPILATION_MODE = wholemodule
+SWIFT_ACTIVE_COMPILATION_CONDITIONS = STAGING
+
+// Validation
+VALIDATE_PRODUCT = YES
+LLVM_LTO = NO
+
+// Staging bundle ID (optional - enable for separate TestFlight app)
+// PRODUCT_BUNDLE_IDENTIFIER = app.umilog.staging
+
+// API Configuration
+// SENTRY_DSN = https://staging@sentry.io/xxx
+// API_BASE_URL = https://staging-api.umilog.app

@@ -1,0 +1,28 @@
+// Release.xcconfig
+// App Store production configuration
+
+#include "Shared.xcconfig"
+
+// Build Settings - Fully optimized
+SWIFT_OPTIMIZATION_LEVEL = -O
+DEBUG_INFORMATION_FORMAT = dwarf-with-dsym
+SWIFT_COMPILATION_MODE = wholemodule
+SWIFT_ACTIVE_COMPILATION_CONDITIONS = RELEASE
+
+// Full validation and optimization
+VALIDATE_PRODUCT = YES
+LLVM_LTO = YES
+
+// Strip debug symbols from binary (dSYMs still generated separately)
+STRIP_INSTALLED_PRODUCT = YES
+COPY_PHASE_STRIP = YES
+
+// Production bundle ID
+PRODUCT_BUNDLE_IDENTIFIER = app.umilog
+
+// Code Signing for Distribution
+CODE_SIGN_IDENTITY = Apple Distribution
+
+// API Configuration
+// SENTRY_DSN = https://prod@sentry.io/xxx
+// API_BASE_URL = https://api.umilog.app

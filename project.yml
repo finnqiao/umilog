@@ -8,16 +8,25 @@ options:
   createIntermediateGroups: true
   groupSortPosition: top
 
+configs:
+  Debug: debug
+  Release: release
+
+configFiles:
+  Debug: Config/Debug.xcconfig
+  Release: Config/Release.xcconfig
+
 settings:
   base:
-    # IMPORTANT: Set your Apple Developer Team ID before building
-    # Find it at: https://developer.apple.com/account -> Membership -> Team ID
     DEVELOPMENT_TEAM: "ZK79P5HJFM"
     SWIFT_VERSION: "5.9"
     IPHONEOS_DEPLOYMENT_TARGET: "17.0"
     WATCHOS_DEPLOYMENT_TARGET: "10.0"
     ENABLE_PREVIEWS: YES
     SWIFT_STRICT_CONCURRENCY: complete
+    # Auto-increment build number (set by CI or scripts/increment_build.sh)
+    CURRENT_PROJECT_VERSION: 1
+    MARKETING_VERSION: 1.0.0
   configs:
     Debug:
       SWIFT_OPTIMIZATION_LEVEL: "-Onone"
@@ -27,6 +36,7 @@ settings:
       SWIFT_OPTIMIZATION_LEVEL: "-O"
       DEBUG_INFORMATION_FORMAT: "dwarf-with-dsym"
       SWIFT_COMPILATION_MODE: "wholemodule"
+      SWIFT_ACTIVE_COMPILATION_CONDITIONS: "RELEASE"
       VALIDATE_PRODUCT: YES
       LLVM_LTO: YES
 
@@ -53,6 +63,8 @@ targets:
     sources:
       - path: UmiLog/
       - path: UmiLog/Assets.xcassets
+        buildPhase: resources
+      - path: UmiLog/PrivacyInfo.xcprivacy
         buildPhase: resources
       - path: Resources/SeedData/sites_seed.json
         buildPhase: resources

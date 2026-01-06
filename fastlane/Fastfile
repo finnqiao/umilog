@@ -1,0 +1,169 @@
+# Fastfile - Fastlane automation
+# Run `fastlane <lane>` to execute a lane
+# More info: https://docs.fastlane.tools/
+
+default_platform(:ios)
+
+platform :ios do
+
+  # ============================================
+  # SETUP & UTILITIES
+  # ============================================
+
+  before_all do
+    # Ensure we're on a clean git state (optional)
+    # ensure_git_status_clean
+  end
+
+  desc "Generate Xcode project using XcodeGen"
+  lane :generate do
+    sh("cd .. && xcodegen generate")
+  end
+
+  desc "Increment build number"
+  lane :bump do
+    # Read current build from project.yml
+    project_yml = File.read("../project.yml")
+    current_build = project_yml.match(/CURRENT_PROJECT_VERSION: (\d+)/)[1].to_i
+    new_build = current_build + 1
+
+    # Update project.yml
+    updated = project_yml.gsub(/CURRENT_PROJECT_VERSION: \d+/, "CURRENT_PROJECT_VERSION: #{new_build}")
+    File.write("../project.yml", updated)
+
+    UI.success("Build number incremented: #{current_build} → #{new_build}")
+    new_build
+  end
+
+  # ============================================
+  # TESTING
+  # ============================================
+
+  desc "Run unit tests"
+  lane :test do
+    generate
+
+    run_tests(
+      project: "UmiLog.xcodeproj",
+      scheme: "UmiLogTests",
+      device: "iPhone 16",
+      clean: true,
+      code_coverage: true,
+      output_directory: "fastlane/test_output"
+    )
+  end
+
+  # ============================================
+  # BUILDING
+  # ============================================
+
+  desc "Build for simulator (CI check)"
+  lane :build do
+    generate
+
+    build_app(
+      project: "UmiLog.xcodeproj",
+      scheme: "UmiLog",
+      configuration: "Debug",
+      destination: "generic/platform=iOS Simulator",
+      skip_archive: true,
+      skip_codesigning: true
+    )
+  end
+
+  desc "Build and archive for TestFlight"
+  lane :build_testflight do
+    generate
+    bump
+
+    build_app(
+      project: "UmiLog.xcodeproj",
+      scheme: "UmiLog",
+      configuration: "Staging",
+      export_method: "app-store",
+      output_directory: "fastlane/builds",
+      output_name: "UmiLog-Staging.ipa",
+      include_symbols: true,
+      include_bitcode: false
+    )
+  end
+
+  desc "Build and archive for App Store"
+  lane :build_release do
+    generate
+    bump
+
+    build_app(
+      project: "UmiLog.xcodeproj",
+      scheme: "UmiLog",
+      configuration: "Release",
+      export_method: "app-store",
+      output_directory: "fastlane/builds",
+      output_name: "UmiLog-Release.ipa",
+      include_symbols: true,
+      include_bitcode: false
+    )
+  end
+
+  # ============================================
+  # DISTRIBUTION
+  # ============================================
+
+  desc "Upload to TestFlight (internal testing)"
+  lane :beta do
+    build_testflight
+
+    upload_to_testflight(
+      skip_waiting_for_build_processing: true,
+      distribute_external: false,
+      notify_external_testers: false
+    )
+
+    # Commit build number change
+    commit_version_bump(
+      message: "chore: bump build number for TestFlight",
+      xcodeproj: "UmiLog.xcodeproj",
+      force: true
+    )
+  end
+
+  desc "Upload to App Store (release)"
+  lane :release do
+    build_release
+
+    upload_to_app_store(
+      skip_screenshots: true,
+      skip_metadata: true,
+      submit_for_review: false,
+      automatic_release: false
+    )
+
+    # Tag the release
+    version = get_version_number(xcodeproj: "UmiLog.xcodeproj")
+    build = get_build_number(xcodeproj: "UmiLog.xcodeproj")
+    add_git_tag(tag: "v#{version}-#{build}")
+    push_git_tags
+  end
+
+  # ============================================
+  # CERTIFICATES & PROVISIONING
+  # ============================================
+
+  desc "Sync certificates and profiles (match)"
+  lane :certificates do
+    # Uncomment and configure when ready to use match
+    # match(type: "development")
+    # match(type: "appstore")
+    UI.important("Configure match first: https://docs.fastlane.tools/actions/match/")
+  end
+
+  # ============================================
+  # ERROR HANDLING
+  # ============================================
+
+  error do |lane, exception|
+    UI.error("Lane #{lane} failed with: #{exception.message}")
+    # Optionally notify (Slack, etc.)
+  end
+
+end
