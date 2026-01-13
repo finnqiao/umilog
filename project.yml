@@ -68,11 +68,7 @@ targets:
         buildPhase: resources
       - path: Resources/SeedData/sites_seed.json
         buildPhase: resources
-      - path: Resources/Maps/dive_light.json
-        buildPhase: resources
       - path: Resources/Maps/dive_offline.json
-        buildPhase: resources
-      - path: Resources/Maps/umilog_min.json
         buildPhase: resources
       - path: Resources/Maps/umilog_underwater.json
         buildPhase: resources
