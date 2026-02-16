@@ -28,7 +28,7 @@
       "id": "background",
       "type": "background",
       "paint": {
-        "background-color": "#0A2342"
+        "background-color": "#08141A"
       }
     },
     {
@@ -39,10 +39,10 @@
       "maxzoom": 13,
       "paint": {
         "raster-opacity": 1.0,
-        "raster-brightness-min": 0.1,
-        "raster-brightness-max": 0.8,
-        "raster-contrast": 0.3,
-        "raster-saturation": 0.0
+        "raster-brightness-min": 0.05,
+        "raster-brightness-max": 0.6,
+        "raster-contrast": 0.35,
+        "raster-saturation": -0.2
       }
     },
     {
@@ -52,12 +52,12 @@
       "minzoom": 0,
       "maxzoom": 18,
       "paint": {
-        "raster-opacity": 0.9,
+        "raster-opacity": 0.85,
         "raster-brightness-min": 0.0,
-        "raster-brightness-max": 0.45,
-        "raster-contrast": 0.25,
-        "raster-saturation": 0.3,
-        "raster-hue-rotate": 195
+        "raster-brightness-max": 0.35,
+        "raster-contrast": 0.3,
+        "raster-saturation": -0.1,
+        "raster-hue-rotate": 200
       }
     }
   ]

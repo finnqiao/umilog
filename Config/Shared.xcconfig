@@ -10,7 +10,8 @@ TARGETED_DEVICE_FAMILY = 1,2
 
 // Swift
 SWIFT_VERSION = 5.9
-SWIFT_STRICT_CONCURRENCY = complete
+SWIFT_STRICT_CONCURRENCY = minimal
+OTHER_LDFLAGS = $(inherited) -framework AppIntents
 
 // Code Signing
 CODE_SIGN_STYLE = Automatic

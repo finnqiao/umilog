@@ -100,13 +100,13 @@ struct LayerSheet: View {
             Form {
                 Section("Visuals") {
                     Toggle("Underwater glow", isOn: $layerSettings.showUnderwaterGlow)
-                        .onChange(of: layerSettings.showUnderwaterGlow) { _ in Haptics.tap() }
+                        .onChange(of: layerSettings.showUnderwaterGlow) { Haptics.tap() }
                     Toggle("Cluster rings", isOn: $layerSettings.showClusters)
-                        .onChange(of: layerSettings.showClusters) { _ in Haptics.tap() }
+                        .onChange(of: layerSettings.showClusters) { Haptics.tap() }
                     Toggle("Status glows", isOn: $layerSettings.showStatusGlows)
-                        .onChange(of: layerSettings.showStatusGlows) { _ in Haptics.tap() }
+                        .onChange(of: layerSettings.showStatusGlows) { Haptics.tap() }
                     Toggle("Color by difficulty", isOn: $layerSettings.colorByDifficulty)
-                        .onChange(of: layerSettings.colorByDifficulty) { _ in Haptics.tap() }
+                        .onChange(of: layerSettings.colorByDifficulty) { Haptics.tap() }
                 }
             }
             .navigationTitle("Map Layers")

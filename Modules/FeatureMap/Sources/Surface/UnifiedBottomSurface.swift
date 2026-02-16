@@ -11,6 +11,7 @@ struct UnifiedBottomSurface: View {
     @Binding var detent: SurfaceDetent
     @Binding var exploreFilters: ExploreFilters
     @Binding var filterLens: FilterLens?
+    @Binding var entryMode: MapEntryMode
 
     // MARK: - Data
 
@@ -22,6 +23,9 @@ struct UnifiedBottomSurface: View {
 
     /// Loading state from data view model.
     let isLoading: Bool
+
+    /// Optional enriched region detail for the current hierarchy.
+    let regionDetail: UmiDB.Region?
 
     @ObservedObject var dataViewModel: MapViewModel
 
@@ -46,6 +50,10 @@ struct UnifiedBottomSurface: View {
     var onRemoveSiteFromPlan: (String) -> Void
     var onClosePlan: () -> Void
     var onUpdateSearchQuery: (String) -> Void
+
+    // Cluster expand callbacks (Resy-style)
+    var onClusterZoomIn: (() -> Void)?
+    var onCloseCluster: (() -> Void)?
 
     // MARK: - State
 
@@ -81,36 +89,42 @@ struct UnifiedBottomSurface: View {
 
             // Guard against invalid container height during layout
             if containerHeight > 0 {
-                let allowedDetents = SurfaceDetent.allowed(for: mode)
-                let baseHeight = detent.height(in: containerHeight)
-                let minHeight = allowedDetents.map { $0.height(in: containerHeight) }.min() ?? baseHeight
-                let maxHeight = allowedDetents.map { $0.height(in: containerHeight) }.max() ?? baseHeight
+                // Hidden detent: completely hide the surface for ultra-minimal UI
+                if detent == .hidden {
+                    Color.clear
+                        .allowsHitTesting(false)
+                } else {
+                    let allowedDetents = SurfaceDetent.allowed(for: mode)
+                    let baseHeight = detent.height(in: containerHeight)
+                    let minHeight = allowedDetents.map { $0.height(in: containerHeight) }.min() ?? baseHeight
+                    let maxHeight = allowedDetents.map { $0.height(in: containerHeight) }.max() ?? baseHeight
 
-                let adjustedTranslation = SurfaceGestures.computeRubberBandOffset(
-                    translation: dragTranslation,
-                    baseHeight: baseHeight,
-                    minHeight: minHeight,
-                    maxHeight: maxHeight
-                )
+                    let adjustedTranslation = SurfaceGestures.computeRubberBandOffset(
+                        translation: dragTranslation,
+                        baseHeight: baseHeight,
+                        minHeight: minHeight,
+                        maxHeight: maxHeight
+                    )
 
-                // Ensure currentHeight is always valid (positive and finite)
-                let rawHeight = baseHeight - adjustedTranslation
-                let currentHeight = max(minHeight, min(maxHeight, rawHeight))
+                    // Ensure currentHeight is always valid (positive and finite)
+                    let rawHeight = baseHeight - adjustedTranslation
+                    let currentHeight = max(minHeight, min(maxHeight, rawHeight))
 
-                VStack(spacing: 0) {
-                    Spacer(minLength: 0)
+                    VStack(spacing: 0) {
+                        Spacer(minLength: 0)
 
-                    surfaceContent(containerHeight: containerHeight)
-                        .frame(height: currentHeight)
-                        .background(surfaceBackground)
-                        .clipShape(RoundedRectangle(cornerRadius: 24, style: .continuous))
-                        .shadow(color: Color.black.opacity(0.18), radius: 10, y: -4)
-                        // Fix UX-002: Use simultaneousGesture so taps on site cards can still register
-                        .simultaneousGesture(dragGesture(containerHeight: containerHeight, allowedDetents: allowedDetents))
+                        surfaceContent(containerHeight: containerHeight)
+                            .frame(height: currentHeight)
+                            .background(surfaceBackground)
+                            .clipShape(RoundedRectangle(cornerRadius: 24, style: .continuous))
+                            .shadow(color: Color.black.opacity(0.18), radius: 10, y: -4)
+                            // Fix UX-002: Use simultaneousGesture so taps on site cards can still register
+                            .simultaneousGesture(dragGesture(containerHeight: containerHeight, allowedDetents: allowedDetents))
+                    }
+                    .ignoresSafeArea(edges: .bottom)
+                    .animation(surfaceAnimation, value: detent)
+                    .animation(surfaceAnimation, value: mode)
                 }
-                .ignoresSafeArea(edges: .bottom)
-                .animation(surfaceAnimation, value: detent)
-                .animation(surfaceAnimation, value: mode)
             }
         }
     }
@@ -144,8 +158,10 @@ struct UnifiedBottomSurface: View {
                     detent: detent,
                     sites: filteredSites,
                     loading: isLoading,
+                    regionDetail: regionDetail,
                     filterLens: $filterLens,
                     filterDifficulties: $exploreFilters.difficulty,
+                    entryMode: $entryMode,
                     onSiteTap: onSiteTap,
                     onOpenFilter: onOpenFilter,
                     onNavigateUp: onNavigateUp,
@@ -157,6 +173,9 @@ struct UnifiedBottomSurface: View {
                     },
                     onAddSite: {
                         // TODO: Navigate to site creation flow
+                    },
+                    onRegionTap: { region in
+                        onDrillDown(region.name)
                     }
                 )
                 .transition(contentTransition)
@@ -201,6 +220,17 @@ struct UnifiedBottomSurface: View {
                     onAddSite: { onOpenSearch() },
                     onRemoveSite: onRemoveSiteFromPlan,
                     onClose: onClosePlan
+                )
+                .transition(contentTransition)
+
+            case .clusterExpand(let context):
+                ClusterExpandContent(
+                    context: context,
+                    sites: allSites,
+                    detent: detent,
+                    onSiteTap: onSiteTap,
+                    onZoomIn: onClusterZoomIn ?? {},
+                    onClose: onCloseCluster ?? {}
                 )
                 .transition(contentTransition)
             }
@@ -323,4 +353,3 @@ struct UnifiedBottomSurface: View {
             }
     }
 }
-

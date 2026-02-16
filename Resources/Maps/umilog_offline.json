@@ -1,0 +1,124 @@
+{
+  "version": 8,
+  "name": "UmiLog Offline",
+  "glyphs": "{fontstack}/{range}.pbf",
+  "sources": {
+    "offline": {
+      "type": "vector",
+      "url": "pmtiles://offline_tiles.pmtiles",
+      "maxzoom": 14,
+      "attribution": "OpenStreetMap contributors"
+    }
+  },
+  "layers": [
+    {
+      "id": "background",
+      "type": "background",
+      "paint": {
+        "background-color": "#08141A"
+      }
+    },
+    {
+      "id": "earth",
+      "type": "fill",
+      "source": "offline",
+      "source-layer": "earth",
+      "paint": {
+        "fill-color": "#0D1F26"
+      }
+    },
+    {
+      "id": "landuse-park",
+      "type": "fill",
+      "source": "offline",
+      "source-layer": "landuse",
+      "filter": ["any",
+        ["==", "pmap:kind", "park"],
+        ["==", "pmap:kind", "nature_reserve"],
+        ["==", "pmap:kind", "forest"]
+      ],
+      "paint": {
+        "fill-color": "#0A1A1F",
+        "fill-opacity": 0.6
+      }
+    },
+    {
+      "id": "water",
+      "type": "fill",
+      "source": "offline",
+      "source-layer": "water",
+      "paint": {
+        "fill-color": [
+          "interpolate", ["linear"], ["zoom"],
+          0, "#0A0F2A",
+          5, "#081520",
+          10, "#06101A",
+          15, "#050D15"
+        ]
+      }
+    },
+    {
+      "id": "roads-major",
+      "type": "line",
+      "source": "offline",
+      "source-layer": "roads",
+      "filter": ["any",
+        ["==", "pmap:kind", "major_road"],
+        ["==", "pmap:kind", "highway"]
+      ],
+      "minzoom": 6,
+      "paint": {
+        "line-color": "#254050",
+        "line-width": [
+          "interpolate", ["linear"], ["zoom"],
+          6, 0.5,
+          10, 1.5,
+          14, 4
+        ],
+        "line-opacity": 0.8
+      }
+    },
+    {
+      "id": "place-labels-city",
+      "type": "symbol",
+      "source": "offline",
+      "source-layer": "places",
+      "filter": ["==", "pmap:kind", "city"],
+      "minzoom": 5,
+      "layout": {
+        "text-field": "{name}",
+        "text-font": ["Noto Sans Bold"],
+        "text-size": [
+          "interpolate", ["linear"], ["zoom"],
+          5, 12,
+          10, 18
+        ]
+      },
+      "paint": {
+        "text-color": "#6A9AAA",
+        "text-halo-color": "#08141A",
+        "text-halo-width": 2
+      }
+    },
+    {
+      "id": "place-labels-country",
+      "type": "symbol",
+      "source": "offline",
+      "source-layer": "places",
+      "filter": ["==", "pmap:kind", "country"],
+      "minzoom": 2,
+      "maxzoom": 8,
+      "layout": {
+        "text-field": "{name}",
+        "text-font": ["Noto Sans Bold"],
+        "text-size": 14,
+        "text-transform": "uppercase"
+      },
+      "paint": {
+        "text-color": "#4A6A7A",
+        "text-halo-color": "#08141A",
+        "text-halo-width": 2
+      }
+    }
+  ]
+}

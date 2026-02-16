@@ -18,8 +18,21 @@
 	<string>APPL</string>
 	<key>CFBundleShortVersionString</key>
 	<string>1.0.0</string>
+	<key>CFBundleURLTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleURLName</key>
+			<string>app.umilog</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>umilog</string>
+			</array>
+		</dict>
+	</array>
 	<key>CFBundleVersion</key>
 	<string>1</string>
+	<key>CFBundleIconName</key>
+	<string>AppIcon</string>
 	<key>NSFaceIDUsageDescription</key>
 	<string>UmiLog uses Face ID to secure your dive logs.</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
@@ -44,6 +57,7 @@
 		<string>UIInterfaceOrientationPortrait</string>
 		<string>UIInterfaceOrientationLandscapeLeft</string>
 		<string>UIInterfaceOrientationLandscapeRight</string>
+		<string>UIInterfaceOrientationPortraitUpsideDown</string>
 	</array>
 </dict>
 </plist>

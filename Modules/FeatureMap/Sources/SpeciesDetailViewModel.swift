@@ -15,6 +15,7 @@ public final class SpeciesDetailViewModel: ObservableObject {
     @Published var sightings: [SpeciesSightingInfo] = []
     @Published var habitats: [SpeciesHabitatInfo] = []
     @Published var sightingCount: Int = 0
+    @Published var sightingCountsBySite: [String: Int] = [:]
 
     // State
     @Published var isLoading = false
@@ -54,6 +55,7 @@ public final class SpeciesDetailViewModel: ObservableObject {
                     s.id,
                     s.count,
                     d.startTime,
+                    d.siteId,
                     COALESCE(site.name, 'Unknown Site') as siteName
                 FROM sightings s
                 INNER JOIN dives d ON s.diveId = d.id
@@ -67,12 +69,14 @@ public final class SpeciesDetailViewModel: ObservableObject {
 
             var infos: [SpeciesSightingInfo] = []
             var totalCount = 0
+            var countsBySite: [String: Int] = [:]
 
             for row in sightingsData {
                 let id = row["id"] as? String ?? UUID().uuidString
                 let count = row["count"] as? Int ?? 1
                 let startTime = row["startTime"] as? Date ?? Date()
                 let siteName = row["siteName"] as? String ?? "Unknown Site"
+                let siteId = row["siteId"] as? String
 
                 infos.append(SpeciesSightingInfo(
                     id: id,
@@ -82,15 +86,22 @@ public final class SpeciesDetailViewModel: ObservableObject {
                 ))
 
                 totalCount += count
+
+                // Track sighting counts by site
+                if let siteId {
+                    countsBySite[siteId, default: 0] += count
+                }
             }
 
             self.sightings = infos
             self.sightingCount = totalCount
+            self.sightingCountsBySite = countsBySite
 
         } catch {
             Log.wildlife.error("Error loading sightings: \(error.localizedDescription)")
             self.sightings = []
             self.sightingCount = 0
+            self.sightingCountsBySite = [:]
         }
     }
 
@@ -103,7 +114,9 @@ public final class SpeciesDetailViewModel: ObservableObject {
                     ss.site_id as siteId,
                     ss.likelihood,
                     site.name as siteName,
-                    site.location as siteLocation
+                    site.location as siteLocation,
+                    site.latitude,
+                    site.longitude
                 FROM site_species ss
                 INNER JOIN sites site ON ss.site_id = site.id
                 WHERE ss.species_id = ?
@@ -125,7 +138,9 @@ public final class SpeciesDetailViewModel: ObservableObject {
                       let likelihoodStr = row["likelihood"] as? String,
                       let likelihood = SiteSpeciesLink.Likelihood(rawValue: likelihoodStr),
                       let siteName = row["siteName"] as? String,
-                      let siteLocation = row["siteLocation"] as? String else {
+                      let siteLocation = row["siteLocation"] as? String,
+                      let latitude = row["latitude"] as? Double,
+                      let longitude = row["longitude"] as? Double else {
                     return nil
                 }
 
@@ -134,7 +149,9 @@ public final class SpeciesDetailViewModel: ObservableObject {
                     siteId: siteId,
                     siteName: siteName,
                     siteLocation: siteLocation,
-                    likelihood: likelihood
+                    likelihood: likelihood,
+                    latitude: latitude,
+                    longitude: longitude
                 )
             }
 

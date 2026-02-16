@@ -113,7 +113,7 @@ public struct ProfileView: View {
                     }
                 }
                 .padding(16)
-                .background(Color(.secondarySystemGroupedBackground))
+                .background(Color.trench)
                 .cornerRadius(16)
                 .padding(.horizontal, 16)
                 
@@ -155,7 +155,7 @@ public struct ProfileView: View {
                             .accessibilityHint("Enables ocean-themed visual styling")
                     }
                     .padding(16)
-                    .background(Color(.secondarySystemGroupedBackground))
+                    .background(Color.trench)
                     .cornerRadius(16)
                     .padding(.horizontal, 16)
                 }
@@ -182,7 +182,7 @@ public struct ProfileView: View {
                             .accessibilityHint("Require Face ID to open the app")
                     }
                     .padding(16)
-                    .background(Color(.secondarySystemGroupedBackground))
+                    .background(Color.trench)
                     .cornerRadius(16)
                     .padding(.horizontal, 16)
 
@@ -224,7 +224,7 @@ public struct ProfileView: View {
             }
             .padding(.vertical, 16)
         }
-        .background(Color(.systemGroupedBackground))
+        .background(Color.abyss.ignoresSafeArea())
         .navigationTitle("Profile")
         .underwaterAccent()
         .sheet(isPresented: $showingImport) {
@@ -327,7 +327,7 @@ struct StatTile: View {
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding(16)
-        .background(Color(.secondarySystemGroupedBackground))
+        .background(Color.trench)
         .cornerRadius(16)
     }
 }
@@ -358,7 +358,7 @@ struct AchievementBadge: View {
         }
         .frame(maxWidth: .infinity)
         .padding()
-        .background(Color(.secondarySystemGroupedBackground))
+        .background(Color.trench)
         .cornerRadius(16)
     }
 }
@@ -400,7 +400,7 @@ struct ActionRow: View {
                     .font(.caption)
             }
             .padding(16)
-            .background(Color(.secondarySystemGroupedBackground))
+            .background(Color.trench)
             .cornerRadius(16)
         }
         .padding(.horizontal, 16)
@@ -460,7 +460,7 @@ class ProfileViewModel: ObservableObject {
         Task {
             do {
                 let stats = try diveRepository.calculateStats()
-                await updateStats(stats)
+                updateStats(stats)
             } catch {
                 // Use zero/default values on error
                 Log.diveLog.error("Error loading dive stats: \(error.localizedDescription)")
@@ -473,7 +473,7 @@ class ProfileViewModel: ObservableObject {
         self.totalDives = stats.totalDives
         self.maxDepth = Int(stats.maxDepth)
         self.sitesVisited = stats.sitesVisited
-        self.totalBottomTime = formatBottomTime(seconds: stats.totalBottomTime)
+        self.totalBottomTime = DurationFormatter.format(seconds: stats.totalBottomTime)
         
         // Load species count from sightings
         Task {
@@ -489,11 +489,5 @@ class ProfileViewModel: ObservableObject {
                 Log.wildlife.error("Error loading species count: \(error.localizedDescription)")
             }
         }
-    }
-    
-    private func formatBottomTime(seconds: Int) -> String {
-        let hours = seconds / 3600
-        let minutes = (seconds % 3600) / 60
-        return "\(hours)h \(minutes)m"
     }
 }

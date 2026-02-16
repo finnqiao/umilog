@@ -8,13 +8,31 @@ private let logger = Logger(subsystem: "com.umilog", category: "Database")
 public final class AppDatabase {
     private let dbPool: DatabasePool
 
-    public static let shared: AppDatabase = {
-        do {
-            return try AppDatabase()
-        } catch {
-            fatalError("Failed to initialize database: \(error)")
+    /// Backing store for the shared instance
+    private static var _shared: AppDatabase?
+
+    /// Returns the shared database instance.
+    /// - Important: Call `initialize()` during app startup before accessing this property.
+    public static var shared: AppDatabase {
+        guard let instance = _shared else {
+            // This is a programming error - initialize() was not called
+            fatalError("AppDatabase.shared accessed before initialize() was called")
         }
-    }()
+        return instance
+    }
+
+    /// Initializes the shared database instance.
+    /// Call this during app startup and handle errors appropriately.
+    /// - Throws: Database initialization errors
+    public static func initialize() throws {
+        guard _shared == nil else { return }
+        _shared = try AppDatabase()
+    }
+
+    /// Returns true if the database has been initialized
+    public static var isInitialized: Bool {
+        _shared != nil
+    }
 
     /// Create an in-memory database for testing
     /// - Parameter inMemory: If true, creates an in-memory database
@@ -24,10 +42,15 @@ public final class AppDatabase {
             try db.execute(sql: "PRAGMA foreign_keys = ON")
         }
 
+        let fileManager = FileManager.default
         if inMemory {
-            dbPool = try DatabasePool(path: ":memory:", configuration: config)
+            // DatabasePool requires WAL mode, which is unsupported on :memory: databases.
+            // Use an isolated temp file for tests to preserve DatabasePool behavior.
+            let temporaryPath = fileManager.temporaryDirectory
+                .appendingPathComponent("umilog-tests-\(UUID().uuidString).sqlite")
+                .path
+            dbPool = try DatabasePool(path: temporaryPath, configuration: config)
         } else {
-            let fileManager = FileManager.default
             let documentsPath = try fileManager.url(
                 for: .documentDirectory,
                 in: .userDomainMask,
@@ -52,6 +75,21 @@ public final class AppDatabase {
         let dbPath = documentsPath.appendingPathComponent("umilog.db").path
 
         logger.info("Database path: \(dbPath, privacy: .private)")
+
+        // Copy pre-bundled seed database if app database doesn't exist
+        if !fileManager.fileExists(atPath: dbPath) {
+            if let bundledPath = Bundle.main.path(forResource: "umilog_seed", ofType: "db") {
+                do {
+                    try fileManager.copyItem(atPath: bundledPath, toPath: dbPath)
+                    logger.info("Copied pre-bundled seed database to Documents")
+                } catch {
+                    logger.error("Failed to copy pre-bundled database: \(error.localizedDescription)")
+                    // Fall through to normal initialization - seeder will populate from JSON
+                }
+            } else {
+                logger.info("No pre-bundled database found, will seed from JSON")
+            }
+        }
 
         // Configure database
         var config = Configuration()

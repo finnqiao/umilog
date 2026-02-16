@@ -4,6 +4,7 @@ import CoreLocation
 import UmiDB
 import UmiLocationKit
 import UmiCoreKit
+import UmiDesignSystem
 import os
 
 @MainActor
@@ -29,6 +30,11 @@ public final class QuickLogViewModel: ObservableObject {
     @Published public var isSaving = false
     @Published public var showingError = false
     @Published public var errorMessage: String?
+
+    // Validation feedback state
+    @Published public var validationMessage: String?
+    @Published public var showValidation = false
+    @Published public var shakeButton = false
     
     // Dependencies
     private let database = AppDatabase.shared
@@ -294,7 +300,40 @@ public final class QuickLogViewModel: ObservableObject {
         let hasLocation = selectedSite != nil || (gpsLatitude != nil && gpsLongitude != nil)
         return hasLocation && maxDepth > 0 && bottomTime > 0
     }
-    
+
+    /// Validates the form and shows feedback if invalid.
+    /// Returns true if validation passes, false otherwise.
+    public func validateAndShowFeedback() -> Bool {
+        // Check for site or GPS location
+        if selectedSite == nil && gpsLatitude == nil {
+            validationMessage = "Please select a dive site"
+            showValidation = true
+            shakeButton = true
+            Haptics.error()
+            return false
+        }
+
+        // Check for valid depth
+        if maxDepth <= 0 {
+            validationMessage = "Please enter max depth"
+            showValidation = true
+            shakeButton = true
+            Haptics.error()
+            return false
+        }
+
+        // Check for valid bottom time
+        if bottomTime <= 0 {
+            validationMessage = "Please enter bottom time"
+            showValidation = true
+            shakeButton = true
+            Haptics.error()
+            return false
+        }
+
+        return true
+    }
+
     public var saveButtonTitle: String {
         let timeAgo = abs(diveDate.timeIntervalSinceNow)
         if timeAgo < 3600 { // Within last hour

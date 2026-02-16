@@ -30,6 +30,23 @@ public extension Color {
     static let statusPlanned = amber
     static let statusDanger = danger
 
+    // MARK: - Resy-Style Water Depth Ramp
+    static let waterSurface = Color(hex: "08141A")   // Deepest dark (new background)
+    static let waterShallow = Color(hex: "0B2B33")   // Shallow water tint
+    static let waterMid = Color(hex: "0A2238")       // Mid-depth water
+    static let waterDeep = Color(hex: "0A0F2A")      // Deep water (indigo)
+    static let landBase = Color(hex: "141816")       // Land mass fill
+
+    // MARK: - Resy-Style Pin States
+    static let pinDefault = Color(hex: "35C2E0")     // Cool cyan - undiscovered
+    static let pinVisited = Color(hex: "2FD7B8")     // Green-teal - logged dives
+    static let pinFavorite = Color(hex: "F2C14E")    // Gold - wishlist/saved
+
+    // MARK: - Site Type Accents
+    static let reefAccent = Color(hex: "2BAA9B")     // Muted aqua-green
+    static let wreckAccent = Color(hex: "C98B2B")    // Muted amber
+    static let hazardAccent = Color(hex: "FF8A3D")   // Orange warning
+
     static let difficultyBeginner = Color(hex: "3DDC97")
     static let difficultyIntermediate = Color(hex: "60A5FA")
     static let difficultyAdvanced = Color(hex: "FBBF24")
@@ -41,7 +58,8 @@ public extension Color {
     static let seaGreen = Color(hex: "16A34A")
     static let divePurple = Color(hex: "9333EA")
     static let coralRed = danger
-    static let waterDeep = midnight
+    @available(*, deprecated, renamed: "waterDeep", message: "Use Resy-style waterDeep instead")
+    static let waterDeepLegacy = midnight
     static let waterAccent = ocean
 
     // MARK: - Semantic Helpers

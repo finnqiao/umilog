@@ -2,7 +2,10 @@ import SwiftUI
 
 /// Detent positions for the unified bottom surface.
 enum SurfaceDetent: Equatable, CaseIterable {
-    /// Minimal peek showing summary info (~24% or 160pt min).
+    /// Hidden - ultra-minimal mode with no bottom sheet visible.
+    case hidden
+
+    /// Minimal peek showing summary info (~12% or 72pt min).
     case peek
 
     /// Medium height showing list content (~60%).
@@ -14,8 +17,10 @@ enum SurfaceDetent: Equatable, CaseIterable {
     /// Calculate the height for this detent given a container height.
     func height(in containerHeight: CGFloat) -> CGFloat {
         switch self {
+        case .hidden:
+            return 0
         case .peek:
-            return max(containerHeight * 0.24, 160)
+            return max(containerHeight * 0.12, 72)  // Reduced from 24%/160pt for minimal UI
         case .medium:
             return containerHeight * 0.60
         case .expanded:
@@ -27,13 +32,15 @@ enum SurfaceDetent: Equatable, CaseIterable {
     static func allowed(for mode: MapUIMode) -> [SurfaceDetent] {
         switch mode {
         case .explore:
-            return [.peek, .medium, .expanded]
+            return [.hidden, .peek, .medium, .expanded]  // Added hidden for ultra-minimal
         case .inspectSite:
             return [.medium, .expanded]
         case .filter, .search:
             return [.expanded]
         case .plan:
             return [.medium, .expanded]
+        case .clusterExpand:
+            return [.peek, .medium, .expanded]
         }
     }
 
@@ -41,13 +48,15 @@ enum SurfaceDetent: Equatable, CaseIterable {
     static func defaultDetent(for mode: MapUIMode) -> SurfaceDetent {
         switch mode {
         case .explore:
-            return .peek
+            return .hidden  // Ultra-minimal: start with hidden sheet
         case .inspectSite:
             return .medium
         case .filter, .search:
             return .expanded
         case .plan:
             return .expanded
+        case .clusterExpand:
+            return .medium
         }
     }
 

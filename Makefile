@@ -223,3 +223,32 @@ clean-data:
 clean-images:
 	rm -rf $(IMAGES_DIR)
 	@echo "Cleaned images directory"
+
+# ============================================================
+# Pre-bundled Seed Database Generation
+# ============================================================
+
+SEED_DB_DIR=$(PWD)/Resources/SeedDB
+SEED_DB_OUTPUT=$(SEED_DB_DIR)/umilog_seed.db
+
+# Generate pre-seeded SQLite database for app bundle
+# This eliminates JSON parsing and individual inserts at runtime
+.PHONY: seed-db-generate
+seed-db-generate:
+	@echo "Generating pre-seeded database..."
+	@mkdir -p $(SEED_DB_DIR)
+	python3 scripts/generate_seed_db.py $(SEED_DB_OUTPUT)
+	@echo "Generated: $(SEED_DB_OUTPUT)"
+	@ls -lh $(SEED_DB_OUTPUT)
+
+# Clean generated seed database
+.PHONY: clean-seed-db
+clean-seed-db:
+	rm -rf $(SEED_DB_DIR)
+	@echo "Cleaned seed database directory"
+
+# Full build including seed database
+.PHONY: build-with-seed-db
+build-with-seed-db: seed-db-generate
+	xcodegen generate
+	@echo "Ready to build with pre-seeded database"

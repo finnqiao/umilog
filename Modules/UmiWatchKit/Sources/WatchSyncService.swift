@@ -16,13 +16,13 @@ public final class WatchSyncService: ObservableObject {
     private let siteRepository: SiteRepository
 
     public init(
-        connectivityManager: WatchConnectivityManager = .shared,
-        diveRepository: DiveRepository = DiveRepository(database: AppDatabase.shared),
-        siteRepository: SiteRepository = SiteRepository(database: AppDatabase.shared)
+        connectivityManager: WatchConnectivityManager? = nil,
+        diveRepository: DiveRepository? = nil,
+        siteRepository: SiteRepository? = nil
     ) {
-        self.connectivityManager = connectivityManager
-        self.diveRepository = diveRepository
-        self.siteRepository = siteRepository
+        self.connectivityManager = connectivityManager ?? .shared
+        self.diveRepository = diveRepository ?? DiveRepository(database: AppDatabase.shared)
+        self.siteRepository = siteRepository ?? SiteRepository(database: AppDatabase.shared)
 
         setupCallbacks()
     }

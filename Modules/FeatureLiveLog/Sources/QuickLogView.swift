@@ -63,14 +63,18 @@ public struct QuickLogView: View {
             .toolbar {
                 ToolbarItem(placement: .topBarLeading) {
                     Button("Cancel") { dismiss() }
+                        .accessibilityLabel("Cancel")
+                        .accessibilityHint("Discard changes and close")
                 }
-                
+
                 ToolbarItem(placement: .keyboard) {
                     HStack {
                         Spacer()
                         Button("Done") {
                             focusedField = nil
                         }
+                        .accessibilityLabel("Done")
+                        .accessibilityHint("Dismiss keyboard")
                     }
                 }
             }
@@ -179,7 +183,17 @@ struct QuickActionsSection: View {
 struct SiteSelectionSection: View {
     @ObservedObject var viewModel: QuickLogViewModel
     @State private var showingSitePicker = false
-    
+
+    private var siteAccessibilityLabel: String {
+        if let site = viewModel.selectedSite {
+            return "Dive site: \(site.name), \(site.location)"
+        } else if viewModel.isUsingGPS, let lat = viewModel.gpsLatitude, let lon = viewModel.gpsLongitude {
+            return "Dive site: GPS Location, \(viewModel.gpsLocationName ?? formatCoordinates(lat: lat, lon: lon))"
+        } else {
+            return "Dive site: Not selected"
+        }
+    }
+
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             Text("Dive Site")
@@ -223,6 +237,8 @@ struct SiteSelectionSection: View {
                 .background(Color.gray.opacity(0.1))
                 .cornerRadius(12)
             }
+            .accessibilityLabel(siteAccessibilityLabel)
+            .accessibilityHint("Double tap to select a dive site")
         }
         .sheet(isPresented: $showingSitePicker) {
             SitePickerView(
@@ -249,7 +265,7 @@ struct SiteSelectionSection: View {
 struct EssentialFieldsSection: View {
     @ObservedObject var viewModel: QuickLogViewModel
     @FocusState.Binding var focusedField: QuickLogField?
-    
+
     var body: some View {
         VStack(spacing: 16) {
             // Date and Time
@@ -260,43 +276,50 @@ struct EssentialFieldsSection: View {
                 displayedComponents: [.date, .hourAndMinute]
             )
             .datePickerStyle(.compact)
-            
+            .accessibilityLabel("Dive date and time")
+
             HStack(spacing: 16) {
                 // Max Depth
                 VStack(alignment: .leading, spacing: 4) {
                         Text("Max Depth")
                             .font(SwiftUI.Font.caption)
                             .foregroundStyle(.secondary)
-                    
+
                     HStack {
                         TextField("0", value: $viewModel.maxDepth, format: .number)
                             .textFieldStyle(.roundedBorder)
                             .keyboardType(.decimalPad)
                             .focused($focusedField, equals: .depth)
-                        
+                            .accessibilityLabel("Maximum depth in meters")
+                            .accessibilityValue("\(Int(viewModel.maxDepth)) meters")
+
                         Text("m")
                             .foregroundStyle(.secondary)
+                            .accessibilityHidden(true)
                     }
                 }
-                
+
                 // Bottom Time
                 VStack(alignment: .leading, spacing: 4) {
                         Text("Bottom Time")
                             .font(SwiftUI.Font.caption)
                             .foregroundStyle(.secondary)
-                    
+
                     HStack {
                         TextField("0", value: $viewModel.bottomTime, format: .number)
                             .textFieldStyle(.roundedBorder)
                             .keyboardType(.numberPad)
                             .focused($focusedField, equals: .bottomTime)
-                        
+                            .accessibilityLabel("Bottom time in minutes")
+                            .accessibilityValue("\(viewModel.bottomTime) minutes")
+
                         Text("min")
                             .foregroundStyle(.secondary)
+                            .accessibilityHidden(true)
                     }
                 }
             }
-            
+
             // Quick depth buttons
             ScrollView(.horizontal, showsIndicators: false) {
                 HStack(spacing: 8) {
@@ -307,10 +330,13 @@ struct EssentialFieldsSection: View {
                         }
                         .buttonStyle(.bordered)
                         .controlSize(.small)
+                        .accessibilityLabel("Set depth to \(depth) meters")
                     }
                 }
             }
-            
+            .accessibilityElement(children: .contain)
+            .accessibilityLabel("Quick depth presets")
+
             // Quick time buttons
             ScrollView(.horizontal, showsIndicators: false) {
                 HStack(spacing: 8) {
@@ -321,9 +347,12 @@ struct EssentialFieldsSection: View {
                         }
                         .buttonStyle(.bordered)
                         .controlSize(.small)
+                        .accessibilityLabel("Set bottom time to \(time) minutes")
                     }
                 }
             }
+            .accessibilityElement(children: .contain)
+            .accessibilityLabel("Quick time presets")
         }
     }
 }
@@ -331,7 +360,7 @@ struct EssentialFieldsSection: View {
 struct OptionalFieldsSection: View {
     @ObservedObject var viewModel: QuickLogViewModel
     @State private var isExpanded = false
-    
+
     var body: some View {
         DisclosureGroup(isExpanded: $isExpanded) {
             VStack(spacing: 16) {
@@ -339,60 +368,70 @@ struct OptionalFieldsSection: View {
                 HStack {
                     Label("Water Temp", systemImage: "thermometer.medium")
                         .font(SwiftUI.Font.subheadline)
-                    
+
                     Spacer()
-                    
+
                     HStack {
                         TextField("--", value: $viewModel.waterTemp, format: .number)
                             .textFieldStyle(.roundedBorder)
                             .keyboardType(.numberPad)
                             .frame(width: 60)
-                        
+                            .accessibilityLabel("Water temperature in Celsius")
+                            .accessibilityValue(viewModel.waterTemp.map { "\(Int($0)) degrees" } ?? "Not set")
+
                         Text("°C")
                             .foregroundStyle(.secondary)
+                            .accessibilityHidden(true)
                     }
                 }
-                
+
                 // Visibility
                 HStack {
                     Label("Visibility", systemImage: "eye")
                         .font(SwiftUI.Font.subheadline)
-                    
+
                     Spacer()
-                    
+
                     HStack {
                         TextField("--", value: $viewModel.visibility, format: .number)
                             .textFieldStyle(.roundedBorder)
                             .keyboardType(.numberPad)
                             .frame(width: 60)
-                        
+                            .accessibilityLabel("Visibility in meters")
+                            .accessibilityValue(viewModel.visibility.map { "\(Int($0)) meters" } ?? "Not set")
+
                         Text("m")
                             .foregroundStyle(.secondary)
+                            .accessibilityHidden(true)
                     }
                 }
-                
+
                 // Buddy
                 HStack {
                     Label("Buddy", systemImage: "person.2")
                         .font(SwiftUI.Font.subheadline)
-                    
+
                     Spacer()
-                    
+
                     TextField("Dive buddy", text: $viewModel.buddy)
                         .textFieldStyle(.roundedBorder)
                         .frame(maxWidth: 150)
+                        .accessibilityLabel("Dive buddy name")
+                        .accessibilityValue(viewModel.buddy.isEmpty ? "Not set" : viewModel.buddy)
                 }
-                
+
                 // Notes
                 VStack(alignment: .leading, spacing: 4) {
                     Label("Notes", systemImage: "note.text")
                         .font(SwiftUI.Font.subheadline)
-                    
+
                     TextEditor(text: $viewModel.notes)
                         .frame(minHeight: 80)
                         .padding(8)
                         .background(Color.gray.opacity(0.1))
                         .cornerRadius(8)
+                        .accessibilityLabel("Dive notes")
+                        .accessibilityValue(viewModel.notes.isEmpty ? "Empty" : "Contains notes")
                 }
             }
             .padding(.top, 8)
@@ -401,31 +440,52 @@ struct OptionalFieldsSection: View {
                 .font(SwiftUI.Font.subheadline)
                 .foregroundStyle(Color.oceanBlue)
         }
+        .accessibilityLabel("More details section")
+        .accessibilityValue(isExpanded ? "Expanded" : "Collapsed")
+        .accessibilityHint("Double tap to \(isExpanded ? "collapse" : "expand") optional fields")
     }
 }
 
 struct SaveButton: View {
     @ObservedObject var viewModel: QuickLogViewModel
     let action: () -> Void
-    
+
     var body: some View {
-        Button(action: action) {
-            if viewModel.isSaving {
-                ProgressView()
-                    .progressViewStyle(CircularProgressViewStyle())
+        VStack(spacing: 8) {
+            // Validation banner
+            ValidationBanner(
+                message: viewModel.validationMessage ?? "",
+                isShowing: $viewModel.showValidation
+            )
+
+            Button(action: handleTap) {
+                if viewModel.isSaving {
+                    ProgressView()
+                        .progressViewStyle(CircularProgressViewStyle())
+                        .frame(maxWidth: .infinity)
+                } else {
+                    HStack {
+                        Image(systemName: "checkmark.circle.fill")
+                        Text(viewModel.saveButtonTitle)
+                            .font(SwiftUI.Font.headline)
+                    }
                     .frame(maxWidth: .infinity)
-            } else {
-                HStack {
-                    Image(systemName: "checkmark.circle.fill")
-                    Text(viewModel.saveButtonTitle)
-                        .font(SwiftUI.Font.headline)
                 }
-                .frame(maxWidth: .infinity)
             }
+            .buttonStyle(.borderedProminent)
+            .controlSize(.large)
+            .disabled(viewModel.isSaving)
+            .shake(trigger: $viewModel.shakeButton)
+            .accessibilityLabel(viewModel.isSaving ? "Saving dive" : viewModel.saveButtonTitle)
+            .accessibilityHint(viewModel.isSaving ? "Please wait" : "Double tap to save your dive log")
         }
-        .buttonStyle(.borderedProminent)
-        .controlSize(.large)
-        .disabled(viewModel.isSaving || !viewModel.canSave)
+        .animation(.easeInOut(duration: 0.2), value: viewModel.showValidation)
+    }
+
+    private func handleTap() {
+        if viewModel.validateAndShowFeedback() {
+            action()
+        }
     }
 }
 
@@ -502,6 +562,11 @@ struct SitePickerView: View {
                             }
                             .padding(.vertical, 4)
                         }
+                        .accessibilityElement(children: .combine)
+                        .accessibilityLabel("Use current location")
+                        .accessibilityValue(hasGPS ? (gpsLocationName ?? formatCoordinates()) : "GPS coordinates")
+                        .accessibilityHint("Log dive at your current GPS position")
+                        .accessibilityAddTraits(hasGPS && selectedSite == nil ? .isSelected : [])
                     } header: {
                         Text("Quick Option")
                     }
@@ -533,6 +598,10 @@ struct SitePickerView: View {
                                 }
                             }
                         }
+                        .accessibilityElement(children: .combine)
+                        .accessibilityLabel("\(site.name), \(site.location)")
+                        .accessibilityHint("Double tap to select this dive site")
+                        .accessibilityAddTraits(site.id == selectedSite?.id ? .isSelected : [])
                     }
                 } header: {
                     Text("Dive Sites")
@@ -544,6 +613,8 @@ struct SitePickerView: View {
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
                     Button("Cancel") { dismiss() }
+                        .accessibilityLabel("Cancel")
+                        .accessibilityHint("Close site picker without selecting")
                 }
             }
             .task {

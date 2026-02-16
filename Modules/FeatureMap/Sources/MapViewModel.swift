@@ -98,17 +98,52 @@ class MapViewModel: ObservableObject {
     @Published var regions: [Region] = []
     @Published var loading: Bool = false
     @Published var visibleSites: [DiveSite] = []
+    @Published private(set) var totalSiteCount: Int = 0
+    @Published private(set) var isUsingSampledDataset: Bool = false
 
     private var wishlistObserver: NSObjectProtocol?
+    private var safeModeObserver: NSObjectProtocol?
     private let defaults = UserDefaults.standard
     private static let modeKey = "map.filter.mode"
     private static let statusFilterKey = "map.filter.status"
     private static let exploreFilterKey = "map.filter.explore"
+    private var adaptiveViewportLimit: Int = UserDefaults.standard.bool(forKey: AppConstants.UserDefaultsKeys.launchSafeModeEnabled)
+        ? AppConstants.LaunchStability.viewportSiteQuerySafeModeLimit
+        : AppConstants.LaunchStability.viewportSiteQueryLimit
+    private var consecutiveSlowViewportQueries: Int = 0
+    private var consecutiveViewportFailures: Int = 0
+    private var fallbackSites: [DiveSite] = []
+    private var hasRequestedFullDatasetWarmup = false
 
     // MARK: - Map State Persistence (US-2)
     private static let lastCenterLatKey = "map.lastCenter.lat"
     private static let lastCenterLonKey = "map.lastCenter.lon"
     private static let lastZoomKey = "map.lastZoom"
+
+    private var isLaunchSafeModeEnabled: Bool {
+        defaults.bool(forKey: AppConstants.UserDefaultsKeys.launchSafeModeEnabled)
+    }
+
+    private var initialSiteLoadLimit: Int {
+        isLaunchSafeModeEnabled
+            ? AppConstants.LaunchStability.initialSiteLoadSafeModeLimit
+            : AppConstants.LaunchStability.initialSiteLoadLimit
+    }
+
+    private var viewportLimitBounds: (min: Int, max: Int) {
+        let safeModeMax = AppConstants.LaunchStability.viewportSiteQuerySafeModeLimit
+        if isLaunchSafeModeEnabled {
+            return (min: max(200, safeModeMax / 2), max: safeModeMax)
+        }
+        let normalMax = AppConstants.LaunchStability.viewportSiteQueryLimit
+        return (min: max(400, normalMax / 3), max: normalMax)
+    }
+
+    private var worldFallbackSampleLimit: Int {
+        isLaunchSafeModeEnabled
+            ? AppConstants.LaunchStability.allSitesExpansionSafeModeThreshold
+            : AppConstants.LaunchStability.allSitesExpansionThreshold
+    }
 
     init() {
         // Load persisted filter preferences
@@ -126,13 +161,29 @@ class MapViewModel: ObservableObject {
             object: nil,
             queue: .main
         ) { [weak self] notification in
-            self?.applyWishlistUpdate(notification)
+            Task { @MainActor in
+                self?.applyWishlistUpdate(notification)
+            }
+        }
+
+        safeModeObserver = NotificationCenter.default.addObserver(
+            forName: .launchSafeModeDidChange,
+            object: nil,
+            queue: .main
+        ) { [weak self] notification in
+            guard let enabled = notification.userInfo?["enabled"] as? Bool else { return }
+            Task { @MainActor in
+                self?.handleSafeModeChanged(enabled)
+            }
         }
     }
 
     deinit {
         if let wishlistObserver {
             NotificationCenter.default.removeObserver(wishlistObserver)
+        }
+        if let safeModeObserver {
+            NotificationCenter.default.removeObserver(safeModeObserver)
         }
     }
 
@@ -391,55 +442,91 @@ class MapViewModel: ObservableObject {
         }
     }
 
+    private struct SiteBootPayload {
+        let sites: [DiveSite]
+        let shops: [MapDiveShop]
+        let regions: [Region]
+        let totalSiteCount: Int
+        let fallbackSites: [DiveSite]
+        let isSampled: Bool
+    }
+
     func loadSites() async {
-        defer {
-            DispatchQueue.main.async { [weak self] in
-                self?.loading = false
-            }
-        }
+        defer { loading = false }
+        loading = true
 
-        await MainActor.run {
-            self.loading = true
-        }
+        let launchSafeMode = isLaunchSafeModeEnabled
+        let bootstrapLimit = initialSiteLoadLimit
+        let fallbackSampleLimit = worldFallbackSampleLimit
+        let viewportBounds = viewportLimitBounds
+        adaptiveViewportLimit = viewportBounds.max
+        let startedAt = Date()
 
-        let database = AppDatabase.shared
-        let siteRepo = SiteRepository(database: database)
-        let shopRepo = ShopRepository(database: database)
-        do {
-            do {
-                try DatabaseSeeder.seedIfNeeded()
-            } catch {
-                Log.database.error("Failed to seed database before loading sites: \(error.localizedDescription)")
-            }
-            let fetchedSites = try siteRepo.fetchAll()
-            let fetchedShops = try shopRepo.fetchAll()
-            let regionNames = Set(fetchedSites.map { $0.region })
-            let computedRegions = regionNames.map { name in
-                let regionSites = fetchedSites.filter { $0.region == name }
-                let regionShops = fetchedShops.filter { $0.region == name }
-                return Region(
-                    id: name,
-                    name: name,
-                    totalSites: regionSites.count,
-                    visitedCount: regionSites.filter { $0.visitedCount > 0 }.count,
-                    shopCount: regionShops.count
+        let loadResult = await Task.detached(priority: .userInitiated) {
+            Result<SiteBootPayload, Error> {
+                try DatabaseSeeder.seedCriticalDataIfNeeded()
+
+                let database = AppDatabase.shared
+                let siteRepo = SiteRepository(database: database)
+                let shopRepo = ShopRepository(database: database)
+
+                let fetchedSites = try siteRepo.fetchRanked(limit: bootstrapLimit)
+                let totalSiteCount = try siteRepo.countSites()
+                let fetchedShops = try shopRepo.fetchAll()
+                let regionNames = Set(fetchedSites.map { $0.region })
+                let computedRegions = regionNames.map { name in
+                    let regionSites = fetchedSites.filter { $0.region == name }
+                    let regionShops = fetchedShops.filter { $0.region == name }
+                    return Region(
+                        id: name,
+                        name: name,
+                        totalSites: regionSites.count,
+                        visitedCount: regionSites.filter { $0.visitedCount > 0 }.count,
+                        shopCount: regionShops.count
+                    )
+                }.sorted { $0.name < $1.name }
+
+                let fallbackSites = Array(fetchedSites.prefix(fallbackSampleLimit))
+                let isSampled = totalSiteCount > fetchedSites.count
+
+                return SiteBootPayload(
+                    sites: fetchedSites,
+                    shops: fetchedShops,
+                    regions: computedRegions,
+                    totalSiteCount: totalSiteCount,
+                    fallbackSites: fallbackSites,
+                    isSampled: isSampled
                 )
-            }.sorted { $0.name < $1.name }
+            }
+        }.value
 
-            await MainActor.run {
-                self.sites = fetchedSites
-                self.shops = fetchedShops
-                self.regions = computedRegions
-                // Initialize visible sites to all sites
-                self.visibleSites = fetchedSites
+        switch loadResult {
+        case .success(let payload):
+            sites = payload.sites
+            shops = payload.shops
+            regions = payload.regions
+            visibleSites = payload.sites
+            totalSiteCount = payload.totalSiteCount
+            isUsingSampledDataset = payload.isSampled
+            fallbackSites = payload.fallbackSites
+
+            let elapsed = Date().timeIntervalSince(startedAt)
+            Log.map.info(
+                "Map bootstrap loaded \(payload.sites.count, privacy: .public)/\(payload.totalSiteCount, privacy: .public) sites in \(elapsed, privacy: .public)s (safeMode=\(launchSafeMode, privacy: .public))"
+            )
+
+            if payload.isSampled && !launchSafeMode {
+                startFullDatasetWarmupIfNeeded()
             }
-        } catch {
+        case .failure(let error):
             Log.map.error("Failed to load sites: \(error.localizedDescription)")
-            await MainActor.run {
-                self.sites = []
-                self.shops = []
-                self.regions = []
-            }
+            sites = []
+            shops = []
+            regions = []
+            visibleSites = []
+            totalSiteCount = 0
+            isUsingSampledDataset = false
+            fallbackSites = []
         }
     }
 
@@ -474,33 +561,130 @@ class MapViewModel: ObservableObject {
     }
 
     private func refreshVisibleSites(bounds: MapBounds) async {
-        let repo = SiteRepository(database: AppDatabase.shared)
-        do {
-            let boxSites = try repo.fetchInBounds(
-                minLat: bounds.minLatitude,
-                maxLat: bounds.maxLatitude,
-                minLon: bounds.minLongitude,
-                maxLon: bounds.maxLongitude
-            )
-            let sitesToShow = boxSites.isEmpty ? self.sites : boxSites
-
-            await MainActor.run {
-                // Only update if the result is actually different to avoid unnecessary re-renders
-                if sitesToShow.count != self.visibleSites.count || !sitesToShow.elementsEqual(self.visibleSites, by: { $0.id == $1.id }) {
-                    self.visibleSites = sitesToShow
-                }
+        let queryStartedAt = Date()
+        let currentLimit = adaptiveViewportLimit
+        let minLat = bounds.minLatitude
+        let maxLat = bounds.maxLatitude
+        let minLon = bounds.minLongitude
+        let maxLon = bounds.maxLongitude
+        let queryResult = await Task.detached(priority: .utility) {
+            Result<[DiveSite], Error> {
+                try SiteRepository(database: AppDatabase.shared).fetchInBounds(
+                    minLat: minLat,
+                    maxLat: maxLat,
+                    minLon: minLon,
+                    maxLon: maxLon,
+                    limit: currentLimit
+                )
             }
+        }.value
+        switch queryResult {
+        case .success(let boxSites):
+            let sitesToShow = boxSites.isEmpty ? fallbackSites : boxSites
+
+            // Only update if the result is actually different to avoid unnecessary re-renders
+            if sitesToShow.count != self.visibleSites.count || !sitesToShow.elementsEqual(self.visibleSites, by: { $0.id == $1.id }) {
+                self.visibleSites = sitesToShow
+            }
+
+            recordViewportQuery(duration: Date().timeIntervalSince(queryStartedAt), fetchedCount: boxSites.count)
 
             // Prefetch images for visible sites (fire-and-forget)
             await prefetchImagesForSites(sitesToShow)
-        } catch {
+        case .failure(let error):
             Log.map.debug("Failed to fetch box sites: \(error.localizedDescription)")
-            // On error, show all sites
-            await MainActor.run {
-                if self.visibleSites.count != self.sites.count {
-                    self.visibleSites = self.sites
+            consecutiveViewportFailures += 1
+            if consecutiveViewportFailures >= AppConstants.LaunchStability.viewportFailureEscalationThreshold {
+                NotificationCenter.default.post(
+                    name: .launchSafeModeActivationRequested,
+                    object: nil,
+                    userInfo: ["reason": "viewport_query_failures"]
+                )
+            }
+
+            // On error, keep fallback sample instead of loading all sites.
+            if !self.fallbackSites.isEmpty && self.visibleSites.count != self.fallbackSites.count {
+                self.visibleSites = self.fallbackSites
+            }
+        }
+    }
+
+    private func handleSafeModeChanged(_ enabled: Bool) {
+        let bounds = viewportLimitBounds
+        adaptiveViewportLimit = min(max(adaptiveViewportLimit, bounds.min), bounds.max)
+        consecutiveSlowViewportQueries = 0
+        consecutiveViewportFailures = 0
+
+        if enabled {
+            let cappedFallback = Array(sites.prefix(worldFallbackSampleLimit))
+            fallbackSites = cappedFallback
+            if visibleSites.count > adaptiveViewportLimit {
+                visibleSites = Array(visibleSites.prefix(adaptiveViewportLimit))
+            }
+        } else if isUsingSampledDataset {
+            startFullDatasetWarmupIfNeeded()
+        }
+    }
+
+    private func startFullDatasetWarmupIfNeeded() {
+        guard !hasRequestedFullDatasetWarmup, !isLaunchSafeModeEnabled else { return }
+        hasRequestedFullDatasetWarmup = true
+
+        Task { [weak self] in
+            let startedAt = Date()
+            let warmupResult = await Task.detached(priority: .utility) {
+                Result<[DiveSite], Error> {
+                    try SiteRepository(database: AppDatabase.shared).fetchAll()
+                }
+            }.value
+
+            guard let self else { return }
+
+            switch warmupResult {
+            case .success(let fullSites):
+                await MainActor.run {
+                    self.sites = fullSites
+                    self.totalSiteCount = fullSites.count
+                    self.isUsingSampledDataset = false
+                    self.fallbackSites = Array(fullSites.prefix(self.worldFallbackSampleLimit))
+                    let elapsed = Date().timeIntervalSince(startedAt)
+                    Log.map.info("Map full dataset warmup complete: \(fullSites.count, privacy: .public) sites in \(elapsed, privacy: .public)s")
+                }
+            case .failure(let error):
+                await MainActor.run {
+                    self.hasRequestedFullDatasetWarmup = false
+                    Log.map.error("Map full dataset warmup failed: \(error.localizedDescription)")
                 }
             }
+        }
+    }
+
+    private func recordViewportQuery(duration: TimeInterval, fetchedCount: Int) {
+        self.consecutiveViewportFailures = 0
+        let bounds = self.viewportLimitBounds
+        self.adaptiveViewportLimit = min(max(self.adaptiveViewportLimit, bounds.min), bounds.max)
+
+        if duration > AppConstants.LaunchStability.slowViewportQueryThreshold {
+            self.consecutiveSlowViewportQueries += 1
+            let reduced = max(bounds.min, Int(Double(self.adaptiveViewportLimit) * 0.75))
+            if reduced < self.adaptiveViewportLimit {
+                self.adaptiveViewportLimit = reduced
+                Log.map.info("Viewport query slow (\(duration, privacy: .public)s); reducing limit to \(self.adaptiveViewportLimit, privacy: .public)")
+            }
+
+            if self.consecutiveSlowViewportQueries >= AppConstants.LaunchStability.viewportSlowQueryEscalationThreshold {
+                NotificationCenter.default.post(
+                    name: .launchSafeModeActivationRequested,
+                    object: nil,
+                    userInfo: ["reason": "viewport_query_slow"]
+                )
+            }
+            return
+        }
+
+        self.consecutiveSlowViewportQueries = 0
+        if fetchedCount >= Int(Double(self.adaptiveViewportLimit) * 0.9), self.adaptiveViewportLimit < bounds.max {
+            self.adaptiveViewportLimit = min(bounds.max, self.adaptiveViewportLimit + 300)
         }
     }
 

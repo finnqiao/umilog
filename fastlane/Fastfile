@@ -73,8 +73,8 @@ platform :ios do
 
   desc "Build and archive for TestFlight"
   lane :build_testflight do
-    generate
     bump
+    generate  # Regenerate after bump so xcodeproj reflects new build number
 
     build_app(
       project: "UmiLog.xcodeproj",
@@ -90,8 +90,8 @@ platform :ios do
 
   desc "Build and archive for App Store"
   lane :build_release do
-    generate
     bump
+    generate  # Regenerate after bump so xcodeproj reflects new build number
 
     build_app(
       project: "UmiLog.xcodeproj",
@@ -119,12 +119,8 @@ platform :ios do
       notify_external_testers: false
     )
 
-    # Commit build number change
-    commit_version_bump(
-      message: "chore: bump build number for TestFlight",
-      xcodeproj: "UmiLog.xcodeproj",
-      force: true
-    )
+    # Commit build number change (version lives in project.yml, not xcodeproj)
+    sh("cd .. && git add project.yml && git commit -m 'chore: bump build number for TestFlight'")
   end
 
   desc "Upload to App Store (release)"

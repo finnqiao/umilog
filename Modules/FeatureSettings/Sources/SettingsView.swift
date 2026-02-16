@@ -48,8 +48,8 @@ public struct SettingsView: View {
                     }
                 }
 
-                Button {
-                    exportData()
+                NavigationLink {
+                    DataExportView()
                 } label: {
                     HStack {
                         Label("Export Data", systemImage: "square.and.arrow.up")
@@ -60,7 +60,6 @@ public struct SettingsView: View {
                         }
                     }
                 }
-                .disabled(isExporting)
 
                 Button {
                     isImporting = true
@@ -94,6 +93,10 @@ public struct SettingsView: View {
 
                 Button("Reset First Launch Flag") {
                     resetFirstLaunch()
+                }
+
+                Button("Reset Onboarding") {
+                    resetOnboarding()
                 }
 
                 Button("Reset All Preferences") {
@@ -139,45 +142,6 @@ public struct SettingsView: View {
             }
         } catch {
             logger.error("Error loading pending count: \(error.localizedDescription)")
-        }
-    }
-
-    private func exportData() {
-        isExporting = true
-        Task {
-            do {
-                let diveRepository = DiveRepository(database: AppDatabase.shared)
-                let dives = try diveRepository.fetchAll()
-
-                let export = DiveExport(
-                    version: 1,
-                    exportedAt: Date(),
-                    dives: dives
-                )
-
-                let encoder = JSONEncoder()
-                encoder.dateEncodingStrategy = .iso8601
-                encoder.outputFormatting = [.prettyPrinted, .sortedKeys]
-                let data = try encoder.encode(export)
-
-                let fileName = "umilog_export_\(ISO8601DateFormatter().string(from: Date())).json"
-                let tempURL = FileManager.default.temporaryDirectory.appendingPathComponent(fileName)
-                try data.write(to: tempURL)
-
-                await MainActor.run {
-                    exportURL = tempURL
-                    showExportShare = true
-                    isExporting = false
-                    logger.info("Exported \(dives.count) dives to \(fileName)")
-                }
-            } catch {
-                await MainActor.run {
-                    alertMessage = "Export failed: \(error.localizedDescription)"
-                    showAlert = true
-                    isExporting = false
-                    logger.error("Export failed: \(error.localizedDescription)")
-                }
-            }
         }
     }
 
@@ -272,10 +236,21 @@ public struct SettingsView: View {
         logger.info("[DEBUG] Reset first launch flag")
     }
 
+    private func resetOnboarding() {
+        let defaults = UserDefaults.standard
+        defaults.removeObject(forKey: "app.umilog.onboardingCompleted")
+        defaults.removeObject(forKey: "app.umilog.user.profile")
+        alertMessage = "Onboarding reset. Restart app to see onboarding wizard."
+        showAlert = true
+        logger.info("[DEBUG] Reset onboarding")
+    }
+
     private func resetAllPreferences() {
         let defaults = UserDefaults.standard
         defaults.removeObject(forKey: "selectedTab")
         defaults.removeObject(forKey: "app.umilog.hasLaunchedBefore")
+        defaults.removeObject(forKey: "app.umilog.onboardingCompleted")
+        defaults.removeObject(forKey: "app.umilog.user.profile")
         defaults.removeObject(forKey: "app.umilog.preferences.underwaterThemeEnabled")
         defaults.removeObject(forKey: "analytics_enabled")
         defaults.removeObject(forKey: "crash_reporting")
@@ -287,27 +262,8 @@ public struct SettingsView: View {
     #endif
 }
 
-// MARK: - Export Model
-
-private struct DiveExport: Codable {
-    let version: Int
-    let exportedAt: Date
-    let dives: [DiveLog]
-}
-
 // ImportError is defined in CSVImporter.swift
-
-// MARK: - Share Sheet
-
-private struct ShareSheet: UIViewControllerRepresentable {
-    let items: [Any]
-
-    func makeUIViewController(context: Context) -> UIActivityViewController {
-        UIActivityViewController(activityItems: items, applicationActivities: nil)
-    }
-
-    func updateUIViewController(_ uiViewController: UIActivityViewController, context: Context) {}
-}
+// Export functionality moved to DataExportView.swift
 
 // MARK: - Privacy Settings
 
@@ -381,5 +337,31 @@ struct SyncSettingsView: View {
 #Preview {
     NavigationStack {
         SettingsView()
+    }
+}
+
+// MARK: - ShareSheet
+
+private struct ShareSheet: UIViewControllerRepresentable {
+    let items: [Any]
+
+    func makeUIViewController(context: Context) -> UIActivityViewController {
+        UIActivityViewController(activityItems: items, applicationActivities: nil)
+    }
+
+    func updateUIViewController(_ uiViewController: UIActivityViewController, context: Context) {}
+}
+
+// MARK: - DiveExport
+
+private struct DiveExport: Codable {
+    let dives: [DiveLog]
+    let exportDate: Date
+    let version: String
+
+    init(dives: [DiveLog], exportDate: Date = Date(), version: String = "1.0") {
+        self.dives = dives
+        self.exportDate = exportDate
+        self.version = version
     }
 }

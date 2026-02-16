@@ -1,6 +1,7 @@
 import SwiftUI
 import UmiDesignSystem
 import UmiDB
+import UmiCoreKit
 
 public struct DashboardView: View {
     @StateObject private var viewModel = DashboardViewModel()
@@ -127,14 +128,16 @@ public struct DashboardView: View {
                         icon: "map.fill",
                         title: "Site Explorer",
                         description: "Find new dive sites",
-                        color: Color.oceanBlue
+                        color: Color.oceanBlue,
+                        destination: AnyView(Text("Site Explorer"))
                     )
-                    
+
                     QuickActionCard(
                         icon: "chart.bar.fill",
                         title: "Statistics",
                         description: "View your progress",
-                        color: .seaGreen
+                        color: .seaGreen,
+                        destination: AnyView(StatisticsView())
                     )
                 }
                 .padding(.horizontal)
@@ -175,7 +178,7 @@ private struct DiveRow: View {
                     
                     HStack(spacing: 12) {
                         Label(String(format: "%.1fm", dive.maxDepth), systemImage: "arrow.down")
-                        Label("\(dive.bottomTime)min", systemImage: "clock")
+                        Label(DurationFormatter.formatCompact(minutes: dive.bottomTime), systemImage: "clock")
                     }
                     .font(.subheadline)
                     .foregroundStyle(.secondary)
@@ -206,28 +209,51 @@ private struct QuickActionCard: View {
     let title: String
     let description: String
     let color: Color
-    
+    let destination: AnyView?
+
+    init(icon: String, title: String, description: String, color: Color, destination: AnyView? = nil) {
+        self.icon = icon
+        self.title = title
+        self.description = description
+        self.color = color
+        self.destination = destination
+    }
+
     var body: some View {
-        Button(action: {}) {
-            Card {
-                VStack(spacing: 12) {
-                    Image(systemName: icon)
-                        .font(.system(size: 32))
-                        .foregroundStyle(color)
-                    
-                    Text(title)
-                        .font(.headline)
-                        .foregroundStyle(.primary)
-                    
-                    Text(description)
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
+        Group {
+            if let destination {
+                NavigationLink {
+                    destination
+                } label: {
+                    cardContent
                 }
-                .frame(maxWidth: .infinity)
-                .padding(.vertical, 24)
+            } else {
+                Button(action: {}) {
+                    cardContent
+                }
             }
         }
         .buttonStyle(.plain)
+    }
+
+    private var cardContent: some View {
+        Card {
+            VStack(spacing: 12) {
+                Image(systemName: icon)
+                    .font(.system(size: 32))
+                    .foregroundStyle(color)
+
+                Text(title)
+                    .font(.headline)
+                    .foregroundStyle(.primary)
+
+                Text(description)
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+            .frame(maxWidth: .infinity)
+            .padding(.vertical, 24)
+        }
     }
 }
 

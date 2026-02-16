@@ -1,4 +1,5 @@
 import Foundation
+import CoreLocation
 import UmiDB
 
 /// Pure function reducer for map UI state transitions.
@@ -111,6 +112,15 @@ enum MapUIReducer {
         case (.inspectSite(let ctx), .closeSiteInspection):
             return .explore(ctx.returnContext)
 
+        case (.inspectSite(let ctx), .openSearch):
+            if let searchContext = ctx.returnSearchContext {
+                return .search(searchContext)
+            }
+            return .search(SearchContext(
+                query: "",
+                returnContext: ctx.returnContext
+            ))
+
         // MARK: - Filter Mode Transitions
 
         case (.filter(let ctx), .closeFilter):
@@ -127,7 +137,8 @@ enum MapUIReducer {
                 // Selection made - go to inspect
                 return .inspectSite(SiteInspectionContext(
                     siteId: siteId,
-                    returnContext: ctx.returnContext
+                    returnContext: ctx.returnContext,
+                    returnSearchContext: ctx
                 ))
             } else {
                 // No selection - return to explore
@@ -193,6 +204,28 @@ enum MapUIReducer {
             var exploreCtx = ctx.returnContext
             exploreCtx.hierarchyLevel = .country(countryId)
             return .explore(exploreCtx)
+
+        // MARK: - Cluster Expand Transitions
+
+        case (.explore(let ctx), .openClusterExpand(let clusterCtx)):
+            // Store the current explore context in the cluster context
+            var updatedClusterCtx = clusterCtx
+            updatedClusterCtx = ClusterExpandContext(
+                clusterCenter: clusterCtx.clusterCenter,
+                siteCount: clusterCtx.siteCount,
+                returnContext: ctx
+            )
+            return .clusterExpand(updatedClusterCtx)
+
+        case (.clusterExpand(let ctx), .closeClusterExpand):
+            return .explore(ctx.returnContext)
+
+        case (.clusterExpand(let ctx), .openSiteInspection(let siteId)):
+            // Allow opening site inspection from cluster expand
+            return .inspectSite(SiteInspectionContext(
+                siteId: siteId,
+                returnContext: ctx.returnContext
+            ))
 
         // MARK: - Invalid Transitions
 

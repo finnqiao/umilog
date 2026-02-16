@@ -1,6 +1,30 @@
 import Foundation
 import GRDB
 
+public struct SpeciesCategorySummary: Identifiable, Hashable {
+    public let id: String
+    public let category: WildlifeSpecies.Category
+    public let speciesCount: Int
+
+    public init(category: WildlifeSpecies.Category, speciesCount: Int) {
+        self.id = category.rawValue
+        self.category = category
+        self.speciesCount = speciesCount
+    }
+}
+
+public struct SpeciesFamilySummary: Identifiable, Hashable {
+    public let id: String
+    public let family: SpeciesFamily
+    public let speciesCount: Int
+
+    public init(family: SpeciesFamily, speciesCount: Int) {
+        self.id = family.id
+        self.family = family
+        self.speciesCount = speciesCount
+    }
+}
+
 public final class SpeciesRepository {
     private let database: AppDatabase
 
@@ -98,6 +122,79 @@ public final class SpeciesRepository {
                 .filter(WildlifeSpecies.Columns.category == category.rawValue)
                 .order(Column("name"))
                 .fetchAll(db)
+        }
+    }
+
+    /// Summary counts by category (for browsing UI)
+    public func fetchCategorySummaries() throws -> [SpeciesCategorySummary] {
+        try database.read { db in
+            let rows = try Row.fetchAll(
+                db,
+                sql: "SELECT category, COUNT(*) AS count FROM wildlife_species GROUP BY category"
+            )
+            var countByCategory: [WildlifeSpecies.Category: Int] = [:]
+            for row in rows {
+                guard let raw = row["category"] as? String,
+                      let category = WildlifeSpecies.Category(rawValue: raw) else {
+                    continue
+                }
+                countByCategory[category] = row["count"] as? Int ?? 0
+            }
+
+            return WildlifeSpecies.Category.allCases.map { category in
+                SpeciesCategorySummary(category: category, speciesCount: countByCategory[category] ?? 0)
+            }
+        }
+    }
+
+    /// Summary counts by family (for browsing UI)
+    public func fetchFamilySummaries(category: WildlifeSpecies.Category? = nil) throws -> [SpeciesFamilySummary] {
+        try database.read { db in
+            let sql: String
+            var arguments: [DatabaseValueConvertible] = []
+            if let category {
+                sql = """
+                SELECT f.id, f.name, f.scientific_name, f.category, f.worms_aphia_id, f.gbif_key,
+                       COUNT(s.id) AS species_count
+                FROM species_families f
+                LEFT JOIN wildlife_species s ON s.family_id = f.id
+                WHERE f.category = ?
+                GROUP BY f.id
+                ORDER BY f.name
+                """
+                arguments = [category.rawValue]
+            } else {
+                sql = """
+                SELECT f.id, f.name, f.scientific_name, f.category, f.worms_aphia_id, f.gbif_key,
+                       COUNT(s.id) AS species_count
+                FROM species_families f
+                LEFT JOIN wildlife_species s ON s.family_id = f.id
+                GROUP BY f.id
+                ORDER BY f.name
+                """
+            }
+
+            let rows = try Row.fetchAll(db, sql: sql, arguments: StatementArguments(arguments))
+            return rows.compactMap { row in
+                guard let id = row["id"] as? String,
+                      let name = row["name"] as? String,
+                      let scientificName = row["scientific_name"] as? String,
+                      let categoryRaw = row["category"] as? String,
+                      let category = WildlifeSpecies.Category(rawValue: categoryRaw) else {
+                    return nil
+                }
+
+                let family = SpeciesFamily(
+                    id: id,
+                    name: name,
+                    scientificName: scientificName,
+                    category: category,
+                    wormsAphiaId: row["worms_aphia_id"] as? Int,
+                    gbifKey: row["gbif_key"] as? Int
+                )
+                let speciesCount = row["species_count"] as? Int ?? 0
+                return SpeciesFamilySummary(family: family, speciesCount: speciesCount)
+            }
         }
     }
 

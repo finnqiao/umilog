@@ -1,4 +1,5 @@
 import XCTest
+import GRDB
 @testable import UmiDB
 
 final class SiteRepositoryTests: XCTestCase {
@@ -68,14 +69,14 @@ final class SiteRepositoryTests: XCTestCase {
         ])
 
         // Query for Red Sea area
-        let bounds = MapBounds(
+        let bounds = TestMapBounds(
             minLat: 20.0,
             maxLat: 30.0,
             minLon: 30.0,
             maxLon: 40.0
         )
 
-        let sitesInBounds = try siteRepository.fetchInBounds(bounds)
+        let sitesInBounds = try fetchSitesInBounds(bounds)
         XCTAssertEqual(sitesInBounds.count, 1)
         XCTAssertEqual(sitesInBounds.first?.name, "Egypt Site")
     }
@@ -137,17 +138,17 @@ final class SiteRepositoryTests: XCTestCase {
     }
 }
 
-// MARK: - MapBounds Helper
+// MARK: - MapBounds Helper for Tests
 
-struct MapBounds {
+struct TestMapBounds {
     let minLat: Double
     let maxLat: Double
     let minLon: Double
     let maxLon: Double
 }
 
-extension SiteRepository {
-    func fetchInBounds(_ bounds: MapBounds) throws -> [DiveSite] {
+extension SiteRepositoryTests {
+    func fetchSitesInBounds(_ bounds: TestMapBounds) throws -> [DiveSite] {
         try database.read { db in
             try DiveSite
                 .filter(Column("latitude") >= bounds.minLat)

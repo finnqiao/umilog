@@ -385,6 +385,159 @@ public enum DatabaseMigrator {
             )
         }
 
+        // MARK: - v7: CloudKit Sync, Trips, User Site States
+        migrator.registerMigration("v7_sync_trips_user_states") { db in
+            // Sync metadata table - tracks sync status for each record
+            try db.create(table: "sync_metadata") { t in
+                t.column("id", .text).primaryKey()
+                t.column("record_type", .text).notNull()  // "dives", "sightings", "user_site_states"
+                t.column("local_record_id", .text).notNull()
+                t.column("ck_record_id", .text)
+                t.column("ck_system_fields", .blob)  // Serialized CKRecord.ID + metadata
+                t.column("sync_status", .text).notNull().defaults(to: "pending")  // pending, synced, conflict, error
+                t.column("last_synced_at", .datetime)
+                t.column("local_updated_at", .datetime).notNull()
+                t.column("error_message", .text)
+                t.column("retry_count", .integer).notNull().defaults(to: 0)
+            }
+            try db.create(
+                index: "idx_sync_metadata_record",
+                on: "sync_metadata",
+                columns: ["record_type", "local_record_id"],
+                unique: true
+            )
+            try db.create(index: "idx_sync_metadata_status", on: "sync_metadata", columns: ["sync_status"])
+
+            // Sync queue for pending operations
+            try db.create(table: "sync_queue") { t in
+                t.column("id", .text).primaryKey()
+                t.column("operation", .text).notNull()  // "create", "update", "delete"
+                t.column("record_type", .text).notNull()
+                t.column("local_record_id", .text).notNull()
+                t.column("payload", .blob)  // JSON-encoded record data
+                t.column("created_at", .datetime).notNull().defaults(sql: "CURRENT_TIMESTAMP")
+                t.column("attempts", .integer).notNull().defaults(to: 0)
+                t.column("last_attempt_at", .datetime)
+                t.column("error_message", .text)
+                t.column("priority", .integer).notNull().defaults(to: 0)  // Higher = more urgent
+            }
+            try db.create(index: "idx_sync_queue_priority", on: "sync_queue", columns: ["priority"])
+            try db.create(index: "idx_sync_queue_record", on: "sync_queue", columns: ["record_type", "local_record_id"])
+
+            // User site states - separates user data from seed data
+            // This allows sync of user preferences without syncing the entire sites table
+            try db.create(table: "user_site_states") { t in
+                t.column("site_id", .text).primaryKey()
+                    .references("sites", onDelete: .cascade)
+                t.column("is_wishlist", .boolean).notNull().defaults(to: false)
+                t.column("is_planned", .boolean).notNull().defaults(to: false)
+                t.column("user_notes", .text)
+                t.column("user_rating", .integer)  // 1-5 stars
+                t.column("last_visited_at", .datetime)
+                t.column("created_at", .datetime).notNull().defaults(sql: "CURRENT_TIMESTAMP")
+                t.column("updated_at", .datetime).notNull().defaults(sql: "CURRENT_TIMESTAMP")
+            }
+            try db.create(index: "idx_user_site_states_wishlist", on: "user_site_states", columns: ["is_wishlist"])
+            try db.create(index: "idx_user_site_states_planned", on: "user_site_states", columns: ["is_planned"])
+
+            // Trips table for trip planning
+            try db.create(table: "trips") { t in
+                t.column("id", .text).primaryKey()
+                t.column("name", .text).notNull()
+                t.column("start_date", .date)
+                t.column("end_date", .date)
+                t.column("notes", .text)
+                t.column("cover_image_url", .text)
+                t.column("calendar_event_id", .text)  // EventKit identifier
+                t.column("created_at", .datetime).notNull().defaults(sql: "CURRENT_TIMESTAMP")
+                t.column("updated_at", .datetime).notNull().defaults(sql: "CURRENT_TIMESTAMP")
+            }
+            try db.create(index: "idx_trips_dates", on: "trips", columns: ["start_date", "end_date"])
+
+            // Trip sites junction table
+            try db.create(table: "trip_sites") { t in
+                t.column("trip_id", .text).notNull()
+                    .references("trips", onDelete: .cascade)
+                t.column("site_id", .text).notNull()
+                    .references("sites", onDelete: .cascade)
+                t.column("sort_order", .integer).notNull().defaults(to: 0)
+                t.column("planned_date", .date)
+                t.column("notes", .text)
+                t.primaryKey(["trip_id", "site_id"], onConflict: .replace)
+            }
+            try db.create(index: "idx_trip_sites_trip", on: "trip_sites", columns: ["trip_id"])
+            try db.create(index: "idx_trip_sites_site", on: "trip_sites", columns: ["site_id"])
+
+            // Migrate existing wishlist/planned data from sites to user_site_states
+            try db.execute(sql: """
+                INSERT INTO user_site_states (site_id, is_wishlist, is_planned, updated_at)
+                SELECT id, wishlist, isPlanned, CURRENT_TIMESTAMP
+                FROM sites
+                WHERE wishlist = 1 OR isPlanned = 1
+            """)
+        }
+
+        // MARK: - v8: Region Descriptions
+        migrator.registerMigration("v8_region_descriptions") { db in
+            try db.alter(table: "regions") { t in
+                t.add(column: "tagline", .text)
+                t.add(column: "description", .text)
+            }
+        }
+
+        // MARK: - v9: FTS5 Incremental Triggers
+        // Eliminates the need for full FTS5 rebuild after seed data changes
+        migrator.registerMigration("v9_fts5_incremental_triggers") { db in
+            // Drop any legacy auto-generated triggers
+            try db.execute(sql: "DROP TRIGGER IF EXISTS __sites_fts_ai")
+            try db.execute(sql: "DROP TRIGGER IF EXISTS __sites_fts_ad")
+            try db.execute(sql: "DROP TRIGGER IF EXISTS __sites_fts_au")
+
+            // Sites FTS triggers - keep index in sync automatically
+            try db.execute(sql: """
+                CREATE TRIGGER IF NOT EXISTS sites_fts_insert AFTER INSERT ON sites BEGIN
+                    INSERT INTO sites_fts(rowid, name, region, location, tags, description)
+                    VALUES (NEW.rowid, NEW.name, NEW.region, NEW.location, NEW.tags, NEW.description);
+                END
+            """)
+
+            try db.execute(sql: """
+                CREATE TRIGGER IF NOT EXISTS sites_fts_update AFTER UPDATE ON sites BEGIN
+                    DELETE FROM sites_fts WHERE rowid = OLD.rowid;
+                    INSERT INTO sites_fts(rowid, name, region, location, tags, description)
+                    VALUES (NEW.rowid, NEW.name, NEW.region, NEW.location, NEW.tags, NEW.description);
+                END
+            """)
+
+            try db.execute(sql: """
+                CREATE TRIGGER IF NOT EXISTS sites_fts_delete AFTER DELETE ON sites BEGIN
+                    DELETE FROM sites_fts WHERE rowid = OLD.rowid;
+                END
+            """)
+
+            // Species FTS triggers
+            try db.execute(sql: """
+                CREATE TRIGGER IF NOT EXISTS species_fts_insert AFTER INSERT ON wildlife_species BEGIN
+                    INSERT INTO species_fts(rowid, name, scientific_name)
+                    VALUES (NEW.rowid, NEW.name, NEW.scientificName);
+                END
+            """)
+
+            try db.execute(sql: """
+                CREATE TRIGGER IF NOT EXISTS species_fts_update AFTER UPDATE ON wildlife_species BEGIN
+                    DELETE FROM species_fts WHERE rowid = OLD.rowid;
+                    INSERT INTO species_fts(rowid, name, scientific_name)
+                    VALUES (NEW.rowid, NEW.name, NEW.scientificName);
+                END
+            """)
+
+            try db.execute(sql: """
+                CREATE TRIGGER IF NOT EXISTS species_fts_delete AFTER DELETE ON wildlife_species BEGIN
+                    DELETE FROM species_fts WHERE rowid = OLD.rowid;
+                END
+            """)
+        }
+
         // Run migrations
         try migrator.migrate(writer)
     }

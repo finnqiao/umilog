@@ -1,5 +1,6 @@
 import Foundation
 import SwiftUI
+import UIKit
 import FeatureMap
 import FeatureHome
 import FeatureLiveLog
@@ -11,17 +12,46 @@ import UmiDB
 import UmiLocationKit
 import UmiAnalytics
 import UmiCoreKit
+import UmiCloudKit
+import FeatureOnboarding
 import os
 
 @main
 struct UmiLogApp: App {
     @StateObject private var appState = AppState()
+
+    init() {
+        Self.configureTabBarAppearance()
+    }
     
     var body: some Scene {
         WindowGroup {
             ContentView()
                 .environmentObject(appState)
         }
+    }
+
+    private static func configureTabBarAppearance() {
+        let appearance = UITabBarAppearance()
+        appearance.configureWithTransparentBackground()
+        appearance.backgroundEffect = UIBlurEffect(style: .systemUltraThinMaterialDark)
+        appearance.backgroundColor = UIColor(Color.glass).withAlphaComponent(0.85)
+        appearance.shadowColor = .clear
+
+        let itemAppearance = UITabBarItemAppearance()
+        itemAppearance.normal.iconColor = UIColor.umiMist
+        itemAppearance.normal.titleTextAttributes = [.foregroundColor: UIColor.umiMist]
+        itemAppearance.selected.iconColor = UIColor.umiLagoon
+        itemAppearance.selected.titleTextAttributes = [.foregroundColor: UIColor.umiLagoon]
+
+        appearance.stackedLayoutAppearance = itemAppearance
+        appearance.inlineLayoutAppearance = itemAppearance
+        appearance.compactInlineLayoutAppearance = itemAppearance
+
+        let tabBar = UITabBar.appearance()
+        tabBar.standardAppearance = appearance
+        tabBar.scrollEdgeAppearance = appearance
+        tabBar.isTranslucent = true
     }
 }
 
@@ -31,6 +61,13 @@ struct ContentView: View {
     @Environment(\.scenePhase) private var scenePhase
     @AppStorage("selectedTab") private var selectedTabRaw: String = Tab.map.rawValue
     @State private var showingWizard = false
+    @StateObject private var networkMonitor = NetworkMonitor.shared
+    @StateObject private var deepLinkRouter = DeepLinkRouter.shared
+
+    // Deep link navigation state
+    @State private var pendingDiveId: String?
+    @State private var pendingSiteId: String?
+    @State private var pendingSpeciesId: String?
 
     /// Computed binding for tab selection with persistence
     private var selectedTab: Binding<Tab> {
@@ -47,11 +84,18 @@ struct ContentView: View {
     var body: some View {
         ZStack {
             if appState.isDatabaseSeeded {
-                if appState.underwaterThemeEnabled {
-                    UnderwaterThemeView { tabs }
-                        .wateryTransition()
+                if appState.onboardingCompleted {
+                    if appState.underwaterThemeEnabled {
+                        UnderwaterThemeView { tabs }
+                            .wateryTransition()
+                    } else {
+                        tabs
+                    }
                 } else {
-                    tabs
+                    OnboardingWizardView {
+                        appState.completeOnboarding()
+                    }
+                    .transition(.opacity)
                 }
             } else {
                 // Show loading state while database seeds
@@ -88,10 +132,16 @@ struct ContentView: View {
                 showingLogLauncher = true
             }
         }
-        .task(id: appState.isDatabaseSeeded) {
-            // Initialize geofencing after database is seeded (deferred to avoid white screen)
-            if appState.isDatabaseSeeded {
-                appState.initializeGeofencing()
+        .task(id: "\(appState.isDatabaseSeeded)-\(appState.onboardingCompleted)-\(appState.launchSafeModeEnabled)") {
+            if appState.isDatabaseSeeded && appState.onboardingCompleted {
+                appState.scheduleLaunchStabilityCheckpoint()
+                if !appState.launchSafeModeEnabled {
+                    // Initialize geofencing once startup seeding is complete and onboarding is finished.
+                    // This keeps first-run transition to map responsive.
+                    appState.initializeGeofencing()
+                }
+            } else {
+                appState.cancelLaunchStabilityCheckpoint()
             }
         }
         .sheet(isPresented: $showingWizard) {
@@ -138,10 +188,63 @@ struct ContentView: View {
             // Fix UX-013: Show log launcher from empty state CTAs
             showingLogLauncher = true
         }
-        .onChange(of: showingWizard) { isPresented in
+        .onReceive(NotificationCenter.default.publisher(for: .mapDidBecomeInteractive)) { _ in
+            appState.markMapInteractive()
+        }
+        .onChange(of: showingWizard) { _, isPresented in
             if !isPresented {
                 pendingLiveLogSite = nil
             }
+        }
+        .onOpenURL { url in
+            handleDeepLink(url)
+        }
+        .onChange(of: deepLinkRouter.pendingDestination) { _, destination in
+            handlePendingDestination(destination)
+        }
+        .preferredColorScheme(appState.underwaterThemeEnabled ? .dark : nil)
+    }
+
+    // MARK: - Deep Link Handling
+
+    private func handleDeepLink(_ url: URL) {
+        deepLinkRouter.handle(url)
+    }
+
+    private func handlePendingDestination(_ destination: DeepLinkDestination?) {
+        guard let destination else { return }
+
+        switch destination {
+        case .tab(let tab):
+            withAnimation {
+                selectedTab.wrappedValue = tab
+            }
+            deepLinkRouter.clearPendingDestination()
+
+        case .dive(let id):
+            pendingDiveId = id
+            withAnimation {
+                selectedTab.wrappedValue = .history
+            }
+            deepLinkRouter.clearPendingDestination()
+
+        case .site(let id):
+            pendingSiteId = id
+            withAnimation {
+                selectedTab.wrappedValue = .map
+            }
+            deepLinkRouter.clearPendingDestination()
+
+        case .species(let id):
+            pendingSpeciesId = id
+            withAnimation {
+                selectedTab.wrappedValue = .wildlife
+            }
+            deepLinkRouter.clearPendingDestination()
+
+        case .logLauncher:
+            showingLogLauncher = true
+            deepLinkRouter.clearPendingDestination()
         }
     }
 }
@@ -216,12 +319,13 @@ private extension ContentView {
         }
     }
 
-    /// Handle scene phase changes for app lock
+    /// Handle scene phase changes for app lock and sync
     private func handleScenePhaseChange(from oldPhase: ScenePhase, to newPhase: ScenePhase) {
         switch newPhase {
         case .background:
             // Lock the app when going to background
             appState.lockApp()
+            appState.cancelLaunchStabilityCheckpoint()
         case .active:
             // Attempt to unlock when becoming active (if locked)
             if appState.isLockEnabled && !appState.isUnlocked {
@@ -229,42 +333,64 @@ private extension ContentView {
                     await appState.unlockApp()
                 }
             }
+            // Trigger CloudKit sync on app foreground
+            appState.syncIfNeeded()
+            if appState.isDatabaseSeeded && appState.onboardingCompleted {
+                appState.scheduleLaunchStabilityCheckpoint()
+            }
         case .inactive:
-            // No action needed for inactive state
-            break
+            appState.cancelLaunchStabilityCheckpoint()
         @unknown default:
             break
         }
     }
 
     @ViewBuilder var tabs: some View {
-        TabView(selection: selectedTab) {
-            NavigationStack {
-                NewMapView()
-                    .navigationBarTitleDisplayMode(.inline)
+        VStack(spacing: 0) {
+            // Offline banner
+            if !networkMonitor.isConnected {
+                OfflineBanner()
+                    .animation(.spring(response: 0.3), value: networkMonitor.isConnected)
             }
-            .tabItem { Label("Map", systemImage: "map.fill") }
-            .tag(Tab.map)
 
-            NavigationStack { DiveHistoryView() }
-            .tabItem { Label("History", systemImage: "clock.fill") }
-            .tag(Tab.history)
+            TabView(selection: selectedTab) {
+                NavigationStack {
+                    NewMapView()
+                        .navigationBarTitleDisplayMode(.inline)
+                }
+                .tabItem { Label("Map", systemImage: "map.fill") }
+                .tag(Tab.map)
+                .accessibilityLabel("Map")
+                .accessibilityHint("Explore dive sites on the map")
 
-            // Empty placeholder for center FAB
-            Text("")
-                .tabItem { Label("Log", systemImage: "plus.circle.fill") }
-                .tag(Tab.log)
+                NavigationStack { DiveHistoryView() }
+                .tabItem { Label("History", systemImage: "clock.fill") }
+                .tag(Tab.history)
+                .accessibilityLabel("History")
+                .accessibilityHint("View your dive log history")
 
-            NavigationStack { WildlifeView() }
-            .tabItem { Label("Wildlife", systemImage: "fish.fill") }
-            .tag(Tab.wildlife)
+                // Empty placeholder for center FAB
+                Text("")
+                    .tabItem { Label("Log", systemImage: "plus.circle.fill") }
+                    .tag(Tab.log)
+                    .accessibilityLabel("Log a dive")
+                    .accessibilityHint("Start logging a new dive")
 
-            NavigationStack { ProfileView() }
-            .tabItem { Label("Profile", systemImage: "person.fill") }
-            .tag(Tab.profile)
+                NavigationStack { WildlifeView() }
+                .tabItem { Label("Wildlife", systemImage: "fish.fill") }
+                .tag(Tab.wildlife)
+                .accessibilityLabel("Wildlife")
+                .accessibilityHint("View marine species catalog")
+
+                NavigationStack { ProfileView() }
+                .tabItem { Label("Profile", systemImage: "person.fill") }
+                .tag(Tab.profile)
+                .accessibilityLabel("Profile")
+                .accessibilityHint("View your profile and settings")
+            }
+            .tint(.oceanBlue)
+            .toolbar(isTabBarHidden ? .hidden : .visible, for: .tabBar)
         }
-        .tint(.oceanBlue)
-        .toolbar(isTabBarHidden ? .hidden : .visible, for: .tabBar)
     }
 }
 
@@ -328,6 +454,24 @@ enum Tab: String, Hashable {
     case profile
 }
 
+private enum LaunchCheckpoint: String {
+    case boot
+    case databaseReady
+    case onboardingComplete
+    case mapInteractive
+    case stable
+
+    var rank: Int {
+        switch self {
+        case .boot: return 0
+        case .databaseReady: return 1
+        case .onboardingComplete: return 2
+        case .mapInteractive: return 3
+        case .stable: return 4
+        }
+    }
+}
+
 /// Global app state
 @MainActor
 class AppState: ObservableObject {
@@ -342,20 +486,51 @@ class AppState: ObservableObject {
         }
     }
     @Published var isDatabaseSeeded: Bool = false
-    private static let underwaterThemeDefaultsKey = "app.umilog.preferences.underwaterThemeEnabled"
+    @Published var onboardingCompleted: Bool = false
+    @Published private(set) var launchSafeModeEnabled: Bool = false
+    @Published private(set) var launchCrashLoopCount: Int = 0
+
+    /// CloudKit sync service - initialized after database is ready
+    @Published private(set) var cloudSyncService: CloudSyncService?
+
+    private static let underwaterThemeDefaultsKey = AppConstants.UserDefaultsKeys.underwaterThemeEnabled
+    private static let onboardingCompletedKey = "app.umilog.onboardingCompleted"
     private let defaults: UserDefaults
+    private let launchArguments: [String]
+    private let forceSafeModeForSession: Bool
+    private let disableSafeModeAutoRecovery: Bool
     private let logger = Logger(subsystem: "app.umilog", category: "AppState")
-    private let geofenceManager = GeofenceManager.shared
+    private lazy var geofenceManager = GeofenceManager.shared
     private var seedTask: Task<Void, Never>?
+    private var stabilityCheckpointTask: Task<Void, Never>?
+    private var memoryWarningObserver: NSObjectProtocol?
+    private var thermalStateObserver: NSObjectProtocol?
+    private var safeModeActivationObserver: NSObjectProtocol?
     
     /// Whether geofencing has been initialized (deferred to avoid blocking launch)
     private(set) var geofencingInitialized = false
 
     init(defaults: UserDefaults = .standard) {
         self.defaults = defaults
+        let arguments = ProcessInfo.processInfo.arguments
+        self.launchArguments = arguments
+        self.forceSafeModeForSession = arguments.contains("-ForceLaunchSafeMode")
+        self.disableSafeModeAutoRecovery = arguments.contains("-DisableLaunchSafeModeRecovery")
         let storedThemeEnabled = defaults.object(forKey: Self.underwaterThemeDefaultsKey) as? Bool ?? true
         self.underwaterThemeEnabled = storedThemeEnabled
-        logger.log("AppState init, underwaterThemeEnabled=\(self.underwaterThemeEnabled, privacy: .public)")
+
+        // Skip onboarding for UI tests if launch argument is present
+        if arguments.contains("-SkipOnboarding") {
+            self.onboardingCompleted = true
+        } else {
+            self.onboardingCompleted = defaults.bool(forKey: Self.onboardingCompletedKey)
+        }
+        beginLaunchSession()
+        if onboardingCompleted {
+            markLaunchCheckpoint(.onboardingComplete)
+        }
+        logger.log("AppState init, underwaterThemeEnabled=\(self.underwaterThemeEnabled, privacy: .public), onboardingCompleted=\(self.onboardingCompleted, privacy: .public)")
+        setupRuntimeCircuitBreakers()
 
         // Load lock preference from Keychain
         Task {
@@ -383,9 +558,19 @@ class AppState: ObservableObject {
 
             let startTime = Date()
 
+            // Initialize database first
+            do {
+                try AppDatabase.initialize()
+            } catch {
+                self?.logger.error("Database initialization failed: \(error.localizedDescription, privacy: .public)")
+                // Continue to show error state - the app will show the loading view indefinitely
+                // which is better than crashing
+                return
+            }
+
             await Task.detached(priority: .userInitiated) {
                 do {
-                    try DatabaseSeeder.seedIfNeeded()
+                    try DatabaseSeeder.seedCriticalDataIfNeeded()
                 } catch {
                     await MainActor.run {
                         self?.logger.error("Seed failed: \(error.localizedDescription, privacy: .public)")
@@ -395,7 +580,7 @@ class AppState: ObservableObject {
 
             // Ensure minimum splash duration for smooth UX (prevents flash)
             let elapsed = Date().timeIntervalSince(startTime)
-            let minimumDuration: TimeInterval = 0.8  // 800ms minimum
+            let minimumDuration = AppConstants.Timing.minimumSplashDuration
             if elapsed < minimumDuration {
                 try? await Task.sleep(nanoseconds: UInt64((minimumDuration - elapsed) * 1_000_000_000))
             }
@@ -407,26 +592,208 @@ class AppState: ObservableObject {
                 CrashReporter.start()
 
                 // Track app launch after first frame
-                let isFirstLaunch = !defaults.bool(forKey: "app.umilog.hasLaunchedBefore")
+                let isFirstLaunch = !defaults.bool(forKey: AppConstants.UserDefaultsKeys.hasLaunchedBefore)
                 if isFirstLaunch {
-                    defaults.set(true, forKey: "app.umilog.hasLaunchedBefore")
+                    defaults.set(true, forKey: AppConstants.UserDefaultsKeys.hasLaunchedBefore)
                 }
                 AnalyticsService.trackAppLaunch(isFirstLaunch: isFirstLaunch)
+
+                self?.markLaunchCheckpoint(.databaseReady)
+
+                // Initialize CloudKit sync after database is ready (unless safe mode is active)
+                if self?.launchSafeModeEnabled == true {
+                    self?.logger.log("Launch safe mode active - deferring CloudKit startup")
+                } else {
+                    self?.initializeCloudSync()
+                }
 
                 withAnimation(.easeOut(duration: 0.3)) {
                     self?.isDatabaseSeeded = true
                 }
             }
+
+            let shouldSkipBackgroundRefresh = await MainActor.run {
+                self?.launchSafeModeEnabled ?? false
+            }
+            if shouldSkipBackgroundRefresh {
+                await MainActor.run {
+                    self?.logger.log("Launch safe mode active - skipping background seed refresh")
+                }
+            } else {
+                Task { [weak self] in
+                    let refreshResult = await Task.detached(priority: .utility) {
+                        Result { try DatabaseSeeder.seedOrRefreshIfNeeded() }
+                    }.value
+
+                    await MainActor.run {
+                        switch refreshResult {
+                        case .success:
+                            NotificationCenter.default.post(name: .seedDataDidRefresh, object: nil)
+                            self?.logger.log("Background seed refresh complete")
+                        case .failure(let error):
+                            self?.logger.error("Background seed refresh failed: \(error.localizedDescription, privacy: .public)")
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    deinit {
+        if let memoryWarningObserver {
+            NotificationCenter.default.removeObserver(memoryWarningObserver)
+        }
+        if let thermalStateObserver {
+            NotificationCenter.default.removeObserver(thermalStateObserver)
+        }
+        if let safeModeActivationObserver {
+            NotificationCenter.default.removeObserver(safeModeActivationObserver)
         }
     }
     
     /// Initialize geofencing after the UI is ready (deferred from init to avoid blocking launch)
     func initializeGeofencing() {
         guard !geofencingInitialized else { return }
+        guard !launchSafeModeEnabled else {
+            logger.log("Skipping geofencing in launch safe mode")
+            return
+        }
         geofencingInitialized = true
         logger.log("Initializing geofencing...")
         geofenceManager.setupNotificationCategories()
         geofenceManager.startMonitoring()
+    }
+
+    /// Initialize CloudKit sync after database is ready
+    func initializeCloudSync() {
+        guard cloudSyncService == nil else { return }
+        guard !launchSafeModeEnabled else {
+            logger.log("Skipping CloudKit sync initialization in launch safe mode")
+            return
+        }
+        do {
+            cloudSyncService = try CloudSyncService()
+            logger.log("CloudKit sync service initialized")
+            // Initialize async (subscribe to changes, setup zone)
+            Task {
+                await cloudSyncService?.initialize()
+            }
+        } catch {
+            logger.error("Failed to initialize CloudKit sync: \(error.localizedDescription)")
+        }
+    }
+
+    /// Trigger a sync operation (call on app foreground)
+    func syncIfNeeded() {
+        guard !launchSafeModeEnabled else { return }
+        guard let syncService = cloudSyncService else { return }
+        Task {
+            await syncService.sync()
+        }
+    }
+
+    private func setupRuntimeCircuitBreakers() {
+        memoryWarningObserver = NotificationCenter.default.addObserver(
+            forName: UIApplication.didReceiveMemoryWarningNotification,
+            object: nil,
+            queue: .main
+        ) { [weak self] _ in
+            Task { @MainActor in
+                self?.activateLaunchSafeMode(reason: "memory_warning")
+            }
+        }
+
+        thermalStateObserver = NotificationCenter.default.addObserver(
+            forName: ProcessInfo.thermalStateDidChangeNotification,
+            object: nil,
+            queue: .main
+        ) { [weak self] _ in
+            Task { @MainActor in
+                guard let self else { return }
+                let thermalState = ProcessInfo.processInfo.thermalState
+                switch thermalState {
+                case .serious:
+                    self.activateLaunchSafeMode(reason: "thermal_serious")
+                case .critical:
+                    self.activateLaunchSafeMode(reason: "thermal_critical")
+                default:
+                    break
+                }
+            }
+        }
+
+        safeModeActivationObserver = NotificationCenter.default.addObserver(
+            forName: .launchSafeModeActivationRequested,
+            object: nil,
+            queue: .main
+        ) { [weak self] notification in
+            let reason = notification.userInfo?["reason"] as? String ?? "external_request"
+            Task { @MainActor in
+                self?.activateLaunchSafeMode(reason: reason)
+            }
+        }
+    }
+
+    private func launchArgumentValue(after flag: String) -> String? {
+        guard let index = launchArguments.firstIndex(of: flag) else { return nil }
+        let valueIndex = launchArguments.index(after: index)
+        guard launchArguments.indices.contains(valueIndex) else { return nil }
+        return launchArguments[valueIndex]
+    }
+
+    private func setLaunchSafeModeEnabled(_ enabled: Bool, reason: String, persist: Bool = true) {
+        let didChange = launchSafeModeEnabled != enabled
+        launchSafeModeEnabled = enabled
+        if persist {
+            defaults.set(enabled, forKey: AppConstants.UserDefaultsKeys.launchSafeModeEnabled)
+        }
+
+        guard didChange else { return }
+
+        if enabled {
+            if geofencingInitialized {
+                geofenceManager.stopMonitoring()
+                geofencingInitialized = false
+            }
+            cloudSyncService = nil
+            logger.error("Launch safe mode enabled, reason=\(reason, privacy: .public)")
+        } else {
+            logger.log("Launch safe mode disabled, reason=\(reason, privacy: .public)")
+        }
+
+        NotificationCenter.default.post(
+            name: .launchSafeModeDidChange,
+            object: nil,
+            userInfo: [
+                "enabled": enabled,
+                "reason": reason
+            ]
+        )
+    }
+
+    func activateLaunchSafeMode(reason: String) {
+        setLaunchSafeModeEnabled(true, reason: reason)
+    }
+
+    func markMapInteractive() {
+        markLaunchCheckpoint(.mapInteractive)
+    }
+
+    func scheduleLaunchStabilityCheckpoint() {
+        stabilityCheckpointTask?.cancel()
+        stabilityCheckpointTask = Task { [weak self] in
+            let delay = AppConstants.Timing.launchStabilityDelay
+            try? await Task.sleep(nanoseconds: UInt64(delay * 1_000_000_000))
+            guard !Task.isCancelled else { return }
+            await MainActor.run {
+                self?.markLaunchCheckpoint(.stable)
+            }
+        }
+    }
+
+    func cancelLaunchStabilityCheckpoint() {
+        stabilityCheckpointTask?.cancel()
+        stabilityCheckpointTask = nil
     }
 
     func ensureDatabaseSeeded() async {
@@ -439,20 +806,136 @@ class AppState: ObservableObject {
             return
         }
         
-        await Task.detached(priority: .background) { [weak self] in
-            do {
-                try DatabaseSeeder.seedIfNeeded()
-                await MainActor.run {
-                    self?.logger.log("Seed complete (late ensure)")
-                    self?.isDatabaseSeeded = true
-                }
-            } catch {
-                await MainActor.run {
-                    self?.logger.error("Seed failed (late ensure): \\(error.localizedDescription, privacy: .public)")
-                    self?.isDatabaseSeeded = true
-                }
-            }
+        let seedResult = await Task.detached(priority: .background) {
+            Result { try DatabaseSeeder.seedCriticalDataIfNeeded() }
         }.value
+
+        switch seedResult {
+        case .success:
+            logger.log("Seed complete (late ensure)")
+            markLaunchCheckpoint(.databaseReady)
+            isDatabaseSeeded = true
+        case .failure(let error):
+            logger.error("Seed failed (late ensure): \(error.localizedDescription, privacy: .public)")
+            markLaunchCheckpoint(.databaseReady)
+            isDatabaseSeeded = true
+        }
+    }
+
+    // MARK: - Launch Stability
+
+    private func beginLaunchSession() {
+        let isUITest = launchArguments.contains("-UITest")
+        let simulatedCrashLoopCount = launchArgumentValue(after: "-SimulateCrashLoopCount").flatMap { Int($0) }
+
+        if isUITest {
+            let crashLoopCount = max(0, simulatedCrashLoopCount ?? (forceSafeModeForSession ? AppConstants.LaunchStability.crashLoopSafeModeThreshold : 0))
+            launchCrashLoopCount = crashLoopCount
+            defaults.set(crashLoopCount, forKey: AppConstants.UserDefaultsKeys.launchCrashLoopCount)
+
+            let shouldEnableSafeMode = forceSafeModeForSession || crashLoopCount >= AppConstants.LaunchStability.crashLoopSafeModeThreshold
+            setLaunchSafeModeEnabled(shouldEnableSafeMode, reason: shouldEnableSafeMode ? "ui_test_safe_mode" : "ui_test_reset")
+
+            defaults.set(true, forKey: AppConstants.UserDefaultsKeys.launchInProgress)
+            defaults.set(Date().timeIntervalSince1970, forKey: AppConstants.UserDefaultsKeys.launchStartedAt)
+            defaults.set(LaunchCheckpoint.boot.rawValue, forKey: AppConstants.UserDefaultsKeys.launchCheckpoint)
+            logger.log("Launch stability reset for UI test run (safeMode=\(shouldEnableSafeMode, privacy: .public), crashLoops=\(crashLoopCount, privacy: .public))")
+            return
+        }
+
+        let previousInProgress = defaults.bool(forKey: AppConstants.UserDefaultsKeys.launchInProgress)
+        let previousCheckpoint = storedLaunchCheckpoint()
+        var crashLoopCount = defaults.integer(forKey: AppConstants.UserDefaultsKeys.launchCrashLoopCount)
+
+        if let simulatedCrashLoopCount {
+            crashLoopCount = max(0, simulatedCrashLoopCount)
+            logger.log("Using simulated crash loop count=\(crashLoopCount, privacy: .public)")
+        }
+
+        if previousInProgress && previousCheckpoint.rank < LaunchCheckpoint.mapInteractive.rank {
+            crashLoopCount += 1
+            logger.error("Detected incomplete launch at checkpoint=\(previousCheckpoint.rawValue, privacy: .public), crashLoopCount=\(crashLoopCount, privacy: .public)")
+        } else {
+            crashLoopCount = 0
+        }
+
+        launchCrashLoopCount = crashLoopCount
+        defaults.set(crashLoopCount, forKey: AppConstants.UserDefaultsKeys.launchCrashLoopCount)
+
+        let shouldEnableSafeMode = forceSafeModeForSession || crashLoopCount >= AppConstants.LaunchStability.crashLoopSafeModeThreshold
+        let safeModeReason = forceSafeModeForSession ? "force_launch_arg" : "crash_loop_threshold"
+        setLaunchSafeModeEnabled(shouldEnableSafeMode, reason: shouldEnableSafeMode ? safeModeReason : "normal_launch")
+
+        if shouldEnableSafeMode {
+            logger.error("Launch safe mode enabled after \(crashLoopCount, privacy: .public) incomplete launches")
+        }
+
+        defaults.set(true, forKey: AppConstants.UserDefaultsKeys.launchInProgress)
+        defaults.set(Date().timeIntervalSince1970, forKey: AppConstants.UserDefaultsKeys.launchStartedAt)
+        defaults.set(LaunchCheckpoint.boot.rawValue, forKey: AppConstants.UserDefaultsKeys.launchCheckpoint)
+    }
+
+    private func storedLaunchCheckpoint() -> LaunchCheckpoint {
+        guard let rawValue = defaults.string(forKey: AppConstants.UserDefaultsKeys.launchCheckpoint),
+              let checkpoint = LaunchCheckpoint(rawValue: rawValue) else {
+            return .boot
+        }
+        return checkpoint
+    }
+
+    private func markLaunchCheckpoint(_ checkpoint: LaunchCheckpoint) {
+        let current = storedLaunchCheckpoint()
+        guard checkpoint.rank >= current.rank else { return }
+
+        defaults.set(checkpoint.rawValue, forKey: AppConstants.UserDefaultsKeys.launchCheckpoint)
+        logger.log("Launch checkpoint=\(checkpoint.rawValue, privacy: .public)")
+
+        if checkpoint == .stable {
+            cancelLaunchStabilityCheckpoint()
+        }
+
+        if checkpoint.rank >= LaunchCheckpoint.mapInteractive.rank {
+            markLaunchAsRecovered(trigger: checkpoint)
+        }
+    }
+
+    private func markLaunchAsRecovered(trigger: LaunchCheckpoint) {
+        defaults.set(false, forKey: AppConstants.UserDefaultsKeys.launchInProgress)
+        defaults.set(0, forKey: AppConstants.UserDefaultsKeys.launchCrashLoopCount)
+        launchCrashLoopCount = 0
+
+        let shouldKeepSafeMode = forceSafeModeForSession || disableSafeModeAutoRecovery
+        if launchSafeModeEnabled && !shouldKeepSafeMode {
+            setLaunchSafeModeEnabled(false, reason: "launch_recovered_\(trigger.rawValue)")
+            logger.log("Launch recovered at checkpoint=\(trigger.rawValue, privacy: .public); disabling safe mode")
+            if isDatabaseSeeded {
+                initializeCloudSync()
+            }
+        } else if launchSafeModeEnabled && shouldKeepSafeMode {
+            defaults.set(true, forKey: AppConstants.UserDefaultsKeys.launchSafeModeEnabled)
+            logger.log("Launch recovered at checkpoint=\(trigger.rawValue, privacy: .public); keeping safe mode due to launch configuration")
+        } else {
+            defaults.set(false, forKey: AppConstants.UserDefaultsKeys.launchSafeModeEnabled)
+        }
+    }
+
+    // MARK: - Onboarding
+
+    /// Mark onboarding as completed
+    func completeOnboarding() {
+        defaults.set(true, forKey: Self.onboardingCompletedKey)
+        withAnimation(.easeOut(duration: 0.3)) {
+            onboardingCompleted = true
+        }
+        markLaunchCheckpoint(.onboardingComplete)
+        logger.log("Onboarding completed")
+    }
+
+    /// Reset onboarding state (for testing)
+    func resetOnboarding() {
+        defaults.removeObject(forKey: Self.onboardingCompletedKey)
+        onboardingCompleted = false
+        logger.log("Onboarding reset")
     }
 
     // MARK: - App Lock

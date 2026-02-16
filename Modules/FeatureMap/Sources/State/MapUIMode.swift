@@ -1,5 +1,7 @@
 import Foundation
 
+import CoreLocation
+
 /// The current UI mode for the map view.
 /// Each mode has an associated context containing mode-specific state.
 enum MapUIMode: Equatable {
@@ -8,6 +10,7 @@ enum MapUIMode: Equatable {
     case filter(FilterContext)
     case search(SearchContext)
     case plan(PlanContext)
+    case clusterExpand(ClusterExpandContext)
 
     /// Default mode on app launch.
     static let initial = MapUIMode.explore(ExploreContext())
@@ -45,7 +48,20 @@ enum MapUIMode: Equatable {
         case .filter: return "filter"
         case .search: return "search"
         case .plan: return "plan"
+        case .clusterExpand: return "cluster"
         }
+    }
+
+    /// Whether the mode is expanding a cluster.
+    var isClusterExpand: Bool {
+        if case .clusterExpand = self { return true }
+        return false
+    }
+
+    /// Extract the cluster expand context if in cluster mode.
+    var clusterContext: ClusterExpandContext? {
+        if case .clusterExpand(let ctx) = self { return ctx }
+        return nil
     }
 }
 
@@ -89,9 +105,17 @@ struct SiteInspectionContext: Equatable {
     /// The explore context to return to when closing.
     let returnContext: ExploreContext
 
-    init(siteId: String, returnContext: ExploreContext) {
+    /// Optional search context to return to when reopening search.
+    let returnSearchContext: SearchContext?
+
+    init(
+        siteId: String,
+        returnContext: ExploreContext,
+        returnSearchContext: SearchContext? = nil
+    ) {
         self.siteId = siteId
         self.returnContext = returnContext
+        self.returnSearchContext = returnSearchContext
     }
 }
 
@@ -153,5 +177,38 @@ struct PlanContext: Equatable {
         self.tripName = tripName
         self.initialSiteId = initialSiteId
         self.returnContext = returnContext
+    }
+}
+
+// MARK: - Cluster Expand Context
+
+/// Context for the Resy-style cluster expand mode.
+/// Shows a "site stack" when tapping a cluster of dive sites.
+struct ClusterExpandContext: Equatable {
+    /// The center coordinate of the cluster.
+    let clusterCenter: CLLocationCoordinate2D
+
+    /// Number of sites in the cluster.
+    let siteCount: Int
+
+    /// The explore context to return to when closing.
+    let returnContext: ExploreContext
+
+    init(
+        clusterCenter: CLLocationCoordinate2D,
+        siteCount: Int,
+        returnContext: ExploreContext
+    ) {
+        self.clusterCenter = clusterCenter
+        self.siteCount = siteCount
+        self.returnContext = returnContext
+    }
+
+    // Custom Equatable since CLLocationCoordinate2D is not Equatable
+    static func == (lhs: ClusterExpandContext, rhs: ClusterExpandContext) -> Bool {
+        lhs.clusterCenter.latitude == rhs.clusterCenter.latitude &&
+        lhs.clusterCenter.longitude == rhs.clusterCenter.longitude &&
+        lhs.siteCount == rhs.siteCount &&
+        lhs.returnContext == rhs.returnContext
     }
 }

@@ -1,4 +1,5 @@
 import Foundation
+import CoreLocation
 import UmiDB
 
 /// Actions that can be dispatched to change the map UI state.
@@ -97,4 +98,12 @@ enum MapUIAction: Equatable {
 
     /// Clear the species filter.
     case clearSpeciesFilter
+
+    // MARK: - Cluster Expand
+
+    /// Open cluster expand mode showing sites at the given cluster.
+    case openClusterExpand(ClusterExpandContext)
+
+    /// Close cluster expand and return to explore.
+    case closeClusterExpand
 }

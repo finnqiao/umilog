@@ -33,6 +33,9 @@ struct SiteTypeFilterRow: View {
         FilterOption(label: "Wrecks", icon: "ferry", siteType: .wreck),
         FilterOption(label: "Reefs", icon: "water.waves", siteType: .reef),
         FilterOption(label: "Caves", icon: "mountain.2", siteType: .cave),
+        FilterOption(label: "Walls", icon: "square.stack.3d.up", siteType: .wall),
+        FilterOption(label: "Shore", icon: "beach.umbrella", siteType: .shore),
+        FilterOption(label: "Drift", icon: "wind", siteType: .drift),
         FilterOption(label: "Night", icon: "moon.stars", isNightFilter: true)
     ]
 

@@ -88,12 +88,20 @@ public struct DiveMapViewport: Equatable {
     public let maxLatitude: Double
     public let minLongitude: Double
     public let maxLongitude: Double
+    public let zoomLevel: Double
 
-    public init(minLatitude: Double, maxLatitude: Double, minLongitude: Double, maxLongitude: Double) {
+    public init(
+        minLatitude: Double,
+        maxLatitude: Double,
+        minLongitude: Double,
+        maxLongitude: Double,
+        zoomLevel: Double
+    ) {
         self.minLatitude = minLatitude
         self.maxLatitude = maxLatitude
         self.minLongitude = minLongitude
         self.maxLongitude = maxLongitude
+        self.zoomLevel = zoomLevel
     }
 }
 
@@ -126,13 +134,30 @@ public final class MapVC: UIViewController, MLNMapViewDelegate, UIGestureRecogni
     private let fallbackBackground = UIView()
     private let logger = Logger(subsystem: "app.umilog", category: "DiveMap")
     private var didFallbackToOfflineStyle = false
-    // NOTE: MapLibre has rendering issues on iOS 18 simulator. Using MapKit instead.
-    // These style URLs are kept for future use when MapLibre is fixed.
-    private lazy var primaryStyleURL: URL? = Bundle.main.url(forResource: "umilog_underwater", withExtension: "json")
+
+    /// Accessibility elements for VoiceOver rotor navigation
+    private var accessibilityAnnotationElements: [MapPinAccessibilityElement] = []
+    // NOTE: MapLibre works on iOS 17. iOS 18+ has NSExpression validation issues
+    // that block mgl_interpolate. Zoom-responsive helpers fall back to static values on iOS 18+.
+    // Style priority: vector (online) > PMTiles (offline) > raster (legacy fallback)
+    private lazy var vectorStyleURL: URL? = Bundle.main.url(forResource: "umilog_underwater_vector", withExtension: "json")
+    private lazy var pmtilesStyleURL: URL? = Bundle.main.url(forResource: "umilog_offline", withExtension: "json")
+    private lazy var rasterStyleURL: URL? = Bundle.main.url(forResource: "umilog_underwater", withExtension: "json")
+    private lazy var primaryStyleURL: URL? = vectorStyleURL ?? rasterStyleURL
     private lazy var daylightStyleURL: URL? = Bundle.main.url(forResource: "umilog_daylight", withExtension: "json")
-    private lazy var offlineStyleURL: URL? = Bundle.main.url(forResource: "dive_offline", withExtension: "json")
+    private lazy var offlineStyleURL: URL? = pmtilesStyleURL ?? Bundle.main.url(forResource: "dive_offline", withExtension: "json")
     private var hasAttemptedPrimarySwitch = false
-    private let vectorTileTemplates = ["https://demotiles.maplibre.org/tiles/tiles/{z}/{x}/{y}.pbf"]
+    private let vectorTileTemplates = ["https://api.protomaps.com/tiles/v4/{z}/{x}/{y}.mvt"]
+
+    /// Path to bundled PMTiles file for offline use. Set this to enable offline maps.
+    /// When set, MapLibre will resolve pmtiles:// URLs to this file.
+    public var offlineTilesPath: URL? {
+        didSet {
+            if let path = offlineTilesPath {
+                logger.log("offline_tiles_configured: \(path.lastPathComponent, privacy: .public)")
+            }
+        }
+    }
 
     /// Current map style mode (underwater or daylight).
     public var styleMode: MapStyleMode = .underwater {
@@ -145,6 +170,9 @@ public final class MapVC: UIViewController, MLNMapViewDelegate, UIGestureRecogni
     // Runtime callbacks
     public var onSelectAnnotation: ((String) -> Void)?
     public var onRegionChange: ((DiveMapViewport) -> Void)?
+    public var onLoadFailure: (() -> Void)?
+    /// Called when a cluster is tapped. Passes the cluster center and count for site stack display.
+    public var onClusterTap: ((CLLocationCoordinate2D, Int) -> Void)?
     private var lastSetCamera: DiveMapCamera?
     public var initialCamera: DiveMapCamera? {
         didSet {
@@ -229,6 +257,9 @@ public final class MapVC: UIViewController, MLNMapViewDelegate, UIGestureRecogni
             automaticallyAdjustsScrollViewInsets = false
         }
 
+        // Configure accessibility for VoiceOver rotor navigation
+        configureAccessibility()
+
         // Set initial camera - default to Phuket (smart camera will reposition based on data)
         let camera = initialCamera ?? DiveMapCamera(
             center: CLLocationCoordinate2D(latitude: 8.0, longitude: 98.3),
@@ -266,6 +297,28 @@ public final class MapVC: UIViewController, MLNMapViewDelegate, UIGestureRecogni
         return 40_000_000 / pow(2, zoom)
     }
 
+    /// Converts a coordinate to a screen point. Used by accessibility elements.
+    func convertCoordinate(_ coordinate: CLLocationCoordinate2D) -> CGPoint {
+        return map.convert(coordinate, toPointTo: nil)
+    }
+
+    /// Switches to offline mode using bundled PMTiles.
+    /// Call this when network is unavailable or user explicitly requests offline maps.
+    public func switchToOfflineMode() {
+        guard let offlineURL = offlineStyleURL else {
+            logger.error("offline_switch_failed: no offline style available")
+            return
+        }
+        logger.log("switching_to_offline_mode")
+        didFallbackToOfflineStyle = true
+        map.styleURL = offlineURL
+    }
+
+    /// Returns whether the map is currently in offline mode.
+    public var isOfflineMode: Bool {
+        didFallbackToOfflineStyle
+    }
+
     // MARK: - Runtime Updates
 
     public func update(annotations: [DiveMapAnnotation]) {
@@ -285,7 +338,26 @@ public final class MapVC: UIViewController, MLNMapViewDelegate, UIGestureRecogni
 
     public func mapViewDidFailLoadingMap(_ mapView: MLNMapView, withError error: Error) {
         logger.error("style_failed: \(error.localizedDescription, privacy: .public)")
-        guard !didFallbackToOfflineStyle, let offlineURL = offlineStyleURL else { return }
+
+        // If we already tried offline fallback, signal parent to use MapKit
+        if didFallbackToOfflineStyle {
+            logger.error("all_styles_failed: triggering MapKit fallback")
+            DispatchQueue.main.async { [weak self] in
+                self?.onLoadFailure?()
+            }
+            return
+        }
+
+        // Try offline style fallback
+        guard let offlineURL = offlineStyleURL else {
+            // No offline fallback available - signal parent
+            logger.error("no_offline_style: triggering MapKit fallback")
+            DispatchQueue.main.async { [weak self] in
+                self?.onLoadFailure?()
+            }
+            return
+        }
+
         didFallbackToOfflineStyle = true
         hasAttemptedPrimarySwitch = false
         mapView.styleURL = offlineURL
@@ -302,18 +374,23 @@ public final class MapVC: UIViewController, MLNMapViewDelegate, UIGestureRecogni
             minLatitude: bounds.sw.latitude,
             maxLatitude: bounds.ne.latitude,
             minLongitude: bounds.sw.longitude,
-            maxLongitude: bounds.ne.longitude
+            maxLongitude: bounds.ne.longitude,
+            zoomLevel: map.zoomLevel
         )
-        
+
         // Only emit if significantly different from last
         if let last = lastEmittedViewport,
            abs(last.minLatitude - viewport.minLatitude) < 0.1,
-           abs(last.maxLatitude - viewport.maxLatitude) < 0.1 {
+           abs(last.maxLatitude - viewport.maxLatitude) < 0.1,
+           abs(last.zoomLevel - viewport.zoomLevel) < 0.05 {
             return
         }
-        
+
         lastEmittedViewport = viewport
         emitViewportChange()
+
+        // Update accessibility elements when viewport changes (for VoiceOver rotor)
+        updateAccessibilityElements()
     }
 
     // MARK: - Gesture Handling
@@ -335,10 +412,19 @@ public final class MapVC: UIViewController, MLNMapViewDelegate, UIGestureRecogni
         guard let feature = features.first else { return }
 
         if let isCluster = feature.attribute(forKey: "cluster") as? NSNumber, isCluster.boolValue {
-            if let count = feature.attribute(forKey: "point_count") as? NSNumber {
-                logger.log("cluster_tapped count=\(count.intValue, privacy: .public)")
-                UIAccessibility.post(notification: .announcement, argument: "\(count) sites in this cluster")
+            let count = (feature.attribute(forKey: "point_count") as? NSNumber)?.intValue ?? 0
+            logger.log("cluster_tapped count=\(count, privacy: .public)")
+            UIAccessibility.post(notification: .announcement, argument: "\(count) sites in this cluster")
+
+            // Notify parent for site stack display (Resy-style)
+            let clusterCenter = map.convert(point, toCoordinateFrom: map)
+            if let onClusterTap {
+                DispatchQueue.main.async {
+                    onClusterTap(clusterCenter, count)
+                }
             }
+
+            // Also zoom in for better exploration
             zoomIntoCluster(at: point)
             return
         }
@@ -410,11 +496,16 @@ public final class MapVC: UIViewController, MLNMapViewDelegate, UIGestureRecogni
 
         if siteSource == nil {
             let empty = MLNShapeCollectionFeature(shapes: [])
-            // TEMPORARILY disable clustering to debug rendering
-            let sites = MLNShapeSource(identifier: "sites", shape: empty, options: nil)
+            // Re-enabled clustering for Resy-style site stack interaction
+            let clusteringOptions: [MLNShapeSourceOption: Any] = [
+                .clustered: true,
+                .clusterRadius: MapTheme.Clustering.clusterRadius,
+                .maximumZoomLevelForClustering: MapTheme.Clustering.maxClusterZoom
+            ]
+            let sites = MLNShapeSource(identifier: "sites", shape: empty, options: clusteringOptions)
             style.addSource(sites)
             siteSource = sites
-            logger.log("source_added: sites WITHOUT clustering (debugging)")
+            logger.log("source_added: sites WITH clustering (radius: \(MapTheme.Clustering.clusterRadius, privacy: .public))")
         }
     }
 
@@ -437,8 +528,8 @@ public final class MapVC: UIViewController, MLNMapViewDelegate, UIGestureRecogni
             cluster.circleStrokeColor = NSExpression(forConstantValue: clusterStroke.withAlphaComponent(0.95))
             cluster.circleStrokeWidth = NSExpression(forConstantValue: MapTheme.Sizing.clusterStrokeWidth)
 
-            // Static cluster radius - iOS 18+ blocks mgl_interpolate NSExpression functions
-            cluster.circleRadius = NSExpression(forConstantValue: 24)
+            // Cluster radius based on point count (zoom-responsive on iOS 17)
+            cluster.circleRadius = clusterCountResponsiveRadius()
             cluster.isVisible = true
             style.addLayer(cluster)
         }
@@ -466,8 +557,8 @@ public final class MapVC: UIViewController, MLNMapViewDelegate, UIGestureRecogni
             ("site-glow-default", NSPredicate(format: "(cluster != TRUE OR cluster == NIL) AND (status == %@ OR status == NIL)", DiveMapAnnotation.Status.baseline.rawValue), MapTheme.Colors.defaultGlow)
         ]
 
-        // Static glow radius - iOS 18+ blocks mgl_interpolate NSExpression functions
-        let glowRadiusExpression = NSExpression(forConstantValue: 16)
+        // Glow radius scales with zoom level (zoom-responsive on iOS 17)
+        let glowRadiusExpression = zoomResponsiveGlowRadius()
 
         var insertionReference: MLNStyleLayer? = style.layer(withIdentifier: "site-cluster-count")
         for spec in glowSpecs {
@@ -499,8 +590,8 @@ public final class MapVC: UIViewController, MLNMapViewDelegate, UIGestureRecogni
             ("site-layer-default", NSPredicate(format: "(cluster != TRUE OR cluster == NIL) AND (difficulty == %@ OR difficulty == NIL)", DiveMapAnnotation.Difficulty.other.rawValue), MapTheme.Colors.default)
         ]
 
-        // Static marker radius - iOS 18+ blocks mgl_interpolate NSExpression functions
-        let markerRadiusExpression = NSExpression(forConstantValue: 8)
+        // Marker radius scales with zoom level (zoom-responsive on iOS 17)
+        let markerRadiusExpression = zoomResponsiveMarkerRadius()
 
         var lastLayer: MLNStyleLayer? = insertionReference
         for spec in difficultySpecs {
@@ -523,8 +614,8 @@ public final class MapVC: UIViewController, MLNMapViewDelegate, UIGestureRecogni
         }
 
         // MARK: - Selection Highlight
-        // Static selection radius - iOS 18+ blocks mgl_interpolate NSExpression functions
-        let selectionRadiusExpression = NSExpression(forConstantValue: 12)
+        // Selection radius scales with zoom level (zoom-responsive on iOS 17)
+        let selectionRadiusExpression = zoomResponsiveSelectionRadius()
 
         if style.layer(withIdentifier: "site-selected") == nil {
             let selected = MLNCircleStyleLayer(identifier: "site-selected", source: siteSource)
@@ -551,7 +642,7 @@ public final class MapVC: UIViewController, MLNMapViewDelegate, UIGestureRecogni
             // Toggle cluster visibility
             let clusterIds = ["site-cluster", "site-cluster-count"]
             for id in clusterIds {
-                if let layer = style.layer(withIdentifier: id) as? MLNStyleLayer {
+                if let layer = style.layer(withIdentifier: id) {
                     layer.isVisible = layerSettings.showClusters
                 }
             }
@@ -564,7 +655,7 @@ public final class MapVC: UIViewController, MLNMapViewDelegate, UIGestureRecogni
                 "site-glow-default"
             ]
             for id in glowIds {
-                if let layer = style.layer(withIdentifier: id) as? MLNStyleLayer {
+                if let layer = style.layer(withIdentifier: id) {
                     layer.isVisible = layerSettings.showStatusGlows
                 }
             }
@@ -627,13 +718,16 @@ public final class MapVC: UIViewController, MLNMapViewDelegate, UIGestureRecogni
     }
 
     private func updateAnnotationsIfReady() {
-        guard styleIsReady, let siteSource else {
+        guard styleIsReady, siteSource != nil else {
             logger.log("updateAnnotationsIfReady: NOT READY styleReady=\(self.styleIsReady, privacy: .public) hasSource=\(self.siteSource != nil, privacy: .public)")
             logger.log("  → style layers: \(self.map?.style?.layers.count ?? 0, privacy: .public), sources: \(self.map?.style?.sources.count ?? 0, privacy: .public)")
             return
         }
 
         logger.log("updateAnnotationsIfReady: updating \(self.annotations.count, privacy: .public) annotations")
+
+        // Update accessibility elements for VoiceOver rotor support
+        updateAccessibilityElements()
 
         // DEBUG: Log difficulty distribution
         var diffCounts: [String: Int] = [:]
@@ -714,10 +808,66 @@ public final class MapVC: UIViewController, MLNMapViewDelegate, UIGestureRecogni
             minLatitude: bounds.sw.latitude,
             maxLatitude: bounds.ne.latitude,
             minLongitude: bounds.sw.longitude,
-            maxLongitude: bounds.ne.longitude
+            maxLongitude: bounds.ne.longitude,
+            zoomLevel: map.zoomLevel
         )
         DispatchQueue.main.async {
             onRegionChange(viewport)
+        }
+    }
+
+    // MARK: - VoiceOver Accessibility Support
+
+    /// Configure the map view as an accessibility container for rotor navigation.
+    private func configureAccessibility() {
+        view.isAccessibilityElement = false
+        view.accessibilityContainerType = .semanticGroup
+        view.accessibilityLabel = NSLocalizedString("Dive sites map", comment: "VoiceOver label for the map view")
+    }
+
+    /// Update accessibility elements for VoiceOver rotor navigation.
+    /// Creates an accessibility element for each visible annotation.
+    private func updateAccessibilityElements() {
+        // Get visible annotations in viewport
+        let visibleAnnotations = annotations.filter { annotation in
+            guard let map = map else { return false }
+            let bounds = map.visibleCoordinateBounds
+            return annotation.coordinate.latitude >= bounds.sw.latitude &&
+                   annotation.coordinate.latitude <= bounds.ne.latitude &&
+                   annotation.coordinate.longitude >= bounds.sw.longitude &&
+                   annotation.coordinate.longitude <= bounds.ne.longitude
+        }
+
+        // Limit to reasonable number for performance (VoiceOver can handle ~100 elements well)
+        let limitedAnnotations = Array(visibleAnnotations.prefix(100))
+
+        // Create accessibility elements for visible annotations
+        accessibilityAnnotationElements = limitedAnnotations.compactMap { annotation in
+            // Create element with site name for the label
+            MapPinAccessibilityElement(
+                annotationId: annotation.id,
+                siteName: "Dive site",  // Will be updated with actual name when available
+                mapController: self,
+                accessibilityContainer: view as Any
+            )
+        }
+
+        // Update the accessibility elements
+        view.accessibilityElements = accessibilityAnnotationElements
+
+        // Post notification for VoiceOver to refresh
+        if UIAccessibility.isVoiceOverRunning {
+            UIAccessibility.post(notification: .layoutChanged, argument: nil)
+        }
+    }
+
+    /// Override to provide accessibility elements for VoiceOver rotor.
+    public override var accessibilityElements: [Any]? {
+        get {
+            return accessibilityAnnotationElements
+        }
+        set {
+            // Allow setting via updateAccessibilityElements
         }
     }
 
@@ -802,3 +952,105 @@ public final class MapVC: UIViewController, MLNMapViewDelegate, UIGestureRecogni
 }
 
 // Note: Removed UIColor(brandHex:) extension - now using MapTheme colors from UmiDesignSystem
+
+// MARK: - Accessibility Element for VoiceOver Rotor
+
+/// Custom accessibility element for map pins that enables VoiceOver rotor navigation.
+/// Each element represents a dive site annotation on the map.
+public final class MapPinAccessibilityElement: UIAccessibilityElement {
+    let annotationId: String
+    let siteName: String
+    private weak var mapController: MapVC?
+
+    init(annotationId: String, siteName: String, mapController: MapVC, accessibilityContainer: Any) {
+        self.annotationId = annotationId
+        self.siteName = siteName
+        self.mapController = mapController
+        super.init(accessibilityContainer: accessibilityContainer)
+
+        // Configure accessibility properties
+        self.accessibilityLabel = siteName
+        self.accessibilityHint = NSLocalizedString("Double tap to view details", comment: "VoiceOver hint for dive site pins")
+        self.accessibilityTraits = .button
+    }
+
+    override public var accessibilityFrame: CGRect {
+        get {
+            guard let mapController = mapController,
+                  let annotation = mapController.annotations.first(where: { $0.id == annotationId }) else {
+                return .zero
+            }
+            // Convert coordinate to screen position
+            let point = mapController.convertCoordinate(annotation.coordinate)
+            // Ensure minimum touch target size (44x44 per Apple HIG)
+            let size: CGFloat = 44
+            return CGRect(x: point.x - size / 2, y: point.y - size / 2, width: size, height: size)
+        }
+        set { }
+    }
+
+    override public func accessibilityActivate() -> Bool {
+        guard let mapController = mapController else { return false }
+        mapController.onSelectAnnotation?(annotationId)
+        return true
+    }
+}
+
+// MARK: - Zoom-Responsive Expression Helpers
+// iOS 17: Use mgl_interpolate for dynamic sizing that responds to zoom level
+// iOS 18+: Fall back to static values (NSExpression validation blocks mgl_interpolate)
+
+private extension MapVC {
+
+    /// Creates a zoom-responsive radius expression using MapTheme.Sizing.markerRadiusStops.
+    /// Returns static value on iOS 18+ where mgl_interpolate is blocked.
+    func zoomResponsiveMarkerRadius() -> NSExpression {
+        if #available(iOS 18, *) {
+            return NSExpression(forConstantValue: 8)
+        }
+        let stops = MapTheme.Sizing.markerRadiusStops as NSDictionary
+        return NSExpression(format: "mgl_interpolate:withCurveType:parameters:stops:($zoomLevel, 'linear', nil, %@)", stops)
+    }
+
+    /// Creates a cluster-count-responsive radius expression using MapTheme.Sizing.clusterRadiusStops.
+    /// Returns static value on iOS 18+ where mgl_interpolate is blocked.
+    func clusterCountResponsiveRadius() -> NSExpression {
+        if #available(iOS 18, *) {
+            return NSExpression(forConstantValue: 24)
+        }
+        let stops = MapTheme.Sizing.clusterRadiusStops as NSDictionary
+        return NSExpression(format: "mgl_interpolate:withCurveType:parameters:stops:(point_count, 'linear', nil, %@)", stops)
+    }
+
+    /// Creates a zoom-responsive glow radius (marker radius * multiplier).
+    /// Returns static value on iOS 18+ where mgl_interpolate is blocked.
+    func zoomResponsiveGlowRadius() -> NSExpression {
+        if #available(iOS 18, *) {
+            return NSExpression(forConstantValue: 16)
+        }
+        // Glow radius = marker radius * multiplier at each zoom stop
+        let multiplier = MapTheme.Sizing.glowRadiusMultiplier
+        var glowStops: [Double: Double] = [:]
+        for (zoom, radius) in MapTheme.Sizing.markerRadiusStops {
+            glowStops[zoom] = radius * multiplier
+        }
+        let stops = glowStops as NSDictionary
+        return NSExpression(format: "mgl_interpolate:withCurveType:parameters:stops:($zoomLevel, 'linear', nil, %@)", stops)
+    }
+
+    /// Creates a zoom-responsive selection ring radius (slightly larger than marker).
+    /// Returns static value on iOS 18+ where mgl_interpolate is blocked.
+    func zoomResponsiveSelectionRadius() -> NSExpression {
+        if #available(iOS 18, *) {
+            return NSExpression(forConstantValue: 12)
+        }
+        // Selection radius = marker radius + offset at each zoom stop
+        let offset: Double = 4
+        var selectionStops: [Double: Double] = [:]
+        for (zoom, radius) in MapTheme.Sizing.markerRadiusStops {
+            selectionStops[zoom] = radius + offset
+        }
+        let stops = selectionStops as NSDictionary
+        return NSExpression(format: "mgl_interpolate:withCurveType:parameters:stops:($zoomLevel, 'linear', nil, %@)", stops)
+    }
+}

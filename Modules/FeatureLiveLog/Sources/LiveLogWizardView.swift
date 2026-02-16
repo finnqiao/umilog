@@ -42,12 +42,16 @@ public struct LiveLogWizardView: View {
                     Button("Back") { step = max(1, step - 1) }
                         .buttonStyle(.bordered)
                         .disabled(step == 1)
+                        .accessibilityLabel("Back")
+                        .accessibilityHint("Go to previous step")
                     Spacer()
                     Button(step < 4 ? "Continue" : "Save") {
                         if step < 4 { step += 1 } else { Task { await saveAndClose() } }
                     }
                     .buttonStyle(.borderedProminent)
                     .disabled(!canProceed(for: step))
+                    .accessibilityLabel(step < 4 ? "Continue" : "Save dive")
+                    .accessibilityHint(step < 4 ? "Proceed to next step" : "Save your dive log")
                 }
                 .padding(.horizontal)
             }
@@ -57,6 +61,8 @@ public struct LiveLogWizardView: View {
             .toolbar {
                 ToolbarItem(placement: .topBarLeading) {
                     Button(action: { dismiss() }) { Image(systemName: "chevron.backward") }
+                        .accessibilityLabel("Close")
+                        .accessibilityHint("Dismiss dive logging wizard")
                 }
             }
         }
@@ -247,7 +253,7 @@ struct StepWildlifeNotes: View {
             Text("Wildlife & Notes").font(.headline)
             TextField("Search species…", text: $search)
                 .textFieldStyle(.roundedBorder)
-                .onChange(of: search) { _ in Task { await loadResults() } }
+                .onChange(of: search) { Task { await loadResults() } }
             
             ScrollView { // chips grid
                 LazyVGrid(columns: [GridItem(.adaptive(minimum: 140), spacing: 8)], spacing: 8) {
@@ -287,7 +293,7 @@ struct SelectableChip: View {
     let title: String
     var selected: Bool
     var action: () -> Void
-    
+
     var body: some View {
         Button(action: action) {
             Text(title)
@@ -300,6 +306,10 @@ struct SelectableChip: View {
                 .cornerRadius(12)
         }
         .buttonStyle(.plain)
+        .accessibilityLabel(title)
+        .accessibilityValue(selected ? "Selected" : "Not selected")
+        .accessibilityHint("Double tap to \(selected ? "deselect" : "select") this species")
+        .accessibilityAddTraits(selected ? .isSelected : [])
     }
 }
 
@@ -467,7 +477,7 @@ enum WizardSaver {
                     try s.insert(db)
                 }
                 // Update site visited count + wishlist
-                if var existing = try DiveSite.fetchOne(db, key: site.id) {
+                if let existing = try DiveSite.fetchOne(db, key: site.id) {
                     let updated = DiveSite(
                         id: existing.id,
                         name: existing.name,

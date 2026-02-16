@@ -145,6 +145,23 @@ extension WildlifeSpecies: FetchableRecord, PersistableRecord {
         case fishbaseId = "fishbase_id"
     }
 
+    public func encode(to container: inout PersistenceContainer) {
+        container[CodingKeys.id.rawValue] = id
+        container[CodingKeys.name.rawValue] = name
+        container[CodingKeys.scientificName.rawValue] = scientificName
+        container[CodingKeys.category.rawValue] = category.rawValue
+        container[CodingKeys.rarity.rawValue] = rarity.rawValue
+        container[CodingKeys.regions.rawValue] = regions.joined(separator: ",")
+        container[CodingKeys.imageUrl.rawValue] = imageUrl
+        container[CodingKeys.familyId.rawValue] = familyId
+        container[CodingKeys.conservationStatus.rawValue] = conservationStatus
+        container[CodingKeys.description.rawValue] = description
+        container[CodingKeys.thumbnailUrl.rawValue] = thumbnailUrl
+        container[CodingKeys.wormsAphiaId.rawValue] = wormsAphiaId
+        container[CodingKeys.gbifKey.rawValue] = gbifKey
+        container[CodingKeys.fishbaseId.rawValue] = fishbaseId
+    }
+
     public func encode(to encoder: Encoder) throws {
         var container = encoder.container(keyedBy: CodingKeys.self)
         try container.encode(id, forKey: .id)

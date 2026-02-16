@@ -14,6 +14,15 @@ struct PlanContent: View {
     var onAddSite: () -> Void
     var onRemoveSite: (String) -> Void
     var onClose: () -> Void
+    var onSaveTrip: ((Trip) -> Void)?
+
+    // MARK: - State
+
+    @State private var showingNameInput = false
+    @State private var tripName = ""
+    @State private var isSaving = false
+
+    private let tripRepository = TripRepository(database: AppDatabase.shared)
 
     // MARK: - Computed
 
@@ -40,6 +49,46 @@ struct PlanContent: View {
             Spacer(minLength: 0)
 
             footer
+        }
+        .alert("Name Your Trip", isPresented: $showingNameInput) {
+            TextField("Trip name", text: $tripName)
+            Button("Cancel", role: .cancel) {
+                tripName = ""
+            }
+            Button("Save") {
+                saveTrip()
+            }
+            .disabled(tripName.trimmingCharacters(in: .whitespaces).isEmpty)
+        } message: {
+            Text("Enter a name for your trip with \(plannedSites.count) dive site\(plannedSites.count == 1 ? "" : "s")")
+        }
+    }
+
+    // MARK: - Actions
+
+    private func saveTrip() {
+        let name = tripName.trimmingCharacters(in: .whitespaces)
+        guard !name.isEmpty else { return }
+
+        isSaving = true
+        let siteIds = context.plannedSiteIds
+
+        Task {
+            do {
+                let trip = try tripRepository.createFromSites(name: name, siteIds: siteIds)
+                await MainActor.run {
+                    isSaving = false
+                    tripName = ""
+                    onSaveTrip?(trip)
+                    onClose()
+                }
+            } catch {
+                await MainActor.run {
+                    isSaving = false
+                    // Show error - for now just close
+                    onClose()
+                }
+            }
         }
     }
 
@@ -204,8 +253,7 @@ struct PlanContent: View {
                 .buttonStyle(.plain)
 
                 Button {
-                    // TODO: Save trip to database
-                    onClose()
+                    showingNameInput = true
                 } label: {
                     Text("Save Trip")
                         .font(.subheadline)
@@ -217,7 +265,7 @@ struct PlanContent: View {
                         .clipShape(RoundedRectangle(cornerRadius: 12))
                 }
                 .buttonStyle(.plain)
-                .disabled(plannedSites.isEmpty)
+                .disabled(plannedSites.isEmpty || isSaving)
             }
             .padding(16)
         }
@@ -236,7 +284,8 @@ struct PlanContent_Previews: PreviewProvider {
             detent: .expanded,
             onAddSite: {},
             onRemoveSite: { _ in },
-            onClose: {}
+            onClose: {},
+            onSaveTrip: { _ in }
         )
         .background(Color.midnight)
         .previewLayout(.sizeThatFits)

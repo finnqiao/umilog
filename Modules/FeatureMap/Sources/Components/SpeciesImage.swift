@@ -1,83 +1,71 @@
 import SwiftUI
 import UmiDB
+import UmiCoreKit
 
-/// A species image view that loads from bundle assets with category-based fallback.
+/// A species image view that loads from bundle, network, or falls back to category icon.
 ///
-/// The component attempts to load an image from the bundle with the naming convention
-/// `species_{id}`. If no image is found, it falls back to a category-appropriate SF Symbol.
+/// The component uses a 3-tier loading strategy when thumbnailUrl is provided:
+/// 1. Bundle asset (species_{id})
+/// 2. Memory/disk cache via ImageCacheService
+/// 3. Network fetch from thumbnailUrl
+///
+/// Falls back to category-based SF Symbol if no image is available.
 ///
 /// ## Usage
 /// ```swift
 /// SpeciesImage(speciesId: "whale_shark", category: .fish, size: 80)
+/// SpeciesImage(speciesId: "whale_shark", category: .fish, thumbnailUrl: url, size: 80)
 /// ```
 public struct SpeciesImage: View {
     let speciesId: String
     let category: WildlifeSpecies.Category
+    let thumbnailUrl: URL?
     let size: CGFloat
     var seen: Bool = false
+    var speciesName: String?
 
     public init(
         speciesId: String,
         category: WildlifeSpecies.Category,
         size: CGFloat,
-        seen: Bool = false
+        seen: Bool = false,
+        speciesName: String? = nil
     ) {
         self.speciesId = speciesId
         self.category = category
+        self.thumbnailUrl = nil
         self.size = size
         self.seen = seen
+        self.speciesName = speciesName
+    }
+
+    public init(
+        speciesId: String,
+        category: WildlifeSpecies.Category,
+        thumbnailUrl: URL?,
+        size: CGFloat,
+        seen: Bool = false,
+        speciesName: String? = nil
+    ) {
+        self.speciesId = speciesId
+        self.category = category
+        self.thumbnailUrl = thumbnailUrl
+        self.size = size
+        self.seen = seen
+        self.speciesName = speciesName
     }
 
     public var body: some View {
-        Group {
-            if let uiImage = UIImage(named: "species_\(speciesId)") {
-                Image(uiImage: uiImage)
-                    .resizable()
-                    .aspectRatio(contentMode: .fill)
-            } else {
-                // Fallback to category icon
-                ZStack {
-                    Circle()
-                        .fill(seen ? categoryColor.opacity(0.2) : Color.gray.opacity(0.1))
-
-                    Image(systemName: categoryIcon)
-                        .font(.system(size: size * 0.5))
-                        .foregroundStyle(seen ? categoryColor : .gray)
-                }
-            }
-        }
-        .frame(width: size, height: size)
-        .clipShape(Circle())
-    }
-
-    private var categoryIcon: String {
-        switch category {
-        case .fish:
-            return "fish.fill"
-        case .coral:
-            return "sparkles"
-        case .mammal:
-            return "hare.fill"
-        case .invertebrate:
-            return "ladybug.fill"
-        case .reptile:
-            return "tortoise.fill"
-        }
-    }
-
-    private var categoryColor: Color {
-        switch category {
-        case .fish:
-            return .blue
-        case .coral:
-            return .orange
-        case .mammal:
-            return .purple
-        case .invertebrate:
-            return .pink
-        case .reptile:
-            return .green
-        }
+        // Use AsyncSpeciesImage for async loading when URL is available
+        // or when we want consistent loading behavior
+        AsyncSpeciesImage(
+            speciesId: speciesId,
+            category: category,
+            thumbnailUrl: thumbnailUrl,
+            size: size,
+            seen: seen,
+            speciesName: speciesName
+        )
     }
 }
 

@@ -7,6 +7,21 @@ public final class SiteRepository {
     public init(database: AppDatabase) {
         self.database = database
     }
+
+    private func shouldHideLegacySites(_ db: Database) throws -> Bool {
+        let sql = """
+        SELECT COUNT(*)
+        FROM sites
+        WHERE id NOT LIKE 'dive_site_%'
+          AND id NOT LIKE 'site_%'
+        """
+        return (try Int.fetchOne(db, sql: sql) ?? 0) > 0
+    }
+
+    private func legacyFilterSQL(alias: String? = nil) -> String {
+        let prefix = alias.map { "\($0)." } ?? ""
+        return "\(prefix)id NOT LIKE 'dive_site_%' AND \(prefix)id NOT LIKE 'site_%'"
+    }
     
     // MARK: - Create
     
@@ -32,8 +47,12 @@ public final class SiteRepository {
         }
     }
     
-    public func fetchAll() throws -> [DiveSite] {
+    public func fetchAll(limit: Int? = nil) throws -> [DiveSite] {
         try database.read { db in
+            let hideLegacy = try shouldHideLegacySites(db)
+            let legacyFilter = legacyFilterSQL(alias: "s")
+            let legacyClause = hideLegacy ? "WHERE \(legacyFilter)" : ""
+            let limitClause = (limit ?? 0) > 0 ? "LIMIT \(limit ?? 0)" : ""
             // Sort by species diversity (popularity proxy), then by name
             let sql = """
             SELECT s.*
@@ -43,14 +62,37 @@ public final class SiteRepository {
                 FROM site_species
                 GROUP BY site_id
             ) sc ON s.id = sc.site_id
+            \(legacyClause)
             ORDER BY COALESCE(sc.species_count, 0) DESC, s.name
+            \(limitClause)
             """
             return try DiveSite.fetchAll(db, sql: sql)
         }
     }
-    
-    public func fetchInBounds(minLat: Double, maxLat: Double, minLon: Double, maxLon: Double) throws -> [DiveSite] {
+
+    /// Fetches a ranked subset of sites by popularity proxy.
+    public func fetchRanked(limit: Int) throws -> [DiveSite] {
+        try fetchAll(limit: limit)
+    }
+
+    public func countSites() throws -> Int {
         try database.read { db in
+            try Int.fetchOne(db, sql: "SELECT COUNT(*) FROM sites") ?? 0
+        }
+    }
+
+    public func fetchInBounds(
+        minLat: Double,
+        maxLat: Double,
+        minLon: Double,
+        maxLon: Double,
+        limit: Int? = nil
+    ) throws -> [DiveSite] {
+        try database.read { db in
+            let hideLegacy = try shouldHideLegacySites(db)
+            let legacyFilter = legacyFilterSQL(alias: "s")
+            let legacyClause = hideLegacy ? " AND \(legacyFilter)" : ""
+            let limitClause = (limit ?? 0) > 0 ? "LIMIT ?" : ""
             // Sort by species diversity (popularity proxy), then by name
             let sql = """
             SELECT s.*
@@ -62,9 +104,15 @@ public final class SiteRepository {
             ) sc ON s.id = sc.site_id
             WHERE s.latitude BETWEEN ? AND ?
               AND s.longitude BETWEEN ? AND ?
+              \(legacyClause)
             ORDER BY COALESCE(sc.species_count, 0) DESC, s.name
+            \(limitClause)
             """
-            return try DiveSite.fetchAll(db, sql: sql, arguments: [minLat, maxLat, minLon, maxLon])
+            var args: [DatabaseValueConvertible] = [minLat, maxLat, minLon, maxLon]
+            if let limit, limit > 0 {
+                args.append(limit)
+            }
+            return try DiveSite.fetchAll(db, sql: sql, arguments: StatementArguments(args))
         }
     }
     
@@ -73,6 +121,9 @@ public final class SiteRepository {
     public func fetchInBoundsLite(minLat: Double, maxLat: Double, minLon: Double, maxLon: Double,
                                    filters: SiteFilters = SiteFilters(), limit: Int = 500) throws -> [SiteLite] {
         try database.read { db in
+            let hideLegacy = try shouldHideLegacySites(db)
+            let legacyFilter = legacyFilterSQL(alias: "s")
+            let legacyClause = hideLegacy ? " AND \(legacyFilter)" : ""
             // Sort by species diversity (popularity proxy), then by name
             let sql = """
             SELECT s.id, s.name, s.latitude, s.longitude, s.difficulty, s.type,
@@ -85,6 +136,7 @@ public final class SiteRepository {
             ) sc ON s.id = sc.site_id
             WHERE s.latitude BETWEEN ? AND ?
               AND s.longitude BETWEEN ? AND ?
+              \(legacyClause)
             ORDER BY COALESCE(sc.species_count, 0) DESC, s.name
             LIMIT ?
             """
@@ -119,10 +171,13 @@ public final class SiteRepository {
     public func search(query: String) throws -> [DiveSite] {
         try database.read { db in
             let like = "%\(query)%"
-            return try DiveSite
+            var request = DiveSite
                 .filter(DiveSite.Columns.name.like(like) || DiveSite.Columns.location.like(like))
                 .order(DiveSite.Columns.name)
-                .fetchAll(db)
+            if try shouldHideLegacySites(db) {
+                request = request.filter(sql: legacyFilterSQL())
+            }
+            return try request.fetchAll(db)
         }
     }
     
@@ -130,6 +185,9 @@ public final class SiteRepository {
     /// Weighted scoring: name(3) > region(2) > tags(2) > location(1) > description(1)
     public func searchFTS(query: String, limit: Int = 50) throws -> [SiteLite] {
         try database.read { db in
+            let hideLegacy = try shouldHideLegacySites(db)
+            let legacyFilter = legacyFilterSQL(alias: "s")
+            let legacyClause = hideLegacy ? " AND \(legacyFilter)" : ""
             // Sanitize query for FTS5 (remove special chars, lowercase)
             let sanitizedQuery = query.lowercased()
             
@@ -148,7 +206,7 @@ public final class SiteRepository {
                    ) as weighted_rank
             FROM sites s
             INNER JOIN sites_fts f ON s.id = f.rowid
-            WHERE sites_fts MATCH ?
+            WHERE sites_fts MATCH ?\(legacyClause)
             ORDER BY weighted_rank, s.name
             LIMIT ?
             """
@@ -190,6 +248,9 @@ public final class SiteRepository {
     /// Supports partial word matching using FTS5 prefix syntax (e.g., "wreck*")
     public func searchPrefix(prefix: String, limit: Int = 20) throws -> [SiteLite] {
         try database.read { db in
+            let hideLegacy = try shouldHideLegacySites(db)
+            let legacyFilter = legacyFilterSQL(alias: "s")
+            let legacyClause = hideLegacy ? " AND \(legacyFilter)" : ""
             let sanitizedPrefix = prefix.lowercased() + "*"
             
             let sql = """
@@ -197,7 +258,7 @@ public final class SiteRepository {
                    s.tags, s.region, s.visitedCount, s.wishlist
             FROM sites s
             INNER JOIN sites_fts f ON s.id = f.rowid
-            WHERE sites_fts MATCH ?
+            WHERE sites_fts MATCH ?\(legacyClause)
             ORDER BY rank, s.name
             LIMIT ?
             """
@@ -236,11 +297,72 @@ public final class SiteRepository {
     public func fetchByTag(_ tag: String) throws -> [SiteLite] {
         try database.read { db in
             let like = "%\"\(tag)\"%"
-            let sites = try DiveSite
+            var request = DiveSite
                 .filter(DiveSite.Columns.tags.like(like))
                 .order(DiveSite.Columns.name)
-                .fetchAll(db)
+            if try shouldHideLegacySites(db) {
+                request = request.filter(sql: legacyFilterSQL())
+            }
+            let sites = try request.fetchAll(db)
             
+            return sites.map { site in
+                SiteLite(
+                    id: site.id,
+                    name: site.name,
+                    latitude: site.latitude,
+                    longitude: site.longitude,
+                    difficulty: site.difficulty.rawValue,
+                    type: site.type.rawValue,
+                    tags: Array(site.tags.prefix(3)),
+                    region: site.region,
+                    visitedCount: site.visitedCount,
+                    wishlist: site.wishlist
+                )
+            }
+        }
+    }
+
+    /// Fetch sites by type (lightweight payload).
+    public func fetchByType(_ type: DiveSite.SiteType, limit: Int = 50) throws -> [SiteLite] {
+        try database.read { db in
+            var request = DiveSite
+                .filter(DiveSite.Columns.type == type.rawValue)
+                .order(DiveSite.Columns.name)
+                .limit(limit)
+            if try shouldHideLegacySites(db) {
+                request = request.filter(sql: legacyFilterSQL())
+            }
+            let sites = try request.fetchAll(db)
+
+            return sites.map { site in
+                SiteLite(
+                    id: site.id,
+                    name: site.name,
+                    latitude: site.latitude,
+                    longitude: site.longitude,
+                    difficulty: site.difficulty.rawValue,
+                    type: site.type.rawValue,
+                    tags: Array(site.tags.prefix(3)),
+                    region: site.region,
+                    visitedCount: site.visitedCount,
+                    wishlist: site.wishlist
+                )
+            }
+        }
+    }
+
+    /// Fetch sites by difficulty (lightweight payload).
+    public func fetchByDifficulty(_ difficulty: DiveSite.Difficulty, limit: Int = 50) throws -> [SiteLite] {
+        try database.read { db in
+            var request = DiveSite
+                .filter(DiveSite.Columns.difficulty == difficulty.rawValue)
+                .order(DiveSite.Columns.name)
+                .limit(limit)
+            if try shouldHideLegacySites(db) {
+                request = request.filter(sql: legacyFilterSQL())
+            }
+            let sites = try request.fetchAll(db)
+
             return sites.map { site in
                 SiteLite(
                     id: site.id,
@@ -267,29 +389,38 @@ public final class SiteRepository {
     
     public func fetchWishlist() throws -> [DiveSite] {
         try database.read { db in
-            try DiveSite
+            var request = DiveSite
                 .filter(DiveSite.Columns.wishlist == true)
                 .order(DiveSite.Columns.name)
-                .fetchAll(db)
+            if try shouldHideLegacySites(db) {
+                request = request.filter(sql: legacyFilterSQL())
+            }
+            return try request.fetchAll(db)
         }
     }
     
     public func fetchVisited() throws -> [DiveSite] {
         try database.read { db in
-            try DiveSite
+            var request = DiveSite
                 .filter(DiveSite.Columns.visitedCount > 0)
                 .order(DiveSite.Columns.visitedCount.desc)
-                .fetchAll(db)
+            if try shouldHideLegacySites(db) {
+                request = request.filter(sql: legacyFilterSQL())
+            }
+            return try request.fetchAll(db)
         }
     }
 
     /// v6: Fetch all planned sites
     public func fetchPlanned() throws -> [DiveSite] {
         try database.read { db in
-            try DiveSite
+            var request = DiveSite
                 .filter(DiveSite.Columns.isPlanned == true)
                 .order(DiveSite.Columns.name)
-                .fetchAll(db)
+            if try shouldHideLegacySites(db) {
+                request = request.filter(sql: legacyFilterSQL())
+            }
+            return try request.fetchAll(db)
         }
     }
 
@@ -297,7 +428,7 @@ public final class SiteRepository {
     
     public func update(_ site: DiveSite) throws {
         try database.write { db in
-            var updatedSite = site
+            let updatedSite = site
             try updatedSite.update(db)
         }
     }
@@ -403,10 +534,44 @@ public final class SiteRepository {
         }
     }
 
+    // MARK: - Visited Count
+
+    public func incrementVisitedCount(siteId: String) throws {
+        try database.write { db in
+            guard let site = try DiveSite.fetchOne(db, key: siteId) else { return }
+            let updated = DiveSite(
+                id: site.id,
+                name: site.name,
+                location: site.location,
+                latitude: site.latitude,
+                longitude: site.longitude,
+                region: site.region,
+                averageDepth: site.averageDepth,
+                maxDepth: site.maxDepth,
+                averageTemp: site.averageTemp,
+                averageVisibility: site.averageVisibility,
+                difficulty: site.difficulty,
+                type: site.type,
+                description: site.description,
+                wishlist: site.wishlist,
+                isPlanned: site.isPlanned,
+                visitedCount: site.visitedCount + 1,
+                tags: site.tags,
+                createdAt: site.createdAt,
+                countryId: site.countryId,
+                regionId: site.regionId,
+                areaId: site.areaId,
+                wikidataId: site.wikidataId,
+                osmId: site.osmId
+            )
+            try updated.update(db)
+        }
+    }
+
     // MARK: - Delete
 
     public func delete(id: String) throws {
-        try database.write { db in
+        _ = try database.write { db in
             try DiveSite.deleteOne(db, key: id)
         }
     }
@@ -416,13 +581,16 @@ public final class SiteRepository {
     /// Fetch sites where a specific species can be found
     public func fetchForSpecies(_ speciesId: String) throws -> [SiteLite] {
         try database.read { db in
+            let hideLegacy = try shouldHideLegacySites(db)
+            let legacyFilter = legacyFilterSQL(alias: "s")
+            let legacyClause = hideLegacy ? " AND \(legacyFilter)" : ""
             let sql = """
             SELECT s.id, s.name, s.latitude, s.longitude, s.difficulty, s.type,
                    s.tags, s.region, s.visitedCount, s.wishlist,
                    ss.likelihood
             FROM sites s
             INNER JOIN site_species ss ON s.id = ss.site_id
-            WHERE ss.species_id = ?
+            WHERE ss.species_id = ?\(legacyClause)
             ORDER BY
                 CASE ss.likelihood
                     WHEN 'common' THEN 1
@@ -471,6 +639,8 @@ public final class SiteRepository {
         }
 
         return try database.read { db in
+            let hideLegacy = try shouldHideLegacySites(db)
+            let legacyFilter = legacyFilterSQL(alias: "s")
             let placeholders = speciesIds.map { _ in "?" }.joined(separator: ",")
             var sql = """
             SELECT DISTINCT s.id, s.name, s.latitude, s.longitude, s.difficulty, s.type,
@@ -484,6 +654,10 @@ public final class SiteRepository {
 
             var args: [DatabaseValueConvertible] = [minLat, maxLat, minLon, maxLon]
             args.append(contentsOf: speciesIds)
+
+            if hideLegacy {
+                sql += " AND \(legacyFilter)"
+            }
 
             if let likelihood = likelihood {
                 sql += " AND ss.likelihood = ?"
@@ -523,12 +697,16 @@ public final class SiteRepository {
     /// Get sites with the most species diversity
     public func fetchBySpeciesDiversity(limit: Int = 20) throws -> [SiteLite] {
         try database.read { db in
+            let hideLegacy = try shouldHideLegacySites(db)
+            let legacyFilter = legacyFilterSQL(alias: "s")
+            let legacyClause = hideLegacy ? "WHERE \(legacyFilter)" : ""
             let sql = """
             SELECT s.id, s.name, s.latitude, s.longitude, s.difficulty, s.type,
                    s.tags, s.region, s.visitedCount, s.wishlist,
                    COUNT(ss.species_id) as species_count
             FROM sites s
             LEFT JOIN site_species ss ON s.id = ss.site_id
+            \(legacyClause)
             GROUP BY s.id
             HAVING species_count > 0
             ORDER BY species_count DESC
@@ -562,15 +740,69 @@ public final class SiteRepository {
         }
     }
 
+    // MARK: - Proximity Queries
+
+    /// Fetch sites near a location within a radius.
+    /// Uses bounding box approximation for performance.
+    public func fetchNearby(
+        latitude: Double,
+        longitude: Double,
+        radiusKm: Double,
+        limit: Int = 50
+    ) throws -> [DiveSite] {
+        // Approximate degree conversion (1 degree ≈ 111km at equator)
+        let latDelta = radiusKm / 111.0
+        let lonDelta = radiusKm / (111.0 * cos(latitude * .pi / 180))
+
+        let minLat = latitude - latDelta
+        let maxLat = latitude + latDelta
+        let minLon = longitude - lonDelta
+        let maxLon = longitude + lonDelta
+
+        return try database.read { db in
+            let hideLegacy = try shouldHideLegacySites(db)
+            let legacyClause = hideLegacy ? " AND \(legacyFilterSQL())" : ""
+            let sql = """
+            SELECT *,
+                   (
+                       (latitude - ?) * (latitude - ?) +
+                       (longitude - ?) * (longitude - ?) * COS(? * 0.0174533) * COS(? * 0.0174533)
+                   ) as distance_sq
+            FROM sites
+            WHERE latitude BETWEEN ? AND ?
+              AND longitude BETWEEN ? AND ?
+              \(legacyClause)
+            ORDER BY distance_sq
+            LIMIT ?
+            """
+
+            return try DiveSite.fetchAll(
+                db,
+                sql: sql,
+                arguments: [
+                    latitude, latitude,
+                    longitude, longitude,
+                    latitude, latitude,
+                    minLat, maxLat,
+                    minLon, maxLon,
+                    limit
+                ]
+            )
+        }
+    }
+
     // MARK: - v5: Geographic Hierarchy Queries
 
     /// Fetch sites by country
     public func fetchByCountry(_ countryId: String) throws -> [SiteLite] {
         try database.read { db in
-            let sites = try DiveSite
+            var request = DiveSite
                 .filter(DiveSite.Columns.countryId == countryId)
                 .order(DiveSite.Columns.name)
-                .fetchAll(db)
+            if try shouldHideLegacySites(db) {
+                request = request.filter(sql: legacyFilterSQL())
+            }
+            let sites = try request.fetchAll(db)
 
             return sites.map { site in
                 SiteLite(
@@ -592,10 +824,13 @@ public final class SiteRepository {
     /// Fetch sites by region (normalized)
     public func fetchByRegionId(_ regionId: String) throws -> [SiteLite] {
         try database.read { db in
-            let sites = try DiveSite
+            var request = DiveSite
                 .filter(DiveSite.Columns.regionId == regionId)
                 .order(DiveSite.Columns.name)
-                .fetchAll(db)
+            if try shouldHideLegacySites(db) {
+                request = request.filter(sql: legacyFilterSQL())
+            }
+            let sites = try request.fetchAll(db)
 
             return sites.map { site in
                 SiteLite(
@@ -617,10 +852,13 @@ public final class SiteRepository {
     /// Fetch sites by area
     public func fetchByArea(_ areaId: String) throws -> [SiteLite] {
         try database.read { db in
-            let sites = try DiveSite
+            var request = DiveSite
                 .filter(DiveSite.Columns.areaId == areaId)
                 .order(DiveSite.Columns.name)
-                .fetchAll(db)
+            if try shouldHideLegacySites(db) {
+                request = request.filter(sql: legacyFilterSQL())
+            }
+            let sites = try request.fetchAll(db)
 
             return sites.map { site in
                 SiteLite(
@@ -639,4 +877,3 @@ public final class SiteRepository {
         }
     }
 }
-

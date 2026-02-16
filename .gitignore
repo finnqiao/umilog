@@ -172,8 +172,10 @@ data/export/
 # Resources/SeedData/sites_wikidata.json
 
 # Large screenshot artifacts (regeneratable)
-ux_audit/ARTIFACTS/
+ux_audit/
 docs/screens/*.png
+docs/*AUDIT*
+docs/*audit*
 
 # Root-level merged data (duplicate of SeedData)
 seed_data_merged.json
@@ -197,3 +199,13 @@ fastlane/api_key.json
 vendor/bundle/
 .bundle/
 Gemfile.lock
+
+# Large data directories (regeneratable)
+data/images/
+
+# Generated reports (large, regeneratable)
+e2e_report/
+BENCHMARK_AUDIT.md
+
+# UX audit reports (large screenshots)
+# (covered by ux_audit/ above)

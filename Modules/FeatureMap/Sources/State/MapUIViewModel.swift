@@ -11,6 +11,13 @@ class MapUIViewModel: ObservableObject {
     /// The current UI mode.
     @Published private(set) var mode: MapUIMode = .initial
 
+    /// The entry mode (explore/trips/nearMe).
+    @Published var entryMode: MapEntryMode = .explore {
+        didSet {
+            MapStatePersistence.shared.saveEntryMode(entryMode)
+        }
+    }
+
     /// Explore mode filters.
     @Published var exploreFilters: ExploreFilters = .default {
         didSet {
@@ -83,6 +90,9 @@ class MapUIViewModel: ObservableObject {
 
     private func loadPersistedState() {
         let persistence = MapStatePersistence.shared
+
+        // Load entry mode
+        entryMode = persistence.loadEntryMode()
 
         // Load filters
         exploreFilters = persistence.loadExploreFilters()

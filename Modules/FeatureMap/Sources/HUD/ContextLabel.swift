@@ -41,10 +41,12 @@ struct ContextLabel: View {
     private var labelText: String? {
         switch mode {
         case .explore(let ctx):
+            // Only show when filtered, not at baseline
+            // ExploreContent handles baseline count display
             if isFiltered || ctx.filterLens != nil {
                 return "Filtered: \(siteCount)"
             }
-            return "\(siteCount) sites nearby"
+            return nil  // Hide at baseline to avoid duplicate with ExploreContent
 
         case .inspectSite:
             if let name = siteName {
@@ -59,6 +61,9 @@ struct ContextLabel: View {
         case .plan:
             // Hidden during plan mode
             return nil
+
+        case .clusterExpand(let ctx):
+            return "\(ctx.siteCount) sites in stack"
         }
     }
 }

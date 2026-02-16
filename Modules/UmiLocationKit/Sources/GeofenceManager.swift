@@ -17,6 +17,8 @@ public final class GeofenceManager: NSObject, ObservableObject {
     private let siteRepository: SiteRepository
     private let database: AppDatabase
     private var cancellables = Set<AnyCancellable>()
+    private var consecutiveUpdateFailures: Int = 0
+    private var consecutiveSlowUpdates: Int = 0
     
     // Maximum number of regions iOS allows us to monitor
     private let maxMonitoredRegions = 20
@@ -97,6 +99,7 @@ public final class GeofenceManager: NSObject, ObservableObject {
     
     /// Update geofences to monitor nearest dive sites
     public func updateGeofences(around location: CLLocation) async {
+        let startedAt = Date()
         do {
             // Fetch nearby sites
             let nearbySites = try await fetchNearbySites(
@@ -112,31 +115,42 @@ public final class GeofenceManager: NSObject, ObservableObject {
             for site in sitesToMonitor {
                 addGeofence(for: site)
             }
-            
+
+            consecutiveUpdateFailures = 0
+            let elapsed = Date().timeIntervalSince(startedAt)
+            if elapsed > 2.0 {
+                consecutiveSlowUpdates += 1
+                Log.location.warning("Slow geofence update (\(elapsed, privacy: .public)s)")
+                if consecutiveSlowUpdates >= AppConstants.LaunchStability.viewportSlowQueryEscalationThreshold {
+                    NotificationCenter.default.post(
+                        name: .launchSafeModeActivationRequested,
+                        object: nil,
+                        userInfo: ["reason": "geofence_slow_updates"]
+                    )
+                }
+            } else {
+                consecutiveSlowUpdates = 0
+            }
         } catch {
+            consecutiveUpdateFailures += 1
             Log.location.error("Failed to update geofences: \(error.localizedDescription)")
+            if consecutiveUpdateFailures >= AppConstants.LaunchStability.viewportFailureEscalationThreshold {
+                NotificationCenter.default.post(
+                    name: .launchSafeModeActivationRequested,
+                    object: nil,
+                    userInfo: ["reason": "geofence_update_failures"]
+                )
+            }
         }
     }
     
     private func fetchNearbySites(location: CLLocation, radiusKm: Double) async throws -> [DiveSite] {
-        try database.read { db in
-            let allSites = try DiveSite.fetchAll(db)
-            
-            return allSites
-                .filter { site in
-                    let siteLocation = CLLocation(
-                        latitude: site.latitude,
-                        longitude: site.longitude
-                    )
-                    let distance = location.distance(from: siteLocation) / 1000.0
-                    return distance <= radiusKm
-                }
-                .sorted { site1, site2 in
-                    let loc1 = CLLocation(latitude: site1.latitude, longitude: site1.longitude)
-                    let loc2 = CLLocation(latitude: site2.latitude, longitude: site2.longitude)
-                    return location.distance(from: loc1) < location.distance(from: loc2)
-                }
-        }
+        try siteRepository.fetchNearby(
+            latitude: location.coordinate.latitude,
+            longitude: location.coordinate.longitude,
+            radiusKm: radiusKm,
+            limit: maxMonitoredRegions * 2
+        )
     }
     
     private func addGeofence(for site: DiveSite) {
@@ -186,7 +200,7 @@ public final class GeofenceManager: NSObject, ObservableObject {
     private func handleSiteEntry(siteId: String) {
         Task {
             do {
-                if let site = try await database.read({ db in
+                if let site = try database.read({ db in
                     try DiveSite.fetchOne(db, key: siteId)
                 }) {
                     currentDiveSite = site
@@ -247,11 +261,11 @@ public final class GeofenceManager: NSObject, ObservableObject {
             trigger: trigger
         )
         
-        UNUserNotificationCenter.current().add(request, withCompletionHandler: { error in
-            if let error = error {
-                Log.location.error("Failed to schedule notification: \(error.localizedDescription)")
-            }
-        })
+        do {
+            try await UNUserNotificationCenter.current().add(request)
+        } catch {
+            Log.location.error("Failed to schedule notification: \(error.localizedDescription)")
+        }
     }
     
     private func triggerAutoLogPrompt(for site: DiveSite) async {
@@ -269,11 +283,11 @@ public final class GeofenceManager: NSObject, ObservableObject {
             trigger: nil // Immediate
         )
         
-        UNUserNotificationCenter.current().add(request, withCompletionHandler: { error in
-            if let error = error {
-                Log.location.error("Failed to send notification: \(error.localizedDescription)")
-            }
-        })
+        do {
+            try await UNUserNotificationCenter.current().add(request)
+        } catch {
+            Log.location.error("Failed to send notification: \(error.localizedDescription)")
+        }
         
         // Also post app notification
         NotificationCenter.default.post(
@@ -286,7 +300,7 @@ public final class GeofenceManager: NSObject, ObservableObject {
 
 // MARK: - CLLocationManagerDelegate
 
-extension GeofenceManager: CLLocationManagerDelegate {
+extension GeofenceManager: @preconcurrency CLLocationManagerDelegate {
     public func locationManager(_ manager: CLLocationManager, didEnterRegion region: CLRegion) {
         guard region.identifier.hasPrefix("dive_site_") else { return }
         

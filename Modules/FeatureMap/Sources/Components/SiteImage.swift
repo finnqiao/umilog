@@ -20,17 +20,41 @@ public struct SiteImage: View {
     let siteType: DiveSite.SiteType
     let size: CGFloat
     var cornerRadius: CGFloat = 8
+    var siteName: String?
 
     public init(
         siteId: String,
         siteType: DiveSite.SiteType,
         size: CGFloat,
-        cornerRadius: CGFloat = 8
+        cornerRadius: CGFloat = 8,
+        siteName: String? = nil
     ) {
         self.siteId = siteId
         self.siteType = siteType
         self.size = size
         self.cornerRadius = cornerRadius
+        self.siteName = siteName
+    }
+
+    private var accessibilityDescription: String {
+        let hasImage = UIImage(named: "site_\(siteId)") != nil
+        let typeDescription = siteTypeAccessibilityDescription
+        if let name = siteName {
+            return hasImage ? "Photo of \(name), \(typeDescription) dive site" : "\(typeDescription) dive site placeholder for \(name)"
+        } else {
+            return hasImage ? "Photo of \(typeDescription) dive site" : "\(typeDescription) dive site placeholder"
+        }
+    }
+
+    private var siteTypeAccessibilityDescription: String {
+        switch siteType {
+        case .reef: return "reef"
+        case .wreck: return "wreck"
+        case .cave: return "cave"
+        case .wall: return "wall"
+        case .shore: return "shore"
+        case .drift: return "drift"
+        }
     }
 
     public var body: some View {
@@ -46,6 +70,7 @@ public struct SiteImage: View {
         }
         .frame(width: size, height: size)
         .clipShape(RoundedRectangle(cornerRadius: cornerRadius, style: .continuous))
+        .accessibilityLabel(accessibilityDescription)
     }
 
     private var placeholderGradient: some View {

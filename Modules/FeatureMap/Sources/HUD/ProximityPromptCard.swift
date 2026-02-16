@@ -69,6 +69,8 @@ struct ProximityPromptCard: View {
                 )
         )
         .shadow(color: Color.black.opacity(0.2), radius: 8, y: 4)
+        .accessibilityElement(children: .contain)
+        .accessibilityLabel("Dive site proximity alert: You're at \(state.site.name)")
     }
 }
 

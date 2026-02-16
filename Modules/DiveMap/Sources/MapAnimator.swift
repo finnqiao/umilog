@@ -3,6 +3,7 @@ import QuartzCore
 
 /// Manages map marker animations using CADisplayLink for smooth 60fps updates.
 /// Handles selection pulse animations and cluster expansion bounce effects.
+/// Respects the user's Reduce Motion accessibility preference.
 public final class MapAnimator {
     // MARK: - Properties
 
@@ -16,6 +17,12 @@ public final class MapAnimator {
 
     /// Callback invoked when all animations complete.
     public var onAnimationsComplete: (() -> Void)?
+
+    /// Whether to respect Reduce Motion setting. When true and Reduce Motion is enabled,
+    /// animations will be skipped and final states applied immediately.
+    private var reduceMotionEnabled: Bool {
+        UIAccessibility.isReduceMotionEnabled
+    }
 
     // MARK: - Animation State
 
@@ -67,7 +74,22 @@ public final class MapAnimator {
 
     /// Start a selection pulse animation for the given site.
     /// The marker will scale up and pulse, then settle at a slightly larger size.
+    /// When Reduce Motion is enabled, applies the final state immediately without animation.
     public func startSelectionAnimation(for siteId: String) {
+        // When Reduce Motion is enabled, skip animation and apply final state immediately
+        if reduceMotionEnabled {
+            let finalScale = MapIcons.AnimationConfig.selectionFinalScale
+            onAnimationFrame?(siteId, finalScale, 0)
+            onAnimationsComplete?()
+
+            // Still provide haptic feedback for tactile confirmation
+            if MapTheme.Animation.enableHaptics {
+                let generator = UIImpactFeedbackGenerator(style: MapTheme.Animation.selectionHapticStyle)
+                generator.impactOccurred()
+            }
+            return
+        }
+
         selectionAnimation = SelectionAnimation(siteId: siteId)
         startDisplayLink()
 
@@ -80,8 +102,25 @@ public final class MapAnimator {
 
     /// Start a bounce animation for multiple sites (e.g., after cluster expansion).
     /// Sites will bounce in with a staggered delay.
+    /// When Reduce Motion is enabled, shows all sites immediately without animation.
     public func startBounceAnimation(for siteIds: [String]) {
         guard !siteIds.isEmpty else { return }
+
+        // When Reduce Motion is enabled, skip animation and show all sites immediately
+        if reduceMotionEnabled {
+            for siteId in siteIds {
+                onAnimationFrame?(siteId, 1.0, 0)
+            }
+            onAnimationsComplete?()
+
+            // Still provide haptic feedback for tactile confirmation
+            if MapTheme.Animation.enableHaptics {
+                let generator = UIImpactFeedbackGenerator(style: MapTheme.Animation.clusterHapticStyle)
+                generator.impactOccurred()
+            }
+            return
+        }
+
         bounceAnimation = BounceAnimation(siteIds: siteIds)
         startDisplayLink()
 

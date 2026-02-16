@@ -49,6 +49,9 @@ struct FilterContent: View {
                     mySitesSection
                     difficultySection
                     siteTypeSection
+                    timePeriodSection
+                    depthRangeSection
+                    entryTypeSection
                     shopsSection
                 }
                 .padding(.horizontal, 16)
@@ -84,6 +87,7 @@ struct FilterContent: View {
                 .font(.subheadline)
                 .fontWeight(.semibold)
                 .foregroundStyle(Color.mist)
+                .accessibilityAddTraits(.isHeader)
 
             HStack(spacing: 8) {
                 lensChip(title: "All", lens: nil, isSelected: localLens == nil)
@@ -123,6 +127,7 @@ struct FilterContent: View {
                 .font(.subheadline)
                 .fontWeight(.semibold)
                 .foregroundStyle(Color.mist)
+                .accessibilityAddTraits(.isHeader)
 
             FlowLayout(spacing: 8) {
                 ForEach(DiveSite.Difficulty.allCases, id: \.self) { difficulty in
@@ -155,6 +160,7 @@ struct FilterContent: View {
                 .font(.subheadline)
                 .fontWeight(.semibold)
                 .foregroundStyle(Color.mist)
+                .accessibilityAddTraits(.isHeader)
 
             FlowLayout(spacing: 8) {
                 ForEach(DiveSite.SiteType.allCases, id: \.self) { siteType in
@@ -179,6 +185,97 @@ struct FilterContent: View {
         }
     }
 
+    // MARK: - Time Period Section (Resy-style)
+
+    private var timePeriodSection: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Text("Time Period")
+                .font(.subheadline)
+                .fontWeight(.semibold)
+                .foregroundStyle(Color.mist)
+                .accessibilityAddTraits(.isHeader)
+
+            HStack(spacing: 8) {
+                ForEach(ExploreFilters.TimePeriod.allCases, id: \.self) { period in
+                    filterChip(
+                        title: period.rawValue,
+                        isSelected: localFilters.timePeriod == period
+                    ) {
+                        withAnimation(.spring(response: 0.25, dampingFraction: 0.8)) {
+                            localFilters.timePeriod = period
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    // MARK: - Depth Range Section (Resy-style)
+
+    private var depthRangeSection: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Text("Depth Range")
+                .font(.subheadline)
+                .fontWeight(.semibold)
+                .foregroundStyle(Color.mist)
+                .accessibilityAddTraits(.isHeader)
+
+            FlowLayout(spacing: 8) {
+                ForEach(ExploreFilters.DepthRange.allCases, id: \.self) { range in
+                    filterChip(
+                        title: range.rawValue,
+                        isSelected: localFilters.depthRanges.contains(range)
+                    ) {
+                        toggleDepthRange(range)
+                    }
+                }
+            }
+        }
+    }
+
+    private func toggleDepthRange(_ range: ExploreFilters.DepthRange) {
+        withAnimation(.spring(response: 0.25, dampingFraction: 0.8)) {
+            if localFilters.depthRanges.contains(range) {
+                localFilters.depthRanges.remove(range)
+            } else {
+                localFilters.depthRanges.insert(range)
+            }
+        }
+    }
+
+    // MARK: - Entry Type Section (Resy-style)
+
+    private var entryTypeSection: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Text("Entry Type")
+                .font(.subheadline)
+                .fontWeight(.semibold)
+                .foregroundStyle(Color.mist)
+                .accessibilityAddTraits(.isHeader)
+
+            HStack(spacing: 8) {
+                ForEach(ExploreFilters.EntryType.allCases, id: \.self) { type in
+                    filterChip(
+                        title: type.rawValue,
+                        isSelected: localFilters.entryType.contains(type)
+                    ) {
+                        toggleEntryType(type)
+                    }
+                }
+            }
+        }
+    }
+
+    private func toggleEntryType(_ type: ExploreFilters.EntryType) {
+        withAnimation(.spring(response: 0.25, dampingFraction: 0.8)) {
+            if localFilters.entryType.contains(type) {
+                localFilters.entryType.remove(type)
+            } else {
+                localFilters.entryType.insert(type)
+            }
+        }
+    }
+
     // MARK: - Shops Section
 
     private var shopsSection: some View {
@@ -188,6 +285,7 @@ struct FilterContent: View {
                     .font(.subheadline)
                     .fontWeight(.semibold)
                     .foregroundStyle(Color.foam)
+                    .accessibilityAddTraits(.isHeader)
                 Text("Show dive shop locations on the map")
                     .font(.caption)
                     .foregroundStyle(Color.mist)
@@ -205,7 +303,12 @@ struct FilterContent: View {
     // MARK: - Filter Chip
 
     private func filterChip(title: String, isSelected: Bool, action: @escaping () -> Void) -> some View {
-        Button(action: action) {
+        Button {
+            action()
+            // Announce state change to VoiceOver
+            let announcement = isSelected ? "\(title) filter disabled" : "\(title) filter enabled"
+            UIAccessibility.post(notification: .announcement, argument: announcement)
+        } label: {
             HStack(spacing: 4) {
                 if isSelected {
                     Image(systemName: "checkmark")
@@ -223,6 +326,8 @@ struct FilterContent: View {
         }
         .buttonStyle(.plain)
         .accessibilityLabel("\(title) filter")
+        .accessibilityValue(isSelected ? "enabled" : "disabled")
+        .accessibilityHint("Double tap to toggle")
         .accessibilityAddTraits(isSelected ? .isSelected : [])
     }
 

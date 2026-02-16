@@ -10,28 +10,38 @@ public struct MapTheme {
     // MARK: - Color Palette
     // CUSTOMIZE: Edit these to change the map color scheme
     public struct Colors {
-        // Base map colors
-        public static var background: UIColor { .umiAbyss }
-        public static var water: UIColor { .umiMidnight }
-        public static var stroke: UIColor { .umiAbyss }
+        // Base map colors (Resy-style underwater depth ramp)
+        public static var background: UIColor { .umiWaterSurface }  // #08141A
+        public static var water: UIColor { .umiWaterDeep }          // #0A0F2A
+        public static var stroke: UIColor { .umiWaterSurface }
 
-        // Site markers by difficulty
+        // Site markers by difficulty (kept for filtering)
         public static var beginner: UIColor { .umiDifficultyBeginner }
         public static var intermediate: UIColor { .umiDifficultyIntermediate }
         public static var advanced: UIColor { .umiDifficultyAdvanced }
         public static var expert: UIColor { .umiDifficultyExpert }
-        public static var `default`: UIColor { .umiLagoon }
+        public static var `default`: UIColor { .umiPinDefault }     // #35C2E0
+
+        // Resy-style pin states (based on user activity, not difficulty)
+        public static var pinDefault: UIColor { .umiPinDefault }    // #35C2E0 - Undiscovered
+        public static var pinVisited: UIColor { .umiPinVisited }    // #2FD7B8 - Logged dives
+        public static var pinFavorite: UIColor { .umiPinFavorite }  // #F2C14E - Wishlist/saved
 
         // Status glows (for logged/saved/planned sites)
-        public static var logged: UIColor { .umiStatusLogged }
-        public static var saved: UIColor { .umiStatusSaved }
-        public static var planned: UIColor { .umiStatusPlanned }
-        public static var defaultGlow: UIColor { .umiLagoon.withAlphaComponent(0.2) }
+        public static var logged: UIColor { .umiPinVisited }        // Green-teal glow
+        public static var saved: UIColor { .umiPinFavorite }        // Gold glow
+        public static var planned: UIColor { .umiStatusPlanned }    // Amber glow
+        public static var defaultGlow: UIColor { .umiPinDefault.withAlphaComponent(0.2) }
 
-        // Cluster colors - using bright orange for visibility against blue map
-        public static var clusterFill: UIColor { .umiReef }  // Orange/coral color
+        // Site type accents
+        public static var reefOverlay: UIColor { .umiReefAccent }   // #2BAA9B
+        public static var wreckOverlay: UIColor { .umiWreckAccent } // #C98B2B
+        public static var hazardOverlay: UIColor { .umiHazardAccent } // #FF8A3D
+
+        // Cluster colors - teal for consistency with pin default
+        public static var clusterFill: UIColor { .umiPinDefault }   // #35C2E0
         public static var clusterStroke: UIColor { .white }
-        public static var clusterText: UIColor { .white }
+        public static var clusterText: UIColor { .umiWaterSurface } // Dark text on light cluster
 
         // Selection highlight
         public static var selectionRing: UIColor { .umiFoam }

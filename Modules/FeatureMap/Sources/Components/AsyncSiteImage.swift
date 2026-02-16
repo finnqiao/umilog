@@ -26,6 +26,7 @@ public struct AsyncSiteImage: View {
     let imageURL: URL?
     let size: CGFloat
     var cornerRadius: CGFloat = 8
+    var siteName: String?
 
     @State private var loadedImage: UIImage?
     @State private var isLoading = false
@@ -35,13 +36,39 @@ public struct AsyncSiteImage: View {
         siteType: DiveSite.SiteType,
         imageURL: URL?,
         size: CGFloat,
-        cornerRadius: CGFloat = 8
+        cornerRadius: CGFloat = 8,
+        siteName: String? = nil
     ) {
         self.siteId = siteId
         self.siteType = siteType
         self.imageURL = imageURL
         self.size = size
         self.cornerRadius = cornerRadius
+        self.siteName = siteName
+    }
+
+    private var accessibilityDescription: String {
+        let hasImage = loadedImage != nil || UIImage(named: "site_\(siteId)") != nil
+        let typeDescription = siteTypeAccessibilityDescription
+        if isLoading {
+            return siteName != nil ? "Loading photo of \(siteName!)" : "Loading dive site photo"
+        }
+        if let name = siteName {
+            return hasImage ? "Photo of \(name), \(typeDescription) dive site" : "\(typeDescription) dive site placeholder for \(name)"
+        } else {
+            return hasImage ? "Photo of \(typeDescription) dive site" : "\(typeDescription) dive site placeholder"
+        }
+    }
+
+    private var siteTypeAccessibilityDescription: String {
+        switch siteType {
+        case .reef: return "reef"
+        case .wreck: return "wreck"
+        case .cave: return "cave"
+        case .wall: return "wall"
+        case .shore: return "shore"
+        case .drift: return "drift"
+        }
     }
 
     public var body: some View {
@@ -64,6 +91,7 @@ public struct AsyncSiteImage: View {
         }
         .frame(width: size, height: size)
         .clipShape(RoundedRectangle(cornerRadius: cornerRadius, style: .continuous))
+        .accessibilityLabel(accessibilityDescription)
         .task(id: siteId) {
             await loadImage()
         }
@@ -142,7 +170,8 @@ extension AsyncSiteImage {
             siteType: DiveSite.SiteType(rawValue: site.type) ?? .reef,
             imageURL: mediaURL.flatMap { URL(string: $0) },
             size: size,
-            cornerRadius: cornerRadius
+            cornerRadius: cornerRadius,
+            siteName: site.name
         )
     }
 
@@ -153,7 +182,8 @@ extension AsyncSiteImage {
             siteType: site.type,
             imageURL: mediaURL,
             size: size,
-            cornerRadius: cornerRadius
+            cornerRadius: cornerRadius,
+            siteName: site.name
         )
     }
 }

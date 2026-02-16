@@ -33,8 +33,41 @@ enum TestDatabase {
             type: .reef,
             description: "A test dive site",
             wishlist: false,
+            isPlanned: false,
             visitedCount: 0,
+            tags: [],
             createdAt: Date()
+        )
+    }
+
+    /// Create a test wildlife species
+    static func makeSpecies(
+        id: String = UUID().uuidString,
+        name: String = "Test Species",
+        scientificName: String = "Testus specimus",
+        category: WildlifeSpecies.Category = .fish,
+        rarity: WildlifeSpecies.Rarity = .common
+    ) -> WildlifeSpecies {
+        WildlifeSpecies(
+            id: id,
+            name: name,
+            scientificName: scientificName,
+            category: category,
+            rarity: rarity,
+            regions: ["Red Sea", "Caribbean"]
+        )
+    }
+
+    /// Create a test site-species link
+    static func makeSiteSpeciesLink(
+        siteId: String,
+        speciesId: String,
+        likelihood: SiteSpeciesLink.Likelihood = .occasional
+    ) -> SiteSpeciesLink {
+        SiteSpeciesLink(
+            siteId: siteId,
+            speciesId: speciesId,
+            likelihood: likelihood
         )
     }
 

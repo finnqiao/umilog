@@ -53,7 +53,7 @@ public final class DiveRepository {
     // MARK: - Update
     
     public func update(_ dive: DiveLog) throws {
-        var updatedDive = dive
+        let updatedDive = dive
         // Update timestamp (need to make struct mutable first)
         try database.write { db in
             try updatedDive.update(db)
@@ -63,7 +63,7 @@ public final class DiveRepository {
     // MARK: - Delete
     
     public func delete(id: String) throws {
-        try database.write { db in
+        _ = try database.write { db in
             try DiveLog.deleteOne(db, key: id)
         }
     }
@@ -71,7 +71,7 @@ public final class DiveRepository {
     // MARK: - Async Methods
     
     public func getAllDives() async throws -> [DiveLog] {
-        try await database.read { db in
+        try database.read { db in
             try DiveLog
                 .order(DiveLog.Columns.startTime.desc)
                 .fetchAll(db)
@@ -167,6 +167,57 @@ public final class DiveRepository {
     }
 
     // MARK: - Statistics
+
+    /// Returns a dictionary of siteId → dive count for all sites with logged dives.
+    /// Used for Resy-style "X dives" badges on site cards.
+    public func diveCountsBySite() async throws -> [String: Int] {
+        try database.read { db in
+            let rows = try Row.fetchAll(db, sql: """
+                SELECT siteId, COUNT(*) as count
+                FROM dives
+                WHERE siteId IS NOT NULL
+                GROUP BY siteId
+                """)
+            var result: [String: Int] = [:]
+            for row in rows {
+                if let siteId = row["siteId"] as? String,
+                   let count = row["count"] as? Int {
+                    result[siteId] = count
+                }
+            }
+            return result
+        }
+    }
+
+    /// Sync version of dive counts for immediate access.
+    public func diveCountsBySiteSync() throws -> [String: Int] {
+        try database.read { db in
+            let rows = try Row.fetchAll(db, sql: """
+                SELECT siteId, COUNT(*) as count
+                FROM dives
+                WHERE siteId IS NOT NULL
+                GROUP BY siteId
+                """)
+            var result: [String: Int] = [:]
+            for row in rows {
+                if let siteId = row["siteId"] as? String,
+                   let count = row["count"] as? Int {
+                    result[siteId] = count
+                }
+            }
+            return result
+        }
+    }
+
+    /// Returns the most recent dive (for surface interval calculation).
+    public func lastDive() async throws -> DiveLog? {
+        try database.read { db in
+            try DiveLog
+                .order(DiveLog.Columns.endTime.desc)
+                .limit(1)
+                .fetchOne(db)
+        }
+    }
 
     public func calculateStats() throws -> DiveStats {
         try database.read { db in

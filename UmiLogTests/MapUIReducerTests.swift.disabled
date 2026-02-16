@@ -1,0 +1,423 @@
+import XCTest
+@testable import FeatureMap
+@testable import UmiDB
+
+final class MapUIReducerTests: XCTestCase {
+    private let defaultFilters = ExploreFilters.default
+
+    // MARK: - Hierarchy Navigation Tests
+
+    func testDrillDownToRegion() {
+        let state = MapUIMode.explore(ExploreContext())
+        let result = MapUIReducer.reduce(
+            state: state,
+            action: .drillDownToRegion("Caribbean"),
+            currentFilters: defaultFilters
+        )
+
+        guard case .explore(let ctx) = result else {
+            XCTFail("Expected explore mode")
+            return
+        }
+        XCTAssertEqual(ctx.hierarchyLevel, .region(countryId: nil, regionId: "Caribbean"))
+    }
+
+    func testDrillDownToArea() {
+        let state = MapUIMode.explore(ExploreContext(hierarchyLevel: .region(countryId: nil, regionId: "Caribbean")))
+        let result = MapUIReducer.reduce(
+            state: state,
+            action: .drillDownToArea("Cozumel"),
+            currentFilters: defaultFilters
+        )
+
+        guard case .explore(let ctx) = result else {
+            XCTFail("Expected explore mode")
+            return
+        }
+        XCTAssertEqual(ctx.hierarchyLevel, .area(regionId: "Caribbean", areaId: "Cozumel"))
+    }
+
+    func testDrillDownToAreaFromWorld_NoOp() {
+        let state = MapUIMode.explore(ExploreContext(hierarchyLevel: .world))
+        let result = MapUIReducer.reduce(
+            state: state,
+            action: .drillDownToArea("Cozumel"),
+            currentFilters: defaultFilters
+        )
+
+        // Should remain unchanged - can't drill to area from world
+        guard case .explore(let ctx) = result else {
+            XCTFail("Expected explore mode")
+            return
+        }
+        XCTAssertEqual(ctx.hierarchyLevel, .world)
+    }
+
+    func testNavigateUp_FromArea() {
+        let state = MapUIMode.explore(ExploreContext(
+            hierarchyLevel: .area(regionId: "Caribbean", areaId: "Cozumel")
+        ))
+        let result = MapUIReducer.reduce(
+            state: state,
+            action: .navigateUp,
+            currentFilters: defaultFilters
+        )
+
+        guard case .explore(let ctx) = result else {
+            XCTFail("Expected explore mode")
+            return
+        }
+        XCTAssertEqual(ctx.hierarchyLevel, .region(countryId: nil, regionId: "Caribbean"))
+    }
+
+    func testNavigateUp_FromRegion() {
+        let state = MapUIMode.explore(ExploreContext(hierarchyLevel: .region(countryId: nil, regionId: "Caribbean")))
+        let result = MapUIReducer.reduce(
+            state: state,
+            action: .navigateUp,
+            currentFilters: defaultFilters
+        )
+
+        guard case .explore(let ctx) = result else {
+            XCTFail("Expected explore mode")
+            return
+        }
+        XCTAssertEqual(ctx.hierarchyLevel, .world)
+    }
+
+    func testNavigateUp_FromWorld_NoOp() {
+        let state = MapUIMode.explore(ExploreContext(hierarchyLevel: .world))
+        let result = MapUIReducer.reduce(
+            state: state,
+            action: .navigateUp,
+            currentFilters: defaultFilters
+        )
+
+        guard case .explore(let ctx) = result else {
+            XCTFail("Expected explore mode")
+            return
+        }
+        XCTAssertEqual(ctx.hierarchyLevel, .world)
+    }
+
+    func testResetToWorld() {
+        let state = MapUIMode.explore(ExploreContext(
+            hierarchyLevel: .area(regionId: "Caribbean", areaId: "Cozumel")
+        ))
+        let result = MapUIReducer.reduce(
+            state: state,
+            action: .resetToWorld,
+            currentFilters: defaultFilters
+        )
+
+        guard case .explore(let ctx) = result else {
+            XCTFail("Expected explore mode")
+            return
+        }
+        XCTAssertEqual(ctx.hierarchyLevel, .world)
+    }
+
+    // MARK: - Filter Lens Tests
+
+    func testApplyFilterLens() {
+        let state = MapUIMode.explore(ExploreContext())
+        let result = MapUIReducer.reduce(
+            state: state,
+            action: .applyFilterLens(.saved),
+            currentFilters: defaultFilters
+        )
+
+        guard case .explore(let ctx) = result else {
+            XCTFail("Expected explore mode")
+            return
+        }
+        XCTAssertEqual(ctx.filterLens, .saved)
+    }
+
+    func testClearFilterLens() {
+        let state = MapUIMode.explore(ExploreContext(filterLens: .saved))
+        let result = MapUIReducer.reduce(
+            state: state,
+            action: .clearFilterLens,
+            currentFilters: defaultFilters
+        )
+
+        guard case .explore(let ctx) = result else {
+            XCTFail("Expected explore mode")
+            return
+        }
+        XCTAssertNil(ctx.filterLens)
+    }
+
+    // MARK: - Site Inspection Tests
+
+    func testOpenSiteInspection() {
+        let exploreCtx = ExploreContext(
+            hierarchyLevel: .region(countryId: nil, regionId: "Caribbean"),
+            filterLens: .saved
+        )
+        let state = MapUIMode.explore(exploreCtx)
+        let result = MapUIReducer.reduce(
+            state: state,
+            action: .openSiteInspection("site-123"),
+            currentFilters: defaultFilters
+        )
+
+        guard case .inspectSite(let ctx) = result else {
+            XCTFail("Expected inspect mode")
+            return
+        }
+        XCTAssertEqual(ctx.siteId, "site-123")
+        XCTAssertEqual(ctx.returnContext.hierarchyLevel, .region(countryId: nil, regionId: "Caribbean"))
+        XCTAssertEqual(ctx.returnContext.filterLens, .saved)
+    }
+
+    func testCloseSiteInspection() {
+        let returnContext = ExploreContext(
+            hierarchyLevel: .region(countryId: nil, regionId: "Caribbean"),
+            filterLens: .logged
+        )
+        let state = MapUIMode.inspectSite(SiteInspectionContext(
+            siteId: "site-123",
+            returnContext: returnContext
+        ))
+        let result = MapUIReducer.reduce(
+            state: state,
+            action: .closeSiteInspection,
+            currentFilters: defaultFilters
+        )
+
+        guard case .explore(let ctx) = result else {
+            XCTFail("Expected explore mode")
+            return
+        }
+        XCTAssertEqual(ctx.hierarchyLevel, .region(countryId: nil, regionId: "Caribbean"))
+        XCTAssertEqual(ctx.filterLens, .logged)
+    }
+
+    // MARK: - Filter Mode Tests
+
+    func testOpenFilter() {
+        let exploreCtx = ExploreContext(hierarchyLevel: .region(countryId: nil, regionId: "Caribbean"))
+        let state = MapUIMode.explore(exploreCtx)
+        let result = MapUIReducer.reduce(
+            state: state,
+            action: .openFilter,
+            currentFilters: defaultFilters
+        )
+
+        guard case .filter(let ctx) = result else {
+            XCTFail("Expected filter mode")
+            return
+        }
+        XCTAssertEqual(ctx.returnContext.hierarchyLevel, .region(countryId: nil, regionId: "Caribbean"))
+        XCTAssertEqual(ctx.exploreFilters, defaultFilters)
+    }
+
+    func testCloseFilterApply() {
+        let returnContext = ExploreContext(hierarchyLevel: .region(countryId: nil, regionId: "Caribbean"))
+        let state = MapUIMode.filter(FilterContext(
+            exploreFilters: defaultFilters,
+            returnContext: returnContext
+        ))
+        let result = MapUIReducer.reduce(
+            state: state,
+            action: .closeFilter(apply: true),
+            currentFilters: defaultFilters
+        )
+
+        guard case .explore(let ctx) = result else {
+            XCTFail("Expected explore mode")
+            return
+        }
+        XCTAssertEqual(ctx.hierarchyLevel, .region(countryId: nil, regionId: "Caribbean"))
+    }
+
+    func testCloseFilterCancel() {
+        let returnContext = ExploreContext(hierarchyLevel: .world)
+        let state = MapUIMode.filter(FilterContext(
+            exploreFilters: defaultFilters,
+            returnContext: returnContext
+        ))
+        let result = MapUIReducer.reduce(
+            state: state,
+            action: .closeFilter(apply: false),
+            currentFilters: defaultFilters
+        )
+
+        guard case .explore(let ctx) = result else {
+            XCTFail("Expected explore mode")
+            return
+        }
+        XCTAssertEqual(ctx.hierarchyLevel, .world)
+    }
+
+    // MARK: - Search Mode Tests
+
+    func testOpenSearch() {
+        let exploreCtx = ExploreContext(filterLens: .saved)
+        let state = MapUIMode.explore(exploreCtx)
+        let result = MapUIReducer.reduce(
+            state: state,
+            action: .openSearch,
+            currentFilters: defaultFilters
+        )
+
+        guard case .search(let ctx) = result else {
+            XCTFail("Expected search mode")
+            return
+        }
+        XCTAssertEqual(ctx.query, "")
+        XCTAssertEqual(ctx.returnContext.filterLens, .saved)
+    }
+
+    func testCloseSearchWithSelection() {
+        let returnContext = ExploreContext(hierarchyLevel: .world)
+        let state = MapUIMode.search(SearchContext(
+            query: "reef",
+            returnContext: returnContext
+        ))
+        let result = MapUIReducer.reduce(
+            state: state,
+            action: .closeSearch(selectedSite: "site-456"),
+            currentFilters: defaultFilters
+        )
+
+        guard case .inspectSite(let ctx) = result else {
+            XCTFail("Expected inspect mode")
+            return
+        }
+        XCTAssertEqual(ctx.siteId, "site-456")
+        XCTAssertEqual(ctx.returnContext.hierarchyLevel, .world)
+    }
+
+    func testCloseSearchWithoutSelection() {
+        let returnContext = ExploreContext(
+            hierarchyLevel: .region(countryId: nil, regionId: "Caribbean"),
+            filterLens: .logged
+        )
+        let state = MapUIMode.search(SearchContext(
+            query: "reef",
+            returnContext: returnContext
+        ))
+        let result = MapUIReducer.reduce(
+            state: state,
+            action: .closeSearch(selectedSite: nil),
+            currentFilters: defaultFilters
+        )
+
+        guard case .explore(let ctx) = result else {
+            XCTFail("Expected explore mode")
+            return
+        }
+        XCTAssertEqual(ctx.hierarchyLevel, .region(countryId: nil, regionId: "Caribbean"))
+        XCTAssertEqual(ctx.filterLens, .logged)
+    }
+
+    // MARK: - Invalid Transition Tests
+
+    func testInvalidTransition_InspectToFilter() {
+        let state = MapUIMode.inspectSite(SiteInspectionContext(
+            siteId: "site-123",
+            returnContext: ExploreContext()
+        ))
+        let result = MapUIReducer.reduce(
+            state: state,
+            action: .openFilter,
+            currentFilters: defaultFilters
+        )
+
+        // Should remain unchanged - can't open filter from inspect mode
+        guard case .inspectSite(let ctx) = result else {
+            XCTFail("Expected inspect mode unchanged")
+            return
+        }
+        XCTAssertEqual(ctx.siteId, "site-123")
+    }
+
+    func testInvalidTransition_FilterToInspect() {
+        let state = MapUIMode.filter(FilterContext(
+            exploreFilters: defaultFilters,
+            returnContext: ExploreContext()
+        ))
+        let result = MapUIReducer.reduce(
+            state: state,
+            action: .openSiteInspection("site-123"),
+            currentFilters: defaultFilters
+        )
+
+        // Should remain unchanged - can't inspect from filter mode
+        guard case .filter = result else {
+            XCTFail("Expected filter mode unchanged")
+            return
+        }
+    }
+
+    // MARK: - Preview Tests
+
+    func testShowPreview() {
+        let state = MapUIMode.explore(ExploreContext())
+        let result = MapUIReducer.reduce(
+            state: state,
+            action: .showPreview("site-789"),
+            currentFilters: defaultFilters
+        )
+
+        guard case .explore(let ctx) = result else {
+            XCTFail("Expected explore mode")
+            return
+        }
+        XCTAssertEqual(ctx.previewingSite, "site-789")
+    }
+
+    func testDismissPreview() {
+        let state = MapUIMode.explore(ExploreContext(previewingSite: "site-789"))
+        let result = MapUIReducer.reduce(
+            state: state,
+            action: .dismissPreview,
+            currentFilters: defaultFilters
+        )
+
+        guard case .explore(let ctx) = result else {
+            XCTFail("Expected explore mode")
+            return
+        }
+        XCTAssertNil(ctx.previewingSite)
+    }
+
+    func testPromotePreviewToInspect() {
+        let state = MapUIMode.explore(ExploreContext(
+            hierarchyLevel: .region(countryId: nil, regionId: "Caribbean"),
+            previewingSite: "site-789"
+        ))
+        let result = MapUIReducer.reduce(
+            state: state,
+            action: .promotePreviewToInspect,
+            currentFilters: defaultFilters
+        )
+
+        guard case .inspectSite(let ctx) = result else {
+            XCTFail("Expected inspect mode")
+            return
+        }
+        XCTAssertEqual(ctx.siteId, "site-789")
+        XCTAssertEqual(ctx.returnContext.hierarchyLevel, .region(countryId: nil, regionId: "Caribbean"))
+        XCTAssertNil(ctx.returnContext.previewingSite)
+    }
+
+    func testPromotePreviewToInspect_NoPreview_NoOp() {
+        let state = MapUIMode.explore(ExploreContext())
+        let result = MapUIReducer.reduce(
+            state: state,
+            action: .promotePreviewToInspect,
+            currentFilters: defaultFilters
+        )
+
+        // Should remain unchanged - no preview to promote
+        guard case .explore(let ctx) = result else {
+            XCTFail("Expected explore mode unchanged")
+            return
+        }
+        XCTAssertNil(ctx.previewingSite)
+    }
+}

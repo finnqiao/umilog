@@ -10,6 +10,8 @@ public struct Region: Codable, Identifiable, Hashable {
     public let latitude: Double?
     public let longitude: Double?
     public let wikidataId: String?
+    public let tagline: String?
+    public let description: String?
 
     /// Computed property for MapKit compatibility
     public var coordinate: CLLocationCoordinate2D? {
@@ -23,7 +25,9 @@ public struct Region: Codable, Identifiable, Hashable {
         countryId: String? = nil,
         latitude: Double? = nil,
         longitude: Double? = nil,
-        wikidataId: String? = nil
+        wikidataId: String? = nil,
+        tagline: String? = nil,
+        description: String? = nil
     ) {
         self.id = id
         self.name = name
@@ -31,6 +35,8 @@ public struct Region: Codable, Identifiable, Hashable {
         self.latitude = latitude
         self.longitude = longitude
         self.wikidataId = wikidataId
+        self.tagline = tagline
+        self.description = description
     }
 }
 
@@ -45,6 +51,8 @@ extension Region: FetchableRecord, PersistableRecord {
         static let latitude = Column(CodingKeys.latitude)
         static let longitude = Column(CodingKeys.longitude)
         static let wikidataId = Column(CodingKeys.wikidataId)
+        static let tagline = Column(CodingKeys.tagline)
+        static let description = Column(CodingKeys.description)
     }
 
     enum CodingKeys: String, CodingKey {
@@ -54,6 +62,8 @@ extension Region: FetchableRecord, PersistableRecord {
         case latitude
         case longitude
         case wikidataId = "wikidata_id"
+        case tagline
+        case description
     }
 }
 

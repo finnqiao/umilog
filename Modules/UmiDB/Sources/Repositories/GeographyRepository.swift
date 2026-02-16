@@ -71,6 +71,18 @@ public final class GeographyRepository {
         }
     }
 
+    /// Fetch a region by ID or name (case-insensitive).
+    public func fetchRegion(idOrName: String) throws -> Region? {
+        try database.read { db in
+            if let region = try Region.fetchOne(db, key: idOrName) {
+                return region
+            }
+            return try Region
+                .filter(Region.Columns.name.collating(.nocase) == idOrName)
+                .fetchOne(db)
+        }
+    }
+
     /// Fetch regions for a country
     public func fetchRegions(countryId: String) throws -> [Region] {
         try database.read { db in
@@ -283,5 +295,98 @@ public final class GeographyRepository {
             }
             return Bounds(minLat: minLat, maxLat: maxLat, minLon: minLon, maxLon: maxLon)
         }
+    }
+
+    // MARK: - Region Summaries
+
+    /// Fetch popular regions with site counts, ordered by site density.
+    public func fetchPopularRegions(limit: Int = 10) throws -> [RegionSummary] {
+        try database.read { db in
+            let sql = """
+            SELECT r.id, r.name, c.name as country_name,
+                   COUNT(s.id) as site_count,
+                   AVG(s.latitude) as center_lat,
+                   AVG(s.longitude) as center_lon
+            FROM regions r
+            LEFT JOIN countries c ON r.country_id = c.id
+            LEFT JOIN sites s ON s.region_id = r.id
+            GROUP BY r.id
+            HAVING site_count > 0
+            ORDER BY site_count DESC
+            LIMIT ?
+            """
+
+            let rows = try Row.fetchAll(db, sql: sql, arguments: [limit])
+            return rows.compactMap { row -> RegionSummary? in
+                guard let id: String = row["id"],
+                      let name: String = row["name"],
+                      let centerLat: Double = row["center_lat"],
+                      let centerLon: Double = row["center_lon"] else {
+                    return nil
+                }
+
+                return RegionSummary(
+                    id: id,
+                    name: name,
+                    countryName: row["country_name"] ?? "Unknown",
+                    siteCount: row["site_count"] ?? 0,
+                    imageURL: nil,
+                    centerLat: centerLat,
+                    centerLon: centerLon,
+                    zoomLevel: 7.0
+                )
+            }
+        }
+    }
+
+    /// Fetch region summaries by IDs (for recently viewed regions).
+    public func fetchRegionSummaries(ids: [String]) throws -> [RegionSummary] {
+        guard !ids.isEmpty else { return [] }
+
+        return try database.read { db in
+            let placeholders = ids.map { _ in "?" }.joined(separator: ",")
+            let sql = """
+            SELECT r.id, r.name, c.name as country_name,
+                   COUNT(s.id) as site_count,
+                   AVG(s.latitude) as center_lat,
+                   AVG(s.longitude) as center_lon
+            FROM regions r
+            LEFT JOIN countries c ON r.country_id = c.id
+            LEFT JOIN sites s ON s.region_id = r.id
+            WHERE r.id IN (\(placeholders))
+            GROUP BY r.id
+            """
+
+            let rows = try Row.fetchAll(db, sql: sql, arguments: StatementArguments(ids))
+            let summaryMap = Dictionary(uniqueKeysWithValues: rows.compactMap { row -> (String, RegionSummary)? in
+                guard let id: String = row["id"],
+                      let name: String = row["name"],
+                      let centerLat: Double = row["center_lat"],
+                      let centerLon: Double = row["center_lon"] else {
+                    return nil
+                }
+
+                let summary = RegionSummary(
+                    id: id,
+                    name: name,
+                    countryName: row["country_name"] ?? "Unknown",
+                    siteCount: row["site_count"] ?? 0,
+                    imageURL: nil,
+                    centerLat: centerLat,
+                    centerLon: centerLon,
+                    zoomLevel: 7.0
+                )
+                return (id, summary)
+            })
+
+            // Preserve order of input IDs
+            return ids.compactMap { summaryMap[$0] }
+        }
+    }
+
+    /// Fetch a single region summary by ID.
+    public func fetchRegionSummary(id: String) throws -> RegionSummary? {
+        let results = try fetchRegionSummaries(ids: [id])
+        return results.first
     }
 }

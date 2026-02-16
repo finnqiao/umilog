@@ -1,0 +1,232 @@
+{
+  "generated_at": "2026-01-13T01:02:28.347492Z",
+  "total_regions": 13,
+  "regions": [
+    {
+      "id": "indian-ocean",
+      "name": "Indian Ocean",
+      "latitude": 4.14473369174359,
+      "longitude": 73.55233738148718,
+      "tagline": "Indian Ocean: A world of vibrant marine life awaits.",
+      "description": "The Indian Ocean teems with biodiversity, offering a rich tapestry of underwater experiences. Explore diverse ecosystems and encounter a kaleidoscope of marine species, from colorful reef fish to larger pelagics.",
+      "highlights": [
+        "Discover thriving coral reefs teeming with life.",
+        "Encounter a diverse range of marine species, with over 690 identified.",
+        "Explore unique underwater landscapes shaped by volcanic activity and geological formations."
+      ],
+      "best_season": null,
+      "typical_conditions": null,
+      "site_count": 0,
+      "species_count": 693
+    },
+    {
+      "id": "atlantic",
+      "name": "Atlantic",
+      "latitude": 56.014339645054655,
+      "longitude": -4.026886764451049,
+      "tagline": "Atlantic: A realm of discovery beneath the waves.",
+      "description": "The Atlantic Ocean teems with life, offering unique diving experiences across its vast expanse. Explore diverse underwater ecosystems and encounter a remarkable array of marine species.",
+      "highlights": [
+        "Wrecks teeming with life",
+        "Volcanic landscapes",
+        "Unique marine life encounters"
+      ],
+      "best_season": "Year-round, conditions vary by location",
+      "typical_conditions": "Varies greatly by location; expect a range of water temperatures, visibility, and currents.",
+      "site_count": 0,
+      "species_count": 552
+    },
+    {
+      "id": "southeast-asia",
+      "name": "Southeast Asia",
+      "latitude": 8.450481055,
+      "longitude": 111.98982616666666,
+      "tagline": "Vibrant reefs, historic wrecks, and endless marine life.",
+      "description": "Southeast Asia offers a dazzling array of dive experiences across its diverse waters. Explore coral gardens teeming with life, discover fascinating shipwrecks, and encounter an astounding variety of marine species in this tropical paradise.",
+      "highlights": [
+        "Diverse Reef Systems: From shallow coral gardens to dramatic drop-offs, experience a spectrum of reef environments.",
+        "Wreck Diving: Explore historical shipwrecks teeming with marine life and offering a glimpse into the past.",
+        "Macro Photography: Discover a haven for macro photographers, with opportunities to capture unique and colorful critters.",
+        "High Biodiversity: Encounter a vast array of marine species, from tiny nudibranchs to majestic whale sharks."
+      ],
+      "best_season": "Varies by location; generally best during the dry season (March-October).",
+      "typical_conditions": "Water temperature ranges from 27-30\u00b0C (81-86\u00b0F). Visibility varies from 10-40 meters (33-131 feet). Currents range from gentle to strong.",
+      "site_count": 89,
+      "species_count": 699
+    },
+    {
+      "id": "south-america",
+      "name": "South America",
+      "latitude": 0.09296814799999946,
+      "longitude": -62.178480296,
+      "tagline": "Explore South America's Untapped Aquatic Wonders.",
+      "description": "South America's vast rivers and lakes teem with life, holding immense potential for adventurous divers. Discover unique freshwater ecosystems and be among the first to explore its hidden underwater realms.",
+      "highlights": [
+        "Uncharted freshwater diving experiences.",
+        "Opportunity to discover new species.",
+        "Exploration of unique river and lake ecosystems.",
+        "Potential for drift diving in powerful rivers (with appropriate training and precautions)."
+      ],
+      "best_season": "Varies greatly by location; research specific river/lake systems.",
+      "typical_conditions": "Varies greatly by location; expect lower visibility in some areas and potentially strong currents in rivers.",
+      "site_count": 0,
+      "species_count": 243
+    },
+    {
+      "id": "pacific-islands",
+      "name": "Pacific Islands",
+      "latitude": -42.61094969164706,
+      "longitude": 172.51386159505884,
+      "tagline": "Pacific Islands: Where wrecks meet vibrant reefs.",
+      "description": "Explore the vast underwater realm of the Pacific Islands, a haven for diverse marine life. Discover a captivating blend of historical wrecks and thriving coral reefs, offering unique experiences for every diver.",
+      "highlights": [
+        "Extensive Wreck Diving: Delve into the stories of 122 submerged vessels.",
+        "Biodiversity Hotspot: Encounter 647 identified marine species.",
+        "Pristine Reef Systems: Explore 55 vibrant reef sites teeming with life."
+      ],
+      "best_season": null,
+      "typical_conditions": null,
+      "site_count": 177,
+      "species_count": 647
+    },
+    {
+      "id": "mediterranean",
+      "name": "Mediterranean",
+      "latitude": 40.72718070825352,
+      "longitude": 8.410409576338028,
+      "tagline": "History and marine life meet in azure waters.",
+      "description": "The Mediterranean Sea offers a rich tapestry of diving experiences. Explore ancient wrecks and vibrant reefs teeming with life, across the coasts of iconic European nations.",
+      "highlights": [
+        "Explore a vast collection of historical shipwrecks from various eras.",
+        "Discover diverse marine ecosystems supporting over 200 species.",
+        "Dive along colorful reefs in crystal-clear waters.",
+        "Experience diving in multiple countries, each with unique cultures and dive sites."
+      ],
+      "best_season": "May to October",
+      "typical_conditions": "Water temperature ranges from 15-27\u00b0C (59-81\u00b0F). Visibility varies from 10-30 meters (33-98 feet). Currents are generally mild.",
+      "site_count": 70,
+      "species_count": 242
+    },
+    {
+      "id": "red-sea",
+      "name": "Red Sea",
+      "latitude": 29.157455588090908,
+      "longitude": 33.56690618172727,
+      "tagline": "Where history sleeps beneath vibrant coral gardens.",
+      "description": "The Red Sea offers a captivating blend of historical wrecks and thriving reefs. Explore a diverse underwater world teeming with life, shared between the coasts of Egypt and Israel.",
+      "highlights": [
+        "Abundant marine biodiversity: Discover over 500 species of fish and invertebrates.",
+        "World-class wreck diving: Explore famous shipwrecks steeped in history.",
+        "Healthy coral reefs: Witness vibrant ecosystems teeming with color and life.",
+        "Accessibility from multiple countries: Dive sites easily reached from both Egypt and Israel."
+      ],
+      "best_season": "Year-round diving possible, with variations in water temperature.",
+      "typical_conditions": "Water temperatures range from 22-30\u00b0C. Visibility is typically excellent, often exceeding 30 meters. Currents can vary.",
+      "site_count": 22,
+      "species_count": 544
+    },
+    {
+      "id": "japan",
+      "name": "Japan",
+      "latitude": 30.774094873684213,
+      "longitude": 130.74043377802633,
+      "tagline": "Japan: Where biodiversity thrives beneath ancient waters.",
+      "description": "Discover a vibrant underwater world in Japan, where warm and cold currents converge. Explore diverse ecosystems teeming with life, from colorful reefs to historic wrecks, offering unique encounters for every diver.",
+      "highlights": [
+        "Encounter a remarkable array of marine species, including endemic fish and vibrant invertebrates.",
+        "Explore meticulously preserved WWII wrecks, offering a glimpse into history.",
+        "Dive along thriving coral reefs showcasing a surprising spectrum of color and life.",
+        "Experience unique seasonal phenomena like drift diving and opportunities to witness spawning events."
+      ],
+      "best_season": "Varies by region; generally summer and autumn offer the most favorable conditions.",
+      "typical_conditions": "Varies greatly by location; water temperatures range from 15-30\u00b0C (59-86\u00b0F), visibility from 5-30m (16-100ft), currents range from mild to strong.",
+      "site_count": 74,
+      "species_count": 544
+    },
+    {
+      "id": "australia",
+      "name": "Australia",
+      "latitude": -25.714064608151958,
+      "longitude": 132.9968016845147,
+      "tagline": "Australia: Dive into a world of vibrant marine life.",
+      "description": "Explore Australia's diverse underwater landscapes, from historic wrecks to thriving reefs. With over 600 species inhabiting these waters, every dive promises a unique encounter.",
+      "highlights": [
+        "Extensive Wreck Diving: Discover 40 unique wreck sites teeming with marine life.",
+        "Vibrant Reef Systems: Explore 32 distinct reef ecosystems, each a kaleidoscope of color and activity.",
+        "Abundant Marine Biodiversity: Encounter over 600 different marine species, from macro critters to larger pelagics."
+      ],
+      "best_season": "",
+      "typical_conditions": "",
+      "site_count": 73,
+      "species_count": 627
+    },
+    {
+      "id": "africa",
+      "name": "Africa",
+      "latitude": -34.151489995577855,
+      "longitude": 18.511039441564012,
+      "site_count": 0,
+      "species_count": 575,
+      "tagline": "Dive into a continent of underwater wonders.",
+      "description": "Africa offers a diverse range of diving experiences, from vibrant coral reefs to thrilling encounters with megafauna. Explore the depths of history and nature, discovering unique ecosystems and breathtaking marine life. The warm waters and stunning visibility make it a diver's paradise.",
+      "highlights": [
+        "Encounter whale sharks in Mozambique's pristine waters.",
+        "Witness the epic Sardine Run off the coast of South Africa.",
+        "Explore the vibrant reefs and wrecks of the Red Sea's African shores."
+      ]
+    },
+    {
+      "id": "caribbean",
+      "name": "Caribbean",
+      "latitude": 18.16594814666667,
+      "longitude": -72.22402592666667,
+      "tagline": "Caribbean diving: reefs, wrecks, walls, and vibrant life.",
+      "description": "The Caribbean Sea offers a diverse underwater landscape teeming with life. Explore vibrant coral reefs, historic wrecks, intricate cave systems, and dramatic walls, all home to a stunning array of marine species.",
+      "highlights": [
+        "Explore numerous coral reefs teeming with colorful fish and invertebrates.",
+        "Discover historic shipwrecks, each with its own unique story.",
+        "Venture into underwater caves and caverns, a unique geological experience.",
+        "Drift along dramatic walls, encountering larger pelagic species."
+      ],
+      "best_season": "Year-round diving, with calmer seas in the summer months.",
+      "typical_conditions": "Water temperatures range from 75-85\u00b0F (24-29\u00b0C). Visibility typically ranges from 60-100+ feet (18-30+ meters). Currents vary depending on the location and time of year.",
+      "site_count": 144,
+      "species_count": 266
+    },
+    {
+      "id": "central-america",
+      "name": "Central America",
+      "latitude": 15.0,
+      "longitude": -86.0,
+      "tagline": "Central America: Reefs, wrecks, and vibrant marine life.",
+      "description": "Explore the diverse underwater landscapes of Central America, from flourishing reefs teeming with life to intriguing shipwrecks holding secrets of the past. With a rich tapestry of marine species and varied dive site types, adventure awaits every diver.",
+      "highlights": [
+        "Discover vibrant coral reefs supporting over 180 species of marine life.",
+        "Explore a collection of 17 captivating wreck dives, each with its own unique history.",
+        "Venture into the depths of a unique underwater cave system."
+      ],
+      "best_season": null,
+      "typical_conditions": null,
+      "site_count": 36,
+      "species_count": 180
+    },
+    {
+      "id": "global",
+      "name": "Global",
+      "latitude": 0.0,
+      "longitude": 0.0,
+      "tagline": "Explore the world's underwater wonders, one dive at a time.",
+      "description": "Dive into a world of possibilities with access to over 30,000 dive sites globally. From historic wrecks to vibrant reefs, discover diverse underwater landscapes across numerous countries.",
+      "highlights": [
+        "Wreck diving adventures in the United Kingdom and beyond.",
+        "Reef exploration in tropical and temperate waters.",
+        "Unique cave diving experiences.",
+        "Opportunities to dive in diverse locations from Brazil to Norway."
+      ],
+      "best_season": "Year-round, depending on the specific location. Research the optimal time for your chosen destination.",
+      "typical_conditions": "Varies greatly depending on location, from cold, low visibility waters to warm, clear tropical seas. Research specific sites.",
+      "site_count": 30790,
+      "species_count": 0
+    }
+  ]
+}

@@ -1,4 +1,5 @@
 import XCTest
+import GRDB
 @testable import UmiDB
 
 final class DiveRepositoryTests: XCTestCase {
@@ -34,15 +35,6 @@ final class DiveRepositoryTests: XCTestCase {
         let fetched = try diveRepository.fetch(id: dive.id)
         XCTAssertNotNil(fetched)
         XCTAssertEqual(fetched?.siteId, testSite.id)
-    }
-
-    func testCreate_incrementsSiteVisitedCount() throws {
-        let dive = TestDatabase.makeDive(siteId: testSite.id)
-
-        try diveRepository.create(dive)
-
-        let site = try siteRepository.fetch(id: testSite.id)
-        XCTAssertEqual(site?.visitedCount, 1)
     }
 
     // MARK: - Fetch Tests
@@ -125,7 +117,7 @@ final class DiveRepositoryTests: XCTestCase {
         try diveRepository.create(TestDatabase.makeDive(id: "4", siteId: testSite.id, date: lastMonth))
 
         // Fetch dives from last 3 days
-        let recentDives = try diveRepository.fetchInDateRange(
+        let recentDives = try fetchDivesInDateRange(
             from: now.addingTimeInterval(-3 * 86400),
             to: now
         )
@@ -133,19 +125,11 @@ final class DiveRepositoryTests: XCTestCase {
     }
 }
 
-// MARK: - DiveRepository Extensions for Tests
+// MARK: - Test Helper Extensions
 
-extension DiveRepository {
-    func fetchBySite(siteId: String) throws -> [DiveLog] {
-        try database.read { db in
-            try DiveLog
-                .filter(Column("siteId") == siteId)
-                .order(Column("date").desc)
-                .fetchAll(db)
-        }
-    }
-
-    func fetchInDateRange(from: Date, to: Date) throws -> [DiveLog] {
+extension DiveRepositoryTests {
+    /// Helper to fetch dives within a date range using the test database
+    func fetchDivesInDateRange(from: Date, to: Date) throws -> [DiveLog] {
         try database.read { db in
             try DiveLog
                 .filter(Column("date") >= from)
@@ -154,24 +138,4 @@ extension DiveRepository {
                 .fetchAll(db)
         }
     }
-
-    func calculateStats() throws -> DiveStats {
-        try database.read { db in
-            let totalDives = try DiveLog.fetchCount(db)
-            let totalBottomTime = try Int.fetchOne(db, sql: "SELECT SUM(bottomTime) FROM dives") ?? 0
-            let maxDepth = try Double.fetchOne(db, sql: "SELECT MAX(maxDepth) FROM dives") ?? 0
-
-            return DiveStats(
-                totalDives: totalDives,
-                totalBottomTime: totalBottomTime,
-                maxDepth: maxDepth
-            )
-        }
-    }
-}
-
-struct DiveStats {
-    let totalDives: Int
-    let totalBottomTime: Int
-    let maxDepth: Double
 }

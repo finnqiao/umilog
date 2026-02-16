@@ -40,7 +40,8 @@ struct ActionButton: View {
         }
         .buttonStyle(.plain)
         .disabled(isLoading)
-        .accessibilityLabel(title)
+        .accessibilityLabel(isLoading ? "Loading \(title)" : title)
+        .accessibilityAddTraits(isActive ? .isSelected : [])
     }
 
     // MARK: - Computed Colors

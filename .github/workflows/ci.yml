@@ -38,13 +38,23 @@ jobs:
 
       - name: Build for Simulator
         run: |
+          set -eo pipefail
           xcodebuild build \
             -project UmiLog.xcodeproj \
             -scheme UmiLog \
-            -destination 'platform=iOS Simulator,name=iPhone 16,OS=latest' \
+            -destination 'platform=iOS Simulator,name=iPhone 16 Pro' \
             -configuration Debug \
-            CODE_SIGNING_ALLOWED=NO \
-            | xcbeautify --renderer github-actions || true
+            CODE_SIGNING_ALLOWED=NO
+
+      - name: Run Tests
+        run: |
+          set -eo pipefail
+          xcodebuild test \
+            -project UmiLog.xcodeproj \
+            -scheme UmiLog \
+            -destination 'platform=iOS Simulator,name=iPhone 16 Pro' \
+            -configuration Debug \
+            CODE_SIGNING_ALLOWED=NO
 
       - name: Build Status
         if: failure()

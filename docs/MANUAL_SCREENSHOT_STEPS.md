@@ -12,7 +12,7 @@ Use the Simulator with `UmiLog` running. Save captures into `docs/screens/`.
 
 3) Site Inspect
 - Tap a site row in the map list to open Inspect.
-- Capture as `docs/screens/15-site-inspect.png` (medium) and `docs/screens/16-site-inspect-expanded.png` (expanded by dragging sheet up).
+- Capture as `docs/screens/15-site-inspect. png` (medium) and `docs/screens/16-site-inspect-expanded.png` (expanded by dragging sheet up).
 
 4) Plan Sheet
 - From Inspect, tap "Plan".

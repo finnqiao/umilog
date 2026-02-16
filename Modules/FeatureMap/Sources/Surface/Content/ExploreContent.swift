@@ -11,9 +11,17 @@ struct ExploreContent: View {
     let detent: SurfaceDetent
     let sites: [DiveSite]
     let loading: Bool
+    let regionDetail: UmiDB.Region?
 
     @Binding var filterLens: FilterLens?
     @Binding var filterDifficulties: Set<DiveSite.Difficulty>
+    @Binding var entryMode: MapEntryMode
+
+    // Fallback content data
+    var savedSites: [DiveSite] = []
+    var recentRegions: [RegionSummary] = []
+    var popularRegions: [RegionSummary] = []
+    var nearMeSiteCount: Int?
 
     var onSiteTap: (DiveSite) -> Void
     var onOpenFilter: () -> Void
@@ -21,6 +29,7 @@ struct ExploreContent: View {
     var onDrillDown: (String) -> Void
     var onClearFilters: () -> Void = {}
     var onAddSite: () -> Void = {}
+    var onRegionTap: (RegionSummary) -> Void = { _ in }
 
     // MARK: - State
 
@@ -63,6 +72,12 @@ struct ExploreContent: View {
                     .padding(.bottom, 8)
                 }
 
+                if shouldShowRegionDetail, let regionDetail {
+                    RegionDetailCard(region: regionDetail)
+                        .padding(.horizontal, 16)
+                        .padding(.bottom, 12)
+                }
+
                 siteList
             }
         }
@@ -71,23 +86,32 @@ struct ExploreContent: View {
     // MARK: - Peek Header
 
     private var peekHeader: some View {
-        HStack(spacing: 12) {
-            countLabel
-                .font(.subheadline)
-                .foregroundStyle(Color.mist)
+        VStack(spacing: 10) {
+            // Entry mode selector
+            EntryModeSelector(
+                currentMode: $entryMode,
+                nearMeSiteCount: nearMeSiteCount
+            )
 
-            Spacer()
+            // Count and filters row
+            HStack(spacing: 12) {
+                countLabel
+                    .font(.subheadline)
+                    .foregroundStyle(Color.mist)
 
-            if let lens = context.filterLens {
-                lensChip(for: lens)
+                Spacer()
+
+                if let lens = context.filterLens {
+                    lensChip(for: lens)
+                }
+
+                // Show reset button when any filters are active
+                if hasActiveFilters {
+                    resetButton
+                }
+
+                filterEntryButton
             }
-
-            // Show reset button when any filters are active
-            if hasActiveFilters {
-                resetButton
-            }
-
-            filterEntryButton
         }
     }
 
@@ -125,6 +149,13 @@ struct ExploreContent: View {
         } else {
             return Text("Sites nearby: \(sites.count)")
         }
+    }
+
+    private var shouldShowRegionDetail: Bool {
+        guard let regionDetail else { return false }
+        let hasTagline = regionDetail.tagline?.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty == false
+        let hasDescription = regionDetail.description?.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty == false
+        return hasTagline || hasDescription
     }
 
     private func lensChip(for lens: FilterLens) -> some View {
@@ -168,13 +199,14 @@ struct ExploreContent: View {
             ScrollView {
                 LazyVStack(spacing: 0) {
                     ForEach(sites) { site in
-                        ExploreSiteRow(site: site, isHighlighted: flashId == site.id)
-                            .id(site.id)
-                            .contentShape(Rectangle())  // Fix UX-002: Define tap hit area
-                            .onTapGesture {
-                                Haptics.soft()  // Fix UX-007: Add haptic feedback
-                                onSiteTap(site)
-                            }
+                        Button {
+                            Haptics.soft()  // Fix UX-007: Add haptic feedback
+                            onSiteTap(site)
+                        } label: {
+                            ExploreSiteRow(site: site, isHighlighted: flashId == site.id)
+                        }
+                        .buttonStyle(SiteRowButtonStyle())  // Fix UX-002: Use button for reliable tap handling in ScrollView
+                        .id(site.id)
                     }
                 }
                 .padding(.bottom, 24)
@@ -182,7 +214,34 @@ struct ExploreContent: View {
         }
     }
 
+    /// Shows fallback content when viewport is sparse.
+    /// Priority: saved sites > recent regions > popular regions.
     private var emptyState: some View {
+        Group {
+            // If we have fallback data, show rich content
+            if !savedSites.isEmpty || !recentRegions.isEmpty || !popularRegions.isEmpty {
+                FallbackShelfContent(
+                    savedSites: savedSites,
+                    recentRegions: recentRegions,
+                    popularRegions: popularRegions.isEmpty ? RegionSummary.popular : popularRegions,
+                    onSiteTap: onSiteTap,
+                    onRegionTap: onRegionTap
+                )
+            } else {
+                // Absolute fallback: use curated regions
+                FallbackShelfContent(
+                    savedSites: [],
+                    recentRegions: [],
+                    popularRegions: RegionSummary.popular,
+                    onSiteTap: onSiteTap,
+                    onRegionTap: onRegionTap
+                )
+            }
+        }
+    }
+
+    /// Simple empty state for when filters are applied (user expectation differs).
+    private var filteredEmptyState: some View {
         VStack(spacing: 12) {
             Image(systemName: "mappin.slash")
                 .font(.system(size: 32))
@@ -225,6 +284,38 @@ struct ExploreContent: View {
         .frame(maxWidth: .infinity)
         .padding(.top, 32)
         .padding(.horizontal, 24)
+    }
+}
+
+// MARK: - Region Detail
+
+private struct RegionDetailCard: View {
+    let region: UmiDB.Region
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            let trimmedTagline = region.tagline?.trimmingCharacters(in: .whitespacesAndNewlines)
+            if let trimmedTagline, !trimmedTagline.isEmpty {
+                Text(trimmedTagline)
+                    .font(.headline)
+                    .foregroundStyle(Color.foam)
+            } else {
+                Text("About \(region.name)")
+                    .font(.headline)
+                    .foregroundStyle(Color.foam)
+            }
+
+            if let description = region.description, !description.isEmpty {
+                Text(description)
+                    .font(.subheadline)
+                    .foregroundStyle(Color.mist)
+            }
+        }
+        .padding(12)
+        .background(
+            RoundedRectangle(cornerRadius: 12)
+                .fill(Color.trench)
+        )
     }
 }
 
@@ -276,6 +367,20 @@ private struct ExploreSiteRow: View {
 
             Spacer()
 
+            // Resy-style dive count badge
+            if site.visitedCount > 0 {
+                VStack(alignment: .trailing, spacing: 2) {
+                    Text("\(site.visitedCount)")
+                        .font(.headline)
+                        .fontWeight(.bold)
+                        .foregroundStyle(Color.pinVisited)
+                    Text(site.visitedCount == 1 ? "dive" : "dives")
+                        .font(.caption2)
+                        .foregroundStyle(Color.mist)
+                }
+                .accessibilityLabel("\(site.visitedCount) dives logged")
+            }
+
             Image(systemName: "chevron.right")
                 .font(.caption)
                 .foregroundStyle(Color.mist.opacity(0.5))
@@ -294,11 +399,11 @@ private struct ExploreSiteRow: View {
 
     private var statusColor: Color {
         if site.visitedCount > 0 {
-            return Color.lagoon
+            return Color.pinVisited  // Resy-style green-teal for logged
         } else if site.wishlist {
-            return Color.amber
+            return Color.pinFavorite  // Resy-style gold for saved
         } else {
-            return Color.mist.opacity(0.3)
+            return Color.pinDefault.opacity(0.3)  // Resy-style cyan for undiscovered
         }
     }
 }
@@ -316,5 +421,18 @@ private struct ExploreQuickFactChip: View {
             .padding(.vertical, 2)
             .background(Color.trench)
             .clipShape(Capsule())
+    }
+}
+
+// MARK: - Site Row Button Style
+
+/// Custom button style that ensures reliable tap handling inside ScrollView.
+/// Uses contentShape and removes default button animations that can conflict with gestures.
+private struct SiteRowButtonStyle: ButtonStyle {
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label
+            .contentShape(Rectangle())  // Fix UX-002: Ensure entire row area is tappable
+            .opacity(configuration.isPressed ? 0.7 : 1.0)
+            .animation(.easeOut(duration: 0.1), value: configuration.isPressed)
     }
 }

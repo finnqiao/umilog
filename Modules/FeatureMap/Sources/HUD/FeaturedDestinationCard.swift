@@ -9,6 +9,7 @@ struct FeaturedDestinationCard: View {
 
     @State private var isVisible = false
     @State private var dismissTask: Task<Void, Never>?
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     private let autoDismissDelay: TimeInterval = 4.0
 
@@ -60,10 +61,14 @@ struct FeaturedDestinationCard: View {
         .shadow(color: Color.black.opacity(0.25), radius: 12, y: 4)
         .padding(.horizontal, 20)
         .opacity(isVisible ? 1 : 0)
-        .offset(y: isVisible ? 0 : -20)
+        .offset(y: isVisible ? 0 : (reduceMotion ? 0 : -20))
         .onAppear {
-            withAnimation(.spring(response: 0.5, dampingFraction: 0.8)) {
+            if reduceMotion {
                 isVisible = true
+            } else {
+                withAnimation(.spring(response: 0.5, dampingFraction: 0.8)) {
+                    isVisible = true
+                }
             }
             scheduleAutoDismiss()
         }
@@ -77,11 +82,16 @@ struct FeaturedDestinationCard: View {
 
     private func dismiss() {
         dismissTask?.cancel()
-        withAnimation(.easeOut(duration: 0.25)) {
+        if reduceMotion {
             isVisible = false
-        }
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
             onDismiss()
+        } else {
+            withAnimation(.easeOut(duration: 0.25)) {
+                isVisible = false
+            }
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                onDismiss()
+            }
         }
     }
 

@@ -54,7 +54,7 @@ struct SitesListView: View {
                 .scrollDisabled(scrollDisabled)
             }
         }
-        .onChange(of: selectedSiteId) { newId in
+        .onChange(of: selectedSiteId) { _, newId in
             guard let id = newId else { return }
             DispatchQueue.main.async {
                 withAnimation(.easeInOut(duration: 0.3)) {
@@ -122,6 +122,7 @@ struct SiteRow: View {
         .shadow(color: isHighlighted ? Color.oceanBlue.opacity(0.25) : .clear, radius: 8, y: 4)
         .animation(.spring(response: 0.3, dampingFraction: 0.75), value: isHighlighted)
         .accessibilityElement(children: .combine)
+        .accessibilityHint("Double tap to view site details and log a dive")
     }
 }
 
@@ -233,6 +234,7 @@ struct ShopRow: View {
         .padding(.horizontal, 16)
         .padding(.vertical, 10)
         .accessibilityElement(children: .combine)
+        .accessibilityHint("Double tap to view shop details")
     }
 
     private var subtitle: String? {

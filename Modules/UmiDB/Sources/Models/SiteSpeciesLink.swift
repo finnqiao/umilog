@@ -78,6 +78,23 @@ extension SiteSpeciesLink: FetchableRecord, PersistableRecord {
         case lastUpdated = "last_updated"
     }
 
+    public func encode(to container: inout PersistenceContainer) {
+        container[CodingKeys.siteId.rawValue] = siteId
+        container[CodingKeys.speciesId.rawValue] = speciesId
+        container[CodingKeys.likelihood.rawValue] = likelihood.rawValue
+        if let months = seasonMonths,
+           let data = try? JSONEncoder().encode(months) {
+            container[CodingKeys.seasonMonths.rawValue] = String(data: data, encoding: .utf8)
+        } else {
+            container[CodingKeys.seasonMonths.rawValue] = nil
+        }
+        container[CodingKeys.depthMinM.rawValue] = depthMinM
+        container[CodingKeys.depthMaxM.rawValue] = depthMaxM
+        container[CodingKeys.source.rawValue] = source
+        container[CodingKeys.sourceRecordCount.rawValue] = sourceRecordCount
+        container[CodingKeys.lastUpdated.rawValue] = lastUpdated
+    }
+
     // Custom encoding/decoding for seasonMonths JSON array
     public func encode(to encoder: Encoder) throws {
         var container = encoder.container(keyedBy: CodingKeys.self)

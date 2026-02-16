@@ -71,6 +71,15 @@ struct InspectContent: View {
                     // Quick facts - always show at medium and expanded
                     quickFactsRow(for: site)
                         .padding(.bottom, 12)
+
+                    if detent == .medium, let description = site.description, !description.isEmpty {
+                        Text(description)
+                            .font(.callout)
+                            .foregroundStyle(Color.mist)
+                            .lineLimit(4)
+                            .padding(.horizontal, 16)
+                            .padding(.bottom, 12)
+                    }
                 }
 
                 if detent == .expanded {

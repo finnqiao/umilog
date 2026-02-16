@@ -1,6 +1,7 @@
 import SwiftUI
 import UmiDB
 import UmiDesignSystem
+import UmiCoreKit
 
 /// Detailed view for a wildlife species showing reference photos, sighting history, and habitats.
 public struct SpeciesDetailView: View {
@@ -18,6 +19,7 @@ public struct SpeciesDetailView: View {
                 HeroImageSection(
                     speciesId: viewModel.species.id,
                     category: viewModel.species.category,
+                    imageUrl: viewModel.species.imageUrl.flatMap { URL(string: $0) },
                     seen: viewModel.sightingCount > 0
                 )
 
@@ -47,6 +49,14 @@ public struct SpeciesDetailView: View {
                         SightingHistorySection(sightings: viewModel.sightings)
                     }
 
+                    // Sightings map
+                    if !viewModel.habitats.isEmpty {
+                        SightingsMapSection(
+                            habitats: viewModel.habitats,
+                            sightingCounts: viewModel.sightingCountsBySite
+                        )
+                    }
+
                     // Where to find
                     if !viewModel.habitats.isEmpty {
                         HabitatSection(habitats: viewModel.habitats)
@@ -56,7 +66,7 @@ public struct SpeciesDetailView: View {
             }
         }
         .navigationBarTitleDisplayMode(.inline)
-        .background(Color(.systemGroupedBackground))
+        .background(Color.abyss.ignoresSafeArea())
         .task {
             await viewModel.loadData()
         }
@@ -68,15 +78,30 @@ public struct SpeciesDetailView: View {
 private struct HeroImageSection: View {
     let speciesId: String
     let category: WildlifeSpecies.Category
+    let imageUrl: URL?
     let seen: Bool
+
+    @State private var loadedImage: UIImage?
+    @State private var isLoading = false
 
     var body: some View {
         GeometryReader { geometry in
             Group {
-                if let uiImage = UIImage(named: "species_\(speciesId)") {
-                    Image(uiImage: uiImage)
+                if let image = loadedImage {
+                    Image(uiImage: image)
                         .resizable()
                         .aspectRatio(contentMode: .fill)
+                } else if isLoading {
+                    // Loading state
+                    ZStack {
+                        LinearGradient(
+                            colors: [categoryColor.opacity(0.2), categoryColor.opacity(0.1)],
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        )
+                        ProgressView()
+                            .scaleEffect(1.5)
+                    }
                 } else {
                     // Fallback gradient with category icon
                     ZStack {
@@ -96,6 +121,27 @@ private struct HeroImageSection: View {
             .clipped()
         }
         .frame(height: 280)
+        .task(id: speciesId) {
+            await loadImage()
+        }
+    }
+
+    private func loadImage() async {
+        // 1. Check bundle first
+        if let bundled = UIImage(named: "species_\(speciesId)") {
+            loadedImage = bundled
+            return
+        }
+
+        // 2. Try cache/network
+        guard imageUrl != nil else { return }
+
+        isLoading = true
+        defer { isLoading = false }
+
+        let cacheKey = "species_\(speciesId)"
+        let image = await ImageCacheService.shared.image(for: cacheKey, url: imageUrl)
+        loadedImage = image
     }
 
     private var categoryIcon: String {
@@ -129,10 +175,11 @@ private struct HeaderSection: View {
             Text(species.name)
                 .font(.title)
                 .fontWeight(.bold)
+                .foregroundStyle(Color.foam)
 
             Text(species.scientificName)
                 .font(.subheadline)
-                .foregroundStyle(.secondary)
+                .foregroundStyle(Color.mist)
                 .italic()
         }
         .frame(maxWidth: .infinity)
@@ -179,7 +226,7 @@ private struct QuickFactsSection: View {
                         .foregroundStyle(Color.lagoon)
                     Text("You've spotted this species \(sightingCount) time\(sightingCount == 1 ? "" : "s")")
                         .font(.caption)
-                        .foregroundStyle(.secondary)
+                        .foregroundStyle(Color.mist)
                 }
             }
         }
@@ -288,7 +335,7 @@ private struct DescriptionSection: View {
 
             Text(description)
                 .font(.subheadline)
-                .foregroundStyle(.secondary)
+                .foregroundStyle(Color.mist)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
     }
@@ -314,7 +361,7 @@ private struct SightingHistorySection: View {
 
                             Text(sighting.date, style: .date)
                                 .font(.caption)
-                                .foregroundStyle(.secondary)
+                                .foregroundStyle(Color.mist)
                         }
 
                         Spacer()
@@ -331,10 +378,33 @@ private struct SightingHistorySection: View {
                         }
                     }
                     .padding(12)
-                    .background(Color(.secondarySystemGroupedBackground))
+                    .background(Color.trench)
                     .cornerRadius(12)
                 }
             }
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+    }
+}
+
+// MARK: - Sightings Map Section
+
+private struct SightingsMapSection: View {
+    let habitats: [SpeciesHabitatInfo]
+    let sightingCounts: [String: Int]
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Text("Sighting Locations")
+                .font(.headline)
+
+            SightingsMapView(
+                locations: habitats.map { habitat in
+                    habitat.toSightingLocation(
+                        sightingCount: sightingCounts[habitat.siteId] ?? 0
+                    )
+                }
+            )
         }
         .frame(maxWidth: .infinity, alignment: .leading)
     }
@@ -360,7 +430,7 @@ private struct HabitatSection: View {
 
                             Text(habitat.siteLocation)
                                 .font(.caption)
-                                .foregroundStyle(.secondary)
+                                .foregroundStyle(Color.mist)
                         }
 
                         Spacer()
@@ -368,7 +438,7 @@ private struct HabitatSection: View {
                         LikelihoodBadge(likelihood: habitat.likelihood)
                     }
                     .padding(12)
-                    .background(Color(.secondarySystemGroupedBackground))
+                    .background(Color.trench)
                     .cornerRadius(12)
                 }
             }
@@ -415,4 +485,18 @@ struct SpeciesHabitatInfo: Identifiable {
     let siteName: String
     let siteLocation: String
     let likelihood: SiteSpeciesLink.Likelihood
+    let latitude: Double
+    let longitude: Double
+
+    /// Convert to SightingLocation for map display
+    func toSightingLocation(sightingCount: Int = 1) -> SightingLocation {
+        SightingLocation(
+            id: id,
+            siteId: siteId,
+            siteName: siteName,
+            latitude: latitude,
+            longitude: longitude,
+            sightingCount: sightingCount
+        )
+    }
 }
