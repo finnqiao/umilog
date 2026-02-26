@@ -1,6 +1,7 @@
 import SwiftUI
 import UmiDB
 import UmiCoreKit
+import DiveMap
 import UniformTypeIdentifiers
 import os
 
@@ -10,6 +11,7 @@ public struct SettingsView: View {
     @State private var pendingDivesCount = 0
     @State private var isExporting = false
     @State private var isImporting = false
+    @State private var showingDiveImport = false
     @State private var exportURL: URL?
     @State private var showExportShare = false
     @State private var alertMessage: String?
@@ -62,9 +64,21 @@ public struct SettingsView: View {
                 }
 
                 Button {
+                    showingDiveImport = true
+                } label: {
+                    Label("Import Dives", systemImage: "square.and.arrow.down")
+                }
+
+                Button {
                     isImporting = true
                 } label: {
-                    Label("Import Data", systemImage: "square.and.arrow.down")
+                    Label("Restore Backup", systemImage: "arrow.counterclockwise")
+                }
+
+                NavigationLink {
+                    OfflineMapsView()
+                } label: {
+                    Label("Offline Maps", systemImage: "map.fill")
                 }
             }
             
@@ -118,6 +132,9 @@ public struct SettingsView: View {
             if let url = exportURL {
                 ShareSheet(items: [url])
             }
+        }
+        .sheet(isPresented: $showingDiveImport) {
+            ImportFlowView()
         }
         .fileImporter(
             isPresented: $isImporting,

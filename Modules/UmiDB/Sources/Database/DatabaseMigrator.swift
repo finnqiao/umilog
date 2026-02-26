@@ -538,6 +538,34 @@ public enum DatabaseMigrator {
             """)
         }
 
+        // MARK: - v10: Condition Reports
+        migrator.registerMigration("v10_condition_reports") { db in
+            try db.create(table: "condition_reports") { t in
+                t.column("id", .text).primaryKey()
+                t.column("siteId", .text).notNull()
+                    .references("sites", onDelete: .cascade)
+                t.column("reporterId", .text).notNull().defaults(to: "")
+                t.column("visibility", .double)
+                t.column("current", .text)
+                t.column("temperature", .double)
+                t.column("surfaceConditions", .text)
+                t.column("notes", .text)
+                t.column("reportedAt", .datetime).notNull()
+                t.column("createdAt", .datetime).notNull()
+                t.column("source", .text).notNull().defaults(to: "quickReport")
+            }
+            try db.create(
+                index: "idx_condition_reports_site_date",
+                on: "condition_reports",
+                columns: ["siteId", "reportedAt"]
+            )
+            try db.create(
+                index: "idx_condition_reports_reporter",
+                on: "condition_reports",
+                columns: ["reporterId", "siteId"]
+            )
+        }
+
         // Run migrations
         try migrator.migrate(writer)
     }

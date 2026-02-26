@@ -16,12 +16,17 @@ public class UDDFImporter: NSObject, XMLParserDelegate {
     // Current dive being parsed
     private var currentDiveDate: Date?
     private var currentMaxDepth: Double?
+    private var currentAverageDepth: Double?
     private var currentBottomTime: Int?
     private var currentTemperature: Double?
+    private var currentVisibility: Double?
     private var currentStartPressure: Int?
     private var currentEndPressure: Int?
     private var currentNotes: String?
     private var currentSiteName: String?
+    private var currentSiteLatitude: Double?
+    private var currentSiteLongitude: Double?
+    private var currentBuddy: String?
 
     // Dive sites from file
     private var diveSites: [String: String] = [:] // id -> name
@@ -133,6 +138,31 @@ public class UDDFImporter: NSObject, XMLParserDelegate {
                 currentMaxDepth = depth
             }
 
+        case "averagedepth":
+            if let depth = Double(trimmedValue) {
+                currentAverageDepth = depth
+            }
+
+        case "visibility":
+            if let vis = Double(trimmedValue) {
+                currentVisibility = vis
+            }
+
+        case "buddy":
+            if inDive && !trimmedValue.isEmpty {
+                currentBuddy = trimmedValue
+            }
+
+        case "latitude":
+            if inDiveSite, let lat = Double(trimmedValue) {
+                currentSiteLatitude = lat
+            }
+
+        case "longitude":
+            if inDiveSite, let lon = Double(trimmedValue) {
+                currentSiteLongitude = lon
+            }
+
         case "diveduration":
             // UDDF stores duration in seconds
             if let seconds = Double(trimmedValue) {
@@ -179,11 +209,14 @@ public class UDDFImporter: NSObject, XMLParserDelegate {
     private func resetCurrentDive() {
         currentDiveDate = nil
         currentMaxDepth = nil
+        currentAverageDepth = nil
         currentBottomTime = nil
         currentTemperature = nil
+        currentVisibility = nil
         currentStartPressure = nil
         currentEndPressure = nil
         currentNotes = nil
+        currentBuddy = nil
         currentSiteRefId = nil
     }
 
@@ -195,27 +228,49 @@ public class UDDFImporter: NSObject, XMLParserDelegate {
             return
         }
 
-        // Resolve site
+        // Resolve site by name, then GPS proximity
         var siteId: String?
+        var pendingLat: Double?
+        var pendingLon: Double?
+
         if let refId = currentSiteRefId, let siteName = diveSites[refId] {
-            // Try to match site by name
             if let site = try? siteRepository.search(query: siteName).first {
                 siteId = site.id
             }
         }
 
+        // Try GPS proximity if no name match
+        if siteId == nil, let lat = currentSiteLatitude, let lon = currentSiteLongitude {
+            if let site = try? siteRepository.findNearest(
+                latitude: lat, longitude: lon, maxDistanceKm: 2.0
+            ) {
+                siteId = site.id
+            } else {
+                pendingLat = lat
+                pendingLon = lon
+            }
+        }
+
+        // Build notes with buddy info
+        var allNotes = [String]()
+        if let n = currentNotes { allNotes.append(n) }
+        if let b = currentBuddy { allNotes.append("Buddy: \(b)") }
+
         let dive = DiveLog(
             siteId: siteId,
+            pendingLatitude: pendingLat,
+            pendingLongitude: pendingLon,
             date: date,
             startTime: date,
             endTime: date.addingTimeInterval(TimeInterval(bottomTime * 60)),
             maxDepth: maxDepth,
+            averageDepth: currentAverageDepth,
             bottomTime: bottomTime,
             startPressure: currentStartPressure ?? 200,
             endPressure: currentEndPressure ?? 50,
             temperature: currentTemperature ?? 26.0,
-            visibility: 15.0,  // Not typically in UDDF
-            notes: currentNotes ?? ""
+            visibility: currentVisibility ?? 15.0,
+            notes: allNotes.joined(separator: "\n")
         )
 
         dives.append(dive)

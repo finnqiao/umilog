@@ -876,4 +876,33 @@ public final class SiteRepository {
             }
         }
     }
+
+    // MARK: - GPS Proximity Search
+
+    /// Find the nearest site to given coordinates within a max distance.
+    /// Uses the Haversine approximation via SQLite math.
+    public func findNearest(latitude: Double, longitude: Double, maxDistanceKm: Double) throws -> DiveSite? {
+        try database.read { db in
+            // Approximate distance using equirectangular projection (good enough for < 50km)
+            let latDeg = maxDistanceKm / 111.0  // 1 degree lat ≈ 111km
+            let lonDeg = maxDistanceKm / (111.0 * cos(latitude * .pi / 180))
+
+            let sql = """
+            SELECT *,
+                   ((\(latitude) - latitude) * (\(latitude) - latitude) +
+                    (\(longitude) - longitude) * (\(longitude) - longitude) *
+                    \(cos(latitude * .pi / 180) * cos(latitude * .pi / 180))) as dist_sq
+            FROM sites
+            WHERE latitude BETWEEN ? AND ?
+              AND longitude BETWEEN ? AND ?
+            ORDER BY dist_sq ASC
+            LIMIT 1
+            """
+            let args: [DatabaseValueConvertible] = [
+                latitude - latDeg, latitude + latDeg,
+                longitude - lonDeg, longitude + lonDeg
+            ]
+            return try DiveSite.fetchOne(db, sql: sql, arguments: StatementArguments(args))
+        }
+    }
 }

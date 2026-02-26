@@ -197,7 +197,7 @@ public struct ImportFlowView: View {
                     Text("Import Dive Logs")
                         .font(.title2.bold())
 
-                    Text("Import dives from CSV or UDDF files exported from other dive log applications or dive computers.")
+                    Text("Import dives from CSV, UDDF, or Subsurface files exported from other dive log applications or dive computers.")
                         .font(.body)
                         .foregroundStyle(.secondary)
                         .multilineTextAlignment(.center)
@@ -211,6 +211,7 @@ public struct ImportFlowView: View {
 
                     FormatRow(icon: "doc.text", title: "CSV", description: "Comma-separated values with headers")
                     FormatRow(icon: "doc.richtext", title: "UDDF", description: "Universal Dive Data Format (XML)")
+                    FormatRow(icon: "doc.richtext", title: "Subsurface", description: "Subsurface dive log (.ssrf, .xml)")
                 }
                 .padding()
                 .background(Color(.secondarySystemGroupedBackground))
@@ -281,9 +282,22 @@ public struct ImportFlowView: View {
                     let fileName = url.lastPathComponent.lowercased()
 
                     let parseResult: CSVImporter.ImportResult
-                    if fileName.hasSuffix(".uddf") || fileName.hasSuffix(".xml") {
+                    if fileName.hasSuffix(".ssrf") {
+                        let importer = SubsurfaceImporter(siteRepository: siteRepository)
+                        parseResult = try importer.parse(data: data)
+                    } else if fileName.hasSuffix(".uddf") {
                         let importer = UDDFImporter(siteRepository: siteRepository)
                         parseResult = try importer.parse(data: data)
+                    } else if fileName.hasSuffix(".xml") {
+                        // Detect format: check for Subsurface or UDDF root element
+                        let xmlString = String(data: data.prefix(500), encoding: .utf8) ?? ""
+                        if xmlString.contains("<divelog") || xmlString.contains("subsurface") {
+                            let importer = SubsurfaceImporter(siteRepository: siteRepository)
+                            parseResult = try importer.parse(data: data)
+                        } else {
+                            let importer = UDDFImporter(siteRepository: siteRepository)
+                            parseResult = try importer.parse(data: data)
+                        }
                     } else {
                         parseResult = try CSVImporter.parse(data: data, siteRepository: siteRepository)
                     }
