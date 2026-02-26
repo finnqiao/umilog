@@ -389,6 +389,7 @@ targets:
       - target: UmiDesignSystem
       - target: UmiCoreKit
       - target: UmiDB
+      - target: DiveMap
       - package: GRDB
     settings:
       base:

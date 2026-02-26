@@ -164,6 +164,10 @@ extension AppDatabase {
     public var siteRepository: SiteRepository {
         SiteRepository(database: self)
     }
+
+    public var conditionReportRepository: ConditionReportRepository {
+        ConditionReportRepository(database: self)
+    }
 }
 
 // MARK: - User Data Management

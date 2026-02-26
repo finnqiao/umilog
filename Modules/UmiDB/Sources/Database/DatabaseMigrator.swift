@@ -538,6 +538,7 @@ public enum DatabaseMigrator {
             """)
         }
 
+<<<<<<< HEAD
         // MARK: - v10: Curated Site Metadata + Alias Search
         migrator.registerMigration("v10_curated_site_metadata") { db in
             try db.alter(table: "sites") { t in

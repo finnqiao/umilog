@@ -25,6 +25,8 @@ struct InspectContent: View {
     @State private var isUpdatingWishlist = false
     @State private var wishlistError: String?
     @State private var showingLogWizard = false
+    @State private var showingConditionReport = false
+    @State private var conditionSummary: SiteConditionSummary?
     @State private var mediaURL: URL?
 
     // MARK: - Init
@@ -89,6 +91,13 @@ struct InspectContent: View {
             .sheet(isPresented: $showingLogWizard) {
                 LiveLogWizardView(initialSite: site)
             }
+            .sheet(isPresented: $showingConditionReport) {
+                QuickReportSheet(
+                    siteId: site.id,
+                    siteName: site.name,
+                    onDismiss: { showingConditionReport = false }
+                )
+            }
             .alert("Wishlist Error", isPresented: Binding(
                 get: { wishlistError != nil },
                 set: { if !$0 { wishlistError = nil } }
@@ -133,9 +142,22 @@ struct InspectContent: View {
                 .background(Color.abyss.opacity(0.7))
                 .clipShape(Capsule())
                 .padding(10)
+
+            // Condition badge (bottom-right)
+            if let summary = conditionSummary {
+                VStack {
+                    Spacer()
+                    HStack {
+                        Spacer()
+                        SiteConditionBadge(summary: summary)
+                    }
+                }
+                .padding(10)
+            }
         }
         .task(id: site.id) {
             await loadMedia(for: site.id)
+            await loadConditions(for: site.id)
         }
     }
 
@@ -151,6 +173,20 @@ struct InspectContent: View {
             }
         } catch {
             mediaURL = nil
+        }
+    }
+
+    // MARK: - Conditions Loading
+
+    private func loadConditions(for siteId: String) async {
+        let repo = AppDatabase.shared.conditionReportRepository
+        do {
+            let summary = try repo.summary(siteId: siteId)
+            await MainActor.run {
+                conditionSummary = summary
+            }
+        } catch {
+            conditionSummary = nil
         }
     }
 
@@ -229,6 +265,16 @@ struct InspectContent: View {
                 isPrimary: false
             ) {
                 onOpenPlan(site.id)
+            }
+
+            // Report conditions button
+            ActionButton(
+                icon: "cloud.sun",
+                title: "Report",
+                isActive: false,
+                isPrimary: false
+            ) {
+                showingConditionReport = true
             }
 
             // Log button (primary)
