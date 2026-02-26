@@ -108,10 +108,19 @@ public struct DiveMapViewport: Equatable {
 public struct DiveMapCamera {
     public let center: CLLocationCoordinate2D
     public let zoomLevel: Double
+    public let pitch: Double
+    public let bearing: Double
 
-    public init(center: CLLocationCoordinate2D, zoomLevel: Double) {
+    public init(
+        center: CLLocationCoordinate2D,
+        zoomLevel: Double,
+        pitch: Double = 0,
+        bearing: Double = 0
+    ) {
         self.center = center
         self.zoomLevel = zoomLevel
+        self.pitch = pitch
+        self.bearing = bearing
     }
 }
 
@@ -119,7 +128,9 @@ extension DiveMapCamera: Equatable {
     public static func == (lhs: DiveMapCamera, rhs: DiveMapCamera) -> Bool {
         lhs.center.latitude == rhs.center.latitude &&
         lhs.center.longitude == rhs.center.longitude &&
-        lhs.zoomLevel == rhs.zoomLevel
+        lhs.zoomLevel == rhs.zoomLevel &&
+        lhs.pitch == rhs.pitch &&
+        lhs.bearing == rhs.bearing
     }
 }
 
@@ -181,7 +192,9 @@ public final class MapVC: UIViewController, MLNMapViewDelegate, UIGestureRecogni
             if let last = lastSetCamera,
                abs(last.center.latitude - camera.center.latitude) < 0.001 &&
                abs(last.center.longitude - camera.center.longitude) < 0.001 &&
-               abs(last.zoomLevel - camera.zoomLevel) < 0.1 {
+               abs(last.zoomLevel - camera.zoomLevel) < 0.1 &&
+               abs(last.pitch - camera.pitch) < 0.5 &&
+               abs(last.bearing - camera.bearing) < 0.5 {
                 return
             }
             lastSetCamera = camera
@@ -210,6 +223,7 @@ public final class MapVC: UIViewController, MLNMapViewDelegate, UIGestureRecogni
     private var siteSource: MLNShapeSource?
     private var pendingStyleWork: DispatchWorkItem?
     private let heatmapLayerManager = HeatmapLayerManager()
+    private let terrainLayerManager = TerrainLayerManager()
 
     public var heatmapPoints: [DiveMapHeatmapPoint] = [] {
         didSet {
@@ -221,6 +235,20 @@ public final class MapVC: UIViewController, MLNMapViewDelegate, UIGestureRecogni
         didSet {
             applyLayerSettings()
             updateHeatmapLayerIfNeeded()
+        }
+    }
+
+    public var terrainEnabled: Bool = false {
+        didSet {
+            guard oldValue != terrainEnabled else { return }
+            updateTerrainIfNeeded()
+        }
+    }
+
+    public var terrainExaggeration: Double = 1.5 {
+        didSet {
+            guard oldValue != terrainExaggeration else { return }
+            updateTerrainIfNeeded()
         }
     }
 
@@ -257,7 +285,7 @@ public final class MapVC: UIViewController, MLNMapViewDelegate, UIGestureRecogni
         map.allowsZooming = true
         map.allowsScrolling = true
         map.allowsRotating = true
-        map.allowsTilting = false
+        map.allowsTilting = true
         
         view.addSubview(map)
 
@@ -279,7 +307,7 @@ public final class MapVC: UIViewController, MLNMapViewDelegate, UIGestureRecogni
             center: CLLocationCoordinate2D(latitude: 8.0, longitude: 98.3),
             zoomLevel: 8.0
         )
-        map.setCenter(camera.center, zoomLevel: camera.zoomLevel, animated: false)
+        setCamera(camera, animated: false)
         logger.log("camera_set lat=\(camera.center.latitude, privacy: .public) lon=\(camera.center.longitude, privacy: .public) zoom=\(camera.zoomLevel, privacy: .public)")
 
         logger.log("style_initial style=\(initialURL.lastPathComponent, privacy: .public) offline=\(self.didFallbackToOfflineStyle, privacy: .public)")
@@ -296,8 +324,8 @@ public final class MapVC: UIViewController, MLNMapViewDelegate, UIGestureRecogni
         let mlnCamera = MLNMapCamera(
             lookingAtCenter: camera.center,
             altitude: altitudeForZoom(camera.zoomLevel),
-            pitch: 0,
-            heading: map.camera.heading
+            pitch: camera.pitch,
+            heading: camera.bearing
         )
         if animated {
             map.fly(to: mlnCamera, withDuration: 0.4, completionHandler: nil)
@@ -348,6 +376,7 @@ public final class MapVC: UIViewController, MLNMapViewDelegate, UIGestureRecogni
         updateAnnotationsIfReady()
         applyLayerSettings()
         updateHeatmapLayerIfNeeded()
+        updateTerrainIfNeeded()
         emitViewportChange()
     }
 
@@ -715,6 +744,15 @@ public final class MapVC: UIViewController, MLNMapViewDelegate, UIGestureRecogni
         }
     }
 
+    private func updateTerrainIfNeeded() {
+        guard styleIsReady, map != nil else { return }
+        terrainLayerManager.update(
+            on: map,
+            enabled: terrainEnabled,
+            exaggeration: terrainExaggeration
+        )
+    }
+
     private func zoomIntoCluster(at point: CGPoint) {
         let coordinate = map.convert(point, toCoordinateFrom: map)
 
@@ -734,7 +772,7 @@ public final class MapVC: UIViewController, MLNMapViewDelegate, UIGestureRecogni
         let mlnCamera = MLNMapCamera(
             lookingAtCenter: coordinate,
             altitude: altitudeForZoom(targetZoom),
-            pitch: 0,
+            pitch: map.camera.pitch,
             heading: map.camera.heading
         )
 

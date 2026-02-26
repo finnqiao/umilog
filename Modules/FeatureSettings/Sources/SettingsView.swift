@@ -67,6 +67,22 @@ public struct SettingsView: View {
                     Label("Import Data", systemImage: "square.and.arrow.down")
                 }
             }
+
+            Section("Integrations") {
+                NavigationLink {
+                    DiveComputerSyncView()
+                } label: {
+                    Label("Dive Computer", systemImage: "dot.radiowaves.left.and.right")
+                }
+            }
+
+            Section("Equipment") {
+                NavigationLink {
+                    GearListView()
+                } label: {
+                    Label("My Gear", systemImage: "wrench.and.screwdriver")
+                }
+            }
             
             Section("About") {
                 HStack {

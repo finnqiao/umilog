@@ -138,4 +138,23 @@ enum TestDatabase {
             updatedAt: Date()
         )
     }
+
+    /// Create a test gear item
+    static func makeGearItem(
+        id: String = UUID().uuidString,
+        name: String = "Test Regulator",
+        category: GearCategory = .regulator,
+        isActive: Bool = true,
+        nextServiceDate: Date? = nil
+    ) -> GearItem {
+        GearItem(
+            id: id,
+            name: name,
+            category: category,
+            brand: "Test Brand",
+            model: "Model X",
+            nextServiceDate: nextServiceDate,
+            isActive: isActive
+        )
+    }
 }

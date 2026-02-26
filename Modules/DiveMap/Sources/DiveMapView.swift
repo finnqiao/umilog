@@ -27,6 +27,8 @@ public struct DiveMapView: UIViewControllerRepresentable {
     public var annotations: [DiveMapAnnotation]
     public var heatmapPoints: [DiveMapHeatmapPoint]
     public var showHeatmap: Bool
+    public var terrainEnabled: Bool
+    public var terrainExaggeration: Double
     public var initialCamera: DiveMapCamera
     public var cameraUpdateToken: Int
     public var layerSettings: DiveMapLayerSettings
@@ -47,6 +49,8 @@ public struct DiveMapView: UIViewControllerRepresentable {
         annotations: [DiveMapAnnotation],
         heatmapPoints: [DiveMapHeatmapPoint] = [],
         showHeatmap: Bool = false,
+        terrainEnabled: Bool = false,
+        terrainExaggeration: Double = 1.5,
         initialCamera: DiveMapCamera = DiveMapCamera(
             center: CLLocationCoordinate2D(latitude: 0.0, longitude: 120.0),
             zoomLevel: 4.0
@@ -61,6 +65,8 @@ public struct DiveMapView: UIViewControllerRepresentable {
         self.annotations = annotations
         self.heatmapPoints = heatmapPoints
         self.showHeatmap = showHeatmap
+        self.terrainEnabled = terrainEnabled
+        self.terrainExaggeration = terrainExaggeration
         self.initialCamera = initialCamera
         self.cameraUpdateToken = cameraUpdateToken
         self.layerSettings = layerSettings
@@ -86,6 +92,8 @@ public struct DiveMapView: UIViewControllerRepresentable {
         controller.annotations = annotations
         controller.heatmapPoints = heatmapPoints
         controller.showHeatmap = showHeatmap
+        controller.terrainEnabled = terrainEnabled
+        controller.terrainExaggeration = terrainExaggeration
         return controller
     }
 
@@ -102,6 +110,8 @@ public struct DiveMapView: UIViewControllerRepresentable {
         uiViewController.layerSettings = layerSettings
         uiViewController.heatmapPoints = heatmapPoints
         uiViewController.showHeatmap = showHeatmap
+        uiViewController.terrainEnabled = terrainEnabled
+        uiViewController.terrainExaggeration = terrainExaggeration
         uiViewController.update(annotations: annotations)
     }
 }

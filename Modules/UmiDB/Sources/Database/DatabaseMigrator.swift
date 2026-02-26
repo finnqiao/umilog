@@ -579,6 +579,65 @@ public enum DatabaseMigrator {
             try db.create(index: "idx_sighting_photos_sort", on: "sighting_photos", columns: ["sightingId", "sortOrder"])
         }
 
+        // MARK: - v11: BLE Dive Profiles + Gear Inventory + AI Metadata
+        migrator.registerMigration("v11_ble_profiles_gear_ai") { db in
+            try db.create(table: "dive_profiles") { t in
+                t.column("id", .text).primaryKey()
+                t.column("diveId", .text).notNull().unique()
+                    .references("dives", onDelete: .cascade)
+                t.column("samples", .blob).notNull()
+                t.column("sampleIntervalSec", .integer)
+                t.column("sampleCount", .integer).notNull()
+                t.column("source", .text).notNull().defaults(to: "unknown")
+                t.column("computerSerial", .text)
+                t.column("computerModel", .text)
+                t.column("createdAt", .datetime).notNull()
+            }
+            try db.create(index: "idx_dive_profiles_dive", on: "dive_profiles", columns: ["diveId"], unique: true)
+
+            try db.create(table: "gear_items") { t in
+                t.column("id", .text).primaryKey()
+                t.column("name", .text).notNull()
+                t.column("category", .text).notNull()
+                t.column("brand", .text)
+                t.column("model", .text)
+                t.column("serialNumber", .text)
+                t.column("purchaseDate", .date)
+                t.column("lastServiceDate", .date)
+                t.column("nextServiceDate", .date)
+                t.column("serviceIntervalMonths", .integer)
+                t.column("notes", .text)
+                t.column("isActive", .boolean).notNull().defaults(to: true)
+                t.column("totalDiveCount", .integer).notNull().defaults(to: 0)
+                t.column("createdAt", .datetime).notNull()
+                t.column("updatedAt", .datetime).notNull()
+            }
+            try db.create(index: "idx_gear_items_active", on: "gear_items", columns: ["isActive"])
+            try db.create(index: "idx_gear_items_next_service", on: "gear_items", columns: ["nextServiceDate"])
+
+            try db.create(table: "dive_gear") { t in
+                t.column("diveId", .text).notNull()
+                    .references("dives", onDelete: .cascade)
+                t.column("gearId", .text).notNull()
+                    .references("gear_items", onDelete: .cascade)
+                t.primaryKey(["diveId", "gearId"], onConflict: .replace)
+            }
+            try db.create(index: "idx_dive_gear_gear", on: "dive_gear", columns: ["gearId"])
+
+            try db.alter(table: "dives") { t in
+                t.add(column: "gasMixesJson", .text)
+                t.add(column: "computerDiveNumber", .integer)
+                t.add(column: "surfaceInterval", .integer)
+                t.add(column: "safetyStopPerformed", .boolean)
+            }
+            try db.create(index: "idx_dives_computer_number", on: "dives", columns: ["computerDiveNumber"])
+
+            try db.alter(table: "sightings") { t in
+                t.add(column: "aiConfidence", .double)
+                t.add(column: "aiSuggestionsJson", .text)
+            }
+        }
+
         // Run migrations
         try migrator.migrate(writer)
     }

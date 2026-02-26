@@ -176,6 +176,18 @@ extension AppDatabase {
     public var sightingPhotoRepository: SightingPhotoRepository {
         SightingPhotoRepository(database: self)
     }
+
+    public var gearRepository: GearRepository {
+        GearRepository(database: self)
+    }
+
+    public var diveGearRepository: DiveGearRepository {
+        DiveGearRepository(database: self)
+    }
+
+    public var diveProfileRepository: DiveProfileRepository {
+        DiveProfileRepository(database: self)
+    }
 }
 
 // MARK: - User Data Management
@@ -187,7 +199,10 @@ extension AppDatabase {
             // Delete user content tables (order matters due to foreign keys)
             try db.execute(sql: "DELETE FROM sighting_photos")
             try db.execute(sql: "DELETE FROM sightings")
+            try db.execute(sql: "DELETE FROM dive_profiles")
+            try db.execute(sql: "DELETE FROM dive_gear")
             try db.execute(sql: "DELETE FROM dives")
+            try db.execute(sql: "DELETE FROM gear_items")
             try db.execute(sql: "DELETE FROM certifications")
 
             // Note: We keep sites, species, geographic data as they are seed data

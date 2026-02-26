@@ -23,6 +23,10 @@ public struct DiveLog: Codable, Identifiable {
     public let instructorName: String?
     public let instructorNumber: String?
     public let signed: Bool
+    public let gasMixesJson: String?
+    public let computerDiveNumber: Int?
+    public let surfaceInterval: Int?
+    public let safetyStopPerformed: Bool?
     public let createdAt: Date
     public let updatedAt: Date
 
@@ -52,6 +56,10 @@ public struct DiveLog: Codable, Identifiable {
         instructorName: String? = nil,
         instructorNumber: String? = nil,
         signed: Bool = false,
+        gasMixesJson: String? = nil,
+        computerDiveNumber: Int? = nil,
+        surfaceInterval: Int? = nil,
+        safetyStopPerformed: Bool? = nil,
         createdAt: Date = Date(),
         updatedAt: Date = Date()
     ) {
@@ -75,6 +83,10 @@ public struct DiveLog: Codable, Identifiable {
         self.instructorName = instructorName
         self.instructorNumber = instructorNumber
         self.signed = signed
+        self.gasMixesJson = gasMixesJson
+        self.computerDiveNumber = computerDiveNumber
+        self.surfaceInterval = surfaceInterval
+        self.safetyStopPerformed = safetyStopPerformed
         self.createdAt = createdAt
         self.updatedAt = updatedAt
     }
@@ -119,6 +131,10 @@ extension DiveLog: FetchableRecord, PersistableRecord {
         static let instructorName = Column(CodingKeys.instructorName)
         static let instructorNumber = Column(CodingKeys.instructorNumber)
         static let signed = Column(CodingKeys.signed)
+        static let gasMixesJson = Column(CodingKeys.gasMixesJson)
+        static let computerDiveNumber = Column(CodingKeys.computerDiveNumber)
+        static let surfaceInterval = Column(CodingKeys.surfaceInterval)
+        static let safetyStopPerformed = Column(CodingKeys.safetyStopPerformed)
         static let createdAt = Column(CodingKeys.createdAt)
         static let updatedAt = Column(CodingKeys.updatedAt)
     }
@@ -128,4 +144,7 @@ extension DiveLog: FetchableRecord, PersistableRecord {
 extension DiveLog {
     public static let site = belongsTo(DiveSite.self)
     public static let sightings = hasMany(WildlifeSighting.self)
+    public static let diveGear = hasMany(DiveGear.self)
+    public static let gearItems = hasMany(GearItem.self, through: diveGear, using: DiveGear.gear)
+    public static let profile = hasOne(DiveProfile.self)
 }

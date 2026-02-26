@@ -137,6 +137,10 @@ public final class DiveRepository {
                 instructorName: dive.instructorName,
                 instructorNumber: dive.instructorNumber,
                 signed: dive.signed,
+                gasMixesJson: dive.gasMixesJson,
+                computerDiveNumber: dive.computerDiveNumber,
+                surfaceInterval: dive.surfaceInterval,
+                safetyStopPerformed: dive.safetyStopPerformed,
                 createdAt: dive.createdAt,
                 updatedAt: Date()
             )

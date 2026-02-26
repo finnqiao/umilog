@@ -391,6 +391,10 @@ public struct NewMapView: View {
     @State private var myMapDisplayMode: MyMapDisplayMode = .sites
     @State private var heatmapPoints: [DiveHeatmapPoint] = []
     @State private var heatmapSummary: DiveHeatmapSummary?
+    @State private var terrainEnabled = false
+    @State private var terrainPitch: Double = 55
+    @State private var terrainBearing: Double = 320
+    @State private var terrainExaggeration: Double = 1.6
 
     // Coming Soon toast state
     @State private var showingComingSoonToast = false
@@ -947,7 +951,15 @@ public struct NewMapView: View {
         let baseZoom = 8.0 - log2(normalizedLatitude / denominator)
         let approxZoom = max(1.5, min(14.0, baseZoom))
         let zoomLevel = lastViewport?.zoomLevel ?? approxZoom
-        return DiveMapCamera(center: mapRegion.center, zoomLevel: zoomLevel)
+        let terrainActive = terrainEnabled && !isHeatmapModeActive && !useMapKitFallback
+        let pitch = terrainActive ? terrainPitch : 0
+        let bearing = terrainActive ? terrainBearing : 0
+        return DiveMapCamera(
+            center: mapRegion.center,
+            zoomLevel: zoomLevel,
+            pitch: pitch,
+            bearing: bearing
+        )
     }
     
     private var isOffCenter: Bool {
@@ -997,6 +1009,11 @@ public struct NewMapView: View {
             .onChange(of: myMapDisplayMode) { _, newValue in
                 if newValue == .heatmap {
                     refreshHeatmapData()
+                }
+            }
+            .onChange(of: useMapKitFallback) { _, newValue in
+                if newValue {
+                    terrainEnabled = false
                 }
             }
             .onChange(of: surfaceDetent) { _, newDetent in
@@ -1756,6 +1773,8 @@ public struct NewMapView: View {
             annotations: mapLibreAnnotations,
             heatmapPoints: diveMapHeatmapPoints,
             showHeatmap: isHeatmapModeActive,
+            terrainEnabled: terrainEnabled && !isHeatmapModeActive,
+            terrainExaggeration: terrainExaggeration,
             initialCamera: diveMapCamera,
             cameraUpdateToken: cameraUpdateToken,
             layerSettings: DiveMapLayerSettings(
@@ -1930,10 +1949,17 @@ public struct NewMapView: View {
             .allowsHitTesting(false)
         }
         .overlay(alignment: .topLeading) {
-            if scope == .saved && !isModalMode(uiViewModel.mode) {
-                myMapDisplayToggle
-                    .padding(.leading, safeAreaInsets.leading + 16)
-                    .padding(.top, safeAreaInsets.top + 8)
+            if !isModalMode(uiViewModel.mode) {
+                VStack(alignment: .leading, spacing: 8) {
+                    if scope == .saved {
+                        myMapDisplayToggle
+                    }
+                    if !useMapKitFallback {
+                        terrainControlPanel
+                    }
+                }
+                .padding(.leading, safeAreaInsets.leading + 16)
+                .padding(.top, safeAreaInsets.top + 8)
             }
         }
         .overlay(alignment: .top) {
@@ -1974,6 +2000,56 @@ public struct NewMapView: View {
         )
         .accessibilityLabel("My map display mode")
         .accessibilityHint("Switch between site pins and dive heat map")
+    }
+
+    private var terrainControlPanel: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Button {
+                terrainEnabled.toggle()
+            } label: {
+                HStack(spacing: 8) {
+                    Image(systemName: terrainEnabled ? "mountain.2.fill" : "mountain.2")
+                    Text(terrainEnabled ? "3D Terrain On" : "3D Terrain")
+                        .font(.caption.weight(.semibold))
+                }
+                .padding(.horizontal, 12)
+                .padding(.vertical, 8)
+                .background(
+                    RoundedRectangle(cornerRadius: 12, style: .continuous)
+                        .fill(.ultraThinMaterial)
+                )
+            }
+            .buttonStyle(.plain)
+
+            if terrainEnabled {
+                VStack(spacing: 8) {
+                    HStack(spacing: 8) {
+                        Image(systemName: "scope")
+                            .font(.caption2)
+                            .foregroundStyle(.secondary)
+                        Slider(value: $terrainBearing, in: 0...360)
+                    }
+                    HStack(spacing: 8) {
+                        Image(systemName: "angle")
+                            .font(.caption2)
+                            .foregroundStyle(.secondary)
+                        Slider(value: $terrainPitch, in: 0...80)
+                    }
+                    HStack(spacing: 8) {
+                        Image(systemName: "waveform.path.ecg")
+                            .font(.caption2)
+                            .foregroundStyle(.secondary)
+                        Slider(value: $terrainExaggeration, in: 0.8...3.0)
+                    }
+                }
+                .padding(10)
+                .frame(width: 220)
+                .background(
+                    RoundedRectangle(cornerRadius: 12, style: .continuous)
+                        .fill(.ultraThinMaterial)
+                )
+            }
+        }
     }
 
     private var inspectedSiteName: String? {
