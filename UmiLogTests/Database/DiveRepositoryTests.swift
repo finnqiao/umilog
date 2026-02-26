@@ -103,6 +103,41 @@ final class DiveRepositoryTests: XCTestCase {
         XCTAssertEqual(stats.maxDepth, 30.0)
     }
 
+    func testFetchHeatmapPoints_includesSiteAndGPSOnlyDives() throws {
+        try diveRepository.create(TestDatabase.makeDive(id: "site-1", siteId: testSite.id))
+        try diveRepository.create(TestDatabase.makeDive(id: "site-2", siteId: testSite.id))
+
+        let gpsDive = DiveLog(
+            id: "gps-1",
+            siteId: nil,
+            pendingLatitude: 10.1234,
+            pendingLongitude: -20.5678,
+            date: Date(),
+            startTime: Date(),
+            endTime: Date().addingTimeInterval(2400),
+            maxDepth: 18,
+            averageDepth: 12,
+            bottomTime: 40,
+            startPressure: 200,
+            endPressure: 70,
+            temperature: 26,
+            visibility: 15,
+            current: .none,
+            conditions: .good,
+            notes: ""
+        )
+        try diveRepository.create(gpsDive)
+
+        let points = try diveRepository.fetchHeatmapPoints()
+        let sitePoint = points.first { $0.siteName == testSite.name }
+        let gpsPoint = points.first {
+            abs($0.latitude - 10.1234) < 0.0001 && abs($0.longitude + 20.5678) < 0.0001
+        }
+
+        XCTAssertEqual(sitePoint?.diveCount, 2)
+        XCTAssertEqual(gpsPoint?.diveCount, 1)
+    }
+
     // MARK: - Date Range Tests
 
     func testFetchInDateRange_filtersCorrectly() throws {

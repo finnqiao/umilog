@@ -538,6 +538,47 @@ public enum DatabaseMigrator {
             """)
         }
 
+        // MARK: - v10: Certifications + Sighting Photos
+        migrator.registerMigration("v10_certifications_sighting_photos") { db in
+            try db.create(table: "certifications") { t in
+                t.column("id", .text).primaryKey()
+                t.column("agency", .text).notNull()
+                t.column("agencyOther", .text)
+                t.column("level", .text).notNull()
+                t.column("certNumber", .text)
+                t.column("certDate", .datetime)
+                t.column("expiryDate", .datetime)
+                t.column("instructorName", .text)
+                t.column("instructorNumber", .text)
+                t.column("divesAtCert", .integer)
+                t.column("cardImageFront", .text)
+                t.column("cardImageBack", .text)
+                t.column("notes", .text)
+                t.column("isPrimary", .boolean).notNull().defaults(to: false)
+                t.column("createdAt", .datetime).notNull()
+                t.column("updatedAt", .datetime).notNull()
+            }
+            try db.create(index: "idx_certifications_primary", on: "certifications", columns: ["isPrimary"])
+            try db.create(index: "idx_certifications_updated_at", on: "certifications", columns: ["updatedAt"])
+
+            try db.create(table: "sighting_photos") { t in
+                t.column("id", .text).primaryKey()
+                t.column("sightingId", .text).notNull()
+                    .references("sightings", onDelete: .cascade)
+                t.column("filename", .text).notNull()
+                t.column("thumbnailFilename", .text).notNull()
+                t.column("width", .integer).notNull()
+                t.column("height", .integer).notNull()
+                t.column("capturedAt", .datetime)
+                t.column("latitude", .double)
+                t.column("longitude", .double)
+                t.column("sortOrder", .integer).notNull().defaults(to: 0)
+                t.column("createdAt", .datetime).notNull()
+            }
+            try db.create(index: "idx_sighting_photos_sighting", on: "sighting_photos", columns: ["sightingId"])
+            try db.create(index: "idx_sighting_photos_sort", on: "sighting_photos", columns: ["sightingId", "sortOrder"])
+        }
+
         // Run migrations
         try migrator.migrate(writer)
     }

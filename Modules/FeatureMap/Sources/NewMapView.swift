@@ -8,6 +8,11 @@ import UmiCoreKit
 import UmiLocationKit
 import UIKit
 
+private enum MyMapDisplayMode {
+    case sites
+    case heatmap
+}
+
 // MARK: - Native MapKit View (default engine for iOS 18+)
 
 struct NativeMapView: UIViewRepresentable {
@@ -383,6 +388,9 @@ public struct NewMapView: View {
     @State private var scope: Scope = .discover
     @State private var entityTab: EntityTab = .sites
     @State private var mySitesTab: MySitesTab = .saved
+    @State private var myMapDisplayMode: MyMapDisplayMode = .sites
+    @State private var heatmapPoints: [DiveHeatmapPoint] = []
+    @State private var heatmapSummary: DiveHeatmapSummary?
 
     // Coming Soon toast state
     @State private var showingComingSoonToast = false
@@ -504,6 +512,20 @@ public struct NewMapView: View {
 
     private var currentCountLabel: String {
         scope == .discover ? discoverCountLabel : mySitesCountLabel
+    }
+
+    private var isHeatmapModeActive: Bool {
+        scope == .saved && myMapDisplayMode == .heatmap
+    }
+
+    private var diveMapHeatmapPoints: [DiveMapHeatmapPoint] {
+        heatmapPoints.map { point in
+            DiveMapHeatmapPoint(
+                latitude: point.latitude,
+                longitude: point.longitude,
+                diveCount: point.diveCount
+            )
+        }
     }
 
     private var shouldShowBreadcrumb: Bool {
@@ -972,6 +994,11 @@ public struct NewMapView: View {
             .onChange(of: mySitesTab) { _, newValue in
                 syncFilterLensToMySitesTab(newValue)
             }
+            .onChange(of: myMapDisplayMode) { _, newValue in
+                if newValue == .heatmap {
+                    refreshHeatmapData()
+                }
+            }
             .onChange(of: surfaceDetent) { _, newDetent in
                 if !isModalMode(uiViewModel.mode) {
                     lastNonModalDetent = newDetent
@@ -1067,10 +1094,19 @@ public struct NewMapView: View {
                         isMapInitialized = true
                     }
                 }
+
+                await MainActor.run {
+                    refreshHeatmapData()
+                }
             }
             .onAppear {
                 launchSafeModeEnabled = UserDefaults.standard.bool(forKey: AppConstants.UserDefaultsKeys.launchSafeModeEnabled)
                 updateTabBarVisibility(for: surfaceDetent, mode: uiViewModel.mode)
+            }
+            .onReceive(NotificationCenter.default.publisher(for: .diveLogUpdated)) { _ in
+                if isHeatmapModeActive || heatmapPoints.isEmpty {
+                    refreshHeatmapData()
+                }
             }
             .onReceive(NotificationCenter.default.publisher(for: .launchSafeModeDidChange)) { notification in
                 let enabled = notification.userInfo?["enabled"] as? Bool ?? false
@@ -1098,6 +1134,8 @@ public struct NewMapView: View {
     private var mapView: some View {
         ZStack {
             mapLayer
+            heatmapStatsOverlay
+                .allowsHitTesting(false)
             featuredDestinationOverlay
                 .allowsHitTesting(showFeaturedCard)  // Fix UX-003: Disable hit test when hidden
             unifiedSurfaceOverlay
@@ -1107,6 +1145,57 @@ public struct NewMapView: View {
             comingSoonToastOverlay
                 .allowsHitTesting(showingComingSoonToast)  // Fix UX-003: Disable hit test when hidden
             overlayControls  // Fix UX-003: Render HUD controls LAST so search button is clickable
+        }
+    }
+
+    @ViewBuilder
+    private var heatmapStatsOverlay: some View {
+        if isHeatmapModeActive {
+            VStack {
+                Spacer()
+                HStack {
+                    VStack(alignment: .leading, spacing: 6) {
+                        if useMapKitFallback {
+                            Text("Heat map layer is unavailable in MapKit mode")
+                                .font(.caption2)
+                                .foregroundStyle(Color.amber)
+                        }
+                        if let summary = heatmapSummary, summary.totalDives > 0 {
+                            Text("\(summary.totalDives) dives across \(summary.uniqueSites) hotspots")
+                                .font(.subheadline.weight(.semibold))
+                                .foregroundStyle(Color.foam)
+                            if let mostDived = summary.mostDivedSite {
+                                Text("Most dived: \(mostDived.siteName) (\(mostDived.count))")
+                                    .font(.caption)
+                                    .foregroundStyle(Color.mist)
+                            }
+                            if summary.countries > 0 {
+                                Text("\(summary.countries) countries represented")
+                                    .font(.caption2)
+                                    .foregroundStyle(Color.mist.opacity(0.9))
+                            }
+                        } else {
+                            Text("Heat map ready")
+                                .font(.subheadline.weight(.semibold))
+                                .foregroundStyle(Color.foam)
+                            Text("Log your first dive to see your heat map")
+                                .font(.caption)
+                                .foregroundStyle(Color.mist)
+                        }
+                    }
+                    .padding(.horizontal, 14)
+                    .padding(.vertical, 10)
+                    .background(
+                        RoundedRectangle(cornerRadius: 12, style: .continuous)
+                            .fill(Color.trench.opacity(0.92))
+                    )
+                    Spacer()
+                }
+                .padding(.horizontal, 16)
+                .padding(.bottom, surfaceDetent.height(in: UIScreen.main.bounds.height) + 12)
+            }
+            .transition(.move(edge: .bottom).combined(with: .opacity))
+            .animation(.spring(response: 0.3, dampingFraction: 0.85), value: isHeatmapModeActive)
         }
     }
 
@@ -1665,6 +1754,8 @@ public struct NewMapView: View {
     private var mapLibreView: some View {
         DiveMapView(
             annotations: mapLibreAnnotations,
+            heatmapPoints: diveMapHeatmapPoints,
+            showHeatmap: isHeatmapModeActive,
             initialCamera: diveMapCamera,
             cameraUpdateToken: cameraUpdateToken,
             layerSettings: DiveMapLayerSettings(
@@ -1838,6 +1929,13 @@ public struct NewMapView: View {
             }
             .allowsHitTesting(false)
         }
+        .overlay(alignment: .topLeading) {
+            if scope == .saved && !isModalMode(uiViewModel.mode) {
+                myMapDisplayToggle
+                    .padding(.leading, safeAreaInsets.leading + 16)
+                    .padding(.top, safeAreaInsets.top + 8)
+            }
+        }
         .overlay(alignment: .top) {
             // Popular region chips - shown at world view when surface is peeked
             if shouldShowRegionChips {
@@ -1860,6 +1958,22 @@ public struct NewMapView: View {
             .padding(.trailing, safeAreaInsets.trailing + 16)
             .padding(.top, safeAreaInsets.top + 8)
         }
+    }
+
+    private var myMapDisplayToggle: some View {
+        Picker("My map display", selection: $myMapDisplayMode) {
+            Text("Sites").tag(MyMapDisplayMode.sites)
+            Text("Heat Map").tag(MyMapDisplayMode.heatmap)
+        }
+        .pickerStyle(.segmented)
+        .frame(width: 220)
+        .padding(4)
+        .background(
+            RoundedRectangle(cornerRadius: 12, style: .continuous)
+                .fill(.ultraThinMaterial)
+        )
+        .accessibilityLabel("My map display mode")
+        .accessibilityHint("Switch between site pins and dive heat map")
     }
 
     private var inspectedSiteName: String? {
@@ -2052,6 +2166,18 @@ public struct NewMapView: View {
                 await MainActor.run {
                     lastDiveEndTime = endTime
                 }
+            }
+        }
+    }
+
+    private func refreshHeatmapData() {
+        Task.detached(priority: .userInitiated) {
+            let repository = DiveRepository(database: AppDatabase.shared)
+            let points = try? repository.fetchHeatmapPoints()
+            let summary = try? repository.fetchHeatmapSummary()
+            await MainActor.run {
+                self.heatmapPoints = points ?? []
+                self.heatmapSummary = summary
             }
         }
     }

@@ -164,6 +164,18 @@ extension AppDatabase {
     public var siteRepository: SiteRepository {
         SiteRepository(database: self)
     }
+
+    public var certificationsRepository: CertificationsRepository {
+        CertificationsRepository(database: self)
+    }
+
+    public var sightingsRepository: SightingsRepository {
+        SightingsRepository(database: self)
+    }
+
+    public var sightingPhotoRepository: SightingPhotoRepository {
+        SightingPhotoRepository(database: self)
+    }
 }
 
 // MARK: - User Data Management
@@ -173,8 +185,10 @@ extension AppDatabase {
     public func deleteAllUserData() throws {
         try dbPool.write { db in
             // Delete user content tables (order matters due to foreign keys)
+            try db.execute(sql: "DELETE FROM sighting_photos")
             try db.execute(sql: "DELETE FROM sightings")
             try db.execute(sql: "DELETE FROM dives")
+            try db.execute(sql: "DELETE FROM certifications")
 
             // Note: We keep sites, species, geographic data as they are seed data
             // site_media is also preserved as it's curated content

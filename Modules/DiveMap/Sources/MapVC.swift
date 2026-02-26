@@ -209,6 +209,20 @@ public final class MapVC: UIViewController, MLNMapViewDelegate, UIGestureRecogni
     private var styleIsReady = false
     private var siteSource: MLNShapeSource?
     private var pendingStyleWork: DispatchWorkItem?
+    private let heatmapLayerManager = HeatmapLayerManager()
+
+    public var heatmapPoints: [DiveMapHeatmapPoint] = [] {
+        didSet {
+            updateHeatmapLayerIfNeeded()
+        }
+    }
+
+    public var showHeatmap: Bool = false {
+        didSet {
+            applyLayerSettings()
+            updateHeatmapLayerIfNeeded()
+        }
+    }
 
     public override func viewDidLoad() {
         super.viewDidLoad()
@@ -333,6 +347,7 @@ public final class MapVC: UIViewController, MLNMapViewDelegate, UIGestureRecogni
         styleIsReady = true
         updateAnnotationsIfReady()
         applyLayerSettings()
+        updateHeatmapLayerIfNeeded()
         emitViewportChange()
     }
 
@@ -396,6 +411,7 @@ public final class MapVC: UIViewController, MLNMapViewDelegate, UIGestureRecogni
     // MARK: - Gesture Handling
 
     @objc private func handleMapTap(_ gesture: UITapGestureRecognizer) {
+        guard !showHeatmap else { return }
         let point = gesture.location(in: map)
         // Look for taps on any site layers (by difficulty) and clusters
         let identifiers: Set<String> = [
@@ -638,12 +654,13 @@ public final class MapVC: UIViewController, MLNMapViewDelegate, UIGestureRecogni
             return
         }
 
+        let isHeatmapMode = showHeatmap
         let updateLayers = { [layerSettings] in
             // Toggle cluster visibility
             let clusterIds = ["site-cluster", "site-cluster-count"]
             for id in clusterIds {
                 if let layer = style.layer(withIdentifier: id) {
-                    layer.isVisible = layerSettings.showClusters
+                    layer.isVisible = !isHeatmapMode && layerSettings.showClusters
                 }
             }
 
@@ -656,7 +673,7 @@ public final class MapVC: UIViewController, MLNMapViewDelegate, UIGestureRecogni
             ]
             for id in glowIds {
                 if let layer = style.layer(withIdentifier: id) {
-                    layer.isVisible = layerSettings.showStatusGlows
+                    layer.isVisible = !isHeatmapMode && layerSettings.showStatusGlows
                 }
             }
 
@@ -674,6 +691,11 @@ public final class MapVC: UIViewController, MLNMapViewDelegate, UIGestureRecogni
                 guard let layer = style.layer(withIdentifier: id) as? MLNCircleStyleLayer else { continue }
                 let target = layerSettings.colorByDifficulty ? color : defaultColor
                 layer.circleColor = NSExpression(forConstantValue: target)
+                layer.isVisible = !isHeatmapMode
+            }
+
+            if let selectedLayer = style.layer(withIdentifier: "site-selected") {
+                selectedLayer.isVisible = !isHeatmapMode
             }
         }
 
@@ -681,6 +703,15 @@ public final class MapVC: UIViewController, MLNMapViewDelegate, UIGestureRecogni
             updateLayers()
         } else {
             DispatchQueue.main.async(execute: updateLayers)
+        }
+    }
+
+    private func updateHeatmapLayerIfNeeded() {
+        guard styleIsReady, map != nil else { return }
+        if showHeatmap {
+            heatmapLayerManager.update(points: heatmapPoints, on: map)
+        } else {
+            heatmapLayerManager.remove(from: map)
         }
     }
 

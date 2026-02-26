@@ -3,6 +3,7 @@ import UmiDB
 import UmiDesignSystem
 import UmiCoreKit
 import FeatureLiveLog
+import UmiLocationKit
 import os
 
 /// Content view for Inspect mode in the unified bottom surface.
@@ -26,6 +27,7 @@ struct InspectContent: View {
     @State private var wishlistError: String?
     @State private var showingLogWizard = false
     @State private var mediaURL: URL?
+    @State private var entryModes: [String] = []
 
     // MARK: - Init
 
@@ -88,6 +90,9 @@ struct InspectContent: View {
             }
             .sheet(isPresented: $showingLogWizard) {
                 LiveLogWizardView(initialSite: site)
+            }
+            .task(id: site.id) {
+                await loadEntryModes(for: site.id)
             }
             .alert("Wishlist Error", isPresented: Binding(
                 get: { wishlistError != nil },
@@ -209,36 +214,58 @@ struct InspectContent: View {
     // MARK: - Actions Row
 
     private func actionsRow(site: DiveSite) -> some View {
-        HStack(spacing: 12) {
-            // Save button
-            ActionButton(
-                icon: isWishlist ? "star.fill" : "star",
-                title: isWishlist ? "Saved" : "Save",
-                isActive: isWishlist,
-                isPrimary: false,
-                isLoading: isUpdatingWishlist
-            ) {
-                toggleWishlist(site: site)
-            }
+        ScrollView(.horizontal, showsIndicators: false) {
+            HStack(spacing: 12) {
+                ActionButton(
+                    icon: "location.fill",
+                    title: "Navigate",
+                    isActive: false,
+                    isPrimary: false
+                ) {
+                    SiteNavigationService.navigate(to: site, entryModes: entryModes)
+                    Haptics.soft()
+                }
 
-            // Plan button
-            ActionButton(
-                icon: "calendar.badge.plus",
-                title: "Plan",
-                isActive: false,
-                isPrimary: false
-            ) {
-                onOpenPlan(site.id)
-            }
+                ActionButton(
+                    icon: "doc.on.doc",
+                    title: "Copy GPS",
+                    isActive: false,
+                    isPrimary: false
+                ) {
+                    _ = SiteNavigationService.copyCoordinates(of: site)
+                    Haptics.success()
+                }
 
-            // Log button (primary)
-            ActionButton(
-                icon: "waveform",
-                title: "Log",
-                isActive: false,
-                isPrimary: true
-            ) {
-                showingLogWizard = true
+                // Save button
+                ActionButton(
+                    icon: isWishlist ? "star.fill" : "star",
+                    title: isWishlist ? "Saved" : "Save",
+                    isActive: isWishlist,
+                    isPrimary: false,
+                    isLoading: isUpdatingWishlist
+                ) {
+                    toggleWishlist(site: site)
+                }
+
+                // Plan button
+                ActionButton(
+                    icon: "calendar.badge.plus",
+                    title: "Plan",
+                    isActive: false,
+                    isPrimary: false
+                ) {
+                    onOpenPlan(site.id)
+                }
+
+                // Log button (primary)
+                ActionButton(
+                    icon: "waveform",
+                    title: "Log",
+                    isActive: false,
+                    isPrimary: true
+                ) {
+                    showingLogWizard = true
+                }
             }
         }
     }
@@ -345,6 +372,20 @@ struct InspectContent: View {
                 isUpdatingWishlist = false
                 wishlistError = "Couldn't update wishlist: \(error.localizedDescription)"
                 Log.map.error("Wishlist error for site \(targetId): \(error.localizedDescription)")
+            }
+        }
+    }
+
+    private func loadEntryModes(for siteId: String) async {
+        let repository = SiteFacetRepository(database: AppDatabase.shared)
+        do {
+            let fetched = try repository.fetchEntryModes(siteId: siteId)
+            await MainActor.run {
+                entryModes = fetched
+            }
+        } catch {
+            await MainActor.run {
+                entryModes = []
             }
         }
     }

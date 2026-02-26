@@ -1,6 +1,7 @@
 import SwiftUI
 import UmiDB
 import UmiDesignSystem
+import UmiLocationKit
 
 // MARK: - Sites List
 
@@ -123,6 +124,26 @@ struct SiteRow: View {
         .animation(.spring(response: 0.3, dampingFraction: 0.75), value: isHighlighted)
         .accessibilityElement(children: .combine)
         .accessibilityHint("Double tap to view site details and log a dive")
+        .contextMenu {
+            Button {
+                SiteNavigationService.navigate(to: site)
+            } label: {
+                Label("Open in Maps", systemImage: "map")
+            }
+
+            Button {
+                _ = SiteNavigationService.copyCoordinates(of: site)
+                Haptics.success()
+            } label: {
+                Label("Copy Coordinates", systemImage: "doc.on.doc")
+            }
+
+            if let url = SiteNavigationService.shareURL(for: site) {
+                ShareLink(item: url) {
+                    Label("Share Location", systemImage: "square.and.arrow.up")
+                }
+            }
+        }
     }
 }
 

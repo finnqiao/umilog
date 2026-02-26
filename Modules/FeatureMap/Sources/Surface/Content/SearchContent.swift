@@ -960,6 +960,26 @@ private struct SearchSiteRow: View {
         .buttonStyle(.plain)
         .accessibilityLabel("\(site.name), \(areaName), depth \(depthText)")
         .accessibilityHint("Double tap to view site details")
+        .contextMenu {
+            Button {
+                SiteNavigationService.navigate(to: site)
+            } label: {
+                Label("Open in Maps", systemImage: "map")
+            }
+
+            Button {
+                _ = SiteNavigationService.copyCoordinates(of: site)
+                Haptics.success()
+            } label: {
+                Label("Copy Coordinates", systemImage: "doc.on.doc")
+            }
+
+            if let url = SiteNavigationService.shareURL(for: site) {
+                ShareLink(item: url) {
+                    Label("Share Location", systemImage: "square.and.arrow.up")
+                }
+            }
+        }
     }
 
     private var areaName: String {

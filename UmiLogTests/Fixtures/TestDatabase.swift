@@ -102,4 +102,40 @@ enum TestDatabase {
             updatedAt: date
         )
     }
+
+    /// Create a test wildlife sighting
+    static func makeSighting(
+        id: String = UUID().uuidString,
+        diveId: String,
+        speciesId: String,
+        count: Int = 1
+    ) -> WildlifeSighting {
+        WildlifeSighting(
+            id: id,
+            diveId: diveId,
+            speciesId: speciesId,
+            count: count,
+            notes: nil,
+            createdAt: Date()
+        )
+    }
+
+    /// Create a test certification
+    static func makeCertification(
+        id: String = UUID().uuidString,
+        agency: CertAgency = .padi,
+        level: String = "Open Water Diver",
+        isPrimary: Bool = false
+    ) -> Certification {
+        Certification(
+            id: id,
+            agency: agency,
+            level: level,
+            certNumber: "CERT-\(id.prefix(6))",
+            certDate: Date(),
+            isPrimary: isPrimary,
+            createdAt: Date(),
+            updatedAt: Date()
+        )
+    }
 }

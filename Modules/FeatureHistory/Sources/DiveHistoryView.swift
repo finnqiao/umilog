@@ -281,6 +281,7 @@ private struct DiveDetailView: View {
     let site: DiveSite?
     @State private var showingShareSheet = false
     @State private var shareItems: [Any] = []
+    @State private var sightingDetails: [DiveSightingDetail] = []
 
     var body: some View {
         ScrollView(.vertical, showsIndicators: true) {
@@ -360,6 +361,51 @@ private struct DiveDetailView: View {
                     .background(Color(.secondarySystemBackground))
                     .cornerRadius(12)
                 }
+
+                if !sightingDetails.isEmpty {
+                    VStack(alignment: .leading, spacing: 12) {
+                        Text("Sightings")
+                            .font(.headline)
+
+                        ForEach(sightingDetails) { detail in
+                            VStack(alignment: .leading, spacing: 8) {
+                                HStack {
+                                    VStack(alignment: .leading, spacing: 2) {
+                                        Text(detail.speciesName)
+                                            .font(.subheadline.weight(.semibold))
+                                        if let scientific = detail.speciesScientificName, !scientific.isEmpty {
+                                            Text(scientific)
+                                                .font(.caption)
+                                                .italic()
+                                                .foregroundStyle(.secondary)
+                                        }
+                                    }
+                                    Spacer()
+                                    Text("x\(detail.sighting.count)")
+                                        .font(.caption.weight(.semibold))
+                                        .padding(.horizontal, 8)
+                                        .padding(.vertical, 4)
+                                        .background(Color.diveTeal.opacity(0.2))
+                                        .clipShape(Capsule())
+                                }
+
+                                if let notes = detail.sighting.notes, !notes.isEmpty {
+                                    Text(notes)
+                                        .font(.caption)
+                                        .foregroundStyle(.secondary)
+                                }
+
+                                if !detail.photos.isEmpty {
+                                    SightingGalleryView(photos: detail.photos)
+                                }
+                            }
+                            .padding(.vertical, 6)
+                        }
+                    }
+                    .padding()
+                    .background(Color(.secondarySystemBackground))
+                    .cornerRadius(12)
+                }
                 
                 // Instructor
                 if let instructor = dive.instructorName {
@@ -403,12 +449,28 @@ private struct DiveDetailView: View {
         .sheet(isPresented: $showingShareSheet) {
             ShareSheet(items: shareItems)
         }
+        .task {
+            await loadSightings()
+        }
     }
 
     private func formatDate(_ date: Date) -> String {
         let formatter = DateFormatter()
         formatter.dateStyle = .long
         return formatter.string(from: date)
+    }
+
+    private func loadSightings() async {
+        do {
+            let details = try SightingsRepository(database: AppDatabase.shared).fetchDetailedByDive(dive.id)
+            await MainActor.run {
+                sightingDetails = details
+            }
+        } catch {
+            await MainActor.run {
+                sightingDetails = []
+            }
+        }
     }
 }
 
@@ -422,6 +484,88 @@ private struct ShareSheet: UIViewControllerRepresentable {
     }
 
     func updateUIViewController(_ uiViewController: UIActivityViewController, context: Context) {}
+}
+
+private struct SightingGalleryView: View {
+    let photos: [SightingPhoto]
+    @State private var showingFullScreen = false
+    @State private var selectedIndex = 0
+
+    var body: some View {
+        ScrollView(.horizontal, showsIndicators: false) {
+            HStack(spacing: 8) {
+                ForEach(Array(photos.enumerated()), id: \.element.id) { index, photo in
+                    let image = thumbnailImage(for: photo)
+                    Button {
+                        selectedIndex = index
+                        showingFullScreen = true
+                    } label: {
+                        Group {
+                            if let image {
+                                Image(uiImage: image)
+                                    .resizable()
+                                    .scaledToFill()
+                            } else {
+                                RoundedRectangle(cornerRadius: 8)
+                                    .fill(Color.gray.opacity(0.2))
+                                    .overlay(Image(systemName: "photo"))
+                            }
+                        }
+                        .frame(width: 82, height: 82)
+                        .clipShape(RoundedRectangle(cornerRadius: 8))
+                    }
+                    .buttonStyle(.plain)
+                }
+            }
+            .padding(.vertical, 2)
+        }
+        .fullScreenCover(isPresented: $showingFullScreen) {
+            ZStack(alignment: .topTrailing) {
+                Color.black.ignoresSafeArea()
+                TabView(selection: $selectedIndex) {
+                    ForEach(Array(photos.enumerated()), id: \.element.id) { index, photo in
+                        Group {
+                            if let image = fullImage(for: photo) {
+                                Image(uiImage: image)
+                                    .resizable()
+                                    .scaledToFit()
+                            } else {
+                                Image(systemName: "photo")
+                                    .font(.largeTitle)
+                                    .foregroundStyle(.white)
+                            }
+                        }
+                        .frame(maxWidth: .infinity, maxHeight: .infinity)
+                        .tag(index)
+                    }
+                }
+                .tabViewStyle(.page(indexDisplayMode: .automatic))
+
+                Button {
+                    showingFullScreen = false
+                } label: {
+                    Image(systemName: "xmark.circle.fill")
+                        .font(.system(size: 32))
+                        .foregroundStyle(.white)
+                        .padding()
+                }
+            }
+        }
+    }
+
+    private func thumbnailImage(for photo: SightingPhoto) -> UIImage? {
+        if let url = SightingPhotoStorageService.shared.imageURL(forRelativePath: photo.thumbnailFilename) {
+            return UIImage(contentsOfFile: url.path)
+        }
+        return nil
+    }
+
+    private func fullImage(for photo: SightingPhoto) -> UIImage? {
+        if let url = SightingPhotoStorageService.shared.imageURL(forRelativePath: photo.filename) {
+            return UIImage(contentsOfFile: url.path)
+        }
+        return nil
+    }
 }
 
 private struct DetailRow: View {

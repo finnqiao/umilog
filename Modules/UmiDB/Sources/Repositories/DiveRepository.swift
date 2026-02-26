@@ -242,6 +242,127 @@ public final class DiveRepository {
             )
         }
     }
+
+    // MARK: - Heatmap Queries
+
+    public func fetchHeatmapPoints() throws -> [DiveHeatmapPoint] {
+        try database.read { db in
+            var points: [DiveHeatmapPoint] = []
+
+            let siteRows = try Row.fetchAll(
+                db,
+                sql: """
+                SELECT s.latitude AS latitude,
+                       s.longitude AS longitude,
+                       s.name AS siteName,
+                       COUNT(*) AS diveCount,
+                       MAX(d.date) AS lastDiveDate
+                FROM dives d
+                INNER JOIN sites s ON s.id = d.siteId
+                GROUP BY s.id
+                """
+            )
+
+            for row in siteRows {
+                guard let latitude = row["latitude"] as Double?,
+                      let longitude = row["longitude"] as Double?,
+                      let diveCount = row["diveCount"] as Int?,
+                      let lastDiveDate = row["lastDiveDate"] as Date? else {
+                    continue
+                }
+                points.append(
+                    DiveHeatmapPoint(
+                        latitude: latitude,
+                        longitude: longitude,
+                        diveCount: max(1, diveCount),
+                        lastDiveDate: lastDiveDate,
+                        siteName: row["siteName"]
+                    )
+                )
+            }
+
+            let gpsRows = try Row.fetchAll(
+                db,
+                sql: """
+                SELECT pendingLatitude AS latitude,
+                       pendingLongitude AS longitude,
+                       COUNT(*) AS diveCount,
+                       MAX(date) AS lastDiveDate
+                FROM dives
+                WHERE siteId IS NULL
+                  AND pendingLatitude IS NOT NULL
+                  AND pendingLongitude IS NOT NULL
+                GROUP BY pendingLatitude, pendingLongitude
+                """
+            )
+
+            for row in gpsRows {
+                guard let latitude = row["latitude"] as Double?,
+                      let longitude = row["longitude"] as Double?,
+                      let diveCount = row["diveCount"] as Int?,
+                      let lastDiveDate = row["lastDiveDate"] as Date? else {
+                    continue
+                }
+                points.append(
+                    DiveHeatmapPoint(
+                        latitude: latitude,
+                        longitude: longitude,
+                        diveCount: max(1, diveCount),
+                        lastDiveDate: lastDiveDate,
+                        siteName: nil
+                    )
+                )
+            }
+
+            return points
+        }
+    }
+
+    public func fetchHeatmapSummary() throws -> DiveHeatmapSummary {
+        let points = try fetchHeatmapPoints()
+        let totalDives = points.reduce(0) { $0 + $1.diveCount }
+        let uniqueSites = points.count
+
+        return try database.read { db in
+            let countries = try Int.fetchOne(
+                db,
+                sql: """
+                SELECT COUNT(DISTINCT s.country_id)
+                FROM dives d
+                INNER JOIN sites s ON s.id = d.siteId
+                WHERE s.country_id IS NOT NULL
+                """
+            ) ?? 0
+
+            let mostDivedRow = try Row.fetchOne(
+                db,
+                sql: """
+                SELECT s.name AS siteName, COUNT(*) AS diveCount
+                FROM dives d
+                INNER JOIN sites s ON s.id = d.siteId
+                GROUP BY s.id
+                ORDER BY diveCount DESC
+                LIMIT 1
+                """
+            )
+
+            let mostDived: DiveHeatmapSummary.MostDivedSite? = {
+                guard let row = mostDivedRow,
+                      let siteName = row["siteName"] as String?,
+                      let diveCount = row["diveCount"] as Int? else {
+                    return nil
+                }
+                return .init(siteName: siteName, count: diveCount)
+            }()
+
+            return DiveHeatmapSummary(
+                totalDives: totalDives,
+                uniqueSites: uniqueSites,
+                countries: countries,
+                mostDivedSite: mostDived
+            )
+        }
+    }
 }
 
 // MARK: - Stats Model
@@ -259,4 +380,55 @@ public struct DiveStats {
         sitesVisited: 0,
         speciesSpotted: 0
     )
+}
+
+public struct DiveHeatmapPoint: Equatable, Hashable {
+    public let latitude: Double
+    public let longitude: Double
+    public let diveCount: Int
+    public let lastDiveDate: Date
+    public let siteName: String?
+
+    public init(
+        latitude: Double,
+        longitude: Double,
+        diveCount: Int,
+        lastDiveDate: Date,
+        siteName: String?
+    ) {
+        self.latitude = latitude
+        self.longitude = longitude
+        self.diveCount = diveCount
+        self.lastDiveDate = lastDiveDate
+        self.siteName = siteName
+    }
+}
+
+public struct DiveHeatmapSummary {
+    public struct MostDivedSite {
+        public let siteName: String
+        public let count: Int
+
+        public init(siteName: String, count: Int) {
+            self.siteName = siteName
+            self.count = count
+        }
+    }
+
+    public let totalDives: Int
+    public let uniqueSites: Int
+    public let countries: Int
+    public let mostDivedSite: MostDivedSite?
+
+    public init(
+        totalDives: Int,
+        uniqueSites: Int,
+        countries: Int,
+        mostDivedSite: MostDivedSite?
+    ) {
+        self.totalDives = totalDives
+        self.uniqueSites = uniqueSites
+        self.countries = countries
+        self.mostDivedSite = mostDivedSite
+    }
 }

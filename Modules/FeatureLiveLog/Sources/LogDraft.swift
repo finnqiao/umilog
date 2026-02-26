@@ -1,6 +1,28 @@
 import Foundation
 import UmiDB
 
+public struct DraftSightingPhotoInput: Identifiable, Codable, Hashable {
+    public let id: String
+    public let imageData: Data
+    public let capturedAt: Date?
+    public let latitude: Double?
+    public let longitude: Double?
+
+    public init(
+        id: String = UUID().uuidString,
+        imageData: Data,
+        capturedAt: Date? = nil,
+        latitude: Double? = nil,
+        longitude: Double? = nil
+    ) {
+        self.id = id
+        self.imageData = imageData
+        self.capturedAt = capturedAt
+        self.latitude = latitude
+        self.longitude = longitude
+    }
+}
+
 /// In-memory draft used by the logging wizard
 public struct LogDraft: Identifiable, Codable {
     public let id: String
@@ -20,6 +42,7 @@ public struct LogDraft: Identifiable, Codable {
     
     // Step 3: Wildlife & Notes
     public var selectedSpecies: Set<String> // species IDs
+    public var speciesPhotos: [String: [DraftSightingPhotoInput]]
     public var notes: String
     
     public init(id: String = UUID().uuidString,
@@ -33,6 +56,7 @@ public struct LogDraft: Identifiable, Codable {
                 temperatureC: Double? = nil,
                 visibilityM: Double? = nil,
                 selectedSpecies: Set<String> = [],
+                speciesPhotos: [String: [DraftSightingPhotoInput]] = [:],
                 notes: String = "") {
         self.id = id
         self.site = site
@@ -45,6 +69,7 @@ public struct LogDraft: Identifiable, Codable {
         self.temperatureC = temperatureC
         self.visibilityM = visibilityM
         self.selectedSpecies = selectedSpecies
+        self.speciesPhotos = speciesPhotos
         self.notes = notes
     }
 }
