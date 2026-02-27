@@ -205,6 +205,12 @@ public final class MapVC: UIViewController, MLNMapViewDelegate, UIGestureRecogni
             applyLayerSettings()
         }
     }
+    public var powerSettings: DiveMapPowerSettings = .default {
+        didSet {
+            guard oldValue != powerSettings else { return }
+            applyPowerSettings()
+        }
+    }
 
     private var styleIsReady = false
     private var siteSource: MLNShapeSource?
@@ -237,6 +243,7 @@ public final class MapVC: UIViewController, MLNMapViewDelegate, UIGestureRecogni
         map.attributionButton.isHidden = true
         map.automaticallyAdjustsContentInset = false
         map.delegate = self
+        applyPowerSettings()
         logger.log("map_created: frame=\(self.view.bounds.width, privacy: .public)x\(self.view.bounds.height, privacy: .public) opaque=\(self.map.isOpaque, privacy: .public)")
         
         // Enable gestures for zoom/pan
@@ -333,6 +340,7 @@ public final class MapVC: UIViewController, MLNMapViewDelegate, UIGestureRecogni
         styleIsReady = true
         updateAnnotationsIfReady()
         applyLayerSettings()
+        applyPowerSettings()
         emitViewportChange()
     }
 
@@ -466,6 +474,20 @@ public final class MapVC: UIViewController, MLNMapViewDelegate, UIGestureRecogni
         map.styleURL = url
         map.backgroundColor = fallbackBackground.backgroundColor
         logger.log("style_switch mode=\(mode.rawValue, privacy: .public)")
+    }
+
+    private func applyPowerSettings() {
+        guard map != nil else { return }
+        let preferredFrameRate: MLNMapViewPreferredFramesPerSecond
+        if powerSettings.preferredFramesPerSecond <= 20 {
+            preferredFrameRate = .lowPower
+        } else if powerSettings.preferredFramesPerSecond >= 55 {
+            preferredFrameRate = .maximum
+        } else {
+            preferredFrameRate = .default
+        }
+        map.preferredFramesPerSecond = preferredFrameRate
+        map.compassView.isHidden = !powerSettings.showsCompass
     }
 
     private func configureStyle(_ style: MLNStyle) {

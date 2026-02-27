@@ -19,6 +19,7 @@ public final class GeofenceManager: NSObject, ObservableObject {
     private var cancellables = Set<AnyCancellable>()
     private var consecutiveUpdateFailures: Int = 0
     private var consecutiveSlowUpdates: Int = 0
+    private var shouldStartMonitoringAfterAuthorization = false
     
     // Maximum number of regions iOS allows us to monitor
     private let maxMonitoredRegions = 20
@@ -55,15 +56,20 @@ public final class GeofenceManager: NSObject, ObservableObject {
     
     // MARK: - Public Methods
     
-    public func startMonitoring() {
-        // Request location permission if needed (WhenInUse is sufficient for foreground geofencing)
-        if locationManager.authorizationStatus == .notDetermined {
+    public func startMonitoring(requestPermissionsIfNeeded: Bool = false) {
+        switch locationManager.authorizationStatus {
+        case .authorizedAlways, .authorizedWhenInUse:
+            break
+        case .notDetermined:
+            guard requestPermissionsIfNeeded else { return }
+            shouldStartMonitoringAfterAuthorization = true
             locationManager.requestWhenInUseAuthorization()
-        }
-
-        // Request notification permission for dive reminders
-        Task {
-            await requestNotificationPermission()
+            return
+        case .denied, .restricted:
+            Log.location.warning("Location permission denied - geofence monitoring disabled")
+            return
+        @unknown default:
+            return
         }
 
         // Start with current location if available
@@ -74,19 +80,28 @@ public final class GeofenceManager: NSObject, ObservableObject {
         }
     }
 
-    /// Request notification permission for geofence-triggered dive reminders
-    private func requestNotificationPermission() async {
+    private func ensureNotificationAuthorizationIfNeeded() async -> Bool {
         let center = UNUserNotificationCenter.current()
-        do {
-            let granted = try await center.requestAuthorization(options: [.alert, .sound, .badge])
-            if granted {
-                Log.location.info("Notification permission granted")
-                setupNotificationCategories()
-            } else {
-                Log.location.warning("Notification permission denied - dive reminders will be disabled")
+        let settings = await center.notificationSettings()
+        switch settings.authorizationStatus {
+        case .authorized, .provisional, .ephemeral:
+            return true
+        case .denied:
+            Log.location.warning("Notification permission denied - dive reminders unavailable")
+            return false
+        case .notDetermined:
+            do {
+                let granted = try await center.requestAuthorization(options: [.alert, .sound, .badge])
+                if granted {
+                    setupNotificationCategories()
+                }
+                return granted
+            } catch {
+                Log.location.error("Failed to request notification permission: \(error.localizedDescription)")
+                return false
             }
-        } catch {
-            Log.location.error("Failed to request notification permission: \(error.localizedDescription)")
+        @unknown default:
+            return false
         }
     }
     
@@ -244,6 +259,8 @@ public final class GeofenceManager: NSObject, ObservableObject {
     }
     
     private func scheduleAutoLogReminder(for site: DiveSite) async {
+        guard await ensureNotificationAuthorizationIfNeeded() else { return }
+
         // Create notification content
         let content = UNMutableNotificationContent()
         content.title = "Ready to dive?"
@@ -269,6 +286,8 @@ public final class GeofenceManager: NSObject, ObservableObject {
     }
     
     private func triggerAutoLogPrompt(for site: DiveSite) async {
+        guard await ensureNotificationAuthorizationIfNeeded() else { return }
+
         // Create exit notification
         let content = UNMutableNotificationContent()
         content.title = "Log your dive?"
@@ -301,6 +320,22 @@ public final class GeofenceManager: NSObject, ObservableObject {
 // MARK: - CLLocationManagerDelegate
 
 extension GeofenceManager: @preconcurrency CLLocationManagerDelegate {
+    public func locationManagerDidChangeAuthorization(_ manager: CLLocationManager) {
+        guard shouldStartMonitoringAfterAuthorization else { return }
+        switch manager.authorizationStatus {
+        case .authorizedAlways, .authorizedWhenInUse:
+            shouldStartMonitoringAfterAuthorization = false
+            startMonitoring(requestPermissionsIfNeeded: false)
+        case .denied, .restricted:
+            shouldStartMonitoringAfterAuthorization = false
+            Log.location.warning("Location permission denied - geofence monitoring not started")
+        case .notDetermined:
+            break
+        @unknown default:
+            shouldStartMonitoringAfterAuthorization = false
+        }
+    }
+
     public func locationManager(_ manager: CLLocationManager, didEnterRegion region: CLRegion) {
         guard region.identifier.hasPrefix("dive_site_") else { return }
         

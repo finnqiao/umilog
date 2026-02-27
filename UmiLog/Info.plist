@@ -35,12 +35,20 @@
 	<string>AppIcon</string>
 	<key>NSFaceIDUsageDescription</key>
 	<string>UmiLog uses Face ID to secure your dive logs.</string>
+	<key>NSBluetoothAlwaysUsageDescription</key>
+	<string>Connect your dive computer to sync dive data automatically.</string>
+	<key>NSCameraUsageDescription</key>
+	<string>Take photos of marine life to attach to wildlife sightings.</string>
+	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+	<string>UmiLog can remind you to log a dive when you arrive at or leave a dive site using low-power geofencing.</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
-	<string>UmiLog uses your location to detect nearby dive sites, show your position on the map, and notify you when you arrive at a dive site for easy logging.</string>
+	<string>UmiLog shows dive sites near you and helps center the map on your location.</string>
 	<key>NSMicrophoneUsageDescription</key>
 	<string>UmiLog uses the microphone for voice input during dive logging.</string>
 	<key>NSPhotoLibraryUsageDescription</key>
-	<string>UmiLog accesses your photos to attach images to dive logs.</string>
+	<string>Select photos to attach to sightings and certification cards.</string>
+	<key>NSUserNotificationsUsageDescription</key>
+	<string>Get dive reminders at dive sites and alerts for important gear events.</string>
 	<key>NSSpeechRecognitionUsageDescription</key>
 	<string>UmiLog uses voice recognition for hands-free dive logging. All processing happens on your device.</string>
 	<key>UILaunchScreen</key>

@@ -370,6 +370,11 @@ public struct NewMapView: View {
     // Location (for contextual FAB)
     @ObservedObject private var locationService = LocationService.shared
     @ObservedObject private var geofenceManager = GeofenceManager.shared
+    @ObservedObject private var powerManager = PowerManager.shared
+    @State private var showingLocationExplanation = false
+    @State private var showingLocationDeniedBanner = false
+    @State private var shouldCenterOnUserAfterPermissionGrant = false
+    @State private var showingLayerSheet = false
 
     // Repositories for bounds lookups and queries
     private let geographyRepository = GeographyRepository(database: AppDatabase.shared)
@@ -944,153 +949,194 @@ public struct NewMapView: View {
     }
 
     public var body: some View {
-        mapView
-            .tint(primaryColor)
-            .navigationTitle("")
-            .navigationBarTitleDisplayMode(.inline)
-            .onChange(of: uiViewModel.currentHierarchyLevel) {
-                // Refocus map when hierarchy changes
-                focusMap(on: unifiedFilteredSites)
-            }
-            .onChange(of: uiViewModel.exploreFilters) {
-                // Refocus map when filters change
-                focusMap(on: unifiedFilteredSites)
-            }
-            .onChange(of: selectedSite) {
-                if let selectedSite { focusMap(on: [selectedSite]) }
-            }
-            .onChange(of: scope) { _, newScope in
-                // Sync scope to filter lens
-                if newScope == .discover {
-                    uiViewModel.send(.clearFilterLens)
-                    entityTab = .sites
-                } else {
-                    uiViewModel.exploreFilters.showShops = false
-                    syncFilterLensToMySitesTab(mySitesTab)
-                }
-            }
-            .onChange(of: mySitesTab) { _, newValue in
-                syncFilterLensToMySitesTab(newValue)
-            }
-            .onChange(of: surfaceDetent) { _, newDetent in
-                if !isModalMode(uiViewModel.mode) {
-                    lastNonModalDetent = newDetent
-                }
-                updateTabBarVisibility(for: newDetent, mode: uiViewModel.mode)
-            }
-            .onChange(of: uiViewModel.mode) { oldMode, newMode in
-                let wasModal = isModalMode(oldMode)
-                let isModal = isModalMode(newMode)
-                var targetDetent = surfaceDetent
+        mapRootView
+    }
 
-                if isModal {
-                    targetDetent = .expanded
-                } else if wasModal {
-                    let allowed = SurfaceDetent.allowed(for: newMode)
-                    targetDetent = allowed.contains(lastNonModalDetent)
-                        ? lastNonModalDetent
-                        : SurfaceDetent.defaultDetent(for: newMode)
-                }
+    private var mapRootView: some View {
+        let base = AnyView(
+            mapView
+                .tint(primaryColor)
+                .navigationTitle("")
+                .navigationBarTitleDisplayMode(.inline)
+        )
 
-                if targetDetent != surfaceDetent {
-                    withAnimation(.spring(response: 0.3, dampingFraction: 0.85)) {
-                        surfaceDetent = targetDetent
+        let stateBound = AnyView(
+            base
+                .onChange(of: uiViewModel.currentHierarchyLevel) {
+                    focusMap(on: unifiedFilteredSites)
+                }
+                .onChange(of: uiViewModel.exploreFilters) {
+                    focusMap(on: unifiedFilteredSites)
+                }
+                .onChange(of: selectedSite) {
+                    if let selectedSite { focusMap(on: [selectedSite]) }
+                }
+                .onChange(of: locationService.authorizationStatus) { _, status in
+                    switch status {
+                    case .authorizedWhenInUse, .authorizedAlways:
+                        showingLocationDeniedBanner = false
+                        if shouldCenterOnUserAfterPermissionGrant {
+                            shouldCenterOnUserAfterPermissionGrant = false
+                            centerOnUserLocation()
+                        }
+                    case .denied, .restricted:
+                        if shouldCenterOnUserAfterPermissionGrant {
+                            shouldCenterOnUserAfterPermissionGrant = false
+                            showingLocationDeniedBanner = true
+                        }
+                    case .notDetermined:
+                        break
+                    @unknown default:
+                        break
                     }
                 }
-
-                updateTabBarVisibility(for: targetDetent, mode: newMode)
-
-                // Dismiss callout when entering inspect mode (mutual exclusivity)
-                if newMode.isInspecting && showCallout {
-                    showCallout = false
-                    calloutSite = nil
+                .onChange(of: scope) { _, newScope in
+                    if newScope == .discover {
+                        uiViewModel.send(.clearFilterLens)
+                        entityTab = .sites
+                    } else {
+                        uiViewModel.exploreFilters.showShops = false
+                        syncFilterLensToMySitesTab(mySitesTab)
+                    }
                 }
-            }
-            .task(id: currentRegionId) {
-                await loadRegionDetail(for: currentRegionId)
-            }
-            .task {
-                // Safety net: If MapLibre fails to load on iOS 17, fall back to MapKit after 5s
-                // (iOS 18+ already starts with MapKit, so this only affects iOS 17)
-                if !useMapKitFallback {
-                    Task {
-                        try? await Task.sleep(nanoseconds: 5_000_000_000) // 5 seconds
-                        await MainActor.run {
-                            if !isMapInitialized && !useMapKitFallback {
-                                withAnimation(.easeInOut(duration: 0.3)) {
-                                    useMapKitFallback = true
+                .onChange(of: mySitesTab) { _, newValue in
+                    syncFilterLensToMySitesTab(newValue)
+                }
+                .onChange(of: surfaceDetent) { _, newDetent in
+                    if !isModalMode(uiViewModel.mode) {
+                        lastNonModalDetent = newDetent
+                    }
+                    updateTabBarVisibility(for: newDetent, mode: uiViewModel.mode)
+                }
+                .onChange(of: uiViewModel.mode) { oldMode, newMode in
+                    let wasModal = isModalMode(oldMode)
+                    let isModal = isModalMode(newMode)
+                    var targetDetent = surfaceDetent
+
+                    if isModal {
+                        targetDetent = .expanded
+                    } else if wasModal {
+                        let allowed = SurfaceDetent.allowed(for: newMode)
+                        targetDetent = allowed.contains(lastNonModalDetent)
+                            ? lastNonModalDetent
+                            : SurfaceDetent.defaultDetent(for: newMode)
+                    }
+
+                    if targetDetent != surfaceDetent {
+                        withAnimation(.spring(response: 0.3, dampingFraction: 0.85)) {
+                            surfaceDetent = targetDetent
+                        }
+                    }
+
+                    updateTabBarVisibility(for: targetDetent, mode: newMode)
+                    if newMode.isInspecting && showCallout {
+                        showCallout = false
+                        calloutSite = nil
+                    }
+                }
+        )
+
+        let lifecycleBound = AnyView(
+            stateBound
+                .task(id: currentRegionId) {
+                    await loadRegionDetail(for: currentRegionId)
+                }
+                .task {
+                    if !useMapKitFallback {
+                        Task {
+                            try? await Task.sleep(nanoseconds: 5_000_000_000)
+                            await MainActor.run {
+                                if !isMapInitialized && !useMapKitFallback {
+                                    withAnimation(.easeInOut(duration: 0.3)) {
+                                        useMapKitFallback = true
+                                    }
                                 }
                             }
                         }
                     }
-                }
 
-                // Load sites and center map - called once on appear
-                await viewModel.loadSites()
+                    await viewModel.loadSites()
+                    refreshLastDiveTime()
+                    try? await Task.sleep(nanoseconds: 50_000_000)
 
-                // Refresh last dive time for surface interval FAB
-                refreshLastDiveTime()
+                    let sitesToCenter = await MainActor.run { viewModel.sites }
+                    if !sitesToCenter.isEmpty {
+                        if let featured = featuredService.checkAndSelectFeatured() {
+                            try? await Task.sleep(nanoseconds: 300_000_000)
 
-                // Small delay to ensure view is laid out
-                try? await Task.sleep(nanoseconds: 50_000_000)
+                            isProgrammaticCameraChange = true
+                            withAnimation(.easeInOut(duration: 1.5)) {
+                                focusMap(onCoordinates: [featured.coordinate], singleSpan: zoomToSpan(featured.zoomLevel))
+                            }
 
-                // US-1: Smart initial positioning
-                let sitesToCenter = await MainActor.run { viewModel.sites }
-                if !sitesToCenter.isEmpty {
-                    // Check for featured destination (first-time user)
-                    if let featured = featuredService.checkAndSelectFeatured() {
-                        // Animate to featured destination with fly-in effect
-                        try? await Task.sleep(nanoseconds: 300_000_000) // 300ms delay
-
-                        isProgrammaticCameraChange = true
-                        withAnimation(.easeInOut(duration: 1.5)) {
-                            focusMap(onCoordinates: [featured.coordinate], singleSpan: zoomToSpan(featured.zoomLevel))
+                            try? await Task.sleep(nanoseconds: 2_000_000_000)
+                            await MainActor.run {
+                                showFeaturedCard = true
+                                isProgrammaticCameraChange = false
+                                isMapInitialized = true
+                            }
+                        } else {
+                            await applyInitialMapPosition()
                         }
 
-                        // Show info card after animation settles
-                        try? await Task.sleep(nanoseconds: 2_000_000_000) // 2s for animation + settle
+                        try? await Task.sleep(nanoseconds: 100_000_000)
+                        await viewModel.refreshVisibleSites(in: mapRegion)
+                    } else {
                         await MainActor.run {
-                            showFeaturedCard = true
-                            isProgrammaticCameraChange = false
                             isMapInitialized = true
                         }
-                    } else {
-                        await applyInitialMapPosition()
                     }
+                }
+                .onAppear {
+                    launchSafeModeEnabled = UserDefaults.standard.bool(forKey: AppConstants.UserDefaultsKeys.launchSafeModeEnabled)
+                    updateTabBarVisibility(for: surfaceDetent, mode: uiViewModel.mode)
+                }
+                .onReceive(NotificationCenter.default.publisher(for: .launchSafeModeDidChange)) { notification in
+                    let enabled = notification.userInfo?["enabled"] as? Bool ?? false
+                    launchSafeModeEnabled = enabled
+                    if enabled && !useMapKitFallback {
+                        withAnimation(.easeInOut(duration: 0.25)) {
+                            useMapKitFallback = true
+                        }
+                    }
+                }
+                .onChange(of: isMapInitialized) { _, ready in
+                    guard ready, !didReportMapInteractive else { return }
+                    didReportMapInteractive = true
+                    NotificationCenter.default.post(name: .mapDidBecomeInteractive, object: nil)
+                }
+                .onDisappear {
+                    NotificationCenter.default.post(name: .tabBarVisibilityShouldChange, object: nil, userInfo: ["hidden": false])
+                }
+        )
 
-                    // Refresh visible sites based on current map viewport
-                    try? await Task.sleep(nanoseconds: 100_000_000)
-                    await viewModel.refreshVisibleSites(in: mapRegion)
-                } else {
-                    // No sites, but still show the map
-                    await MainActor.run {
-                        isMapInitialized = true
+        return AnyView(
+            lifecycleBound
+                .sheet(isPresented: $showingLayerSheet) {
+                    NavigationStack {
+                        LayerSheet(layerSettings: $viewModel.layerSettings) {
+                            showingLayerSheet = false
+                        }
                     }
                 }
-            }
-            .onAppear {
-                launchSafeModeEnabled = UserDefaults.standard.bool(forKey: AppConstants.UserDefaultsKeys.launchSafeModeEnabled)
-                updateTabBarVisibility(for: surfaceDetent, mode: uiViewModel.mode)
-            }
-            .onReceive(NotificationCenter.default.publisher(for: .launchSafeModeDidChange)) { notification in
-                let enabled = notification.userInfo?["enabled"] as? Bool ?? false
-                launchSafeModeEnabled = enabled
-                if enabled && !useMapKitFallback {
-                    withAnimation(.easeInOut(duration: 0.25)) {
-                        useMapKitFallback = true
-                    }
+                .sheet(isPresented: $showingLocationExplanation) {
+                    PermissionExplanationSheet(
+                        permission: .location,
+                        onContinue: {
+                            showingLocationExplanation = false
+                            shouldCenterOnUserAfterPermissionGrant = true
+                            locationService.requestLocationWhenNeeded()
+                        },
+                        onSkip: {
+                            shouldCenterOnUserAfterPermissionGrant = false
+                            showingLocationExplanation = false
+                        }
+                    )
+                    .presentationDetents([.medium])
                 }
-            }
-            .onChange(of: isMapInitialized) { _, ready in
-                guard ready, !didReportMapInteractive else { return }
-                didReportMapInteractive = true
-                NotificationCenter.default.post(name: .mapDidBecomeInteractive, object: nil)
-            }
-            .onDisappear {
-                NotificationCenter.default.post(name: .tabBarVisibilityShouldChange, object: nil, userInfo: ["hidden": false])
-            }
-            .accessibilityElement(children: .contain)
-            .accessibilitySortPriority(1)
+                .accessibilityElement(children: .contain)
+                .accessibilitySortPriority(1)
+        )
     }
     
     // MARK: - View Components
@@ -1672,6 +1718,10 @@ public struct NewMapView: View {
                 showStatusGlows: viewModel.layerSettings.showStatusGlows,
                 colorByDifficulty: viewModel.layerSettings.colorByDifficulty
             ),
+            powerSettings: DiveMapPowerSettings(
+                preferredFramesPerSecond: powerManager.preferredMapFramesPerSecond,
+                showsCompass: !powerManager.shouldHideMapCompass
+            ),
             onSelect: { identifier in
                 // Wrap in DispatchQueue.main.async to avoid SwiftUI state mutation during view update
                 DispatchQueue.main.async {
@@ -1767,6 +1817,8 @@ public struct NewMapView: View {
 
     private var overlayControls: some View {
         GeometryReader { geo in
+            let surfaceHeight = surfaceDetent.height(in: geo.size.height)
+            let controlsBottomPadding = surfaceHeight + 96
             ZStack(alignment: .topLeading) {
                 topOverlay
 
@@ -1778,6 +1830,47 @@ public struct NewMapView: View {
                         .allowsHitTesting(true)
                 }
 #endif
+
+                if showingLocationDeniedBanner {
+                    VStack {
+                        LocationDeniedBanner(
+                            onOpenSettings: {
+                                if let url = URL(string: UIApplication.openSettingsURLString) {
+                                    UIApplication.shared.open(url)
+                                }
+                            },
+                            onDismiss: {
+                                showingLocationDeniedBanner = false
+                            }
+                        )
+                        .padding(.horizontal, 16)
+                        .padding(.top, safeAreaInsets.top + 56)
+                        Spacer()
+                    }
+                    .transition(.move(edge: .top).combined(with: .opacity))
+                }
+
+                if surfaceDetent != .expanded {
+                    VStack {
+                        Spacer()
+                        HStack {
+                            Spacer()
+                            MapControlCluster(
+                                isBoatModeEnabled: powerManager.isBoatModeEnabled,
+                                onLayerToggle: handleLayerToggleTapped,
+                                onLocateMe: handleLocateMeTapped,
+                                onToggleBoatMode: {
+                                    powerManager.toggleBoatMode()
+                                    Haptics.soft()
+                                }
+                            )
+                            .padding(.trailing, safeAreaInsets.trailing + 16)
+                            .padding(.bottom, controlsBottomPadding)
+                            .allowsHitTesting(true)
+                        }
+                    }
+                    .frame(width: geo.size.width, height: geo.size.height)
+                }
 
                 // QuickCaptureFAB - bottom right, always visible when not expanded (Resy-style)
                 if surfaceDetent != .expanded {
@@ -1795,7 +1888,7 @@ public struct NewMapView: View {
                                 }
                             )
                             .padding(.trailing, 16)
-                            .padding(.bottom, surfaceDetent.height(in: geo.size.height) + 16)
+                            .padding(.bottom, surfaceHeight + 16)
                             .allowsHitTesting(true)
                         }
                     }
@@ -2133,6 +2226,53 @@ private func overlayMetrics(for size: CGSize) -> OverlayMetrics {
 }
 
 // MARK: - Action Handlers
+
+    private func handleLayerToggleTapped() {
+        showingLayerSheet = true
+        Haptics.tap()
+    }
+
+    private func handleLocateMeTapped() {
+        switch locationService.authorizationStatus {
+        case .authorizedAlways, .authorizedWhenInUse:
+            centerOnUserLocation()
+        case .notDetermined:
+            showingLocationExplanation = true
+        case .denied, .restricted:
+            showingLocationDeniedBanner = true
+        @unknown default:
+            break
+        }
+    }
+
+    private func centerOnUserLocation() {
+        if let location = locationService.currentLocation {
+            withAnimation(.easeInOut(duration: 0.35)) {
+                focusMap(onCoordinates: [location.coordinate], singleSpan: 3.0)
+            }
+            Haptics.soft()
+            return
+        }
+
+        Task {
+            do {
+                let current = try await locationService.getCurrentLocation()
+                await MainActor.run {
+                    withAnimation(.easeInOut(duration: 0.35)) {
+                        focusMap(onCoordinates: [current.coordinate], singleSpan: 3.0)
+                    }
+                    Haptics.soft()
+                }
+            } catch {
+                await MainActor.run {
+                    if let locationError = error as? LocationError,
+                       case .permissionDenied = locationError {
+                        showingLocationDeniedBanner = true
+                    }
+                }
+            }
+        }
+    }
 
     private func loadRegionDetail(for regionId: String?) async {
         guard let regionId else {

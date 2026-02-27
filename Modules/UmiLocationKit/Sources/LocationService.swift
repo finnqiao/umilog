@@ -1,6 +1,8 @@
 import Foundation
 import CoreLocation
 import Combine
+import UIKit
+import UmiCoreKit
 
 /// Main location service handling permissions and location updates
 @MainActor
@@ -12,12 +14,17 @@ public final class LocationService: NSObject, ObservableObject {
     
     private let locationManager = CLLocationManager()
     private var locationContinuation: CheckedContinuation<CLLocation, Error>?
+    private var cancellables = Set<AnyCancellable>()
+    private var isMonitoringSignificantChanges = false
+    private var shouldResumeStandardUpdatesOnForeground = false
     
     public static let shared = LocationService()
     
     override private init() {
         super.init()
         setupLocationManager()
+        setupLifecycleBindings()
+        setupPowerBindings()
     }
     
     private func setupLocationManager() {
@@ -28,20 +35,25 @@ public final class LocationService: NSObject, ObservableObject {
         // Background updates not needed - geofencing works with WhenInUse while app is active
 
         authorizationStatus = locationManager.authorizationStatus
+        applyPowerPolicy(PowerManager.shared.performancePolicy)
     }
     
     // MARK: - Public Methods
     
     public func requestPermission() {
-        switch authorizationStatus {
-        case .notDetermined:
-            locationManager.requestWhenInUseAuthorization()
-        case .authorizedWhenInUse:
-            // Already have sufficient permission for geofencing while app is active
-            break
-        default:
-            break
-        }
+        requestLocationWhenNeeded()
+    }
+
+    /// Requests location permission only when the user takes a location-dependent action.
+    public func requestLocationWhenNeeded() {
+        guard authorizationStatus == .notDetermined else { return }
+        locationManager.requestWhenInUseAuthorization()
+    }
+
+    /// Requests Always authorization only when a user enables a feature that needs it.
+    public func requestAlwaysPermissionWhenNeeded() {
+        guard authorizationStatus == .authorizedWhenInUse else { return }
+        locationManager.requestAlwaysAuthorization()
     }
     
     public func startLocationUpdates() {
@@ -51,12 +63,26 @@ public final class LocationService: NSObject, ObservableObject {
         }
         
         isUpdatingLocation = true
-        locationManager.startUpdatingLocation()
+        if isMonitoringSignificantChanges {
+            switchToStandardMonitoring()
+        } else {
+            locationManager.startUpdatingLocation()
+        }
+        applyPowerPolicy(PowerManager.shared.performancePolicy)
+
+        if UIApplication.shared.applicationState != .active,
+           PowerManager.shared.shouldUseSignificantChangeWhenBackgrounded {
+            switchToSignificantChangeMonitoring()
+            shouldResumeStandardUpdatesOnForeground = true
+        }
     }
     
     public func stopLocationUpdates() {
         isUpdatingLocation = false
         locationManager.stopUpdatingLocation()
+        locationManager.stopMonitoringSignificantLocationChanges()
+        isMonitoringSignificantChanges = false
+        shouldResumeStandardUpdatesOnForeground = false
     }
     
     public func getCurrentLocation() async throws -> CLLocation {
@@ -79,6 +105,89 @@ public final class LocationService: NSObject, ObservableObject {
     public func isNearDiveSite(location: CLLocation, site: CLLocationCoordinate2D, radiusKm: Double = 0.5) -> Bool {
         let siteLocation = CLLocation(latitude: site.latitude, longitude: site.longitude)
         return distance(from: location, to: siteLocation) <= radiusKm
+    }
+
+    public func reduceAccuracy() {
+        locationManager.desiredAccuracy = kCLLocationAccuracyHundredMeters
+        locationManager.distanceFilter = max(500, PowerManager.shared.locationDistanceFilterMeters)
+        locationManager.pausesLocationUpdatesAutomatically = true
+        locationManager.allowsBackgroundLocationUpdates = false
+    }
+
+    public func restoreAccuracy() {
+        locationManager.desiredAccuracy = kCLLocationAccuracyBest
+        locationManager.distanceFilter = 50
+        locationManager.pausesLocationUpdatesAutomatically = true
+    }
+
+    /// Uses lower-power significant-change monitoring while backgrounded.
+    public func switchToSignificantChangeMonitoring() {
+        guard !isMonitoringSignificantChanges else { return }
+        locationManager.stopUpdatingLocation()
+        locationManager.startMonitoringSignificantLocationChanges()
+        isMonitoringSignificantChanges = true
+    }
+
+    public func switchToStandardMonitoring() {
+        if isMonitoringSignificantChanges {
+            locationManager.stopMonitoringSignificantLocationChanges()
+            isMonitoringSignificantChanges = false
+        }
+        if isUpdatingLocation {
+            locationManager.startUpdatingLocation()
+        }
+    }
+
+    // MARK: - Private Helpers
+
+    private func setupLifecycleBindings() {
+        NotificationCenter.default.publisher(for: UIApplication.didEnterBackgroundNotification)
+            .receive(on: RunLoop.main)
+            .sink { [weak self] _ in
+                self?.handleDidEnterBackground()
+            }
+            .store(in: &cancellables)
+
+        NotificationCenter.default.publisher(for: UIApplication.willEnterForegroundNotification)
+            .receive(on: RunLoop.main)
+            .sink { [weak self] _ in
+                self?.handleWillEnterForeground()
+            }
+            .store(in: &cancellables)
+    }
+
+    private func setupPowerBindings() {
+        PowerManager.shared.$performancePolicy
+            .receive(on: RunLoop.main)
+            .sink { [weak self] policy in
+                self?.applyPowerPolicy(policy)
+            }
+            .store(in: &cancellables)
+    }
+
+    private func applyPowerPolicy(_ policy: PowerManager.PerformancePolicy) {
+        switch policy {
+        case .standard:
+            restoreAccuracy()
+        case .boatMode, .thermalThrottled, .critical:
+            reduceAccuracy()
+        }
+    }
+
+    private func handleDidEnterBackground() {
+        guard isUpdatingLocation else { return }
+        if PowerManager.shared.shouldUseSignificantChangeWhenBackgrounded {
+            switchToSignificantChangeMonitoring()
+            shouldResumeStandardUpdatesOnForeground = true
+        }
+    }
+
+    private func handleWillEnterForeground() {
+        guard isUpdatingLocation else { return }
+        if shouldResumeStandardUpdatesOnForeground || isMonitoringSignificantChanges {
+            switchToStandardMonitoring()
+            shouldResumeStandardUpdatesOnForeground = false
+        }
     }
 }
 
@@ -160,7 +269,7 @@ public enum LocationError: LocalizedError {
         case .unknown:
             return "An unknown location error occurred."
         }
-        ;    }
+    }
 }
 
 // MARK: - Notifications
