@@ -690,9 +690,10 @@ class MapViewModel: ObservableObject {
 
     /// Prefetch images for visible sites in the viewport.
     private func prefetchImagesForSites(_ sites: [DiveSite]) async {
-        guard !sites.isEmpty else { return }
+        let prefetchLimit = PowerManager.shared.imagePrefetchLimit
+        guard !sites.isEmpty, prefetchLimit > 0 else { return }
 
-        let siteIds = sites.prefix(50).map(\.id)  // Limit to 50 sites
+        let siteIds = sites.prefix(prefetchLimit).map(\.id)
         let mediaRepo = SiteMediaRepository(database: AppDatabase.shared)
 
         do {

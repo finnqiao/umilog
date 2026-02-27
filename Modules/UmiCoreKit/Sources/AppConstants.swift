@@ -72,6 +72,8 @@ public enum AppConstants {
     public enum UserDefaultsKeys {
         public static let hasLaunchedBefore = "app.umilog.hasLaunchedBefore"
         public static let underwaterThemeEnabled = "app.umilog.preferences.underwaterThemeEnabled"
+        public static let boatModeEnabled = "app.umilog.preferences.boatModeEnabled"
+        public static let siteArrivalNotificationsEnabled = "app.umilog.preferences.siteArrivalNotificationsEnabled"
         public static let locationPermissionPhase = "app.umilog.locationPermissionPhase"
         public static let hasSeenLocationExplainer = "app.umilog.hasSeenLocationExplainer"
         public static let hasSeenMapCoachMarks = "app.umilog.hasSeenMapCoachMarks"

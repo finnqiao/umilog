@@ -7,6 +7,7 @@ import os
 private let logger = Logger(subsystem: "com.umilog", category: "Settings")
 
 public struct SettingsView: View {
+    @ObservedObject private var powerManager = PowerManager.shared
     @State private var pendingDivesCount = 0
     @State private var isExporting = false
     @State private var isImporting = false
@@ -25,6 +26,24 @@ public struct SettingsView: View {
                 }
                 NavigationLink("Sync") {
                     SyncSettingsView()
+                }
+            }
+
+            Section("Battery") {
+                NavigationLink {
+                    BatterySettingsView()
+                } label: {
+                    Label("Battery & Boat Mode", systemImage: "battery.50")
+                }
+
+                if powerManager.performancePolicy != .standard {
+                    HStack(spacing: 8) {
+                        Image(systemName: "bolt.horizontal.circle.fill")
+                            .foregroundStyle(.orange)
+                        Text("Power saving active")
+                            .font(.footnote)
+                            .foregroundStyle(.secondary)
+                    }
                 }
             }
 
@@ -252,6 +271,7 @@ public struct SettingsView: View {
         defaults.removeObject(forKey: "app.umilog.onboardingCompleted")
         defaults.removeObject(forKey: "app.umilog.user.profile")
         defaults.removeObject(forKey: "app.umilog.preferences.underwaterThemeEnabled")
+        defaults.removeObject(forKey: AppConstants.UserDefaultsKeys.boatModeEnabled)
         defaults.removeObject(forKey: "analytics_enabled")
         defaults.removeObject(forKey: "crash_reporting")
         defaults.removeObject(forKey: "icloud_sync_enabled")
@@ -290,6 +310,82 @@ struct PrivacySettingsView: View {
             }
         }
         .navigationTitle("Privacy")
+    }
+}
+
+// MARK: - Battery Settings
+
+struct BatterySettingsView: View {
+    @ObservedObject private var powerManager = PowerManager.shared
+
+    var body: some View {
+        List {
+            Section {
+                Toggle(
+                    "Boat Mode",
+                    isOn: Binding(
+                        get: { powerManager.isBoatModeEnabled },
+                        set: { powerManager.setBoatModeEnabled($0) }
+                    )
+                )
+
+                Text("Reduces GPS accuracy and map rendering rate to extend battery life on long boat days.")
+                    .font(.footnote)
+                    .foregroundStyle(.secondary)
+            } footer: {
+                Text("Dive logging still works normally. Disable Boat Mode when you need higher map/location precision.")
+            }
+
+            Section("Current Power State") {
+                HStack {
+                    Text("Policy")
+                    Spacer()
+                    Text(policyText(powerManager.performancePolicy))
+                        .foregroundStyle(.secondary)
+                }
+                HStack {
+                    Text("Thermal")
+                    Spacer()
+                    Text(thermalText(powerManager.thermalState))
+                        .foregroundStyle(.secondary)
+                }
+                HStack {
+                    Text("Map Frame Rate")
+                    Spacer()
+                    Text("\(powerManager.preferredMapFramesPerSecond) fps")
+                        .foregroundStyle(.secondary)
+                }
+            }
+        }
+        .navigationTitle("Battery")
+    }
+
+    private func policyText(_ policy: PowerManager.PerformancePolicy) -> String {
+        switch policy {
+        case .standard:
+            return "Standard"
+        case .boatMode:
+            return "Boat Mode"
+        case .thermalThrottled:
+            return "Thermal Throttled"
+        case .critical:
+            return "Critical Throttling"
+        }
+    }
+
+    private func thermalText(_ state: ProcessInfo.ThermalState) -> String {
+        switch state {
+        case .nominal:
+            return "Nominal"
+        case .fair:
+            return "Fair"
+        case .serious:
+            return "Serious"
+        case .critical:
+            return "Critical"
+        @unknown default:
+            return "Unknown"
+        }
     }
 }
 

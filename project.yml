@@ -206,10 +206,14 @@ targets:
           - CFBundleURLName: app.umilog
             CFBundleURLSchemes:
               - umilog
-        NSLocationWhenInUseUsageDescription: "UmiLog uses your location to detect nearby dive sites, show your position on the map, and notify you when you arrive at a dive site for easy logging."
+        NSLocationWhenInUseUsageDescription: "UmiLog shows dive sites near you and helps center the map on your location."
+        NSLocationAlwaysAndWhenInUseUsageDescription: "UmiLog can remind you to log a dive when you arrive at or leave a dive site using low-power geofencing."
+        NSUserNotificationsUsageDescription: "Get dive reminders at dive sites and alerts for important gear events."
+        NSCameraUsageDescription: "Take photos of marine life to attach to wildlife sightings."
         NSSpeechRecognitionUsageDescription: "UmiLog uses voice recognition for hands-free dive logging. All processing happens on your device."
         NSMicrophoneUsageDescription: "UmiLog uses the microphone for voice input during dive logging."
-        NSPhotoLibraryUsageDescription: "UmiLog accesses your photos to attach images to dive logs."
+        NSPhotoLibraryUsageDescription: "Select photos to attach to sightings and certification cards."
+        NSBluetoothAlwaysUsageDescription: "Connect your dive computer to sync dive data automatically."
         NSFaceIDUsageDescription: "UmiLog uses Face ID to secure your dive logs."
 
   UmiLogTests:
@@ -476,7 +480,7 @@ targets:
         GENERATE_INFOPLIST_FILE: YES
         DEFINES_MODULE: YES
         SWIFT_INSTALL_OBJC_HEADER: YES
-        INFOPLIST_KEY_NSLocationWhenInUseUsageDescription: "UmiLog uses your location to detect nearby dive sites and notify you when you arrive."
+        INFOPLIST_KEY_NSLocationWhenInUseUsageDescription: "UmiLog shows nearby dive sites and helps center the map around you."
         CODE_SIGN_IDENTITY: ""
         CODE_SIGNING_REQUIRED: NO
         CODE_SIGNING_ALLOWED: NO

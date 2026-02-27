@@ -23,11 +23,27 @@ public struct DiveMapLayerSettings: Equatable {
     }
 }
 
+public struct DiveMapPowerSettings: Equatable {
+    public var preferredFramesPerSecond: Int
+    public var showsCompass: Bool
+
+    public static let `default` = DiveMapPowerSettings()
+
+    public init(
+        preferredFramesPerSecond: Int = 60,
+        showsCompass: Bool = true
+    ) {
+        self.preferredFramesPerSecond = preferredFramesPerSecond
+        self.showsCompass = showsCompass
+    }
+}
+
 public struct DiveMapView: UIViewControllerRepresentable {
     public var annotations: [DiveMapAnnotation]
     public var initialCamera: DiveMapCamera
     public var cameraUpdateToken: Int
     public var layerSettings: DiveMapLayerSettings
+    public var powerSettings: DiveMapPowerSettings
     public var onSelect: (String) -> Void
     public var onRegionChange: (DiveMapViewport) -> Void
     public var onLoadFailure: (() -> Void)?
@@ -49,6 +65,7 @@ public struct DiveMapView: UIViewControllerRepresentable {
         ),
         cameraUpdateToken: Int = 0,
         layerSettings: DiveMapLayerSettings = .default,
+        powerSettings: DiveMapPowerSettings = .default,
         onSelect: @escaping (String) -> Void = { _ in },
         onRegionChange: @escaping (DiveMapViewport) -> Void = { _ in },
         onLoadFailure: (() -> Void)? = nil,
@@ -58,6 +75,7 @@ public struct DiveMapView: UIViewControllerRepresentable {
         self.initialCamera = initialCamera
         self.cameraUpdateToken = cameraUpdateToken
         self.layerSettings = layerSettings
+        self.powerSettings = powerSettings
         self.onSelect = onSelect
         self.onRegionChange = onRegionChange
         self.onLoadFailure = onLoadFailure
@@ -77,6 +95,7 @@ public struct DiveMapView: UIViewControllerRepresentable {
         controller.onLoadFailure = onLoadFailure
         controller.onClusterTap = onClusterTap
         controller.layerSettings = layerSettings
+        controller.powerSettings = powerSettings
         controller.annotations = annotations
         return controller
     }
@@ -92,6 +111,7 @@ public struct DiveMapView: UIViewControllerRepresentable {
             context.coordinator.lastCameraUpdateToken = cameraUpdateToken
         }
         uiViewController.layerSettings = layerSettings
+        uiViewController.powerSettings = powerSettings
         uiViewController.update(annotations: annotations)
     }
 }
