@@ -162,13 +162,22 @@ def generate_description(client, site: dict, search_data: dict) -> Optional[dict
 
 
 def main():
-    if len(sys.argv) != 4:
-        print("Usage: site_descriptions_llm.py <raw_search_json> <sites_json> <output_json>")
+    # Cost guardrail: require --live flag or check env var
+    if os.environ.get("DISABLE_LLM_CALLS", "").lower() in ("true", "1", "yes"):
+        print("Error: LLM calls disabled (DISABLE_LLM_CALLS=true). Use --live flag to override.")
+        sys.exit(1)
+    if "--live" not in sys.argv:
+        print("Warning: This script makes paid Gemini API calls.")
+        print("Pass --live to confirm, or set DISABLE_LLM_CALLS=true to block.")
+    # Remove --live from argv for normal arg parsing
+    args = [a for a in sys.argv[1:] if a != "--live"]
+    if len(args) != 3:
+        print("Usage: site_descriptions_llm.py [--live] <raw_search_json> <sites_json> <output_json>")
         sys.exit(1)
 
-    search_path = Path(sys.argv[1])
-    sites_path = Path(sys.argv[2])
-    output_path = Path(sys.argv[3])
+    search_path = Path(args[0])
+    sites_path = Path(args[1])
+    output_path = Path(args[2])
 
     if not search_path.exists():
         print(f"Error: Search results not found: {search_path}")
