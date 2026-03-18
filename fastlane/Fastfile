@@ -198,8 +198,6 @@ platform :ios do
 
   desc "Build and upload to TestFlight (CI)"
   lane :ci_beta do
-    # Create a temporary keychain so Match can install certs on CI runners
-    # where the login keychain is locked.
     setup_ci
 
     api_key = app_store_connect_api_key(
@@ -211,17 +209,11 @@ platform :ios do
 
     verify_testflight_upload_ready(api_key: api_key)
 
-    # Only appstore certs needed for TestFlight; readonly avoids cert creation.
     match(
       type: "appstore",
       readonly: true
     )
 
-    # Use the GitHub Actions run number plus an offset as the build number so
-    # every CI run produces a unique, monotonically-increasing build that App
-    # Store Connect will accept. The offset ensures re-runs or late-starting
-    # runs never collide with a previously uploaded version.
-    # Fall back to the current project.yml value + 1 for local use.
     BUILD_NUMBER_OFFSET = 10
     build_number = ENV["GITHUB_RUN_NUMBER"] ? (ENV["GITHUB_RUN_NUMBER"].to_i + BUILD_NUMBER_OFFSET).to_s : bump
     if ENV["GITHUB_RUN_NUMBER"]
