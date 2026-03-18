@@ -114,6 +114,7 @@ private struct SiteRow: View {
         case .cave: return "cave.fill"
         case .shore: return "beach.umbrella"
         case .drift: return "wind"
+        case .other: return "mappin"
         }
     }
 }

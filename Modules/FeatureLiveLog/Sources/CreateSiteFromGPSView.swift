@@ -350,6 +350,7 @@ private struct TypeChip: View {
         case .cave: return "mountain.2"
         case .shore: return "beach.umbrella"
         case .drift: return "wind"
+        case .other: return "mappin"
         }
     }
 }

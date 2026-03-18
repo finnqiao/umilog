@@ -41,14 +41,15 @@ public struct RegionSummary: Identifiable, Hashable {
 // MARK: - Popular Regions
 
 extension RegionSummary {
-    /// Curated list of popular dive regions with high site density.
-    /// Used as fallback when database regions are unavailable.
+    /// Curated list of popular dive regions with coordinates for navigation.
+    /// Site counts are set to 0 — callers should use `SiteRepository.countByRegion()`
+    /// for actual counts, or display "—" if unavailable.
     public static let popular: [RegionSummary] = [
         RegionSummary(
             id: "caribbean",
             name: "Caribbean",
             countryName: "Multiple",
-            siteCount: 500,
+            siteCount: 0,
             centerLat: 18.0,
             centerLon: -70.0,
             zoomLevel: 5.0
@@ -57,7 +58,7 @@ extension RegionSummary {
             id: "red-sea-egypt",
             name: "Red Sea",
             countryName: "Egypt",
-            siteCount: 200,
+            siteCount: 0,
             centerLat: 27.2,
             centerLon: 34.0,
             zoomLevel: 6.5
@@ -66,7 +67,7 @@ extension RegionSummary {
             id: "florida-keys",
             name: "Florida Keys",
             countryName: "USA",
-            siteCount: 150,
+            siteCount: 0,
             centerLat: 24.6,
             centerLon: -81.4,
             zoomLevel: 8.0
@@ -75,7 +76,7 @@ extension RegionSummary {
             id: "hawaii",
             name: "Hawaii",
             countryName: "USA",
-            siteCount: 100,
+            siteCount: 0,
             centerLat: 20.8,
             centerLon: -156.3,
             zoomLevel: 7.0
@@ -84,7 +85,7 @@ extension RegionSummary {
             id: "philippines",
             name: "Philippines",
             countryName: "Philippines",
-            siteCount: 300,
+            siteCount: 0,
             centerLat: 9.8,
             centerLon: 124.0,
             zoomLevel: 6.0
@@ -93,7 +94,7 @@ extension RegionSummary {
             id: "coral-triangle",
             name: "Indonesia",
             countryName: "Indonesia",
-            siteCount: 400,
+            siteCount: 0,
             centerLat: -0.5,
             centerLon: 130.5,
             zoomLevel: 5.5
@@ -102,7 +103,7 @@ extension RegionSummary {
             id: "mediterranean",
             name: "Mediterranean",
             countryName: "Multiple",
-            siteCount: 250,
+            siteCount: 0,
             centerLat: 38.0,
             centerLon: 15.0,
             zoomLevel: 5.0

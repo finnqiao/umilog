@@ -32,6 +32,13 @@ class MapUIViewModel: ObservableObject {
 
     private var cancellables = Set<AnyCancellable>()
 
+    /// Guard against concurrent mode transitions during animations.
+    private var isTransitioning = false
+
+    /// Navigation history stack for back navigation.
+    @Published private(set) var modeHistory: [MapUIMode] = []
+    private let maxHistoryDepth = 5
+
     /// Cooldown tracking for proximity prompts per site (30 minute cooldown)
     private var promptCooldowns: [String: Date] = [:]
     private let cooldownDuration: TimeInterval = 1800 // 30 minutes
@@ -47,6 +54,9 @@ class MapUIViewModel: ObservableObject {
 
     /// Dispatch an action to update state.
     func send(_ action: MapUIAction) {
+        // Guard against concurrent transitions during animations
+        guard !isTransitioning else { return }
+
         // Apply reducer
         let newMode = MapUIReducer.reduce(
             state: mode,
@@ -56,11 +66,44 @@ class MapUIViewModel: ObservableObject {
 
         // Only update if changed (prevents unnecessary view updates)
         if newMode != mode {
+            // Push current mode to history for back navigation
+            // (only for major mode changes, not sub-state updates within the same mode)
+            if newMode.stableId != mode.stableId {
+                pushHistory(mode)
+            }
+
+            isTransitioning = true
             mode = newMode
+            // Release transition guard after current run loop cycle
+            DispatchQueue.main.async { [weak self] in
+                self?.isTransitioning = false
+            }
         }
 
         // Handle side effects
         handleSideEffects(for: action)
+    }
+
+    /// Navigate back to the previous mode.
+    func navigateBack() {
+        guard let previousMode = modeHistory.popLast() else { return }
+        isTransitioning = true
+        mode = previousMode
+        DispatchQueue.main.async { [weak self] in
+            self?.isTransitioning = false
+        }
+    }
+
+    /// Whether there's a previous mode to navigate back to.
+    var canNavigateBack: Bool {
+        !modeHistory.isEmpty
+    }
+
+    private func pushHistory(_ mode: MapUIMode) {
+        modeHistory.append(mode)
+        if modeHistory.count > maxHistoryDepth {
+            modeHistory.removeFirst()
+        }
     }
 
     // MARK: - Computed Properties

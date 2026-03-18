@@ -68,19 +68,29 @@ public final class ColdStartResolver {
     /// 5. Global fallback (curated destination)
     public func resolveInitialPosition(
         isFirstLaunch: Bool,
-        featuredDestination: FeaturedDestination?
+        featuredDestination: FeaturedDestination?,
+        userLocation: CLLocation? = nil
     ) async -> InitialMapPosition {
         // 1. Home region (user preference)
         if let position = await resolveHomeRegion() {
             return position
         }
 
-        // 2. Last ocean view (returning user)
+        // 2. User's current location (if authorized and near the coast)
+        if let location = userLocation, !(await isUserInland(location)) {
+            return InitialMapPosition(
+                center: location.coordinate,
+                zoom: regionZoom,
+                reason: .userLocation
+            )
+        }
+
+        // 3. Last ocean view (returning user)
         if let position = await resolveLastOceanView() {
             return position
         }
 
-        // 3. Featured destination (first-time user)
+        // 4. Featured destination (first-time user)
         if isFirstLaunch, let featured = featuredDestination {
             return InitialMapPosition(
                 center: featured.coordinate,
@@ -91,12 +101,12 @@ public final class ColdStartResolver {
             )
         }
 
-        // 4. Locale-based default
+        // 5. Locale-based default
         if let position = await resolveLocaleDefault() {
             return position
         }
 
-        // 5. Global fallback
+        // 6. Global fallback
         return resolveGlobalFallback()
     }
 
@@ -238,17 +248,11 @@ public final class ColdStartResolver {
     }
 
     private func resolveGlobalFallback() -> InitialMapPosition {
-        // Use a rotating curated destination as fallback
-        let destinations = FeaturedDestination.curated
-        let dayOfYear = Calendar.current.ordinality(of: .day, in: .year, for: Date()) ?? 1
-        let index = dayOfYear % destinations.count
-        let destination = destinations[index]
-
+        // World overview centered on the Coral Triangle — shows all dive site clusters globally.
+        // The featured-destination fly-in (if active) zooms from here into a specific region.
         return InitialMapPosition(
-            center: destination.coordinate,
-            zoom: destination.zoomLevel,
-            regionId: destination.regionId,
-            countryId: nil,
+            center: CLLocationCoordinate2D(latitude: 0.0, longitude: 120.0),
+            zoom: 2.5,
             reason: .globalFallback
         )
     }

@@ -8,6 +8,7 @@ public struct DiveMapAnnotation: Identifiable {
     public enum Kind: String {
         case site
         case wreck
+        case shop
     }
 
     public enum Status: String {
@@ -32,6 +33,7 @@ public struct DiveMapAnnotation: Identifiable {
         case cave = "cave"
         case shore = "shore"
         case drift = "drift"
+        case other = "other"
         case generic = "generic"
     }
 
@@ -139,15 +141,15 @@ public final class MapVC: UIViewController, MLNMapViewDelegate, UIGestureRecogni
     private var accessibilityAnnotationElements: [MapPinAccessibilityElement] = []
     // NOTE: MapLibre works on iOS 17. iOS 18+ has NSExpression validation issues
     // that block mgl_interpolate. Zoom-responsive helpers fall back to static values on iOS 18+.
-    // Style priority: vector (online) > PMTiles (offline) > raster (legacy fallback)
+    // Style priority: raster (ESRI+CARTO, no API key) > vector (requires valid Protomaps key) > offline
+    private lazy var rasterStyleURL: URL? = Bundle.main.url(forResource: "umilog_underwater", withExtension: "json")
     private lazy var vectorStyleURL: URL? = Bundle.main.url(forResource: "umilog_underwater_vector", withExtension: "json")
     private lazy var pmtilesStyleURL: URL? = Bundle.main.url(forResource: "umilog_offline", withExtension: "json")
-    private lazy var rasterStyleURL: URL? = Bundle.main.url(forResource: "umilog_underwater", withExtension: "json")
-    private lazy var primaryStyleURL: URL? = vectorStyleURL ?? rasterStyleURL
+    private lazy var primaryStyleURL: URL? = rasterStyleURL ?? vectorStyleURL
     private lazy var daylightStyleURL: URL? = Bundle.main.url(forResource: "umilog_daylight", withExtension: "json")
     private lazy var offlineStyleURL: URL? = pmtilesStyleURL ?? Bundle.main.url(forResource: "dive_offline", withExtension: "json")
     private var hasAttemptedPrimarySwitch = false
-    private let vectorTileTemplates = ["https://api.protomaps.com/tiles/v4/{z}/{x}/{y}.mvt"]
+    private let onlineTileProbeTemplates = ["https://services.arcgisonline.com/arcgis/rest/services/Ocean/World_Ocean_Base/MapServer/tile/{z}/{y}/{x}"]
 
     /// Path to bundled PMTiles file for offline use. Set this to enable offline maps.
     /// When set, MapLibre will resolve pmtiles:// URLs to this file.
@@ -215,11 +217,20 @@ public final class MapVC: UIViewController, MLNMapViewDelegate, UIGestureRecogni
     private var styleIsReady = false
     private var siteSource: MLNShapeSource?
     private var pendingStyleWork: DispatchWorkItem?
+    private var snapshotDebounceWork: DispatchWorkItem?
+
+    /// Called when tile loading state changes. `true` = tiles still streaming, `false` = fully rendered.
+    public var onTileLoadingChange: ((Bool) -> Void)?
 
     public override func viewDidLoad() {
         super.viewDidLoad()
         logger.log("mapvc_viewdidload")
-        
+
+        // Increase ambient tile cache (default 50MB → 150MB) for faster cold starts on return
+        MLNOfflineStorage.shared.setMaximumAmbientCacheSize(150 * 1024 * 1024) { [weak self] error in
+            if let error { self?.logger.error("cache_config: \(error)") }
+        }
+
         // Placeholder background while style loads - ocean blue to match underwater theme
         fallbackBackground.backgroundColor = UIColor(red: 0.04, green: 0.14, blue: 0.26, alpha: 1.0)
         view.addSubview(fallbackBackground)
@@ -251,7 +262,8 @@ public final class MapVC: UIViewController, MLNMapViewDelegate, UIGestureRecogni
         map.allowsScrolling = true
         map.allowsRotating = true
         map.allowsTilting = false
-        
+        map.prefetchesTiles = true
+
         view.addSubview(map)
 
         let tap = UITapGestureRecognizer(target: self, action: #selector(handleMapTap(_:)))
@@ -283,6 +295,7 @@ public final class MapVC: UIViewController, MLNMapViewDelegate, UIGestureRecogni
         super.viewDidLayoutSubviews()
         fallbackBackground.frame = view.bounds
         map?.frame = view.bounds
+        map?.setNeedsDisplay()
     }
 
     public func setCamera(_ camera: DiveMapCamera, animated: Bool) {
@@ -342,6 +355,10 @@ public final class MapVC: UIViewController, MLNMapViewDelegate, UIGestureRecogni
         applyLayerSettings()
         applyPowerSettings()
         emitViewportChange()
+
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) { [weak self] in
+            self?.map?.setNeedsDisplay()
+        }
     }
 
     public func mapViewDidFailLoadingMap(_ mapView: MLNMapView, withError error: Error) {
@@ -399,6 +416,21 @@ public final class MapVC: UIViewController, MLNMapViewDelegate, UIGestureRecogni
 
         // Update accessibility elements when viewport changes (for VoiceOver rotor)
         updateAccessibilityElements()
+    }
+
+    public func mapViewDidFinishRenderingFrame(_ mapView: MLNMapView, fullyRendered: Bool) {
+        onTileLoadingChange?(!fullyRendered)
+
+        if fullyRendered && styleIsReady {
+            // Debounce snapshot capture: wait 2s of idle after tiles finish
+            snapshotDebounceWork?.cancel()
+            let work = DispatchWorkItem { [weak self] in
+                guard let self, let map = self.map else { return }
+                MapSnapshotCache.shared.capture(from: map)
+            }
+            snapshotDebounceWork = work
+            DispatchQueue.main.asyncAfter(deadline: .now() + 2.0, execute: work)
+        }
     }
 
     // MARK: - Gesture Handling
@@ -635,6 +667,23 @@ public final class MapVC: UIViewController, MLNMapViewDelegate, UIGestureRecogni
             }
         }
 
+        // MARK: - Shop Markers
+        if style.layer(withIdentifier: "site-layer-shop") == nil {
+            let shopLayer = MLNCircleStyleLayer(identifier: "site-layer-shop", source: siteSource)
+            shopLayer.predicate = NSPredicate(format: "(cluster != TRUE OR cluster == NIL) AND kind == %@", DiveMapAnnotation.Kind.shop.rawValue)
+            shopLayer.circleColor = NSExpression(forConstantValue: UIColor(red: 0.95, green: 0.6, blue: 0.1, alpha: 1.0)) // Orange for shops
+            shopLayer.circleRadius = markerRadiusExpression
+            shopLayer.circleOpacity = NSExpression(forConstantValue: 0.96)
+            shopLayer.circleStrokeColor = NSExpression(forConstantValue: UIColor.white.withAlphaComponent(0.8))
+            shopLayer.circleStrokeWidth = NSExpression(forConstantValue: MapTheme.Sizing.markerStrokeWidth)
+            if let ref = lastLayer {
+                style.insertLayer(shopLayer, above: ref)
+            } else {
+                style.addLayer(shopLayer)
+            }
+            lastLayer = shopLayer
+        }
+
         // MARK: - Selection Highlight
         // Selection radius scales with zoom level (zoom-responsive on iOS 17)
         let selectionRadiusExpression = zoomResponsiveSelectionRadius()
@@ -789,7 +838,7 @@ public final class MapVC: UIViewController, MLNMapViewDelegate, UIGestureRecogni
                     "site-cluster", "site-cluster-count",
                     "site-glow-logged", "site-glow-saved", "site-glow-planned", "site-glow-default",
                     "site-layer-beginner", "site-layer-intermediate", "site-layer-advanced",
-                    "site-layer-expert", "site-layer-default", "site-selected"
+                    "site-layer-expert", "site-layer-default", "site-layer-shop", "site-selected"
                 ]
                 for layerId in layersToRemove {
                     if let layer = style.layer(withIdentifier: layerId) {
@@ -922,7 +971,7 @@ public final class MapVC: UIViewController, MLNMapViewDelegate, UIGestureRecogni
         guard didFallbackToOfflineStyle, let primaryURL = primaryStyleURL else { return }
         guard !hasAttemptedPrimarySwitch else { return }
         hasAttemptedPrimarySwitch = true
-        guard let template = vectorTileTemplates.first else { return }
+        guard let template = onlineTileProbeTemplates.first else { return }
 
         let sampleURLString = template
             .replacingOccurrences(of: "{z}", with: "3")

@@ -79,6 +79,8 @@ targets:
         buildPhase: resources
       - path: Resources/Maps/umilog_offline.json
         buildPhase: resources
+      - path: Resources/Maps/umilog_daylight.json
+        buildPhase: resources
       - path: Resources/Maps/sites.geojson
         buildPhase: resources
       - path: Resources/Maps/shops.geojson
