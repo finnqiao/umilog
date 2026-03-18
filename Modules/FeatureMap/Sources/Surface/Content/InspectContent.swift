@@ -74,13 +74,22 @@ struct InspectContent: View {
                     quickFactsRow(for: site)
                         .padding(.bottom, 12)
 
-                    if detent == .medium, let description = site.description, !description.isEmpty {
-                        Text(description)
-                            .font(.callout)
-                            .foregroundStyle(Color.mist)
-                            .lineLimit(4)
-                            .padding(.horizontal, 16)
-                            .padding(.bottom, 12)
+                    if detent == .medium {
+                        if let description = site.description, !description.isEmpty {
+                            Text(description)
+                                .font(.callout)
+                                .foregroundStyle(Color.mist)
+                                .lineLimit(4)
+                                .padding(.horizontal, 16)
+                                .padding(.bottom, 12)
+                        } else {
+                            Text("No description available yet")
+                                .font(.callout)
+                                .foregroundStyle(Color.mist.opacity(0.5))
+                                .italic()
+                                .padding(.horizontal, 16)
+                                .padding(.bottom, 12)
+                        }
                     }
                 }
 
@@ -295,17 +304,22 @@ struct InspectContent: View {
         ScrollView {
             VStack(alignment: .leading, spacing: 16) {
                 // Description
-                if let description = site.description, !description.isEmpty {
-                    VStack(alignment: .leading, spacing: 8) {
-                        Text("Description")
-                            .font(.headline)
-                            .foregroundStyle(Color.foam)
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("Description")
+                        .font(.headline)
+                        .foregroundStyle(Color.foam)
+                    if let description = site.description, !description.isEmpty {
                         Text(description)
                             .font(.body)
                             .foregroundStyle(Color.mist)
+                    } else {
+                        Text("No description available yet")
+                            .font(.body)
+                            .foregroundStyle(Color.mist.opacity(0.5))
+                            .italic()
                     }
-                    .padding(.horizontal, 16)
                 }
+                .padding(.horizontal, 16)
 
                 // Difficulty strip
                 HStack {

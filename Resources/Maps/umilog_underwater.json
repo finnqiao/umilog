@@ -36,9 +36,9 @@
       "type": "raster",
       "source": "esri-ocean",
       "minzoom": 0,
-      "maxzoom": 13,
+      "maxzoom": 14,
       "paint": {
-        "raster-opacity": 1.0,
+        "raster-opacity": {"stops": [[0,1],[12,1],[14,0]]},
         "raster-brightness-min": 0.05,
         "raster-brightness-max": 0.6,
         "raster-contrast": 0.35,
@@ -52,7 +52,7 @@
       "minzoom": 0,
       "maxzoom": 18,
       "paint": {
-        "raster-opacity": 0.85,
+        "raster-opacity": {"stops": [[0,0],[11,0],[13,0.85],[18,0.85]]},
         "raster-brightness-min": 0.0,
         "raster-brightness-max": 0.35,
         "raster-contrast": 0.3,

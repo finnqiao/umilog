@@ -36,19 +36,28 @@ public struct QuickLogView: View {
     public var body: some View {
         NavigationStack {
             ScrollView(.vertical, showsIndicators: true) {
-                VStack(spacing: 24) {
-                    // Quick actions
-                    QuickActionsSection(viewModel: viewModel)
-                    
-                    // Site selection
-                    SiteSelectionSection(viewModel: viewModel)
-                    
-                    // Essential fields
-                    EssentialFieldsSection(viewModel: viewModel, focusedField: $focusedField)
-                    
+                VStack(spacing: 20) {
+                    // Hero header
+                    Image(systemName: "waveform.path.ecg")
+                        .font(.system(size: 36))
+                        .foregroundStyle(Color.oceanBlue)
+                        .padding(.top, 4)
+
+                    // Site summary (collapsed single-line)
+                    QuickSiteSummary(viewModel: viewModel)
+
+                    // Depth grid presets
+                    DepthGridSection(viewModel: viewModel, focusedField: $focusedField)
+
+                    // Time grid presets
+                    TimeGridSection(viewModel: viewModel, focusedField: $focusedField)
+
+                    // Collapsible date picker
+                    QuickLogDateSection(diveDate: $viewModel.diveDate)
+
                     // Optional fields (collapsed by default)
                     OptionalFieldsSection(viewModel: viewModel)
-                    
+
                     // Save button
                     SaveButton(viewModel: viewModel) {
                         Task {
@@ -58,13 +67,16 @@ public struct QuickLogView: View {
                 }
                 .padding()
             }
-            .navigationTitle("Quick Log")
-            .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .topBarLeading) {
                     Button("Cancel") { dismiss() }
                         .accessibilityLabel("Cancel")
                         .accessibilityHint("Discard changes and close")
+                }
+
+                ToolbarItem(placement: .principal) {
+                    Text("Quick Log")
+                        .font(.headline)
                 }
 
                 ToolbarItem(placement: .keyboard) {
@@ -138,6 +150,180 @@ public struct QuickLogView: View {
                 dismiss()
             }
         }
+    }
+}
+
+// MARK: - Depth Grid
+
+private struct PresetGridButton: View {
+    let label: String
+    let isSelected: Bool
+    let action: () -> Void
+
+    private var bgColor: Color {
+        if isSelected { return Color.oceanBlue }
+        return Color(white: 0.5, opacity: 0.15)
+    }
+    private var fgColor: Color {
+        if isSelected { return Color.white }
+        return Color(UIColor.label)
+    }
+
+    var body: some View {
+        Button(action: action) {
+            buttonLabel
+        }
+        .buttonStyle(.plain)
+    }
+
+    private var buttonLabel: some View {
+        Text(label)
+            .font(.system(size: 17, weight: .semibold))
+            .frame(maxWidth: .infinity, minHeight: 44)
+            .background(bgColor)
+            .foregroundColor(fgColor)
+            .cornerRadius(10)
+    }
+}
+
+struct DepthGridSection: View {
+    @ObservedObject var viewModel: QuickLogViewModel
+    @FocusState.Binding var focusedField: QuickLogField?
+
+    private let depths = [10, 18, 25, 30, 35, 40]
+    private let columns = Array(repeating: GridItem(.flexible(), spacing: 8), count: 5)
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text("Depth (m)")
+                .font(SwiftUI.Font.caption)
+                .foregroundStyle(.secondary)
+
+            LazyVGrid(columns: columns, spacing: 8) {
+                ForEach(depths, id: \.self) { depth in
+                    PresetGridButton(
+                        label: "\(depth)",
+                        isSelected: viewModel.maxDepth == Double(depth)
+                    ) {
+                        viewModel.maxDepth = Double(depth)
+                        focusedField = nil
+                    }
+                    .accessibilityLabel("Set depth to \(depth) meters")
+                }
+            }
+        }
+    }
+}
+
+// MARK: - Time Grid
+
+struct TimeGridSection: View {
+    @ObservedObject var viewModel: QuickLogViewModel
+    @FocusState.Binding var focusedField: QuickLogField?
+
+    private let times = [30, 40, 45, 50, 60, 75, 90, 120]
+    private let columns = Array(repeating: GridItem(.flexible(), spacing: 8), count: 4)
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text("Bottom Time (min)")
+                .font(SwiftUI.Font.caption)
+                .foregroundStyle(.secondary)
+
+            LazyVGrid(columns: columns, spacing: 8) {
+                ForEach(times, id: \.self) { time in
+                    PresetGridButton(
+                        label: "\(time)",
+                        isSelected: viewModel.bottomTime == time
+                    ) {
+                        viewModel.bottomTime = time
+                        focusedField = nil
+                    }
+                    .accessibilityLabel("Set bottom time to \(time) minutes")
+                }
+            }
+        }
+    }
+}
+
+// MARK: - Date Section
+
+struct QuickLogDateSection: View {
+    @Binding var diveDate: Date
+
+    var body: some View {
+        DisclosureGroup("Date & Time") {
+            DatePicker(
+                "",
+                selection: $diveDate,
+                in: ...Date(),
+                displayedComponents: [.date, .hourAndMinute]
+            )
+            .datePickerStyle(.compact)
+            .labelsHidden()
+        }
+        .font(.subheadline)
+        .foregroundStyle(.secondary)
+    }
+}
+
+// MARK: - Quick Site Summary (collapsed single-line)
+
+struct QuickSiteSummary: View {
+    @ObservedObject var viewModel: QuickLogViewModel
+    @State private var showingSitePicker = false
+
+    var body: some View {
+        Button {
+            showingSitePicker = true
+        } label: {
+            HStack(spacing: 10) {
+                Image(systemName: siteIcon)
+                    .font(.system(size: 16))
+                    .foregroundStyle(Color.oceanBlue)
+
+                Text(siteLabel)
+                    .font(.subheadline)
+                    .foregroundStyle(viewModel.selectedSite != nil || viewModel.isUsingGPS ? .primary : .secondary)
+                    .lineLimit(1)
+
+                Spacer()
+
+                Image(systemName: "chevron.right")
+                    .font(.caption2)
+                    .foregroundStyle(.tertiary)
+            }
+            .padding(.horizontal, 14)
+            .padding(.vertical, 10)
+            .background(Color.gray.opacity(0.1))
+            .cornerRadius(10)
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel("Dive site: \(siteLabel)")
+        .accessibilityHint("Tap to change dive site")
+        .sheet(isPresented: $showingSitePicker) {
+            SitePickerView(
+                selectedSite: $viewModel.selectedSite,
+                onUseGPS: {
+                    Task { await viewModel.useGPSCoordinates() }
+                },
+                gpsLatitude: viewModel.gpsLatitude,
+                gpsLongitude: viewModel.gpsLongitude,
+                gpsLocationName: viewModel.gpsLocationName
+            )
+        }
+    }
+
+    private var siteIcon: String {
+        if viewModel.selectedSite != nil { return "mappin.circle.fill" }
+        if viewModel.isUsingGPS { return "location.fill" }
+        return "mappin"
+    }
+
+    private var siteLabel: String {
+        if let site = viewModel.selectedSite { return "\(site.name) — \(site.location)" }
+        if viewModel.isUsingGPS { return viewModel.gpsLocationName ?? "GPS Location" }
+        return "Select dive site"
     }
 }
 
@@ -340,7 +526,7 @@ struct EssentialFieldsSection: View {
             // Quick time buttons
             ScrollView(.horizontal, showsIndicators: false) {
                 HStack(spacing: 8) {
-                    ForEach([30, 40, 45, 50, 60], id: \.self) { time in
+                    ForEach([30, 40, 45, 50, 60, 75, 90], id: \.self) { time in
                         Button("\(time)min") {
                             viewModel.bottomTime = time
                             focusedField = nil
@@ -360,11 +546,21 @@ struct EssentialFieldsSection: View {
 struct OptionalFieldsSection: View {
     @ObservedObject var viewModel: QuickLogViewModel
     @State private var isExpanded = false
+    @AppStorage(UnitPreferenceKeys.temperatureUnit) private var tempUnit: String = TemperatureUnit.celsius.rawValue
+    @AppStorage(UnitPreferenceKeys.distanceUnit) private var distUnit: String = DistanceUnit.meters.rawValue
+
+    private var temperatureUnit: TemperatureUnit {
+        TemperatureUnit(rawValue: tempUnit) ?? .celsius
+    }
+
+    private var distanceUnit: DistanceUnit {
+        DistanceUnit(rawValue: distUnit) ?? .meters
+    }
 
     var body: some View {
         DisclosureGroup(isExpanded: $isExpanded) {
             VStack(spacing: 16) {
-                // Water temperature
+                // Water temperature with unit toggle
                 HStack {
                     Label("Water Temp", systemImage: "thermometer.medium")
                         .font(SwiftUI.Font.subheadline)
@@ -376,16 +572,20 @@ struct OptionalFieldsSection: View {
                             .textFieldStyle(.roundedBorder)
                             .keyboardType(.numberPad)
                             .frame(width: 60)
-                            .accessibilityLabel("Water temperature in Celsius")
+                            .accessibilityLabel("Water temperature")
                             .accessibilityValue(viewModel.waterTemp.map { "\(Int($0)) degrees" } ?? "Not set")
 
-                        Text("°C")
-                            .foregroundStyle(.secondary)
-                            .accessibilityHidden(true)
+                        Picker("", selection: $tempUnit) {
+                            ForEach(TemperatureUnit.allCases) { unit in
+                                Text(unit.rawValue).tag(unit.rawValue)
+                            }
+                        }
+                        .pickerStyle(.segmented)
+                        .frame(width: 80)
                     }
                 }
 
-                // Visibility
+                // Visibility with unit toggle
                 HStack {
                     Label("Visibility", systemImage: "eye")
                         .font(SwiftUI.Font.subheadline)
@@ -397,12 +597,16 @@ struct OptionalFieldsSection: View {
                             .textFieldStyle(.roundedBorder)
                             .keyboardType(.numberPad)
                             .frame(width: 60)
-                            .accessibilityLabel("Visibility in meters")
-                            .accessibilityValue(viewModel.visibility.map { "\(Int($0)) meters" } ?? "Not set")
+                            .accessibilityLabel("Visibility")
+                            .accessibilityValue(viewModel.visibility.map { "\(Int($0))" } ?? "Not set")
 
-                        Text("m")
-                            .foregroundStyle(.secondary)
-                            .accessibilityHidden(true)
+                        Picker("", selection: $distUnit) {
+                            ForEach(DistanceUnit.allCases) { unit in
+                                Text(unit.rawValue).tag(unit.rawValue)
+                            }
+                        }
+                        .pickerStyle(.segmented)
+                        .frame(width: 70)
                     }
                 }
 
@@ -494,6 +698,7 @@ struct SaveButton: View {
 struct SitePickerView: View {
     @Binding var selectedSite: DiveSite?
     var onUseGPS: (() -> Void)?
+    var onManualEntry: ((String) -> Void)?
     var gpsLatitude: Double?
     var gpsLongitude: Double?
     var gpsLocationName: String?
@@ -501,6 +706,8 @@ struct SitePickerView: View {
     @Environment(\.dismiss) private var dismiss
     @State private var searchText = ""
     @State private var sites: [DiveSite] = []
+    @State private var showingManualEntry = false
+    @State private var manualSiteName = ""
 
     var filteredSites: [DiveSite] {
         if searchText.isEmpty {
@@ -572,6 +779,39 @@ struct SitePickerView: View {
                     }
                 }
 
+                // Manual entry option
+                if !searchText.isEmpty && filteredSites.isEmpty {
+                    Section {
+                        Button {
+                            manualSiteName = searchText
+                            showingManualEntry = true
+                        } label: {
+                            HStack(spacing: 12) {
+                                ZStack {
+                                    Circle()
+                                        .fill(Color.gray.opacity(0.15))
+                                        .frame(width: 44, height: 44)
+                                    Image(systemName: "pencil.line")
+                                        .font(.system(size: 20))
+                                        .foregroundStyle(.secondary)
+                                }
+                                VStack(alignment: .leading, spacing: 4) {
+                                    Text("Enter manually")
+                                        .font(.headline)
+                                        .foregroundStyle(.primary)
+                                    Text("Can't find your site? Type the name manually.")
+                                        .font(.caption)
+                                        .foregroundStyle(.secondary)
+                                }
+                            }
+                            .padding(.vertical, 4)
+                        }
+                        .accessibilityLabel("Enter dive site name manually")
+                    } header: {
+                        Text("Not Found")
+                    }
+                }
+
                 // Sites List
                 Section {
                     ForEach(filteredSites) { site in
@@ -619,6 +859,16 @@ struct SitePickerView: View {
             }
             .task {
                 await loadSites()
+            }
+            .alert("Enter Site Name", isPresented: $showingManualEntry) {
+                TextField("Site name", text: $manualSiteName)
+                Button("Use This Name") {
+                    onManualEntry?(manualSiteName)
+                    dismiss()
+                }
+                Button("Cancel", role: .cancel) { }
+            } message: {
+                Text("Enter the name of the dive site for your log.")
             }
         }
     }

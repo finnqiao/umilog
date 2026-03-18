@@ -102,6 +102,7 @@ public enum SiteTypeFilter: String, CaseIterable, Identifiable {
     case cave = "Cave"
     case shore = "Shore"
     case drift = "Drift"
+    case other = "Other"
 
     public var id: String { rawValue }
 
@@ -115,6 +116,7 @@ public enum SiteTypeFilter: String, CaseIterable, Identifiable {
         case .cave: return "mountain.2.fill"
         case .shore: return "beach.umbrella.fill"
         case .drift: return "wind"
+        case .other: return "ellipsis.circle.fill"
         }
     }
 }

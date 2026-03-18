@@ -32,6 +32,7 @@ public struct DiveMapView: UIViewControllerRepresentable {
     public var onRegionChange: (DiveMapViewport) -> Void
     public var onLoadFailure: (() -> Void)?
     public var onClusterTap: ((CLLocationCoordinate2D, Int) -> Void)?
+    public var onTileLoadingChange: ((Bool) -> Void)?
 
     public class Coordinator {
         var lastCameraUpdateToken: Int
@@ -52,7 +53,8 @@ public struct DiveMapView: UIViewControllerRepresentable {
         onSelect: @escaping (String) -> Void = { _ in },
         onRegionChange: @escaping (DiveMapViewport) -> Void = { _ in },
         onLoadFailure: (() -> Void)? = nil,
-        onClusterTap: ((CLLocationCoordinate2D, Int) -> Void)? = nil
+        onClusterTap: ((CLLocationCoordinate2D, Int) -> Void)? = nil,
+        onTileLoadingChange: ((Bool) -> Void)? = nil
     ) {
         self.annotations = annotations
         self.initialCamera = initialCamera
@@ -62,6 +64,7 @@ public struct DiveMapView: UIViewControllerRepresentable {
         self.onRegionChange = onRegionChange
         self.onLoadFailure = onLoadFailure
         self.onClusterTap = onClusterTap
+        self.onTileLoadingChange = onTileLoadingChange
     }
 
     public func makeCoordinator() -> Coordinator {
@@ -76,6 +79,7 @@ public struct DiveMapView: UIViewControllerRepresentable {
         controller.onRegionChange = onRegionChange
         controller.onLoadFailure = onLoadFailure
         controller.onClusterTap = onClusterTap
+        controller.onTileLoadingChange = onTileLoadingChange
         controller.layerSettings = layerSettings
         controller.annotations = annotations
         return controller
@@ -87,6 +91,7 @@ public struct DiveMapView: UIViewControllerRepresentable {
         uiViewController.onRegionChange = onRegionChange
         uiViewController.onLoadFailure = onLoadFailure
         uiViewController.onClusterTap = onClusterTap
+        uiViewController.onTileLoadingChange = onTileLoadingChange
         if context.coordinator.lastCameraUpdateToken != cameraUpdateToken {
             uiViewController.initialCamera = initialCamera
             context.coordinator.lastCameraUpdateToken = cameraUpdateToken

@@ -905,4 +905,22 @@ public final class SiteRepository {
             return try DiveSite.fetchOne(db, sql: sql, arguments: StatementArguments(args))
         }
     }
+
+    // MARK: - Region Counts
+
+    /// Count sites per region name. Returns a dictionary of region name → site count.
+    public func countByRegion() throws -> [String: Int] {
+        try database.read { db in
+            let sql = "SELECT region, COUNT(*) as count FROM sites GROUP BY region"
+            var result: [String: Int] = [:]
+            let rows = try Row.fetchAll(db, sql: sql)
+            for row in rows {
+                if let region: String = row["region"],
+                   let count: Int = row["count"] {
+                    result[region] = count
+                }
+            }
+            return result
+        }
+    }
 }

@@ -49,7 +49,6 @@ struct FilterContent: View {
                     mySitesSection
                     difficultySection
                     siteTypeSection
-                    timePeriodSection
                     depthRangeSection
                     entryTypeSection
                     shopsSection
@@ -83,7 +82,7 @@ struct FilterContent: View {
 
     private var mySitesSection: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Text("My Sites")
+            Text("Sites")
                 .font(.subheadline)
                 .fontWeight(.semibold)
                 .foregroundStyle(Color.mist)
@@ -185,32 +184,7 @@ struct FilterContent: View {
         }
     }
 
-    // MARK: - Time Period Section (Resy-style)
-
-    private var timePeriodSection: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            Text("Time Period")
-                .font(.subheadline)
-                .fontWeight(.semibold)
-                .foregroundStyle(Color.mist)
-                .accessibilityAddTraits(.isHeader)
-
-            HStack(spacing: 8) {
-                ForEach(ExploreFilters.TimePeriod.allCases, id: \.self) { period in
-                    filterChip(
-                        title: period.rawValue,
-                        isSelected: localFilters.timePeriod == period
-                    ) {
-                        withAnimation(.spring(response: 0.25, dampingFraction: 0.8)) {
-                            localFilters.timePeriod = period
-                        }
-                    }
-                }
-            }
-        }
-    }
-
-    // MARK: - Depth Range Section (Resy-style)
+    // MARK: - Depth Range Section
 
     private var depthRangeSection: some View {
         VStack(alignment: .leading, spacing: 12) {

@@ -33,9 +33,8 @@ struct UmiLogApp: App {
 
     private static func configureTabBarAppearance() {
         let appearance = UITabBarAppearance()
-        appearance.configureWithTransparentBackground()
-        appearance.backgroundEffect = UIBlurEffect(style: .systemUltraThinMaterialDark)
-        appearance.backgroundColor = UIColor(Color.glass).withAlphaComponent(0.85)
+        appearance.configureWithOpaqueBackground()
+        appearance.backgroundColor = UIColor(red: 0.05, green: 0.12, blue: 0.20, alpha: 1.0)
         appearance.shadowColor = .clear
 
         let itemAppearance = UITabBarItemAppearance()
@@ -51,7 +50,7 @@ struct UmiLogApp: App {
         let tabBar = UITabBar.appearance()
         tabBar.standardAppearance = appearance
         tabBar.scrollEdgeAppearance = appearance
-        tabBar.isTranslucent = true
+        tabBar.isTranslucent = false
     }
 }
 
@@ -78,6 +77,7 @@ struct ContentView: View {
     }
     @State private var showingQuickLog = false
     @State private var showingLogLauncher = false
+    @State private var showingDiveTimer = false
     @State private var pendingLiveLogSite: DiveSite?
     @State private var isTabBarHidden = false
 
@@ -150,6 +150,7 @@ struct ContentView: View {
         }
         .sheet(isPresented: $showingQuickLog) {
             QuickLogView()
+                .presentationDetents([.medium, .large])
                 .wateryTransition()
         }
         .sheet(isPresented: $showingLogLauncher) {
@@ -167,11 +168,20 @@ struct ContentView: View {
                         showingWizard = true
                     }
                 },
+                startDiveTimer: {
+                    showingLogLauncher = false
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.25) {
+                        showingDiveTimer = true
+                    }
+                },
                 onClose: {
                     showingLogLauncher = false
                 }
             )
             .presentationDetents([.medium, .large])
+        }
+        .fullScreenCover(isPresented: $showingDiveTimer) {
+            LiveDiveTimerView()
         }
         .onReceive(NotificationCenter.default.publisher(for: .startLiveLogRequested)) { notification in
             guard let site = notification.object as? DiveSite else { return }
@@ -397,6 +407,7 @@ private extension ContentView {
 struct LogLauncherView: View {
     let startQuickLog: () -> Void
     let startLiveLog: () -> Void
+    var startDiveTimer: (() -> Void)?
     let onClose: () -> Void
     @Environment(\.dismiss) private var dismiss
     
@@ -405,16 +416,38 @@ struct LogLauncherView: View {
             List {
                 Section("Choose how to log") {
                     Button(action: handleQuickLog) {
-                        Label("Quick Log", systemImage: "bolt.fill")
-                            .font(.body.weight(.semibold))
+                        HStack(spacing: 12) {
+                            Label("Quick Log", systemImage: "bolt.fill")
+                                .font(.body.weight(.semibold))
+                            Spacer()
+                            Text("< 1 min")
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                        }
                     }
                     Button(action: handleLiveLog) {
-                        Label("Start Live Log", systemImage: "waveform.path.ecg")
-                            .font(.body.weight(.semibold))
+                        HStack(spacing: 12) {
+                            Label("Detailed Log", systemImage: "list.bullet.clipboard")
+                                .font(.body.weight(.semibold))
+                            Spacer()
+                            Text("4 steps")
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                        }
+                    }
+                    Button(action: handleStartDive) {
+                        HStack(spacing: 12) {
+                            Label("Start Dive Timer", systemImage: "waveform.path.ecg")
+                                .font(.body.weight(.semibold))
+                            Spacer()
+                            Text("Real-time")
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                        }
                     }
                 }
                 Section("Tips") {
-                    Text("Quick Log saves a dive in under a minute. Live Log tracks depth, time, and reminders during your dive.")
+                    Text("Quick Log saves a dive in under a minute. Detailed Log walks through 4 steps. Start Dive Timer tracks your dive in real-time and logs after you surface.")
                         .font(.footnote)
                         .foregroundStyle(.secondary)
                         .listRowBackground(Color.clear)
@@ -443,6 +476,11 @@ struct LogLauncherView: View {
     private func handleLiveLog() {
         dismiss()
         startLiveLog()
+    }
+
+    private func handleStartDive() {
+        dismiss()
+        startDiveTimer?()
     }
 }
 

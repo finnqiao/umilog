@@ -6,13 +6,15 @@ import UmiDesignSystem
 /// Allows fast navigation to high-density regions from anywhere.
 struct PopularRegionChips: View {
     let regions: [RegionSummary]
+    var selectedRegionId: String?
     let onTap: (RegionSummary) -> Void
 
     var body: some View {
         ScrollView(.horizontal, showsIndicators: false) {
             HStack(spacing: 8) {
                 ForEach(regions) { region in
-                    RegionQuickChip(region: region) {
+                    let isSelected = isRegionSelected(region)
+                    RegionQuickChip(region: region, isSelected: isSelected) {
                         onTap(region)
                     }
                 }
@@ -20,20 +22,26 @@ struct PopularRegionChips: View {
             .padding(.horizontal, 16)
         }
     }
+
+    private func isRegionSelected(_ region: RegionSummary) -> Bool {
+        guard let selectedId = selectedRegionId else { return false }
+        return region.id == selectedId || region.name == selectedId
+    }
 }
 
 // MARK: - Region Quick Chip
 
 private struct RegionQuickChip: View {
     let region: RegionSummary
+    let isSelected: Bool
     let action: () -> Void
 
     var body: some View {
         Button(action: action) {
             HStack(spacing: 6) {
-                Image(systemName: "mappin.circle.fill")
+                Image(systemName: isSelected ? "mappin.circle.fill" : "mappin.circle.fill")
                     .font(.caption2)
-                    .foregroundStyle(Color.lagoon)
+                    .foregroundStyle(isSelected ? Color.foam : Color.lagoon)
 
                 Text(region.name)
                     .font(.caption)
@@ -44,12 +52,13 @@ private struct RegionQuickChip: View {
             .padding(.vertical, 8)
             .background(
                 Capsule()
-                    .fill(Color.abyss.opacity(0.9))
+                    .fill(isSelected ? Color.lagoon : Color.abyss.opacity(0.9))
                     .shadow(color: Color.black.opacity(0.3), radius: 4, y: 2)
             )
         }
         .buttonStyle(.plain)
         .accessibilityLabel("Go to \(region.name)")
+        .accessibilityAddTraits(isSelected ? .isSelected : [])
     }
 }
 
@@ -65,6 +74,7 @@ struct PopularRegionChips_Previews: PreviewProvider {
             VStack {
                 PopularRegionChips(
                     regions: RegionSummary.popular,
+                    selectedRegionId: "caribbean",
                     onTap: { _ in }
                 )
                 Spacer()

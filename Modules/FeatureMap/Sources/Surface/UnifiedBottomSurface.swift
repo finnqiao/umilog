@@ -55,6 +55,10 @@ struct UnifiedBottomSurface: View {
     var onClusterZoomIn: (() -> Void)?
     var onCloseCluster: (() -> Void)?
 
+    // Back navigation
+    var canNavigateBack: Bool = false
+    var onNavigateBack: (() -> Void)?
+
     // MARK: - State
 
     @GestureState private var dragTranslation: CGFloat = 0
@@ -121,7 +125,6 @@ struct UnifiedBottomSurface: View {
                             // Fix UX-002: Use simultaneousGesture so taps on site cards can still register
                             .simultaneousGesture(dragGesture(containerHeight: containerHeight, allowedDetents: allowedDetents))
                     }
-                    .ignoresSafeArea(edges: .bottom)
                     .animation(surfaceAnimation, value: detent)
                     .animation(surfaceAnimation, value: mode)
                 }
@@ -258,11 +261,36 @@ struct UnifiedBottomSurface: View {
 
     private var dragHandle: some View {
         VStack(spacing: 0) {
-            Capsule()
-                .fill(Color.mist.opacity(0.5))
-                .frame(width: 36, height: 4)
-                .padding(.top, 8)
-                .padding(.bottom, 8)
+            HStack {
+                if canNavigateBack {
+                    Button {
+                        onNavigateBack?()
+                    } label: {
+                        Image(systemName: "chevron.left")
+                            .font(.system(size: 14, weight: .semibold))
+                            .foregroundStyle(Color.mist)
+                            .frame(width: 32, height: 24)
+                    }
+                    .buttonStyle(.plain)
+                    .accessibilityLabel("Go back")
+                }
+
+                Spacer()
+
+                Capsule()
+                    .fill(Color.mist.opacity(0.5))
+                    .frame(width: 36, height: 4)
+
+                Spacer()
+
+                // Balance the back button width
+                if canNavigateBack {
+                    Color.clear.frame(width: 32, height: 24)
+                }
+            }
+            .padding(.horizontal, 12)
+            .padding(.top, 8)
+            .padding(.bottom, 8)
         }
         .frame(height: 24)
         .frame(maxWidth: .infinity)
@@ -275,25 +303,14 @@ struct UnifiedBottomSurface: View {
 
     private var surfaceBackground: some View {
         ZStack {
-            // Match map background gradient exactly for seamless appearance
-            LinearGradient(
-                colors: [
-                    Color(red: 0.06, green: 0.14, blue: 0.24),  // Map backgroundTop
-                    Color(red: 0.04, green: 0.11, blue: 0.19)   // Map backgroundBottom
-                ],
-                startPoint: .top,
-                endPoint: .bottom
-            )
-
-            // Subtle glass overlay for depth and surface distinction
-            Rectangle()
-                .fill(Color.glass.opacity(0.4))
+            // Full-width opaque dark background — no blur/transparency
+            Color(red: 0.05, green: 0.12, blue: 0.20)
 
             // Top border highlight for surface separation
             RoundedRectangle(cornerRadius: 24, style: .continuous)
                 .strokeBorder(
                     LinearGradient(
-                        colors: [Color.ocean.opacity(0.5), Color.ocean.opacity(0.15)],
+                        colors: [Color.ocean.opacity(0.4), Color.ocean.opacity(0.1)],
                         startPoint: .top,
                         endPoint: .bottom
                     ),

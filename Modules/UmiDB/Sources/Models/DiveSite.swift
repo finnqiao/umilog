@@ -97,6 +97,7 @@ public struct DiveSite: Codable, Identifiable, Hashable {
         case cave = "Cave"
         case shore = "Shore"
         case drift = "Drift"
+        case other = "Other"
     }
 }
 

@@ -55,30 +55,14 @@ struct ExploreContent: View {
             }
 
             if detent != .peek {
-                // Quick filter pills row
-                QuickFilterPillsRow(
-                    filterLens: $filterLens,
-                    difficulties: $filterDifficulties
-                )
-                .padding(.bottom, 12)
-
-                if !context.hierarchyLevel.isWorld {
-                    BreadcrumbRow(
-                        hierarchyLevel: context.hierarchyLevel,
-                        onNavigateUp: onNavigateUp,
-                        onResetToWorld: { onNavigateUp() }
-                    )
-                    .padding(.horizontal, 16)
-                    .padding(.bottom, 8)
+                switch entryMode {
+                case .explore:
+                    exploreExpandedContent
+                case .trips:
+                    tripsExpandedContent
+                case .nearMe:
+                    nearMeExpandedContent
                 }
-
-                if shouldShowRegionDetail, let regionDetail {
-                    RegionDetailCard(region: regionDetail)
-                        .padding(.horizontal, 16)
-                        .padding(.bottom, 12)
-                }
-
-                siteList
             }
         }
     }
@@ -147,7 +131,14 @@ struct ExploreContent: View {
         if let lens = context.filterLens {
             return Text("\(lens.displayName): \(sites.count)")
         } else {
-            return Text("Sites nearby: \(sites.count)")
+            switch entryMode {
+            case .explore:
+                return Text("Sites nearby: \(sites.count)")
+            case .trips:
+                return Text("Planned trips: \(sites.count)")
+            case .nearMe:
+                return Text("Sites within 50km: \(sites.count)")
+            }
         }
     }
 
@@ -184,6 +175,76 @@ struct ExploreContent: View {
         .accessibilityLabel("Open filters")
     }
 
+    // MARK: - Mode-Specific Expanded Content
+
+    @ViewBuilder
+    private var exploreExpandedContent: some View {
+        // Quick filter pills row
+        QuickFilterPillsRow(
+            filterLens: $filterLens,
+            difficulties: $filterDifficulties
+        )
+        .padding(.bottom, 12)
+
+        if !context.hierarchyLevel.isWorld {
+            BreadcrumbRow(
+                hierarchyLevel: context.hierarchyLevel,
+                onNavigateUp: onNavigateUp,
+                onResetToWorld: { onNavigateUp() }
+            )
+            .padding(.horizontal, 16)
+            .padding(.bottom, 8)
+        }
+
+        if shouldShowRegionDetail, let regionDetail {
+            RegionDetailCard(region: regionDetail)
+                .padding(.horizontal, 16)
+                .padding(.bottom, 12)
+        }
+
+        siteList
+    }
+
+    @ViewBuilder
+    private var tripsExpandedContent: some View {
+        if sites.isEmpty {
+            tripsEmptyState
+        } else {
+            siteList
+        }
+    }
+
+    @ViewBuilder
+    private var nearMeExpandedContent: some View {
+        QuickFilterPillsRow(
+            filterLens: $filterLens,
+            difficulties: $filterDifficulties
+        )
+        .padding(.bottom, 12)
+
+        siteList
+    }
+
+    private var tripsEmptyState: some View {
+        VStack(spacing: 16) {
+            Image(systemName: "suitcase")
+                .font(.system(size: 40))
+                .foregroundStyle(Color.mist.opacity(0.4))
+
+            Text("No trips yet")
+                .font(.headline)
+                .foregroundStyle(Color.foam)
+
+            Text("Create a trip to organize dive destinations and plan your next adventure.")
+                .font(.subheadline)
+                .foregroundStyle(Color.mist)
+                .multilineTextAlignment(.center)
+                .padding(.horizontal, 32)
+        }
+        .frame(maxWidth: .infinity)
+        .padding(.top, 40)
+    }
+
     // MARK: - Site List
 
     @ViewBuilder
@@ -215,11 +276,14 @@ struct ExploreContent: View {
     }
 
     /// Shows fallback content when viewport is sparse.
-    /// Priority: saved sites > recent regions > popular regions.
+    /// Shows lens-specific empty states for My Sites tabs,
+    /// or fallback shelves for the general explore view.
     private var emptyState: some View {
         Group {
-            // If we have fallback data, show rich content
-            if !savedSites.isEmpty || !recentRegions.isEmpty || !popularRegions.isEmpty {
+            if let lens = context.filterLens {
+                // Lens-specific empty states for Saved/Logged/Planned tabs
+                lensEmptyState(for: lens)
+            } else if !savedSites.isEmpty || !recentRegions.isEmpty || !popularRegions.isEmpty {
                 FallbackShelfContent(
                     savedSites: savedSites,
                     recentRegions: recentRegions,
@@ -228,7 +292,6 @@ struct ExploreContent: View {
                     onRegionTap: onRegionTap
                 )
             } else {
-                // Absolute fallback: use curated regions
                 FallbackShelfContent(
                     savedSites: [],
                     recentRegions: [],
@@ -238,6 +301,26 @@ struct ExploreContent: View {
                 )
             }
         }
+    }
+
+    private func lensEmptyState(for lens: FilterLens) -> some View {
+        VStack(spacing: 16) {
+            Image(systemName: lens.emptyStateIcon)
+                .font(.system(size: 40))
+                .foregroundStyle(Color.mist.opacity(0.4))
+
+            Text(lens.emptyStateTitle)
+                .font(.headline)
+                .foregroundStyle(Color.foam)
+
+            Text(lens.emptyStateMessage)
+                .font(.subheadline)
+                .foregroundStyle(Color.mist)
+                .multilineTextAlignment(.center)
+                .padding(.horizontal, 32)
+        }
+        .frame(maxWidth: .infinity)
+        .padding(.top, 40)
     }
 
     /// Simple empty state for when filters are applied (user expectation differs).

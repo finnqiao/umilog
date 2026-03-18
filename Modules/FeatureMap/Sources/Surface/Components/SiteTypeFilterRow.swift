@@ -36,6 +36,7 @@ struct SiteTypeFilterRow: View {
         FilterOption(label: "Walls", icon: "square.stack.3d.up", siteType: .wall),
         FilterOption(label: "Shore", icon: "beach.umbrella", siteType: .shore),
         FilterOption(label: "Drift", icon: "wind", siteType: .drift),
+        FilterOption(label: "Other", icon: "ellipsis.circle", siteType: .other),
         FilterOption(label: "Night", icon: "moon.stars", isNightFilter: true)
     ]
 
@@ -122,6 +123,8 @@ struct SiteTypeFilterRow: View {
             return Color.difficultyBeginner
         case .drift:
             return Color.difficultyIntermediate
+        case .other:
+            return Color.mist
         }
     }
 }

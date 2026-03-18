@@ -22,6 +22,10 @@ struct PlanContent: View {
     @State private var tripName = ""
     @State private var isSaving = false
 
+    // Optional dive planning fields per site
+    @State private var divePlans: [String: DivePlanFields] = [:]
+    @State private var expandedPlanId: String?
+
     private let tripRepository = TripRepository(database: AppDatabase.shared)
 
     // MARK: - Computed
@@ -171,44 +175,122 @@ struct PlanContent: View {
     }
 
     private func plannedSiteRow(site: DiveSite, index: Int) -> some View {
-        HStack(spacing: 12) {
-            // Order number
-            Text("\(index)")
-                .font(.caption)
-                .fontWeight(.bold)
-                .foregroundStyle(Color.foam)
-                .frame(width: 24, height: 24)
-                .background(Color.lagoon)
-                .clipShape(Circle())
-
-            VStack(alignment: .leading, spacing: 2) {
-                Text(site.name)
-                    .font(.subheadline)
-                    .fontWeight(.medium)
-                    .foregroundStyle(Color.foam)
-
-                Text(site.location)
+        VStack(spacing: 0) {
+            HStack(spacing: 12) {
+                // Order number
+                Text("\(index)")
                     .font(.caption)
-                    .foregroundStyle(Color.mist)
-            }
+                    .fontWeight(.bold)
+                    .foregroundStyle(Color.foam)
+                    .frame(width: 24, height: 24)
+                    .background(Color.lagoon)
+                    .clipShape(Circle())
 
-            Spacer()
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(site.name)
+                        .font(.subheadline)
+                        .fontWeight(.medium)
+                        .foregroundStyle(Color.foam)
 
-            Button {
-                onRemoveSite(site.id)
-            } label: {
-                Image(systemName: "minus.circle.fill")
-                    .font(.title3)
-                    .foregroundStyle(Color.danger)
+                    Text(site.location)
+                        .font(.caption)
+                        .foregroundStyle(Color.mist)
+                }
+
+                Spacer()
+
+                // Dive plan toggle
+                Button {
+                    withAnimation(.spring(response: 0.3)) {
+                        if expandedPlanId == site.id {
+                            expandedPlanId = nil
+                        } else {
+                            expandedPlanId = site.id
+                            if divePlans[site.id] == nil {
+                                divePlans[site.id] = DivePlanFields()
+                            }
+                        }
+                    }
+                } label: {
+                    Image(systemName: expandedPlanId == site.id ? "chevron.up" : "gauge.medium")
+                        .font(.system(size: 14, weight: .medium))
+                        .foregroundStyle(Color.lagoon)
+                }
+                .buttonStyle(.plain)
+                .accessibilityLabel("Dive plan details")
+
+                Button {
+                    onRemoveSite(site.id)
+                } label: {
+                    Image(systemName: "minus.circle.fill")
+                        .font(.title3)
+                        .foregroundStyle(Color.danger)
+                }
+                .buttonStyle(.plain)
+                .accessibilityLabel("Remove \(site.name) from plan")
             }
-            .buttonStyle(.plain)
-            .accessibilityLabel("Remove \(site.name) from plan")
+            .padding(.vertical, 12)
+            .padding(.horizontal, 12)
+
+            // Dive planning fields (optional)
+            if expandedPlanId == site.id {
+                divePlanFields(for: site.id)
+                    .padding(.horizontal, 12)
+                    .padding(.bottom, 12)
+            }
         }
-        .padding(.vertical, 12)
-        .padding(.horizontal, 12)
         .background(Color.trench)
         .clipShape(RoundedRectangle(cornerRadius: 12))
         .padding(.bottom, 8)
+    }
+
+    private func divePlanFields(for siteId: String) -> some View {
+        let binding = Binding(
+            get: { divePlans[siteId] ?? DivePlanFields() },
+            set: { divePlans[siteId] = $0 }
+        )
+
+        return VStack(spacing: 10) {
+            Divider().overlay(Color.ocean.opacity(0.3))
+
+            HStack(spacing: 12) {
+                planField(label: "Depth", value: binding.targetDepth, unit: "m")
+                planField(label: "Time", value: binding.plannedBottomTime, unit: "min")
+            }
+
+            HStack(spacing: 12) {
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("Gas Mix")
+                        .font(.caption2)
+                        .foregroundStyle(Color.mist)
+                    Picker("", selection: binding.gasMix) {
+                        Text("Air").tag(DivePlanFields.GasMix.air)
+                        Text("EAN32").tag(DivePlanFields.GasMix.ean32)
+                        Text("EAN36").tag(DivePlanFields.GasMix.ean36)
+                    }
+                    .pickerStyle(.segmented)
+                }
+
+                planField(label: "SI", value: binding.surfaceInterval, unit: "min")
+            }
+        }
+    }
+
+    private func planField(label: String, value: Binding<Double?>, unit: String) -> some View {
+        VStack(alignment: .leading, spacing: 4) {
+            Text(label)
+                .font(.caption2)
+                .foregroundStyle(Color.mist)
+            HStack(spacing: 4) {
+                TextField("--", value: value, format: .number)
+                    .textFieldStyle(.roundedBorder)
+                    .keyboardType(.numberPad)
+                    .frame(maxWidth: 60)
+                Text(unit)
+                    .font(.caption)
+                    .foregroundStyle(Color.mist)
+            }
+        }
     }
 
     private var addSiteButton: some View {

@@ -54,6 +54,7 @@ public struct SiteImage: View {
         case .wall: return "wall"
         case .shore: return "shore"
         case .drift: return "drift"
+        case .other: return "other"
         }
     }
 
@@ -100,6 +101,8 @@ public struct SiteImage: View {
             return [Color.difficultyBeginner.opacity(0.8), Color.lagoon.opacity(0.4)]
         case .drift:
             return [Color.lagoon, Color.ocean.opacity(0.6)]
+        case .other:
+            return [Color.mist.opacity(0.7), Color.mist.opacity(0.3)]
         }
     }
 
@@ -117,6 +120,8 @@ public struct SiteImage: View {
             return "beach.umbrella.fill"
         case .drift:
             return "wind"
+        case .other:
+            return "mappin"
         }
     }
 }

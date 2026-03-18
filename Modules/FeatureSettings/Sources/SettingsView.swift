@@ -21,6 +21,12 @@ public struct SettingsView: View {
 
     public var body: some View {
         List {
+            Section("Preferences") {
+                NavigationLink("Units") {
+                    UnitPreferencesView()
+                }
+            }
+
             Section("Account") {
                 NavigationLink("Privacy Settings") {
                     PrivacySettingsView()
