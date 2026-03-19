@@ -27,6 +27,11 @@ jobs:
       - name: Install XcodeGen
         run: brew install xcodegen
 
+      - name: Create placeholder seed DB
+        run: |
+          mkdir -p Resources/SeedDB
+          sqlite3 Resources/SeedDB/umilog_seed.db "SELECT 1;" || touch Resources/SeedDB/umilog_seed.db
+
       - name: Generate Xcode Project
         run: xcodegen generate
 
