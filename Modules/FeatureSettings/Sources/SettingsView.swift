@@ -1,12 +1,14 @@
 import SwiftUI
 import UmiDB
 import UmiCoreKit
+import UmiDesignSystem
 import UniformTypeIdentifiers
 import os
 
 private let logger = Logger(subsystem: "com.umilog", category: "Settings")
 
 public struct SettingsView: View {
+    @Environment(\.underwaterThemeBinding) private var underwaterThemeBinding
     @ObservedObject private var powerManager = PowerManager.shared
     @State private var pendingDivesCount = 0
     @State private var isExporting = false
@@ -20,6 +22,14 @@ public struct SettingsView: View {
 
     public var body: some View {
         List {
+            Section("Appearance") {
+                Toggle(isOn: underwaterThemeBinding ?? .constant(true)) {
+                    Label("Underwater Theme", systemImage: "water.waves")
+                }
+            } footer: {
+                Text("Enables immersive ocean visuals with animated caustics and a deep-sea color palette.")
+            }
+
             Section("Account") {
                 NavigationLink("Privacy Settings") {
                     PrivacySettingsView()
