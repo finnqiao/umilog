@@ -13,6 +13,11 @@ SWIFT_ACTIVE_COMPILATION_CONDITIONS = STAGING
 VALIDATE_PRODUCT = YES
 LLVM_LTO = NO
 
+// Code Signing (manual for CI/Match)
+CODE_SIGN_STYLE = Manual
+CODE_SIGN_IDENTITY = Apple Distribution
+PROVISIONING_PROFILE_SPECIFIER = match AppStore app.umilog
+
 // Staging bundle ID (optional - enable for separate TestFlight app)
 // PRODUCT_BUNDLE_IDENTIFIER = app.umilog.staging
 
