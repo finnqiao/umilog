@@ -41,6 +41,8 @@ enum SurfaceDetent: Equatable, CaseIterable {
             return [.medium, .expanded]
         case .clusterExpand:
             return [.peek, .medium, .expanded]
+        case .nearMe:
+            return [.peek, .medium, .expanded]
         }
     }
 
@@ -56,6 +58,8 @@ enum SurfaceDetent: Equatable, CaseIterable {
         case .plan:
             return .expanded
         case .clusterExpand:
+            return .medium
+        case .nearMe:
             return .medium
         }
     }

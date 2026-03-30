@@ -11,12 +11,9 @@ class MapUIViewModel: ObservableObject {
     /// The current UI mode.
     @Published private(set) var mode: MapUIMode = .initial
 
-    /// The entry mode (explore/trips/nearMe).
-    @Published var entryMode: MapEntryMode = .explore {
-        didSet {
-            MapStatePersistence.shared.saveEntryMode(entryMode)
-        }
-    }
+    /// The entry mode — deprecated, always returns .explore.
+    /// Trips is now a filter lens, Near Me is an action (not a persistent mode).
+    @Published var entryMode: MapEntryMode = .explore
 
     /// Explore mode filters.
     @Published var exploreFilters: ExploreFilters = .default {
@@ -24,6 +21,9 @@ class MapUIViewModel: ObservableObject {
             MapStatePersistence.shared.saveExploreFilters(exploreFilters)
         }
     }
+
+    /// Current semantic zoom level (world/regional/local).
+    @Published private(set) var zoomLevel: MapZoomLevel = .world
 
     /// Active proximity prompt (overlay, not a mode).
     @Published var proximityPrompt: ProximityPromptState?
@@ -86,13 +86,21 @@ class MapUIViewModel: ObservableObject {
         mode.inspectedSiteId
     }
 
+    // MARK: - Zoom Level
+
+    /// Update the semantic zoom level based on the current map region.
+    /// Called whenever the map viewport changes.
+    func updateZoomLevel(latitudeDelta: Double) {
+        let newLevel = MapZoomLevel.from(latitudeDelta: latitudeDelta)
+        if newLevel != zoomLevel {
+            zoomLevel = newLevel
+        }
+    }
+
     // MARK: - Private Methods
 
     private func loadPersistedState() {
         let persistence = MapStatePersistence.shared
-
-        // Load entry mode
-        entryMode = persistence.loadEntryMode()
 
         // Load filters
         exploreFilters = persistence.loadExploreFilters()

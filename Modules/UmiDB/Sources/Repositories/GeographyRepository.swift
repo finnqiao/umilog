@@ -299,6 +299,183 @@ public final class GeographyRepository {
 
     // MARK: - Region Summaries
 
+    // MARK: - Viewport Aggregate Queries
+
+    /// Fetch regions visible in a bounding box, with site counts and center coordinates.
+    /// Used at world zoom to show destination markers.
+    public func fetchRegionsInBounds(
+        minLat: Double, maxLat: Double,
+        minLon: Double, maxLon: Double,
+        limit: Int = 30
+    ) throws -> [RegionSummary] {
+        try database.read { db in
+            let sql = """
+            SELECT r.id, r.name, c.name as country_name,
+                   COUNT(s.id) as site_count,
+                   COALESCE(r.latitude, AVG(s.latitude)) as center_lat,
+                   COALESCE(r.longitude, AVG(s.longitude)) as center_lon
+            FROM regions r
+            LEFT JOIN countries c ON r.country_id = c.id
+            INNER JOIN sites s ON s.region_id = r.id
+            WHERE s.latitude BETWEEN ? AND ?
+              AND s.longitude BETWEEN ? AND ?
+            GROUP BY r.id
+            HAVING site_count > 0
+            ORDER BY site_count DESC
+            LIMIT ?
+            """
+            let rows = try Row.fetchAll(db, sql: sql, arguments: [minLat, maxLat, minLon, maxLon, limit])
+            return rows.compactMap { row -> RegionSummary? in
+                guard let id: String = row["id"],
+                      let name: String = row["name"],
+                      let centerLat: Double = row["center_lat"],
+                      let centerLon: Double = row["center_lon"] else { return nil }
+                return RegionSummary(
+                    id: id,
+                    name: name,
+                    countryName: row["country_name"] ?? "Unknown",
+                    siteCount: row["site_count"] ?? 0,
+                    centerLat: centerLat,
+                    centerLon: centerLon,
+                    zoomLevel: 7.0
+                )
+            }
+        }
+    }
+
+    /// Fetch areas visible in a bounding box, with site counts and center coordinates.
+    /// Used at regional zoom to show named area markers.
+    public func fetchAreasInBounds(
+        minLat: Double, maxLat: Double,
+        minLon: Double, maxLon: Double,
+        limit: Int = 50
+    ) throws -> [AreaSummary] {
+        try database.read { db in
+            let sql = """
+            SELECT a.id, a.name, a.region_id, r.name as region_name, c.name as country_name,
+                   COUNT(s.id) as site_count,
+                   COALESCE(a.latitude, AVG(s.latitude)) as center_lat,
+                   COALESCE(a.longitude, AVG(s.longitude)) as center_lon
+            FROM areas a
+            LEFT JOIN regions r ON a.region_id = r.id
+            LEFT JOIN countries c ON a.country_id = c.id
+            INNER JOIN sites s ON s.area_id = a.id
+            WHERE s.latitude BETWEEN ? AND ?
+              AND s.longitude BETWEEN ? AND ?
+            GROUP BY a.id
+            HAVING site_count > 0
+            ORDER BY site_count DESC
+            LIMIT ?
+            """
+            let rows = try Row.fetchAll(db, sql: sql, arguments: [minLat, maxLat, minLon, maxLon, limit])
+            return rows.compactMap { row -> AreaSummary? in
+                guard let id: String = row["id"],
+                      let name: String = row["name"],
+                      let centerLat: Double = row["center_lat"],
+                      let centerLon: Double = row["center_lon"] else { return nil }
+                return AreaSummary(
+                    id: id,
+                    name: name,
+                    regionId: row["region_id"],
+                    regionName: row["region_name"],
+                    countryName: row["country_name"],
+                    siteCount: row["site_count"] ?? 0,
+                    centerLat: centerLat,
+                    centerLon: centerLon
+                )
+            }
+        }
+    }
+
+    /// Fetch areas within a specific region, with site counts.
+    public func fetchAreasWithCounts(regionId: String) throws -> [AreaSummary] {
+        try database.read { db in
+            let sql = """
+            SELECT a.id, a.name, a.region_id, r.name as region_name, c.name as country_name,
+                   COUNT(s.id) as site_count,
+                   COALESCE(a.latitude, AVG(s.latitude)) as center_lat,
+                   COALESCE(a.longitude, AVG(s.longitude)) as center_lon
+            FROM areas a
+            LEFT JOIN regions r ON a.region_id = r.id
+            LEFT JOIN countries c ON a.country_id = c.id
+            LEFT JOIN sites s ON s.area_id = a.id
+            WHERE a.region_id = ?
+            GROUP BY a.id
+            HAVING site_count > 0
+            ORDER BY site_count DESC
+            """
+            let rows = try Row.fetchAll(db, sql: sql, arguments: [regionId])
+            return rows.compactMap { row -> AreaSummary? in
+                guard let id: String = row["id"],
+                      let name: String = row["name"],
+                      let centerLat: Double = row["center_lat"],
+                      let centerLon: Double = row["center_lon"] else { return nil }
+                return AreaSummary(
+                    id: id,
+                    name: name,
+                    regionId: row["region_id"],
+                    regionName: row["region_name"],
+                    countryName: row["country_name"],
+                    siteCount: row["site_count"] ?? 0,
+                    centerLat: centerLat,
+                    centerLon: centerLon
+                )
+            }
+        }
+    }
+
+    /// Fetch nearby areas sorted by distance from a coordinate.
+    public func fetchNearbyAreas(
+        latitude: Double,
+        longitude: Double,
+        radiusKm: Double = 500,
+        limit: Int = 10
+    ) throws -> [AreaSummary] {
+        try database.read { db in
+            let latDelta = radiusKm / 111.0
+            let lonDelta = radiusKm / (111.0 * cos(latitude * .pi / 180))
+            let sql = """
+            SELECT a.id, a.name, a.region_id, r.name as region_name, c.name as country_name,
+                   COUNT(s.id) as site_count,
+                   COALESCE(a.latitude, AVG(s.latitude)) as center_lat,
+                   COALESCE(a.longitude, AVG(s.longitude)) as center_lon
+            FROM areas a
+            LEFT JOIN regions r ON a.region_id = r.id
+            LEFT JOIN countries c ON a.country_id = c.id
+            INNER JOIN sites s ON s.area_id = a.id
+            WHERE s.latitude BETWEEN ? AND ?
+              AND s.longitude BETWEEN ? AND ?
+            GROUP BY a.id
+            HAVING site_count > 0
+            ORDER BY (center_lat - ?) * (center_lat - ?) + (center_lon - ?) * (center_lon - ?) * ? ASC
+            LIMIT ?
+            """
+            let cosLat = cos(latitude * .pi / 180)
+            let rows = try Row.fetchAll(db, sql: sql, arguments: [
+                latitude - latDelta, latitude + latDelta,
+                longitude - lonDelta, longitude + lonDelta,
+                latitude, latitude, longitude, longitude, cosLat * cosLat,
+                limit
+            ])
+            return rows.compactMap { row -> AreaSummary? in
+                guard let id: String = row["id"],
+                      let name: String = row["name"],
+                      let centerLat: Double = row["center_lat"],
+                      let centerLon: Double = row["center_lon"] else { return nil }
+                return AreaSummary(
+                    id: id,
+                    name: name,
+                    regionId: row["region_id"],
+                    regionName: row["region_name"],
+                    countryName: row["country_name"],
+                    siteCount: row["site_count"] ?? 0,
+                    centerLat: centerLat,
+                    centerLon: centerLon
+                )
+            }
+        }
+    }
+
     /// Fetch popular regions with site counts, ordered by site density.
     public func fetchPopularRegions(limit: Int = 10) throws -> [RegionSummary] {
         try database.read { db in

@@ -11,6 +11,7 @@ enum MapUIMode: Equatable {
     case search(SearchContext)
     case plan(PlanContext)
     case clusterExpand(ClusterExpandContext)
+    case nearMe(NearMeContext)
 
     /// Default mode on app launch.
     static let initial = MapUIMode.explore(ExploreContext())
@@ -49,7 +50,14 @@ enum MapUIMode: Equatable {
         case .search: return "search"
         case .plan: return "plan"
         case .clusterExpand: return "cluster"
+        case .nearMe: return "nearMe"
         }
+    }
+
+    /// Whether the mode is Near Me.
+    var isNearMe: Bool {
+        if case .nearMe = self { return true }
+        return false
     }
 
     /// Whether the mode is expanding a cluster.
@@ -210,5 +218,32 @@ struct ClusterExpandContext: Equatable {
         lhs.clusterCenter.longitude == rhs.clusterCenter.longitude &&
         lhs.siteCount == rhs.siteCount &&
         lhs.returnContext == rhs.returnContext
+    }
+}
+
+// MARK: - Near Me Context
+
+/// Context for the Near Me lens activated by tapping the location button.
+struct NearMeContext: Equatable {
+    /// User's location when Near Me was activated.
+    let latitude: Double
+    let longitude: Double
+
+    /// Selected search radius in kilometers.
+    var radiusKm: Double = 100
+
+    /// The explore context to return to when closing.
+    let returnContext: ExploreContext
+
+    init(
+        latitude: Double,
+        longitude: Double,
+        radiusKm: Double = 100,
+        returnContext: ExploreContext
+    ) {
+        self.latitude = latitude
+        self.longitude = longitude
+        self.radiusKm = radiusKm
+        self.returnContext = returnContext
     }
 }

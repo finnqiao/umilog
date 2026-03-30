@@ -3,7 +3,10 @@ import UmiDB
 import UmiDesignSystem
 
 /// Content view for Explore mode in the unified bottom surface.
-/// Shows site count at peek, breadcrumbs, filter pills, and site list.
+/// Adapts content based on semantic zoom level:
+/// - World: destination cards
+/// - Regional: area cards
+/// - Local: site list
 struct ExploreContent: View {
     // MARK: - Properties
 
@@ -12,16 +15,25 @@ struct ExploreContent: View {
     let sites: [DiveSite]
     let loading: Bool
     let regionDetail: UmiDB.Region?
+    let zoomLevel: MapZoomLevel
 
     @Binding var filterLens: FilterLens?
     @Binding var filterDifficulties: Set<DiveSite.Difficulty>
     @Binding var entryMode: MapEntryMode
+
+    // Semantic zoom data
+    var visibleDestinations: [RegionSummary] = []
+    var visibleAreas: [AreaSummary] = []
 
     // Fallback content data
     var savedSites: [DiveSite] = []
     var recentRegions: [RegionSummary] = []
     var popularRegions: [RegionSummary] = []
     var nearMeSiteCount: Int?
+
+    // Sparse viewport data
+    var nearestArea: AreaSummary?
+    var nearestRegion: RegionSummary?
 
     var onSiteTap: (DiveSite) -> Void
     var onOpenFilter: () -> Void
@@ -30,6 +42,8 @@ struct ExploreContent: View {
     var onClearFilters: () -> Void = {}
     var onAddSite: () -> Void = {}
     var onRegionTap: (RegionSummary) -> Void = { _ in }
+    var onAreaTap: (AreaSummary) -> Void = { _ in }
+    var onExpandSearch: () -> Void = {}
 
     // MARK: - State
 
@@ -46,12 +60,9 @@ struct ExploreContent: View {
                 .padding(.bottom, 12)
 
             // Show horizontal carousel at peek detent
-            if detent == .peek && !sites.isEmpty {
-                HorizontalSiteCarousel(
-                    sites: sites,
-                    onSiteTap: onSiteTap
-                )
-                .padding(.bottom, 12)
+            if detent == .peek {
+                peekCarousel
+                    .padding(.bottom, 12)
             }
 
             if detent != .peek {
@@ -78,7 +89,49 @@ struct ExploreContent: View {
                         .padding(.bottom, 12)
                 }
 
-                siteList
+                zoomAwareList
+            }
+        }
+    }
+
+    // MARK: - Peek Carousel (zoom-aware)
+
+    @ViewBuilder
+    private var peekCarousel: some View {
+        switch zoomLevel {
+        case .world:
+            if !visibleDestinations.isEmpty {
+                ScrollView(.horizontal, showsIndicators: false) {
+                    HStack(spacing: 10) {
+                        ForEach(visibleDestinations) { region in
+                            DestinationChipCard(region: region) {
+                                onRegionTap(region)
+                                Haptics.soft()
+                            }
+                        }
+                    }
+                    .padding(.horizontal, 16)
+                }
+            } else if !sites.isEmpty {
+                HorizontalSiteCarousel(sites: sites, onSiteTap: onSiteTap)
+            }
+        case .regional:
+            if !visibleAreas.isEmpty {
+                ScrollView(.horizontal, showsIndicators: false) {
+                    HStack(spacing: 10) {
+                        ForEach(visibleAreas) { area in
+                            AreaChipCard(area: area) {
+                                onAreaTap(area)
+                                Haptics.soft()
+                            }
+                        }
+                    }
+                    .padding(.horizontal, 16)
+                }
+            }
+        case .local:
+            if !sites.isEmpty {
+                HorizontalSiteCarousel(sites: sites, onSiteTap: onSiteTap)
             }
         }
     }
@@ -87,15 +140,9 @@ struct ExploreContent: View {
 
     private var peekHeader: some View {
         VStack(spacing: 10) {
-            // Entry mode selector
-            EntryModeSelector(
-                currentMode: $entryMode,
-                nearMeSiteCount: nearMeSiteCount
-            )
-
-            // Count and filters row
+            // Dynamic title based on zoom level
             HStack(spacing: 12) {
-                countLabel
+                dynamicTitle
                     .font(.subheadline)
                     .foregroundStyle(Color.mist)
 
@@ -112,6 +159,31 @@ struct ExploreContent: View {
 
                 filterEntryButton
             }
+        }
+    }
+
+    /// Dynamic title that changes based on zoom level and context.
+    private var dynamicTitle: Text {
+        if let lens = context.filterLens {
+            return Text("\(lens.displayName): \(sites.count)")
+        }
+
+        switch zoomLevel {
+        case .world:
+            if visibleDestinations.isEmpty {
+                return Text("Featured destinations")
+            }
+            return Text("\(visibleDestinations.count) destinations")
+        case .regional:
+            if let regionId = context.hierarchyLevel.regionId {
+                return Text("\(regionId) · \(visibleAreas.count) areas · \(sites.count) sites")
+            }
+            return Text("\(visibleAreas.count) areas · \(sites.count) sites")
+        case .local:
+            if let areaId = context.hierarchyLevel.areaId {
+                return Text("\(areaId) · \(sites.count) sites")
+            }
+            return Text("\(sites.count) sites")
         }
     }
 
@@ -184,33 +256,123 @@ struct ExploreContent: View {
         .accessibilityLabel("Open filters")
     }
 
-    // MARK: - Site List
+    // MARK: - Zoom-Aware List
 
     @ViewBuilder
-    private var siteList: some View {
+    private var zoomAwareList: some View {
         if loading {
             ProgressView()
                 .progressViewStyle(.circular)
                 .frame(maxWidth: .infinity)
                 .padding(.top, 16)
-        } else if sites.isEmpty {
+        } else {
+            switch zoomLevel {
+            case .world:
+                destinationList
+            case .regional:
+                areaList
+            case .local:
+                siteList
+            }
+        }
+    }
+
+    // MARK: - Destination List (World Zoom)
+
+    @ViewBuilder
+    private var destinationList: some View {
+        if visibleDestinations.isEmpty {
             emptyState
+        } else {
+            ScrollView {
+                LazyVStack(spacing: 8) {
+                    ForEach(visibleDestinations) { region in
+                        DestinationCard(region: region) {
+                            onRegionTap(region)
+                            Haptics.soft()
+                        }
+                    }
+                }
+                .padding(.horizontal, 16)
+                .padding(.bottom, 24)
+            }
+        }
+    }
+
+    // MARK: - Area List (Regional Zoom)
+
+    @ViewBuilder
+    private var areaList: some View {
+        if visibleAreas.isEmpty && sites.isEmpty {
+            sparseViewport
+        } else {
+            ScrollView {
+                LazyVStack(spacing: 8) {
+                    ForEach(visibleAreas) { area in
+                        AreaCard(area: area) {
+                            onAreaTap(area)
+                            Haptics.soft()
+                        }
+                    }
+
+                    // If we have some sites but no areas, show sites
+                    if visibleAreas.isEmpty && !sites.isEmpty {
+                        ForEach(sites) { site in
+                            Button {
+                                Haptics.soft()
+                                onSiteTap(site)
+                            } label: {
+                                ExploreSiteRow(site: site, isHighlighted: flashId == site.id)
+                            }
+                            .buttonStyle(SiteRowButtonStyle())
+                        }
+                    }
+                }
+                .padding(.horizontal, visibleAreas.isEmpty ? 0 : 16)
+                .padding(.bottom, 24)
+            }
+        }
+    }
+
+    // MARK: - Site List (Local Zoom)
+
+    @ViewBuilder
+    private var siteList: some View {
+        if sites.isEmpty {
+            sparseViewport
         } else {
             ScrollView {
                 LazyVStack(spacing: 0) {
                     ForEach(sites) { site in
                         Button {
-                            Haptics.soft()  // Fix UX-007: Add haptic feedback
+                            Haptics.soft()
                             onSiteTap(site)
                         } label: {
                             ExploreSiteRow(site: site, isHighlighted: flashId == site.id)
                         }
-                        .buttonStyle(SiteRowButtonStyle())  // Fix UX-002: Use button for reliable tap handling in ScrollView
+                        .buttonStyle(SiteRowButtonStyle())
                         .id(site.id)
                     }
                 }
                 .padding(.bottom, 24)
             }
+        }
+    }
+
+    // MARK: - Sparse Viewport
+
+    @ViewBuilder
+    private var sparseViewport: some View {
+        if nearestArea != nil || nearestRegion != nil {
+            SparseViewportPrompt(
+                nearestArea: nearestArea,
+                nearestRegion: nearestRegion,
+                onExpandSearch: onExpandSearch,
+                onNavigateToArea: { area in onAreaTap(area) },
+                onNavigateToRegion: { region in onRegionTap(region) }
+            )
+        } else {
+            emptyState
         }
     }
 
