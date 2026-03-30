@@ -31,9 +31,11 @@ struct NativeMapView: UIViewRepresentable {
         tileOverlay.canReplaceMapContent = true
         mapView.addOverlay(tileOverlay, level: .aboveLabels)
 
-        // Register custom annotation view
+        // Register custom annotation views
         mapView.register(SiteAnnotationView.self, forAnnotationViewWithReuseIdentifier: SiteAnnotationView.reuseIdentifier)
         mapView.register(ClusterAnnotationView.self, forAnnotationViewWithReuseIdentifier: MKMapViewDefaultClusterAnnotationViewReuseIdentifier)
+        mapView.register(DestinationAnnotationView.self, forAnnotationViewWithReuseIdentifier: DestinationAnnotationView.reuseIdentifier)
+        mapView.register(AreaAnnotationView.self, forAnnotationViewWithReuseIdentifier: AreaAnnotationView.reuseIdentifier)
 
         return mapView
     }
@@ -86,6 +88,20 @@ struct NativeMapView: UIViewRepresentable {
                 let view = mapView.dequeueReusableAnnotationView(withIdentifier: MKMapViewDefaultClusterAnnotationViewReuseIdentifier, for: annotation) as? ClusterAnnotationView
                     ?? ClusterAnnotationView(annotation: cluster, reuseIdentifier: MKMapViewDefaultClusterAnnotationViewReuseIdentifier)
                 view.annotation = cluster
+                return view
+            }
+
+            if let destAnnotation = annotation as? DestinationAnnotation {
+                let view = mapView.dequeueReusableAnnotationView(withIdentifier: DestinationAnnotationView.reuseIdentifier, for: annotation) as? DestinationAnnotationView
+                    ?? DestinationAnnotationView(annotation: destAnnotation, reuseIdentifier: DestinationAnnotationView.reuseIdentifier)
+                view.annotation = destAnnotation
+                return view
+            }
+
+            if let areaAnnotation = annotation as? AreaAnnotation {
+                let view = mapView.dequeueReusableAnnotationView(withIdentifier: AreaAnnotationView.reuseIdentifier, for: annotation) as? AreaAnnotationView
+                    ?? AreaAnnotationView(annotation: areaAnnotation, reuseIdentifier: AreaAnnotationView.reuseIdentifier)
+                view.annotation = areaAnnotation
                 return view
             }
 
@@ -159,11 +175,17 @@ class SiteAnnotation: NSObject, MKAnnotation {
     let siteId: String
     let siteName: String
     let coordinate: CLLocationCoordinate2D
+    let difficulty: DiveSite.Difficulty
+    let isLogged: Bool
+    let isSaved: Bool
 
     init(site: DiveSite) {
         self.siteId = site.id
         self.siteName = site.name
         self.coordinate = CLLocationCoordinate2D(latitude: site.latitude, longitude: site.longitude)
+        self.difficulty = site.difficulty
+        self.isLogged = site.visitedCount > 0
+        self.isSaved = site.wishlist
     }
 
     var title: String? { siteName }
@@ -185,16 +207,19 @@ class SiteAnnotationView: MKAnnotationView {
         fatalError("init(coder:) not implemented")
     }
 
+    private let pinView = UIView()
+    private let statusRing = UIView()
+    private let pinSize: CGFloat = 24
+
     private func setupView() {
         // Enable selection (GAP-011 fix)
         canShowCallout = false  // We handle selection via delegate
         isEnabled = true  // Make tappable
 
         // Tan/cream colored pin like reference images
-        let size: CGFloat = 24
-        let pinView = UIView(frame: CGRect(x: 0, y: 0, width: size, height: size))
+        pinView.frame = CGRect(x: 0, y: 0, width: pinSize, height: pinSize)
         pinView.backgroundColor = UIColor(red: 0.96, green: 0.87, blue: 0.70, alpha: 1.0) // Tan/cream
-        pinView.layer.cornerRadius = size / 2
+        pinView.layer.cornerRadius = pinSize / 2
         pinView.layer.borderWidth = 2
         pinView.layer.borderColor = UIColor.white.cgColor
         pinView.layer.shadowColor = UIColor.black.cgColor
@@ -202,12 +227,22 @@ class SiteAnnotationView: MKAnnotationView {
         pinView.layer.shadowRadius = 4
         pinView.layer.shadowOpacity = 0.3
 
+        // Status ring (hidden by default)
+        let ringSize = pinSize + 6
+        statusRing.frame = CGRect(x: 0, y: 0, width: ringSize, height: ringSize)
+        statusRing.layer.cornerRadius = ringSize / 2
+        statusRing.layer.borderWidth = 2
+        statusRing.backgroundColor = .clear
+        statusRing.isHidden = true
+
         // Ensure tap target is at least 44x44 (Apple HIG)
         let tapSize: CGFloat = 44
         frame = CGRect(x: 0, y: 0, width: tapSize, height: tapSize)
         centerOffset = CGPoint(x: 0, y: -tapSize / 2)
 
+        statusRing.center = CGPoint(x: tapSize / 2, y: tapSize / 2)
         pinView.center = CGPoint(x: tapSize / 2, y: tapSize / 2)
+        addSubview(statusRing)
         addSubview(pinView)
 
         // Accessibility
@@ -215,11 +250,36 @@ class SiteAnnotationView: MKAnnotationView {
         accessibilityTraits = .button
     }
 
+    /// Configure pin color based on difficulty and status ring for logged/saved state.
+    func configure(difficulty: DiveSite.Difficulty, isLogged: Bool, isSaved: Bool) {
+        // Difficulty tinting
+        switch difficulty {
+        case .beginner:
+            pinView.backgroundColor = UIColor(red: 0.24, green: 0.86, blue: 0.59, alpha: 1.0) // #3DDC97
+        case .intermediate:
+            pinView.backgroundColor = UIColor(red: 0.38, green: 0.65, blue: 0.98, alpha: 1.0) // #60A5FA
+        case .advanced:
+            pinView.backgroundColor = UIColor(red: 0.98, green: 0.75, blue: 0.14, alpha: 1.0) // #FBBF24
+        }
+
+        // Status ring
+        if isLogged {
+            statusRing.isHidden = false
+            statusRing.layer.borderColor = UIColor(red: 0.18, green: 0.84, blue: 0.72, alpha: 1.0).cgColor // #2FD7B8
+        } else if isSaved {
+            statusRing.isHidden = false
+            statusRing.layer.borderColor = UIColor(red: 0.95, green: 0.76, blue: 0.31, alpha: 1.0).cgColor // #F2C14E
+        } else {
+            statusRing.isHidden = true
+        }
+    }
+
     override func prepareForDisplay() {
         super.prepareForDisplay()
         if let siteAnnotation = annotation as? SiteAnnotation {
             accessibilityLabel = "Dive site: \(siteAnnotation.siteName)"
             accessibilityHint = "Double tap to view site details"
+            configure(difficulty: siteAnnotation.difficulty, isLogged: siteAnnotation.isLogged, isSaved: siteAnnotation.isSaved)
         }
     }
 }
@@ -284,6 +344,257 @@ class ClusterAnnotationView: MKAnnotationView {
             accessibilityLabel = "\(count) dive sites grouped"
             accessibilityHint = "Double tap to zoom in"
         }
+    }
+}
+
+// MARK: - Destination Annotation (World Zoom)
+
+/// Annotation for destination-level markers shown at world zoom.
+class DestinationAnnotation: NSObject, MKAnnotation {
+    let regionId: String
+    let regionName: String
+    let siteCount: Int
+    let coordinate: CLLocationCoordinate2D
+
+    init(region: RegionSummary) {
+        self.regionId = region.id
+        self.regionName = region.name
+        self.siteCount = region.siteCount
+        self.coordinate = region.coordinate
+    }
+
+    var title: String? { regionName }
+    var subtitle: String? { "\(siteCount) sites" }
+}
+
+// MARK: - Destination Annotation View (Pill-shaped marker)
+
+class DestinationAnnotationView: MKAnnotationView {
+    static let reuseIdentifier = "DestinationAnnotation"
+
+    private let containerView = UIView()
+    private let iconView = UIImageView()
+    private let nameLabel = UILabel()
+    private let countLabel = UILabel()
+
+    override init(annotation: MKAnnotation?, reuseIdentifier: String?) {
+        super.init(annotation: annotation, reuseIdentifier: reuseIdentifier)
+        setupView()
+    }
+
+    required init?(coder aDecoder: NSCoder) {
+        fatalError("init(coder:) not implemented")
+    }
+
+    private func setupView() {
+        canShowCallout = false
+        isEnabled = true
+
+        // Colors
+        let abyssColor = UIColor(red: 0.04, green: 0.14, blue: 0.26, alpha: 1.0)
+        let lagoonBlue = UIColor(red: 0.18, green: 0.50, blue: 0.75, alpha: 1.0)
+        let foamWhite = UIColor.white
+        let mistGray = UIColor(white: 0.75, alpha: 1.0)
+
+        // Container pill
+        containerView.backgroundColor = abyssColor
+        containerView.layer.cornerRadius = 18
+        containerView.layer.shadowColor = UIColor.black.cgColor
+        containerView.layer.shadowOffset = CGSize(width: 0, height: 2)
+        containerView.layer.shadowRadius = 6
+        containerView.layer.shadowOpacity = 0.4
+
+        // Pin icon
+        let pinConfig = UIImage.SymbolConfiguration(pointSize: 12, weight: .semibold)
+        iconView.image = UIImage(systemName: "mappin.circle.fill", withConfiguration: pinConfig)
+        iconView.tintColor = lagoonBlue
+        iconView.contentMode = .scaleAspectFit
+
+        // Name label
+        nameLabel.font = UIFont.boldSystemFont(ofSize: 13)
+        nameLabel.textColor = foamWhite
+        nameLabel.setContentCompressionResistancePriority(.required, for: .horizontal)
+
+        // Count label
+        countLabel.font = UIFont.systemFont(ofSize: 12, weight: .medium)
+        countLabel.textColor = mistGray
+        countLabel.setContentCompressionResistancePriority(.required, for: .horizontal)
+
+        // Layout with stack view
+        let stack = UIStackView(arrangedSubviews: [iconView, nameLabel, countLabel])
+        stack.axis = .horizontal
+        stack.spacing = 4
+        stack.alignment = .center
+        stack.translatesAutoresizingMaskIntoConstraints = false
+
+        containerView.addSubview(stack)
+        NSLayoutConstraint.activate([
+            stack.leadingAnchor.constraint(equalTo: containerView.leadingAnchor, constant: 10),
+            stack.trailingAnchor.constraint(equalTo: containerView.trailingAnchor, constant: -10),
+            stack.topAnchor.constraint(equalTo: containerView.topAnchor, constant: 0),
+            stack.bottomAnchor.constraint(equalTo: containerView.bottomAnchor, constant: 0),
+            containerView.heightAnchor.constraint(equalToConstant: 36),
+            iconView.widthAnchor.constraint(equalToConstant: 16),
+            iconView.heightAnchor.constraint(equalToConstant: 16),
+        ])
+
+        containerView.translatesAutoresizingMaskIntoConstraints = false
+        addSubview(containerView)
+        NSLayoutConstraint.activate([
+            containerView.centerXAnchor.constraint(equalTo: centerXAnchor),
+            containerView.centerYAnchor.constraint(equalTo: centerYAnchor),
+        ])
+
+        // Ensure 44pt minimum tap target
+        let tapSize: CGFloat = 44
+        frame = CGRect(x: 0, y: 0, width: tapSize, height: tapSize)
+
+        // Accessibility
+        isAccessibilityElement = true
+        accessibilityTraits = .button
+    }
+
+    override func prepareForDisplay() {
+        super.prepareForDisplay()
+        if let dest = annotation as? DestinationAnnotation {
+            nameLabel.text = dest.regionName
+            countLabel.text = "· \(dest.siteCount)"
+            accessibilityLabel = "Destination: \(dest.regionName), \(dest.siteCount) sites"
+            accessibilityHint = "Double tap to explore this destination"
+
+            // Resize frame to fit content
+            containerView.layoutIfNeeded()
+            let fittingSize = containerView.systemLayoutSizeFitting(UIView.layoutFittingCompressedSize)
+            let width = max(fittingSize.width, 44)
+            let height = max(fittingSize.height, 44)
+            frame = CGRect(x: 0, y: 0, width: width, height: height)
+            centerOffset = .zero
+        }
+    }
+
+    override func layoutSubviews() {
+        super.layoutSubviews()
+        containerView.center = CGPoint(x: bounds.midX, y: bounds.midY)
+    }
+}
+
+// MARK: - Area Annotation (Regional Zoom)
+
+/// Annotation for area-level markers shown at regional zoom.
+class AreaAnnotation: NSObject, MKAnnotation {
+    let areaId: String
+    let areaName: String
+    let siteCount: Int
+    let regionId: String?
+    let coordinate: CLLocationCoordinate2D
+
+    init(area: AreaSummary) {
+        self.areaId = area.id
+        self.areaName = area.name
+        self.siteCount = area.siteCount
+        self.regionId = area.regionId
+        self.coordinate = area.coordinate
+    }
+
+    var title: String? { areaName }
+    var subtitle: String? { "\(siteCount) sites" }
+}
+
+// MARK: - Area Annotation View (Chip-shaped marker)
+
+class AreaAnnotationView: MKAnnotationView {
+    static let reuseIdentifier = "AreaAnnotation"
+
+    private let containerView = UIView()
+    private let textLabel = UILabel()
+
+    override init(annotation: MKAnnotation?, reuseIdentifier: String?) {
+        super.init(annotation: annotation, reuseIdentifier: reuseIdentifier)
+        setupView()
+    }
+
+    required init?(coder aDecoder: NSCoder) {
+        fatalError("init(coder:) not implemented")
+    }
+
+    private func setupView() {
+        canShowCallout = false
+        isEnabled = true
+
+        // Colors
+        let chipBackground = UIColor(red: 0.06, green: 0.18, blue: 0.30, alpha: 0.92)
+        let foamWhite = UIColor.white
+
+        // Container chip
+        containerView.backgroundColor = chipBackground
+        containerView.layer.cornerRadius = 14
+        containerView.layer.shadowColor = UIColor.black.cgColor
+        containerView.layer.shadowOffset = CGSize(width: 0, height: 1)
+        containerView.layer.shadowRadius = 4
+        containerView.layer.shadowOpacity = 0.35
+
+        // Text label (name · count)
+        textLabel.font = UIFont.systemFont(ofSize: 12, weight: .semibold)
+        textLabel.textColor = foamWhite
+        textLabel.translatesAutoresizingMaskIntoConstraints = false
+
+        containerView.addSubview(textLabel)
+        NSLayoutConstraint.activate([
+            textLabel.leadingAnchor.constraint(equalTo: containerView.leadingAnchor, constant: 10),
+            textLabel.trailingAnchor.constraint(equalTo: containerView.trailingAnchor, constant: -10),
+            textLabel.topAnchor.constraint(equalTo: containerView.topAnchor, constant: 0),
+            textLabel.bottomAnchor.constraint(equalTo: containerView.bottomAnchor, constant: 0),
+            containerView.heightAnchor.constraint(equalToConstant: 28),
+        ])
+
+        containerView.translatesAutoresizingMaskIntoConstraints = false
+        addSubview(containerView)
+        NSLayoutConstraint.activate([
+            containerView.centerXAnchor.constraint(equalTo: centerXAnchor),
+            containerView.centerYAnchor.constraint(equalTo: centerYAnchor),
+        ])
+
+        // Ensure 44pt minimum tap target
+        let tapSize: CGFloat = 44
+        frame = CGRect(x: 0, y: 0, width: tapSize, height: tapSize)
+
+        // Accessibility
+        isAccessibilityElement = true
+        accessibilityTraits = .button
+    }
+
+    override func prepareForDisplay() {
+        super.prepareForDisplay()
+        if let area = annotation as? AreaAnnotation {
+            // Build attributed string: name in white, count in mist gray
+            let mistGray = UIColor(white: 0.70, alpha: 1.0)
+            let text = NSMutableAttributedString()
+            text.append(NSAttributedString(
+                string: area.areaName,
+                attributes: [.foregroundColor: UIColor.white, .font: UIFont.systemFont(ofSize: 12, weight: .semibold)]
+            ))
+            text.append(NSAttributedString(
+                string: " · \(area.siteCount)",
+                attributes: [.foregroundColor: mistGray, .font: UIFont.systemFont(ofSize: 12, weight: .medium)]
+            ))
+            textLabel.attributedText = text
+
+            accessibilityLabel = "Area: \(area.areaName), \(area.siteCount) sites"
+            accessibilityHint = "Double tap to explore this area"
+
+            // Resize frame to fit content
+            containerView.layoutIfNeeded()
+            let fittingSize = containerView.systemLayoutSizeFitting(UIView.layoutFittingCompressedSize)
+            let width = max(fittingSize.width, 44)
+            let height = max(fittingSize.height, 44)
+            frame = CGRect(x: 0, y: 0, width: width, height: height)
+            centerOffset = .zero
+        }
+    }
+
+    override func layoutSubviews() {
+        super.layoutSubviews()
+        containerView.center = CGPoint(x: bounds.midX, y: bounds.midY)
     }
 }
 
@@ -388,6 +699,12 @@ public struct NewMapView: View {
     @State private var scope: Scope = .discover
     @State private var entityTab: EntityTab = .sites
     @State private var mySitesTab: MySitesTab = .saved
+
+    // Semantic zoom data
+    @State private var visibleDestinations: [RegionSummary] = []
+    @State private var visibleAreas: [AreaSummary] = []
+    @State private var nearestArea: AreaSummary?
+    @State private var nearestRegion: RegionSummary?
 
     // Coming Soon toast state
     @State private var showingComingSoonToast = false
@@ -1327,6 +1644,11 @@ public struct NewMapView: View {
             allSites: viewModel.sites,
             isLoading: viewModel.loading,
             regionDetail: currentRegionDetail,
+            zoomLevel: uiViewModel.zoomLevel,
+            visibleDestinations: visibleDestinations,
+            visibleAreas: visibleAreas,
+            nearestArea: nearestArea,
+            nearestRegion: nearestRegion,
             dataViewModel: viewModel,
             onSiteTap: { site in
                 uiViewModel.send(.openSiteInspection(site.id))
@@ -1516,6 +1838,29 @@ public struct NewMapView: View {
             },
             onCloseCluster: {
                 closeClusterExpand()
+            },
+            onAreaTap: { area in
+                navigateToArea(area)
+                Haptics.soft()
+            },
+            onExpandSearch: {
+                // Zoom out to show more content
+                withAnimation(.easeInOut(duration: 0.35)) {
+                    let currentSpan = mapRegion.span
+                    mapRegion = MKCoordinateRegion(
+                        center: mapRegion.center,
+                        span: MKCoordinateSpan(
+                            latitudeDelta: min(currentSpan.latitudeDelta * 3.0, 160),
+                            longitudeDelta: min(currentSpan.longitudeDelta * 3.0, 360)
+                        )
+                    )
+                }
+                Haptics.soft()
+            },
+            onDeactivateNearMe: {
+                uiViewModel.send(.deactivateNearMe)
+                surfaceDetent = .peek
+                Haptics.soft()
             }
         )
     }
@@ -1671,6 +2016,12 @@ public struct NewMapView: View {
                     )
                     viewModel.scheduleRefreshVisibleSites(bounds: bounds)
                     viewModel.saveMapState(center: newRegion.center, zoom: 10)  // Approximate zoom
+
+                    // Update semantic zoom level
+                    uiViewModel.updateZoomLevel(latitudeDelta: newRegion.span.latitudeDelta)
+
+                    // Fetch zoom-appropriate aggregate data
+                    refreshSemanticZoomData(bounds: bounds)
 
                     // Post viewport change for Wildlife "This area" filter
                     NotificationCenter.default.post(
@@ -1903,15 +2254,25 @@ public struct NewMapView: View {
     // MARK: - HUD Overlay
 
     private var topOverlay: some View {
-        // Fix UX-003: Restructured overlay to ensure search button receives taps
-        // Use non-interactive layout layer + interactive overlays for taps.
-        let chipTopPadding = safeAreaInsets.top + 8 + 44 + 12
+        let chipTopPadding = safeAreaInsets.top + 8 + 48 + 12
         return ZStack(alignment: .top) {
             VStack(spacing: 0) {
-                // Spacer at top to reserve space for search button row
-                Color.clear
-                    .frame(height: 44)
-                    .padding(.top, safeAreaInsets.top + 8)
+                // Search capsule at top (primary navigation)
+                SearchCapsule(
+                    filterCount: uiViewModel.exploreFilters.activeCount,
+                    onTap: {
+                        uiViewModel.send(.openSearch)
+                        surfaceDetent = .expanded
+                        Haptics.soft()
+                    },
+                    onFilterTap: {
+                        uiViewModel.send(.openFilter)
+                        surfaceDetent = .expanded
+                        Haptics.soft()
+                    }
+                )
+                .padding(.horizontal, 16)
+                .padding(.top, safeAreaInsets.top + 8)
 
                 Spacer()
 
@@ -1928,30 +2289,41 @@ public struct NewMapView: View {
                 }
                 .padding(.bottom, surfaceDetent.height(in: UIScreen.main.bounds.height) + 12)
                 .animation(.easeOut(duration: 0.2), value: uiViewModel.mode)
+                .allowsHitTesting(false)
             }
-            .allowsHitTesting(false)
         }
         .overlay(alignment: .top) {
-            // Popular region chips - shown at world view when surface is peeked
-            if shouldShowRegionChips {
-                PopularRegionChips(regions: RegionSummary.popular) { region in
-                    navigateToRegion(region)
-                    Haptics.soft()
-                }
+            // Contextual chips rail - adapts to zoom level
+            if shouldShowContextualChips {
+                ContextualChipsRail(
+                    zoomLevel: uiViewModel.zoomLevel,
+                    destinations: uiViewModel.zoomLevel == .world
+                        ? (visibleDestinations.isEmpty ? RegionSummary.popular : visibleDestinations)
+                        : [],
+                    areas: uiViewModel.zoomLevel == .regional ? visibleAreas : [],
+                    breadcrumbPath: uiViewModel.currentHierarchyLevel.breadcrumbPath,
+                    onDestinationTap: { region in
+                        navigateToRegion(region)
+                        Haptics.soft()
+                    },
+                    onAreaTap: { area in
+                        navigateToArea(area)
+                        Haptics.soft()
+                    },
+                    onBreadcrumbTap: { index in
+                        // Navigate up based on breadcrumb index
+                        let path = uiViewModel.currentHierarchyLevel.breadcrumbPath
+                        let stepsUp = path.count - 1 - index
+                        for _ in 0..<stepsUp {
+                            uiViewModel.send(.navigateUp)
+                        }
+                        Haptics.soft()
+                    }
+                )
                 .padding(.top, chipTopPadding)
                 .transition(.opacity.combined(with: .move(edge: .top)))
-                .animation(.easeInOut(duration: 0.25), value: shouldShowRegionChips)
+                .animation(.easeInOut(duration: 0.25), value: uiViewModel.zoomLevel)
             }
-        }
-        .overlay(alignment: .topTrailing) {
-            // Fix UX-003: Search button in overlay ensures it's always clickable
-            MinimalSearchButton {
-                uiViewModel.send(.openSearch)
-                surfaceDetent = .expanded
-                Haptics.soft()
-            }
-            .padding(.trailing, safeAreaInsets.trailing + 16)
-            .padding(.top, safeAreaInsets.top + 8)
         }
     }
 
@@ -1968,16 +2340,17 @@ public struct NewMapView: View {
         uiViewModel.exploreFilters.isActive || uiViewModel.exploreContext?.filterLens != nil
     }
 
-    /// Whether to show popular region chips above the map.
-    /// Only at world view, peek detent, and in explore mode.
-    private var shouldShowRegionChips: Bool {
-        let isWorldView = uiViewModel.currentHierarchyLevel.isWorld
-        let isPeeked = surfaceDetent == .peek
-        let isExploreMode = uiViewModel.entryMode == .explore
+    /// Whether to show contextual chips above the map.
+    /// Shown when surface is peeked and not inspecting or in a modal.
+    private var shouldShowContextualChips: Bool {
+        let isPeekOrHidden = surfaceDetent == .peek || surfaceDetent == .hidden
         let notInspecting = uiViewModel.inspectedSiteId == nil
-
-        return isWorldView && isPeeked && isExploreMode && notInspecting
+        let isExploreOrNearMe = uiViewModel.mode.isExplore || uiViewModel.mode.isNearMe
+        return isPeekOrHidden && notInspecting && isExploreOrNearMe
     }
+
+    // Keep backward compat
+    private var shouldShowRegionChips: Bool { shouldShowContextualChips }
 
     /// Navigate to a region from the quick chips.
     private func navigateToRegion(_ region: RegionSummary) {
@@ -2006,6 +2379,67 @@ public struct NewMapView: View {
                 uiViewModel.send(.drillDownToRegion(regionKey))
                 entityTab = .areas
                 surfaceDetent = .medium
+            }
+        }
+    }
+
+    /// Navigate to an area from chips or sheet.
+    private func navigateToArea(_ area: AreaSummary) {
+        focusMap(
+            onCoordinates: [area.coordinate],
+            singleSpan: 2.5
+        )
+
+        let areaKey: String? = {
+            if viewModel.sites.contains(where: { $0.areaId == area.name }) {
+                return area.name
+            }
+            if viewModel.sites.contains(where: { $0.areaId == "\(area.id)" }) {
+                return "\(area.id)"
+            }
+            // Fallback: use the area name directly
+            return area.name
+        }()
+
+        if let areaKey {
+            withAnimation(.easeInOut(duration: 0.25)) {
+                uiViewModel.send(.drillDownToArea(areaKey, region: area.regionName))
+                surfaceDetent = .medium
+            }
+        }
+    }
+
+    // MARK: - Semantic Zoom Data
+
+    /// Refresh destinations/areas based on current zoom level and viewport.
+    private func refreshSemanticZoomData(bounds: MapBounds) {
+        let zoomLevel = uiViewModel.zoomLevel
+        Task.detached(priority: .utility) {
+            let geoRepo = GeographyRepository(database: AppDatabase.shared)
+            switch zoomLevel {
+            case .world:
+                let destinations = (try? geoRepo.fetchRegionsInBounds(
+                    minLat: bounds.minLatitude, maxLat: bounds.maxLatitude,
+                    minLon: bounds.minLongitude, maxLon: bounds.maxLongitude
+                )) ?? []
+                await MainActor.run {
+                    visibleDestinations = destinations
+                    visibleAreas = []
+                }
+            case .regional:
+                let areas = (try? geoRepo.fetchAreasInBounds(
+                    minLat: bounds.minLatitude, maxLat: bounds.maxLatitude,
+                    minLon: bounds.minLongitude, maxLon: bounds.maxLongitude
+                )) ?? []
+                await MainActor.run {
+                    visibleAreas = areas
+                    visibleDestinations = []
+                }
+            case .local:
+                await MainActor.run {
+                    visibleDestinations = []
+                    visibleAreas = []
+                }
             }
         }
     }
@@ -2235,7 +2669,7 @@ private func overlayMetrics(for size: CGSize) -> OverlayMetrics {
     private func handleLocateMeTapped() {
         switch locationService.authorizationStatus {
         case .authorizedAlways, .authorizedWhenInUse:
-            centerOnUserLocation()
+            activateNearMe()
         case .notDetermined:
             showingLocationExplanation = true
         case .denied, .restricted:
@@ -2245,6 +2679,47 @@ private func overlayMetrics(for size: CGSize) -> OverlayMetrics {
         }
     }
 
+    /// Activate Near Me mode: center on user, switch to nearMe UI mode.
+    private func activateNearMe() {
+        if let location = locationService.currentLocation {
+            withAnimation(.easeInOut(duration: 0.35)) {
+                focusMap(onCoordinates: [location.coordinate], singleSpan: 3.0)
+            }
+            uiViewModel.send(.activateNearMe(
+                latitude: location.coordinate.latitude,
+                longitude: location.coordinate.longitude
+            ))
+            surfaceDetent = .medium
+            Haptics.soft()
+            return
+        }
+
+        Task {
+            do {
+                let current = try await locationService.getCurrentLocation()
+                await MainActor.run {
+                    withAnimation(.easeInOut(duration: 0.35)) {
+                        focusMap(onCoordinates: [current.coordinate], singleSpan: 3.0)
+                    }
+                    uiViewModel.send(.activateNearMe(
+                        latitude: current.coordinate.latitude,
+                        longitude: current.coordinate.longitude
+                    ))
+                    surfaceDetent = .medium
+                    Haptics.soft()
+                }
+            } catch {
+                await MainActor.run {
+                    if let locationError = error as? LocationError,
+                       case .permissionDenied = locationError {
+                        showingLocationDeniedBanner = true
+                    }
+                }
+            }
+        }
+    }
+
+    /// Legacy: center on user without activating Near Me mode.
     private func centerOnUserLocation() {
         if let location = locationService.currentLocation {
             withAnimation(.easeInOut(duration: 0.35)) {

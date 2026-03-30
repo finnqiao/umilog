@@ -106,4 +106,12 @@ enum MapUIAction: Equatable {
 
     /// Close cluster expand and return to explore.
     case closeClusterExpand
+
+    // MARK: - Near Me
+
+    /// Activate Near Me lens with user's current location.
+    case activateNearMe(latitude: Double, longitude: Double)
+
+    /// Deactivate Near Me and return to explore.
+    case deactivateNearMe
 }

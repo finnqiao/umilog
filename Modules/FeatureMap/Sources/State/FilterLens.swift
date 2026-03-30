@@ -6,6 +6,7 @@ enum FilterLens: String, Equatable, Hashable, Codable, CaseIterable {
     case saved
     case logged
     case planned
+    case trip
 
     /// Human-readable display name for UI.
     var displayName: String {
@@ -16,6 +17,8 @@ enum FilterLens: String, Equatable, Hashable, Codable, CaseIterable {
             return "Logged"
         case .planned:
             return "Planned"
+        case .trip:
+            return "Trip"
         }
     }
 
@@ -28,6 +31,8 @@ enum FilterLens: String, Equatable, Hashable, Codable, CaseIterable {
             return "checkmark.circle.fill"
         case .planned:
             return "calendar"
+        case .trip:
+            return "suitcase.fill"
         }
     }
 
@@ -40,6 +45,14 @@ enum FilterLens: String, Equatable, Hashable, Codable, CaseIterable {
             return "kelp"
         case .planned:
             return "oceanBlue"
+        case .trip:
+            return "amber"
         }
+    }
+
+    /// Quick filter lenses shown as chips in the sheet header.
+    /// Excludes planned (redundant with trip) to keep the surface clean.
+    static var quickFilters: [FilterLens] {
+        [.logged, .saved, .trip]
     }
 }

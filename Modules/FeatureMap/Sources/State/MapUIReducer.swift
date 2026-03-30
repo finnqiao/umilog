@@ -227,6 +227,30 @@ enum MapUIReducer {
                 returnContext: ctx.returnContext
             ))
 
+        // MARK: - Near Me Transitions
+
+        case (.explore(let ctx), .activateNearMe(let lat, let lon)):
+            return .nearMe(NearMeContext(
+                latitude: lat,
+                longitude: lon,
+                returnContext: ctx
+            ))
+
+        case (.nearMe(let ctx), .deactivateNearMe):
+            return .explore(ctx.returnContext)
+
+        case (.nearMe(let ctx), .openSiteInspection(let siteId)):
+            return .inspectSite(SiteInspectionContext(
+                siteId: siteId,
+                returnContext: ctx.returnContext
+            ))
+
+        case (.nearMe(let ctx), .openSearch):
+            return .search(SearchContext(
+                query: "",
+                returnContext: ctx.returnContext
+            ))
+
         // MARK: - Invalid Transitions
 
         default:

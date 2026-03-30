@@ -27,6 +27,21 @@ struct UnifiedBottomSurface: View {
     /// Optional enriched region detail for the current hierarchy.
     let regionDetail: UmiDB.Region?
 
+    /// Current semantic zoom level for zoom-aware content.
+    var zoomLevel: MapZoomLevel = .world
+
+    /// Visible destinations at world zoom.
+    var visibleDestinations: [RegionSummary] = []
+
+    /// Visible areas at regional zoom.
+    var visibleAreas: [AreaSummary] = []
+
+    /// Nearest area for sparse viewport prompt.
+    var nearestArea: AreaSummary?
+
+    /// Nearest region for sparse viewport prompt.
+    var nearestRegion: RegionSummary?
+
     @ObservedObject var dataViewModel: MapViewModel
 
     // MARK: - Callbacks
@@ -50,6 +65,13 @@ struct UnifiedBottomSurface: View {
     var onRemoveSiteFromPlan: (String) -> Void
     var onClosePlan: () -> Void
     var onUpdateSearchQuery: (String) -> Void
+
+    // Area navigation callback
+    var onAreaTap: ((AreaSummary) -> Void)?
+    var onExpandSearch: (() -> Void)?
+
+    // Near Me callbacks
+    var onDeactivateNearMe: (() -> Void)?
 
     // Cluster expand callbacks (Resy-style)
     var onClusterZoomIn: (() -> Void)?
@@ -159,9 +181,14 @@ struct UnifiedBottomSurface: View {
                     sites: filteredSites,
                     loading: isLoading,
                     regionDetail: regionDetail,
+                    zoomLevel: zoomLevel,
                     filterLens: $filterLens,
                     filterDifficulties: $exploreFilters.difficulty,
                     entryMode: $entryMode,
+                    visibleDestinations: visibleDestinations,
+                    visibleAreas: visibleAreas,
+                    nearestArea: nearestArea,
+                    nearestRegion: nearestRegion,
                     onSiteTap: onSiteTap,
                     onOpenFilter: onOpenFilter,
                     onNavigateUp: onNavigateUp,
@@ -176,6 +203,12 @@ struct UnifiedBottomSurface: View {
                     },
                     onRegionTap: { region in
                         onDrillDown(region.name)
+                    },
+                    onAreaTap: { area in
+                        onAreaTap?(area)
+                    },
+                    onExpandSearch: {
+                        onExpandSearch?()
                     }
                 )
                 .transition(contentTransition)
@@ -231,6 +264,18 @@ struct UnifiedBottomSurface: View {
                     onSiteTap: onSiteTap,
                     onZoomIn: onClusterZoomIn ?? {},
                     onClose: onCloseCluster ?? {}
+                )
+                .transition(contentTransition)
+
+            case .nearMe:
+                NearMeContent(
+                    sites: filteredSites,
+                    nearbyAreas: visibleAreas,
+                    userLocation: nil,
+                    isLoading: isLoading,
+                    onSiteTap: onSiteTap,
+                    onAreaTap: { area in onAreaTap?(area) },
+                    onDismiss: { onDeactivateNearMe?() }
                 )
                 .transition(contentTransition)
             }

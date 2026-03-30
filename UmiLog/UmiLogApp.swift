@@ -358,10 +358,10 @@ private extension ContentView {
                     NewMapView()
                         .navigationBarTitleDisplayMode(.inline)
                 }
-                .tabItem { Label("Map", systemImage: "map.fill") }
+                .tabItem { Label("Discover", systemImage: "map.fill") }
                 .tag(Tab.map)
-                .accessibilityLabel("Map")
-                .accessibilityHint("Explore dive sites on the map")
+                .accessibilityLabel("Discover")
+                .accessibilityHint("Discover and explore dive sites")
 
                 NavigationStack { DiveHistoryView() }
                 .tabItem { Label("History", systemImage: "clock.fill") }
