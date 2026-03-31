@@ -45,7 +45,7 @@ platform :ios do
 
     run_tests(
       project: "UmiLog.xcodeproj",
-      scheme: "UmiLogTests",
+      scheme: "UmiLog",
       device: "iPhone 16",
       clean: true,
       code_coverage: true,
@@ -153,6 +153,10 @@ platform :ios do
 
   desc "Build and upload to TestFlight (CI)"
   lane :ci_beta do
+    # Create a temporary keychain so Match can install certs on CI runners
+    # where the login keychain is locked.
+    setup_ci
+
     api_key = app_store_connect_api_key(
       key_id: ENV["ASC_KEY_ID"],
       issuer_id: ENV["ASC_ISSUER_ID"],
@@ -160,8 +164,22 @@ platform :ios do
       is_key_content_base64: true
     )
 
-    certificates
-    bump
+    # Only appstore certs needed for TestFlight; readonly avoids cert creation.
+    match(
+      type: "appstore",
+      readonly: true
+    )
+
+    # Use the GitHub Actions run number as the build number so every CI run
+    # produces a unique, monotonically-increasing build that App Store Connect
+    # will accept. Fall back to the current project.yml value + 1 for local use.
+    build_number = ENV["GITHUB_RUN_NUMBER"] || bump
+    if ENV["GITHUB_RUN_NUMBER"]
+      project_yml = File.read("../project.yml")
+      updated = project_yml.gsub(/CURRENT_PROJECT_VERSION: \d+/, "CURRENT_PROJECT_VERSION: #{build_number}")
+      File.write("../project.yml", updated)
+    end
+
     generate
 
     build_app(
