@@ -33,7 +33,7 @@ final class UmiLogUITests: XCTestCase {
         }
 
         XCTAssertTrue(
-            app.buttons["Map"].waitForExistence(timeout: 15),
+            app.buttons["Discover"].waitForExistence(timeout: 15),
             "Expected app to reach main tab UI after onboarding"
         )
 
@@ -41,7 +41,7 @@ final class UmiLogUITests: XCTestCase {
         app.launch()
 
         XCTAssertTrue(
-            app.buttons["Map"].waitForExistence(timeout: 15),
+            app.buttons["Discover"].waitForExistence(timeout: 15),
             "Expected app to relaunch after onboarding completion"
         )
     }
@@ -53,7 +53,7 @@ final class UmiLogUITests: XCTestCase {
         app.launch()
 
         XCTAssertTrue(
-            app.buttons["Map"].waitForExistence(timeout: 15),
+            app.buttons["Discover"].waitForExistence(timeout: 15),
             "Expected app to launch to map tab while safe mode is forced"
         )
 
@@ -61,7 +61,7 @@ final class UmiLogUITests: XCTestCase {
         app.launch()
 
         XCTAssertTrue(
-            app.buttons["Map"].waitForExistence(timeout: 15),
+            app.buttons["Discover"].waitForExistence(timeout: 15),
             "Expected app to relaunch to map tab while safe mode is forced"
         )
     }

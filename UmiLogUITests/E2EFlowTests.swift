@@ -143,7 +143,7 @@ final class E2EFlowTests: XCTestCase {
         }
 
         // Back to Map Tab
-        let mapTab = app.buttons["Map"]
+        let mapTab = app.buttons["Discover"]
         if mapTab.waitForExistence(timeout: 3) {
             mapTab.tap()
             sleep(2)
@@ -237,7 +237,7 @@ final class E2EFlowTests: XCTestCase {
         completeOnboardingIfNeeded()
 
         // Ensure we're on Map tab
-        let mapTab = app.buttons["Map"]
+        let mapTab = app.buttons["Discover"]
         if mapTab.waitForExistence(timeout: 3) {
             mapTab.tap()
             sleep(3)
@@ -455,7 +455,7 @@ final class E2EFlowTests: XCTestCase {
         }
 
         // Ensure we're on Map tab
-        let mapTab = app.buttons["Map"]
+        let mapTab = app.buttons["Discover"]
         if mapTab.waitForExistence(timeout: 3) {
             mapTab.tap()
             sleep(2)
@@ -579,7 +579,7 @@ final class E2EFlowTests: XCTestCase {
         }
 
         // Return to map tab
-        let mapTab = app.buttons["Map"]
+        let mapTab = app.buttons["Discover"]
         if mapTab.waitForExistence(timeout: 3) {
             mapTab.tap()
             sleep(2)
