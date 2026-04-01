@@ -20,8 +20,10 @@ COPY_PHASE_STRIP = YES
 // Production bundle ID
 PRODUCT_BUNDLE_IDENTIFIER = app.umilog
 
-// Code Signing - Let Xcode automatic signing handle identity selection
-// (Automatic signing will use Apple Distribution for archives)
+// Code Signing (manual for App Store distribution)
+CODE_SIGN_STYLE = Manual
+CODE_SIGN_IDENTITY = Apple Distribution
+PROVISIONING_PROFILE_SPECIFIER = match AppStore app.umilog
 
 // API Configuration
 SENTRY_DSN = $(SENTRY_DSN)
