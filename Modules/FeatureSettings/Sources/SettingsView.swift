@@ -22,24 +22,28 @@ public struct SettingsView: View {
 
     public var body: some View {
         List {
-            Section("Appearance") {
+            Section {
                 Toggle(isOn: underwaterThemeBinding ?? .constant(true)) {
                     Label("Underwater Theme", systemImage: "water.waves")
                 }
+            } header: {
+                Text("Appearance")
             } footer: {
                 Text("Enables immersive ocean visuals with animated caustics and a deep-sea color palette.")
             }
 
-            Section("Account") {
+            Section {
                 NavigationLink("Privacy Settings") {
                     PrivacySettingsView()
                 }
                 NavigationLink("Sync") {
                     SyncSettingsView()
                 }
+            } header: {
+                Text("Account")
             }
 
-            Section("Battery") {
+            Section {
                 NavigationLink {
                     BatterySettingsView()
                 } label: {
@@ -55,9 +59,11 @@ public struct SettingsView: View {
                             .foregroundStyle(.secondary)
                     }
                 }
+            } header: {
+                Text("Battery")
             }
 
-            Section("Data") {
+            Section {
                 NavigationLink {
                     PendingSitesView()
                 } label: {
@@ -95,9 +101,11 @@ public struct SettingsView: View {
                 } label: {
                     Label("Import Data", systemImage: "square.and.arrow.down")
                 }
+            } header: {
+                Text("Data")
             }
-            
-            Section("About") {
+
+            Section {
                 HStack {
                     Text("Version")
                     Spacer()
@@ -107,10 +115,12 @@ public struct SettingsView: View {
                 NavigationLink("Attributions") {
                     AttributionsView()
                 }
+            } header: {
+                Text("About")
             }
 
             #if DEBUG
-            Section("Developer") {
+            Section {
                 Button("Clear All User Data") {
                     clearAllUserData()
                 }
@@ -131,6 +141,8 @@ public struct SettingsView: View {
                 Button("Reset All Preferences") {
                     resetAllPreferences()
                 }
+            } header: {
+                Text("Developer")
             }
             #endif
         }
@@ -346,7 +358,7 @@ struct BatterySettingsView: View {
                 Text("Dive logging still works normally. Disable Boat Mode when you need higher map/location precision.")
             }
 
-            Section("Current Power State") {
+            Section {
                 HStack {
                     Text("Policy")
                     Spacer()
@@ -365,6 +377,8 @@ struct BatterySettingsView: View {
                     Text("\(powerManager.preferredMapFramesPerSecond) fps")
                         .foregroundStyle(.secondary)
                 }
+            } header: {
+                Text("Current Power State")
             }
         }
         .navigationTitle("Battery")
@@ -416,7 +430,7 @@ struct SyncSettingsView: View {
             }
 
             if iCloudEnabled {
-                Section("Status") {
+                Section {
                     HStack {
                         Text("Last Sync")
                         Spacer()
@@ -433,6 +447,8 @@ struct SyncSettingsView: View {
                         // TODO: Implement sync
                         lastSyncDate = Date()
                     }
+                } header: {
+                    Text("Status")
                 }
             }
         }
