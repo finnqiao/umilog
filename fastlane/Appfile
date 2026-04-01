@@ -9,7 +9,7 @@ app_identifier("app.umilog")
 # apple_id("your@email.com")
 
 # Team ID (from Apple Developer Portal)
-team_id("ZK79P5HJFM")
+team_id("PB223S3ZUC")
 
 # App Store Connect Team ID (may differ from Developer Portal Team ID)
 # Find it at: App Store Connect > Users and Access > Your account
