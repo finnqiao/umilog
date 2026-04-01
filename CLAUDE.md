@@ -48,7 +48,7 @@ fastlane/          # Fastlane config (Fastfile, Matchfile, Appfile)
 
 ## Signing
 - Bundle ID: app.umilog
-- Team ID: ZK79P5HJFM
+- Team ID: PB223S3ZUC
 - Match certs in github.com/finnqiao/ios-certificates (private)
 
 ## CI

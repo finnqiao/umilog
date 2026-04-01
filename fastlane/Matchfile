@@ -5,4 +5,4 @@ storage_mode("git")
 type("appstore")
 
 app_identifier("app.umilog")
-team_id("ZK79P5HJFM")
+team_id("PB223S3ZUC")

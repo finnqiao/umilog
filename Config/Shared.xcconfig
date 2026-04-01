@@ -2,7 +2,7 @@
 // Common settings for all configurations
 
 // Team ID
-DEVELOPMENT_TEAM = ZK79P5HJFM
+DEVELOPMENT_TEAM = PB223S3ZUC
 
 // Deployment
 IPHONEOS_DEPLOYMENT_TARGET = 17.0
