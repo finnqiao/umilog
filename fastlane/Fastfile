@@ -81,6 +81,13 @@ platform :ios do
       scheme: "UmiLog",
       configuration: "Staging",
       export_method: "app-store",
+      export_options: {
+        method: "app-store",
+        signingStyle: "manual",
+        provisioningProfiles: {
+          "app.umilog" => "match AppStore app.umilog"
+        }
+      },
       output_directory: "fastlane/builds",
       output_name: "UmiLog-Staging.ipa",
       include_symbols: true,
@@ -98,6 +105,13 @@ platform :ios do
       scheme: "UmiLog",
       configuration: "Release",
       export_method: "app-store",
+      export_options: {
+        method: "app-store",
+        signingStyle: "manual",
+        provisioningProfiles: {
+          "app.umilog" => "match AppStore app.umilog"
+        }
+      },
       output_directory: "fastlane/builds",
       output_name: "UmiLog-Release.ipa",
       include_symbols: true,
