@@ -11,7 +11,7 @@ public struct DiveLoggerView: View {
     public var body: some View {
         Form {
             // Site Selection
-            Section("Dive Site") {
+            Section {
                 if let site = viewModel.selectedSite {
                     VStack(alignment: .leading, spacing: 4) {
                         Text(site.name)
@@ -30,12 +30,16 @@ public struct DiveLoggerView: View {
                     Text("No sites available")
                         .foregroundStyle(.secondary)
                 }
+            } header: {
+                Text("Dive Site")
             }
-            
+
             // Date & Time
-            Section("Date & Time") {
+            Section {
                 DatePicker("Dive Date", selection: $viewModel.diveDate, displayedComponents: [.date])
                 DatePicker("Start Time", selection: $viewModel.startTime, displayedComponents: [.hourAndMinute])
+            } header: {
+                Text("Date & Time")
             }
             
             // Dive Details (Required)
@@ -68,7 +72,7 @@ public struct DiveLoggerView: View {
             }
             
             // Pressures
-            Section("Tank Pressure") {
+            Section {
                 HStack {
                     Label("Start", systemImage: "gauge.high")
                     Spacer()
@@ -90,10 +94,12 @@ public struct DiveLoggerView: View {
                     Text("bar")
                         .foregroundStyle(.secondary)
                 }
+            } header: {
+                Text("Tank Pressure")
             }
-            
+
             // Environment
-            Section("Environment") {
+            Section {
                 HStack {
                     Label("Temperature", systemImage: "thermometer")
                     Spacer()
@@ -127,21 +133,27 @@ public struct DiveLoggerView: View {
                         Text(condition.rawValue).tag(condition)
                     }
                 }
+            } header: {
+                Text("Environment")
             }
-            
+
             // Notes
-            Section("Notes") {
+            Section {
                 TextEditor(text: $viewModel.notes)
                     .frame(minHeight: 100)
+            } header: {
+                Text("Notes")
             }
-            
+
             // Instructor Sign-off
-            Section("Instructor Sign-off (Optional)") {
+            Section {
                 TextField("Instructor Name", text: $viewModel.instructorName)
                 TextField("Instructor Number", text: $viewModel.instructorNumber)
                 Toggle("Signed", isOn: $viewModel.signed)
+            } header: {
+                Text("Instructor Sign-off (Optional)")
             }
-            
+
             // Save Button
             Section {
                 Button {
