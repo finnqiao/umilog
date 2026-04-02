@@ -25,7 +25,7 @@ public struct DataExportView: View {
 
     public var body: some View {
         List {
-            Section("Export Format") {
+            Section {
                 Picker("Format", selection: $selectedFormat) {
                     ForEach(ExportFormat.allCases, id: \.self) { format in
                         Text(format.displayName).tag(format)
@@ -36,9 +36,11 @@ public struct DataExportView: View {
                 Text(selectedFormat.description)
                     .font(.caption)
                     .foregroundStyle(.secondary)
+            } header: {
+                Text("Export Format")
             }
 
-            Section("Data to Export") {
+            Section {
                 Toggle(isOn: $includeDives) {
                     HStack {
                         Label("Dive Logs", systemImage: "water.waves")
@@ -68,6 +70,8 @@ public struct DataExportView: View {
                             .foregroundStyle(.secondary)
                     }
                 }
+            } header: {
+                Text("Data to Export")
             }
 
             Section {

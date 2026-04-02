@@ -6,7 +6,7 @@ public struct AttributionsView: View {
 
     public var body: some View {
         List {
-            Section("Data Sources") {
+            Section {
                 AttributionRow(
                     name: "OpenDiveSites",
                     description: "Community-contributed dive site database",
@@ -22,9 +22,11 @@ public struct AttributionsView: View {
                     description: "Geographic data and coastlines",
                     license: "ODbL 1.0"
                 )
+            } header: {
+                Text("Data Sources")
             }
 
-            Section("Map Tiles") {
+            Section {
                 AttributionRow(
                     name: "MapLibre",
                     description: "Open-source map rendering",
@@ -40,9 +42,11 @@ public struct AttributionsView: View {
                     description: "Cartographic base layers",
                     license: "CC BY 3.0"
                 )
+            } header: {
+                Text("Map Tiles")
             }
 
-            Section("Open Source Libraries") {
+            Section {
                 AttributionRow(
                     name: "GRDB.swift",
                     description: "SQLite database toolkit",
@@ -53,6 +57,8 @@ public struct AttributionsView: View {
                     description: "Map rendering engine",
                     license: "BSD 3-Clause"
                 )
+            } header: {
+                Text("Open Source Libraries")
             }
 
             Section {

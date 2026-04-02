@@ -47,7 +47,7 @@ struct FilterSheet: View {
     var body: some View {
         NavigationStack {
             Form {
-                Section("Mode") {
+                Section {
                     Picker("Mode", selection: $mode) {
                         Text("My Map").tag(MapMode.myMap)
                         Text("Explore").tag(MapMode.explore)
@@ -55,10 +55,12 @@ struct FilterSheet: View {
                     .onChange(of: mode) {
                         Haptics.soft()
                     }
+                } header: {
+                    Text("Mode")
                 }
 
                 if mode == .myMap {
-                    Section("Status Filter") {
+                    Section {
                         Picker("Status", selection: $statusFilter) {
                             Text("Visited").tag(StatusFilter.visited)
                             Text("Wishlist").tag(StatusFilter.wishlist)
@@ -67,9 +69,11 @@ struct FilterSheet: View {
                         .onChange(of: statusFilter) {
                             Haptics.tap()
                         }
+                    } header: {
+                        Text("Status Filter")
                     }
                 } else {
-                    Section("Explore Filter") {
+                    Section {
                         Picker("Explore", selection: $exploreFilter) {
                             Text("All").tag(ExploreFilter.all)
                             Text("Nearby").tag(ExploreFilter.nearby)
@@ -79,6 +83,8 @@ struct FilterSheet: View {
                         .onChange(of: exploreFilter) {
                             Haptics.tap()
                         }
+                    } header: {
+                        Text("Explore Filter")
                     }
                 }
             }
@@ -98,7 +104,7 @@ struct LayerSheet: View {
     var body: some View {
         NavigationStack {
             Form {
-                Section("Visuals") {
+                Section {
                     Toggle("Underwater glow", isOn: $layerSettings.showUnderwaterGlow)
                         .onChange(of: layerSettings.showUnderwaterGlow) { Haptics.tap() }
                     Toggle("Cluster rings", isOn: $layerSettings.showClusters)
@@ -107,6 +113,8 @@ struct LayerSheet: View {
                         .onChange(of: layerSettings.showStatusGlows) { Haptics.tap() }
                     Toggle("Color by difficulty", isOn: $layerSettings.colorByDifficulty)
                         .onChange(of: layerSettings.colorByDifficulty) { Haptics.tap() }
+                } header: {
+                    Text("Visuals")
                 }
             }
             .navigationTitle("Map Layers")
@@ -128,24 +136,28 @@ struct CombinedFilterLayersSheet: View {
     var body: some View {
         NavigationStack {
             Form {
-                Section("Mode") {
+                Section {
                     Picker("Mode", selection: $mode) {
                         Text("My Map").tag(MapMode.myMap)
                         Text("Explore").tag(MapMode.explore)
                     }
                     .pickerStyle(.segmented)
+                } header: {
+                    Text("Mode")
                 }
                 if mode == .myMap {
-                    Section("Status Filter") {
+                    Section {
                         Picker("Status", selection: $statusFilter) {
                             Text("Visited").tag(StatusFilter.visited)
                             Text("Wishlist").tag(StatusFilter.wishlist)
                             Text("Planned").tag(StatusFilter.planned)
                         }
                         .pickerStyle(.segmented)
+                    } header: {
+                        Text("Status Filter")
                     }
                 } else {
-                    Section("Explore Filter") {
+                    Section {
                         Picker("Explore", selection: $exploreFilter) {
                             Text("All").tag(ExploreFilter.all)
                             Text("Nearby").tag(ExploreFilter.nearby)
@@ -153,14 +165,18 @@ struct CombinedFilterLayersSheet: View {
                             Text("Beginner").tag(ExploreFilter.beginner)
                         }
                         .pickerStyle(.segmented)
+                    } header: {
+                        Text("Explore Filter")
                     }
                 }
 
-                Section("Layers") {
+                Section {
                     Toggle("Underwater glow", isOn: $layerSettings.showUnderwaterGlow)
                     Toggle("Cluster rings", isOn: $layerSettings.showClusters)
                     Toggle("Status glows", isOn: $layerSettings.showStatusGlows)
                     Toggle("Color by difficulty", isOn: $layerSettings.colorByDifficulty)
+                } header: {
+                    Text("Layers")
                 }
             }
             .navigationTitle("Filters & Layers")
