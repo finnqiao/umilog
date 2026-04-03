@@ -184,10 +184,13 @@ platform :ios do
       readonly: true
     )
 
-    # Use the GitHub Actions run number as the build number so every CI run
-    # produces a unique, monotonically-increasing build that App Store Connect
-    # will accept. Fall back to the current project.yml value + 1 for local use.
-    build_number = ENV["GITHUB_RUN_NUMBER"] || bump
+    # Use the GitHub Actions run number plus an offset as the build number so
+    # every CI run produces a unique, monotonically-increasing build that App
+    # Store Connect will accept. The offset ensures re-runs or late-starting
+    # runs never collide with a previously uploaded version.
+    # Fall back to the current project.yml value + 1 for local use.
+    BUILD_NUMBER_OFFSET = 10
+    build_number = ENV["GITHUB_RUN_NUMBER"] ? (ENV["GITHUB_RUN_NUMBER"].to_i + BUILD_NUMBER_OFFSET).to_s : bump
     if ENV["GITHUB_RUN_NUMBER"]
       project_yml = File.read("../project.yml")
       updated = project_yml.gsub(/CURRENT_PROJECT_VERSION: \d+/, "CURRENT_PROJECT_VERSION: #{build_number}")
