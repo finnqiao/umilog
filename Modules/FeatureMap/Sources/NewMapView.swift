@@ -1821,6 +1821,10 @@ public struct NewMapView: View {
             onUpdateSearchQuery: { query in
                 uiViewModel.send(.updateSearchQuery(query))
             },
+            onAreaTap: { area in
+                navigateToArea(area)
+                Haptics.soft()
+            },
             onClusterZoomIn: {
                 // Zoom into cluster area
                 if let context = uiViewModel.mode.clusterContext {
@@ -1838,10 +1842,6 @@ public struct NewMapView: View {
             },
             onCloseCluster: {
                 closeClusterExpand()
-            },
-            onAreaTap: { area in
-                navigateToArea(area)
-                Haptics.soft()
             },
             onExpandSearch: {
                 // Zoom out to show more content
