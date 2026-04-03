@@ -208,6 +208,7 @@ platform :ios do
           "app.umilog" => "match AppStore app.umilog"
         }
       },
+      skip_profile_detection: true,
       output_directory: "fastlane/builds",
       output_name: "UmiLog-Staging.ipa",
       include_symbols: true,
