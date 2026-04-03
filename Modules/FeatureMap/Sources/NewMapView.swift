@@ -1243,8 +1243,8 @@ public struct NewMapView: View {
     private var diveMapCamera: DiveMapCamera {
         let span = mapRegion.span
         let normalizedLatitude = max(span.latitudeDelta, 0.0001)
-        let denominator = 30.0
-        let baseZoom = 8.0 - log2(normalizedLatitude / denominator)
+        // Inverse of zoomToSpan: span = 360 / 2^(zoom-1)  →  zoom = 1 + log2(360 / span)
+        let baseZoom = 1.0 + log2(360.0 / normalizedLatitude)
         let approxZoom = max(1.5, min(14.0, baseZoom))
         let zoomLevel = lastViewport?.zoomLevel ?? approxZoom
         return DiveMapCamera(center: mapRegion.center, zoomLevel: zoomLevel)
@@ -1372,6 +1372,18 @@ public struct NewMapView: View {
                         }
                     }
 
+                    // Show map immediately at last position or a popular dive destination —
+                    // don't wait for loadSites() to avoid a long grey-screen loading delay.
+                    if let lastState = viewModel.loadLastMapState() {
+                        focusMap(onCoordinates: [lastState.center], singleSpan: zoomToSpan(lastState.zoom))
+                    } else {
+                        // First launch: center on Coral Triangle (Raja Ampat) — high site density,
+                        // beautiful region, tiles load fast at this zoom level.
+                        let defaultCenter = CLLocationCoordinate2D(latitude: -0.5, longitude: 130.5)
+                        focusMap(onCoordinates: [defaultCenter], singleSpan: zoomToSpan(6.5))
+                    }
+                    isMapInitialized = true
+
                     await viewModel.loadSites()
                     refreshLastDiveTime()
                     try? await Task.sleep(nanoseconds: 50_000_000)
@@ -1390,7 +1402,6 @@ public struct NewMapView: View {
                             await MainActor.run {
                                 showFeaturedCard = true
                                 isProgrammaticCameraChange = false
-                                isMapInitialized = true
                             }
                         } else {
                             await applyInitialMapPosition()
@@ -1398,10 +1409,6 @@ public struct NewMapView: View {
 
                         try? await Task.sleep(nanoseconds: 100_000_000)
                         await viewModel.refreshVisibleSites(in: mapRegion)
-                    } else {
-                        await MainActor.run {
-                            isMapInitialized = true
-                        }
                     }
                 }
                 .onAppear {
