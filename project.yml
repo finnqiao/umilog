@@ -200,8 +200,8 @@ targets:
         CFBundleDisplayName: UmiLog
         CFBundleName: UmiLog
         CFBundleIconName: AppIcon
-        CFBundleShortVersionString: "1.0.0"
-        CFBundleVersion: "1"
+        CFBundleShortVersionString: "$(MARKETING_VERSION)"
+        CFBundleVersion: "$(CURRENT_PROJECT_VERSION)"
         CFBundleURLTypes:
           - CFBundleURLName: app.umilog
             CFBundleURLSchemes:
