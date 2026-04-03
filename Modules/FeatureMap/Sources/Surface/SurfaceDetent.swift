@@ -20,7 +20,8 @@ enum SurfaceDetent: Equatable, CaseIterable {
         case .hidden:
             return 0
         case .peek:
-            return max(containerHeight * 0.12, 72)  // Reduced from 24%/160pt for minimal UI
+            // 88pt min: drag handle (28pt) + comfortable content hint above the nav bar.
+            return max(containerHeight * 0.12, 88)
         case .medium:
             return containerHeight * 0.60
         case .expanded:
