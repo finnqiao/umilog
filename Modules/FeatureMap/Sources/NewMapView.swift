@@ -1825,24 +1825,6 @@ public struct NewMapView: View {
                 navigateToArea(area)
                 Haptics.soft()
             },
-            onClusterZoomIn: {
-                // Zoom into cluster area
-                if let context = uiViewModel.mode.clusterContext {
-                    withAnimation(.easeInOut(duration: 0.3)) {
-                        isProgrammaticCameraChange = true
-                        let currentSpan = mapRegion.span
-                        let zoomedSpan = MKCoordinateSpan(
-                            latitudeDelta: max(currentSpan.latitudeDelta / 3.0, 0.01),
-                            longitudeDelta: max(currentSpan.longitudeDelta / 3.0, 0.01)
-                        )
-                        mapRegion = MKCoordinateRegion(center: context.clusterCenter, span: zoomedSpan)
-                    }
-                    closeClusterExpand()
-                }
-            },
-            onCloseCluster: {
-                closeClusterExpand()
-            },
             onExpandSearch: {
                 // Zoom out to show more content
                 withAnimation(.easeInOut(duration: 0.35)) {
@@ -1861,6 +1843,24 @@ public struct NewMapView: View {
                 uiViewModel.send(.deactivateNearMe)
                 surfaceDetent = .peek
                 Haptics.soft()
+            },
+            onClusterZoomIn: {
+                // Zoom into cluster area
+                if let context = uiViewModel.mode.clusterContext {
+                    withAnimation(.easeInOut(duration: 0.3)) {
+                        isProgrammaticCameraChange = true
+                        let currentSpan = mapRegion.span
+                        let zoomedSpan = MKCoordinateSpan(
+                            latitudeDelta: max(currentSpan.latitudeDelta / 3.0, 0.01),
+                            longitudeDelta: max(currentSpan.longitudeDelta / 3.0, 0.01)
+                        )
+                        mapRegion = MKCoordinateRegion(center: context.clusterCenter, span: zoomedSpan)
+                    }
+                    closeClusterExpand()
+                }
+            },
+            onCloseCluster: {
+                closeClusterExpand()
             }
         )
     }
