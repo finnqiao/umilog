@@ -2510,8 +2510,10 @@ public struct NewMapView: View {
     }
     
     private func updateTabBarVisibility(for detent: SurfaceDetent, mode: MapUIMode) {
-        let shouldHide = detent == .expanded || isModalMode(mode)
-        NotificationCenter.default.post(name: .tabBarVisibilityShouldChange, object: nil, userInfo: ["hidden": shouldHide])
+        // The fixed nav is always accessible — it never overlaps with the sheet now that
+        // the sheet is constrained to the safe-area above the tab bar.
+        // Always keep it visible so it remains a stable, grounded anchor.
+        NotificationCenter.default.post(name: .tabBarVisibilityShouldChange, object: nil, userInfo: ["hidden": false])
     }
 
     private func isModalMode(_ mode: MapUIMode) -> Bool {

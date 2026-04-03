@@ -33,10 +33,14 @@ struct UmiLogApp: App {
 
     private static func configureTabBarAppearance() {
         let appearance = UITabBarAppearance()
-        appearance.configureWithTransparentBackground()
-        appearance.backgroundEffect = UIBlurEffect(style: .systemUltraThinMaterialDark)
-        appearance.backgroundColor = UIColor(Color.glass).withAlphaComponent(0.85)
-        appearance.shadowColor = .clear
+        // Solid opaque background — no blur, no glass. The fixed nav must feel
+        // grounded and permanently distinct from the draggable sheet above it.
+        appearance.configureWithOpaqueBackground()
+        // Deep navy (#0A2342) — darker than the sheet surface, lighter than pure black.
+        // Matches Color.abyss from the design system.
+        appearance.backgroundColor = UIColor(red: 0.04, green: 0.14, blue: 0.26, alpha: 1.0)
+        // Thin top separator — just enough contrast to mark the boundary.
+        appearance.shadowColor = UIColor(white: 1.0, alpha: 0.08)
 
         let itemAppearance = UITabBarItemAppearance()
         itemAppearance.normal.iconColor = UIColor.umiMist
@@ -51,7 +55,7 @@ struct UmiLogApp: App {
         let tabBar = UITabBar.appearance()
         tabBar.standardAppearance = appearance
         tabBar.scrollEdgeAppearance = appearance
-        tabBar.isTranslucent = true
+        tabBar.isTranslucent = false
     }
 }
 

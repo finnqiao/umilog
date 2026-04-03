@@ -138,12 +138,14 @@ struct UnifiedBottomSurface: View {
                         surfaceContent(containerHeight: containerHeight)
                             .frame(height: currentHeight)
                             .background(surfaceBackground)
-                            .clipShape(RoundedRectangle(cornerRadius: 24, style: .continuous))
-                            .shadow(color: Color.black.opacity(0.18), radius: 10, y: -4)
+                            .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
+                            .shadow(color: Color.black.opacity(0.32), radius: 20, x: 0, y: -5)
                             // Fix UX-002: Use simultaneousGesture so taps on site cards can still register
                             .simultaneousGesture(dragGesture(containerHeight: containerHeight, allowedDetents: allowedDetents))
                     }
-                    .ignoresSafeArea(edges: .bottom)
+                    // No .ignoresSafeArea(edges: .bottom) — the sheet must live entirely
+                    // above the fixed tab bar. Removing this modifier constrains the VStack
+                    // to the tab-bar-aware safe content area, eliminating the overlap.
                     .animation(surfaceAnimation, value: detent)
                     .animation(surfaceAnimation, value: mode)
                 }
@@ -304,12 +306,12 @@ struct UnifiedBottomSurface: View {
     private var dragHandle: some View {
         VStack(spacing: 0) {
             Capsule()
-                .fill(Color.mist.opacity(0.5))
-                .frame(width: 36, height: 4)
-                .padding(.top, 8)
-                .padding(.bottom, 8)
+                .fill(Color.mist.opacity(0.55))
+                .frame(width: 40, height: 4)
+                .padding(.top, 10)
+                .padding(.bottom, 10)
         }
-        .frame(height: 24)
+        .frame(height: 28)
         .frame(maxWidth: .infinity)
         .contentShape(Rectangle())
         .accessibilityLabel("Resize handle")
@@ -320,29 +322,28 @@ struct UnifiedBottomSurface: View {
 
     private var surfaceBackground: some View {
         ZStack {
-            // Match map background gradient exactly for seamless appearance
+            // Solid elevated surface — deliberately lighter than the tab bar below
+            // (#0A2342) and slightly lighter than the map canvas, so the three layers
+            // (map → sheet → nav) read as a clear visual stack.
+            Color(red: 0.07, green: 0.17, blue: 0.29)  // ≈ #122B4A
+
+            // Gentle top-fade to add a sense of lift without glassmorphism.
             LinearGradient(
-                colors: [
-                    Color(red: 0.06, green: 0.14, blue: 0.24),  // Map backgroundTop
-                    Color(red: 0.04, green: 0.11, blue: 0.19)   // Map backgroundBottom
-                ],
+                colors: [Color.white.opacity(0.04), Color.clear],
                 startPoint: .top,
-                endPoint: .bottom
+                endPoint: .init(x: 0.5, y: 0.35)
             )
 
-            // Subtle glass overlay for depth and surface distinction
-            Rectangle()
-                .fill(Color.glass.opacity(0.4))
-
-            // Top border highlight for surface separation
-            RoundedRectangle(cornerRadius: 24, style: .continuous)
+            // Lagoon-tinted top border: signals the interactive drag edge and
+            // provides crisp visual separation from the map beneath.
+            RoundedRectangle(cornerRadius: 20, style: .continuous)
                 .strokeBorder(
                     LinearGradient(
-                        colors: [Color.ocean.opacity(0.5), Color.ocean.opacity(0.15)],
+                        colors: [Color.lagoon.opacity(0.55), Color.lagoon.opacity(0.06)],
                         startPoint: .top,
-                        endPoint: .bottom
+                        endPoint: .init(x: 0.5, y: 0.25)
                     ),
-                    lineWidth: 0.5
+                    lineWidth: 1
                 )
         }
     }
