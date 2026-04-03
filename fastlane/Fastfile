@@ -200,9 +200,9 @@ platform :ios do
       project: "UmiLog.xcodeproj",
       scheme: "UmiLog",
       configuration: "Staging",
-      export_method: "app-store",
+      export_method: "app-store-connect",
       export_options: {
-        method: "app-store",
+        method: "app-store-connect",
         signingStyle: "manual",
         provisioningProfiles: {
           "app.umilog" => "match AppStore app.umilog"

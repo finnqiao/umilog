@@ -118,8 +118,11 @@ public final class PowerManager: ObservableObject {
             queue: .main
         ) { [weak self] _ in
             guard let self else { return }
-            self.thermalState = self.processInfo.thermalState
-            self.recalculatePolicy()
+            Task { @MainActor [weak self] in
+                guard let self else { return }
+                self.thermalState = self.processInfo.thermalState
+                self.recalculatePolicy()
+            }
         }
 
         lowPowerObserver = NotificationCenter.default.addObserver(
@@ -128,8 +131,11 @@ public final class PowerManager: ObservableObject {
             queue: .main
         ) { [weak self] _ in
             guard let self else { return }
-            self.isLowPowerModeEnabled = self.processInfo.isLowPowerModeEnabled
-            self.recalculatePolicy()
+            Task { @MainActor [weak self] in
+                guard let self else { return }
+                self.isLowPowerModeEnabled = self.processInfo.isLowPowerModeEnabled
+                self.recalculatePolicy()
+            }
         }
     }
 
