@@ -268,6 +268,8 @@ class MapViewModel: ObservableObject {
                     guard site.visitedCount > 0 else { return false }
                 case .planned:
                     guard site.isPlanned else { return false }
+                case .trip:
+                    guard site.isPlanned else { return false }
                 }
             }
 

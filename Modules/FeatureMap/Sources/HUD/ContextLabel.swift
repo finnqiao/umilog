@@ -64,6 +64,9 @@ struct ContextLabel: View {
 
         case .clusterExpand(let ctx):
             return "\(ctx.siteCount) sites in stack"
+
+        case .nearMe:
+            return nil
         }
     }
 }
