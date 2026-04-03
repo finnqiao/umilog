@@ -346,50 +346,50 @@ private extension ContentView {
     }
 
     @ViewBuilder var tabs: some View {
-        VStack(spacing: 0) {
-            // Offline banner
+        TabView(selection: selectedTab) {
+            NavigationStack {
+                NewMapView()
+                    .navigationBarTitleDisplayMode(.inline)
+            }
+            .tabItem { Label("Discover", systemImage: "map.fill") }
+            .tag(Tab.map)
+            .accessibilityLabel("Discover")
+            .accessibilityHint("Discover and explore dive sites")
+
+            NavigationStack { DiveHistoryView() }
+            .tabItem { Label("History", systemImage: "clock.fill") }
+            .tag(Tab.history)
+            .accessibilityLabel("History")
+            .accessibilityHint("View your dive log history")
+
+            // Empty placeholder for center FAB
+            Text("")
+                .tabItem { Label("Log", systemImage: "plus.circle.fill") }
+                .tag(Tab.log)
+                .accessibilityLabel("Log a dive")
+                .accessibilityHint("Start logging a new dive")
+
+            NavigationStack { WildlifeView() }
+            .tabItem { Label("Wildlife", systemImage: "fish.fill") }
+            .tag(Tab.wildlife)
+            .accessibilityLabel("Wildlife")
+            .accessibilityHint("View marine species catalog")
+
+            NavigationStack { ProfileView() }
+            .tabItem { Label("Profile", systemImage: "person.fill") }
+            .tag(Tab.profile)
+            .accessibilityLabel("Profile")
+            .accessibilityHint("View your profile and settings")
+        }
+        .tint(.oceanBlue)
+        .toolbar(isTabBarHidden ? .hidden : .visible, for: .tabBar)
+        .safeAreaInset(edge: .top, spacing: 0) {
+            // Offline banner rendered as a safe area inset so the TabView
+            // fills the full screen and navigation bars stay flush with the top.
             if !networkMonitor.isConnected {
                 OfflineBanner()
                     .animation(.spring(response: 0.3), value: networkMonitor.isConnected)
             }
-
-            TabView(selection: selectedTab) {
-                NavigationStack {
-                    NewMapView()
-                        .navigationBarTitleDisplayMode(.inline)
-                }
-                .tabItem { Label("Discover", systemImage: "map.fill") }
-                .tag(Tab.map)
-                .accessibilityLabel("Discover")
-                .accessibilityHint("Discover and explore dive sites")
-
-                NavigationStack { DiveHistoryView() }
-                .tabItem { Label("History", systemImage: "clock.fill") }
-                .tag(Tab.history)
-                .accessibilityLabel("History")
-                .accessibilityHint("View your dive log history")
-
-                // Empty placeholder for center FAB
-                Text("")
-                    .tabItem { Label("Log", systemImage: "plus.circle.fill") }
-                    .tag(Tab.log)
-                    .accessibilityLabel("Log a dive")
-                    .accessibilityHint("Start logging a new dive")
-
-                NavigationStack { WildlifeView() }
-                .tabItem { Label("Wildlife", systemImage: "fish.fill") }
-                .tag(Tab.wildlife)
-                .accessibilityLabel("Wildlife")
-                .accessibilityHint("View marine species catalog")
-
-                NavigationStack { ProfileView() }
-                .tabItem { Label("Profile", systemImage: "person.fill") }
-                .tag(Tab.profile)
-                .accessibilityLabel("Profile")
-                .accessibilityHint("View your profile and settings")
-            }
-            .tint(.oceanBlue)
-            .toolbar(isTabBarHidden ? .hidden : .visible, for: .tabBar)
         }
     }
 }
