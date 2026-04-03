@@ -2363,8 +2363,14 @@ public struct NewMapView: View {
         // Track as recent region
         MapStatePersistence.shared.addRecentRegion(region.id)
 
-        // Drill into region for explore context
+        // Drill into region for explore context.
+        // Check regionId FK first (aligns with how pill counts are computed via
+        // fetchRegionsInBounds which joins on s.region_id = r.id). Falling back
+        // to the legacy string `region` field handles older/manually-seeded sites.
         let regionKey: String? = {
+            if viewModel.sites.contains(where: { $0.regionId == region.id }) {
+                return region.id
+            }
             if viewModel.sites.contains(where: { $0.region == region.name }) {
                 return region.name
             }
