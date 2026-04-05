@@ -1631,7 +1631,9 @@ public struct NewMapView: View {
                     }
                 )
                 .padding(.horizontal, 16)
-                .padding(.bottom, surfaceDetent.height(in: UIScreen.main.bounds.height) + 12)
+                // Use screen height minus known nav occupied height so the clearance
+                // matches the surface's actual containerHeight calculation.
+                .padding(.bottom, surfaceDetent.height(in: UIScreen.main.bounds.height - tabBarHeight - safeAreaInsets.bottom) + tabBarHeight + safeAreaInsets.bottom + 12)
             }
             .transition(.move(edge: .bottom).combined(with: .opacity))
             .animation(.spring(response: 0.4, dampingFraction: 0.8), value: uiViewModel.proximityPrompt != nil)
@@ -2175,8 +2177,11 @@ public struct NewMapView: View {
 
     private var overlayControls: some View {
         GeometryReader { geo in
-            let surfaceHeight = surfaceDetent.height(in: geo.size.height)
-            let controlsBottomPadding = surfaceHeight + 96
+            // Mirror the surface's containerHeight calculation: subtract the tab bar
+            // inset so detent heights are measured over the same usable region.
+            let tabBarInset = geo.safeAreaInsets.bottom
+            let surfaceHeight = surfaceDetent.height(in: geo.size.height - tabBarInset)
+            let controlsBottomPadding = surfaceHeight + tabBarInset + 96
             ZStack(alignment: .topLeading) {
                 topOverlay
 
@@ -2246,7 +2251,7 @@ public struct NewMapView: View {
                                 }
                             )
                             .padding(.trailing, 16)
-                            .padding(.bottom, surfaceHeight + 16)
+                            .padding(.bottom, surfaceHeight + tabBarInset + 16)
                             .allowsHitTesting(true)
                         }
                     }
@@ -2294,7 +2299,7 @@ public struct NewMapView: View {
                     .padding(.leading, safeAreaInsets.leading + 16)
                     Spacer()
                 }
-                .padding(.bottom, surfaceDetent.height(in: UIScreen.main.bounds.height) + 12)
+                .padding(.bottom, surfaceDetent.height(in: UIScreen.main.bounds.height - tabBarHeight - safeAreaInsets.bottom) + tabBarHeight + safeAreaInsets.bottom + 12)
                 .animation(.easeOut(duration: 0.2), value: uiViewModel.mode)
                 .allowsHitTesting(false)
             }
