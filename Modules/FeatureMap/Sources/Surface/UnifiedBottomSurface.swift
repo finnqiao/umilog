@@ -79,7 +79,7 @@ struct UnifiedBottomSurface: View {
 
     // MARK: - State
 
-    @GestureState private var dragTranslation: CGFloat = 0
+    @State private var dragTranslation: CGFloat = 0
     @State private var isAnimating = false
 
     // MARK: - Environment
@@ -158,7 +158,7 @@ struct UnifiedBottomSurface: View {
                         // sliding behind the nav. This is the only place safe-area bottom is
                         // consumed; no other component should add bottom padding for the nav.
                         Color.clear
-                            .frame(height: tabBarInset + 10) // 10pt intentional gap above tab bar
+                            .frame(height: tabBarInset) // Sit flush against tab bar — no extra gap
                     }
                     // Restore ignoresSafeArea so the VStack's coordinate space covers the full
                     // height including the tab bar region. Without this, SwiftUI double-applies
@@ -372,8 +372,8 @@ struct UnifiedBottomSurface: View {
     private func dragGesture(containerHeight: CGFloat, allowedDetents: [SurfaceDetent]) -> some Gesture {
         // Fix UX-002: Increased minimum distance from 5 to 10 to reduce interference with tap gestures
         DragGesture(minimumDistance: 10, coordinateSpace: .global)
-            .updating($dragTranslation) { value, state, _ in
-                state = value.translation.height
+            .onChanged { value in
+                dragTranslation = value.translation.height
             }
             .onEnded { value in
                 let velocity = value.predictedEndTranslation.height - value.translation.height
@@ -386,11 +386,13 @@ struct UnifiedBottomSurface: View {
                     let isFlickingDown = velocity > 500 || translation > 100
 
                     if isAtLowest && isFlickingDown {
-                        // Dismiss inspect mode
+                        // Dismiss inspect mode — reset drag in same frame
                         if reduceMotion {
+                            dragTranslation = 0
                             onDismissInspect()
                         } else {
                             withAnimation(.spring(response: 0.35, dampingFraction: 0.85)) {
+                                dragTranslation = 0
                                 onDismissInspect()
                             }
                         }
@@ -406,13 +408,15 @@ struct UnifiedBottomSurface: View {
                     allowedDetents: allowedDetents
                 )
 
-                if newDetent != detent {
-                    if reduceMotion {
+                // Reset translation and update detent in the same animation
+                // frame so the sheet smoothly snaps without jumping.
+                if reduceMotion {
+                    dragTranslation = 0
+                    detent = newDetent
+                } else {
+                    withAnimation(.spring(response: 0.35, dampingFraction: 0.85)) {
+                        dragTranslation = 0
                         detent = newDetent
-                    } else {
-                        withAnimation(.spring(response: 0.35, dampingFraction: 0.85)) {
-                            detent = newDetent
-                        }
                     }
                 }
             }

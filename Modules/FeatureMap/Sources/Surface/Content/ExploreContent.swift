@@ -55,14 +55,14 @@ struct ExploreContent: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
             peekHeader
-                .padding(.horizontal, 20)
-                .padding(.top, 4)
+                .padding(.horizontal, 16)
+                .padding(.top, 8)
                 .padding(.bottom, 12)
 
             // Show horizontal carousel at peek detent
             if detent == .peek {
                 peekCarousel
-                    .padding(.bottom, 20)
+                    .padding(.bottom, 16)
             }
 
             if detent != .peek {
@@ -110,7 +110,7 @@ struct ExploreContent: View {
                             }
                         }
                     }
-                    .padding(.horizontal, 20)
+                    .padding(.horizontal, 16)
                 }
             } else if !sites.isEmpty {
                 HorizontalSiteCarousel(sites: sites, onSiteTap: onSiteTap)
@@ -126,7 +126,7 @@ struct ExploreContent: View {
                             }
                         }
                     }
-                    .padding(.horizontal, 20)
+                    .padding(.horizontal, 16)
                 }
             }
         case .local:
