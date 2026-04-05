@@ -20,8 +20,9 @@ enum SurfaceDetent: Equatable, CaseIterable {
         case .hidden:
             return 0
         case .peek:
-            // 88pt min: drag handle (28pt) + comfortable content hint above the nav bar.
-            return max(containerHeight * 0.12, 88)
+            // 148pt min: drag handle (29pt) + header row (40pt) + chip carousel (48pt)
+            // + bottom padding (16pt) + margin (15pt). Ensures peek content is never clipped.
+            return max(containerHeight * 0.18, 148)
         case .medium:
             return containerHeight * 0.60
         case .expanded:
@@ -33,7 +34,7 @@ enum SurfaceDetent: Equatable, CaseIterable {
     static func allowed(for mode: MapUIMode) -> [SurfaceDetent] {
         switch mode {
         case .explore:
-            return [.hidden, .peek, .medium, .expanded]  // Added hidden for ultra-minimal
+            return [.peek, .medium, .expanded]
         case .inspectSite:
             return [.medium, .expanded]
         case .filter, .search:
@@ -51,7 +52,7 @@ enum SurfaceDetent: Equatable, CaseIterable {
     static func defaultDetent(for mode: MapUIMode) -> SurfaceDetent {
         switch mode {
         case .explore:
-            return .hidden  // Ultra-minimal: start with hidden sheet
+            return .peek
         case .inspectSite:
             return .medium
         case .filter, .search:
