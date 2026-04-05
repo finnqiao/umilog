@@ -1957,12 +1957,14 @@ public struct NewMapView: View {
                 }
             }
         }
-        // Swipe up gesture to reveal bottom sheet when hidden
+        // Swipe up gesture to reveal bottom sheet when hidden (only if hidden is an allowed state)
         .gesture(
             DragGesture(minimumDistance: 50)
                 .onEnded { value in
-                    // Swipe up (negative y translation) reveals the sheet
-                    if value.translation.height < -50 && surfaceDetent == .hidden {
+                    let allowed = SurfaceDetent.allowed(for: uiViewModel.mode)
+                    if value.translation.height < -50
+                        && surfaceDetent == .hidden
+                        && allowed.contains(.hidden) {
                         withAnimation(.spring(response: 0.35, dampingFraction: 0.8)) {
                             surfaceDetent = .peek
                         }

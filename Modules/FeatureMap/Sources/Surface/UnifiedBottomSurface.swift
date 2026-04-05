@@ -125,8 +125,10 @@ struct UnifiedBottomSurface: View {
                 } else {
                     let allowedDetents = SurfaceDetent.allowed(for: mode)
                     let baseHeight = detent.height(in: containerHeight)
-                    let minHeight = allowedDetents.map { $0.height(in: containerHeight) }.min() ?? baseHeight
-                    let maxHeight = allowedDetents.map { $0.height(in: containerHeight) }.max() ?? baseHeight
+                    // Exclude .hidden from drag bounds so the sheet never visually shrinks to zero
+                    let draggableDetents = allowedDetents.filter { $0 != .hidden }
+                    let minHeight = draggableDetents.map { $0.height(in: containerHeight) }.min() ?? baseHeight
+                    let maxHeight = draggableDetents.map { $0.height(in: containerHeight) }.max() ?? baseHeight
 
                     let adjustedTranslation = SurfaceGestures.computeRubberBandOffset(
                         translation: dragTranslation,
@@ -145,7 +147,7 @@ struct UnifiedBottomSurface: View {
                         surfaceContent(containerHeight: containerHeight)
                             .frame(height: currentHeight)
                             .background(surfaceBackground)
-                            .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
+                            .clipShape(RoundedRectangle(cornerRadius: 24, style: .continuous))
                             .shadow(color: Color.black.opacity(0.32), radius: 20, x: 0, y: -5)
                             // Fix UX-002: Use simultaneousGesture so taps on site cards can still register
                             .simultaneousGesture(dragGesture(containerHeight: containerHeight, allowedDetents: allowedDetents))
@@ -156,7 +158,7 @@ struct UnifiedBottomSurface: View {
                         // sliding behind the nav. This is the only place safe-area bottom is
                         // consumed; no other component should add bottom padding for the nav.
                         Color.clear
-                            .frame(height: tabBarInset)
+                            .frame(height: tabBarInset + 10) // 10pt intentional gap above tab bar
                     }
                     // Restore ignoresSafeArea so the VStack's coordinate space covers the full
                     // height including the tab bar region. Without this, SwiftUI double-applies
@@ -323,12 +325,12 @@ struct UnifiedBottomSurface: View {
     private var dragHandle: some View {
         VStack(spacing: 0) {
             Capsule()
-                .fill(Color.mist.opacity(0.55))
-                .frame(width: 40, height: 4)
-                .padding(.top, 10)
-                .padding(.bottom, 10)
+                .fill(Color.mist.opacity(0.45))
+                .frame(width: 40, height: 5)
+                .padding(.top, 12)
+                .padding(.bottom, 12)
         }
-        .frame(height: 28)
+        .frame(height: 29)
         .frame(maxWidth: .infinity)
         .contentShape(Rectangle())
         .accessibilityLabel("Resize handle")
@@ -353,7 +355,7 @@ struct UnifiedBottomSurface: View {
 
             // Lagoon-tinted top border: signals the interactive drag edge and
             // provides crisp visual separation from the map beneath.
-            RoundedRectangle(cornerRadius: 20, style: .continuous)
+            RoundedRectangle(cornerRadius: 24, style: .continuous)
                 .strokeBorder(
                     LinearGradient(
                         colors: [Color.lagoon.opacity(0.55), Color.lagoon.opacity(0.06)],

@@ -55,14 +55,14 @@ struct ExploreContent: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
             peekHeader
-                .padding(.horizontal, 16)
-                .padding(.top, 8)
+                .padding(.horizontal, 20)
+                .padding(.top, 4)
                 .padding(.bottom, 12)
 
             // Show horizontal carousel at peek detent
             if detent == .peek {
                 peekCarousel
-                    .padding(.bottom, 12)
+                    .padding(.bottom, 20)
             }
 
             if detent != .peek {
@@ -110,7 +110,7 @@ struct ExploreContent: View {
                             }
                         }
                     }
-                    .padding(.horizontal, 16)
+                    .padding(.horizontal, 20)
                 }
             } else if !sites.isEmpty {
                 HorizontalSiteCarousel(sites: sites, onSiteTap: onSiteTap)
@@ -126,7 +126,7 @@ struct ExploreContent: View {
                             }
                         }
                     }
-                    .padding(.horizontal, 16)
+                    .padding(.horizontal, 20)
                 }
             }
         case .local:
@@ -143,8 +143,8 @@ struct ExploreContent: View {
             // Dynamic title based on zoom level
             HStack(spacing: 12) {
                 dynamicTitle
-                    .font(.subheadline)
-                    .foregroundStyle(Color.mist)
+                    .font(.subheadline.weight(.semibold))
+                    .foregroundStyle(Color.foam)
 
                 Spacer()
 
