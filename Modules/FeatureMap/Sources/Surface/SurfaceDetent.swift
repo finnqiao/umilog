@@ -5,7 +5,7 @@ enum SurfaceDetent: Equatable, CaseIterable {
     /// Hidden - ultra-minimal mode with no bottom sheet visible.
     case hidden
 
-    /// Minimal peek showing summary info (~12% or 72pt min).
+    /// Minimal peek showing summary info (~15% or 132pt min).
     case peek
 
     /// Medium height showing list content (~60%).
@@ -20,9 +20,9 @@ enum SurfaceDetent: Equatable, CaseIterable {
         case .hidden:
             return 0
         case .peek:
-            // 148pt min: drag handle (29pt) + header row (40pt) + chip carousel (48pt)
-            // + bottom padding (16pt) + margin (15pt). Ensures peek content is never clipped.
-            return max(containerHeight * 0.18, 148)
+            // 132pt min: drag handle (29pt) + header row (56pt) + carousel hint (47pt).
+            // 15% keeps the peek compact on larger screens while ensuring content fits.
+            return max(containerHeight * 0.15, 132)
         case .medium:
             return containerHeight * 0.60
         case .expanded:

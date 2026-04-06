@@ -634,8 +634,8 @@ public struct NewMapView: View {
     private let tabBarHeight: CGFloat = 72
     // Start with world view to avoid flashing a hardcoded location
     @State private var mapRegion = MKCoordinateRegion(
-        center: CLLocationCoordinate2D(latitude: 0, longitude: 0),
-        span: MKCoordinateSpan(latitudeDelta: 180, longitudeDelta: 360)
+        center: CLLocationCoordinate2D(latitude: -0.5, longitude: 130.5),
+        span: MKCoordinateSpan(latitudeDelta: 10, longitudeDelta: 10)
     )
     @State private var isMapInitialized = false
     @State private var didReportMapInteractive = false
@@ -1386,6 +1386,11 @@ public struct NewMapView: View {
 
                     await viewModel.loadSites()
                     refreshLastDiveTime()
+
+                    // Refresh visible sites immediately so pins render for the
+                    // current viewport without waiting for the featured check.
+                    await viewModel.refreshVisibleSites(in: mapRegion)
+
                     try? await Task.sleep(nanoseconds: 50_000_000)
 
                     let sitesToCenter = await MainActor.run { viewModel.sites }
@@ -1406,9 +1411,6 @@ public struct NewMapView: View {
                         } else {
                             await applyInitialMapPosition()
                         }
-
-                        try? await Task.sleep(nanoseconds: 100_000_000)
-                        await viewModel.refreshVisibleSites(in: mapRegion)
                     }
                 }
                 .onAppear {
@@ -2179,11 +2181,10 @@ public struct NewMapView: View {
 
     private var overlayControls: some View {
         GeometryReader { geo in
-            // Mirror the surface's containerHeight calculation: subtract the tab bar
-            // inset so detent heights are measured over the same usable region.
-            let tabBarInset = geo.safeAreaInsets.bottom
-            let surfaceHeight = surfaceDetent.height(in: geo.size.height - tabBarInset)
-            let controlsBottomPadding = surfaceHeight + tabBarInset + 96
+            // Mirror the surface's containerHeight: use the full proposed height
+            // (the TabView content area already ends at the tab bar top).
+            let surfaceHeight = surfaceDetent.height(in: geo.size.height)
+            let controlsBottomPadding = surfaceHeight + 96
             ZStack(alignment: .topLeading) {
                 topOverlay
 

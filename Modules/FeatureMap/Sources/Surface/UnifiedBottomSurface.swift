@@ -79,7 +79,7 @@ struct UnifiedBottomSurface: View {
 
     // MARK: - State
 
-    @GestureState private var dragTranslation: CGFloat = 0
+    @State private var dragTranslation: CGFloat = 0
     @State private var isAnimating = false
 
     // MARK: - Environment
@@ -107,14 +107,12 @@ struct UnifiedBottomSurface: View {
 
     var body: some View {
         GeometryReader { geometry in
-            // Read the tab bar's occupied height (visual bar + home indicator) from the
-            // safe area reported at this level, before any ignoresSafeArea extension.
-            // This is the single source of truth for how much vertical space the nav owns.
-            let tabBarInset = geometry.safeAreaInsets.bottom
-
-            // Usable container height = everything strictly above the tab bar.
-            // All detent calculations are relative to this region.
-            let containerHeight = geometry.size.height - tabBarInset
+            // The GeometryReader sits inside a TabView content area whose
+            // proposed size already ends at the tab bar top. We use the full
+            // proposed height as our container — no safe-area subtraction
+            // needed, because the tab bar is managed by UIKit outside this
+            // coordinate space.
+            let containerHeight = geometry.size.height
 
             // Guard against invalid container height during layout
             if containerHeight > 0 {
@@ -151,20 +149,7 @@ struct UnifiedBottomSurface: View {
                             .shadow(color: Color.black.opacity(0.32), radius: 20, x: 0, y: -5)
                             // Fix UX-002: Use simultaneousGesture so taps on site cards can still register
                             .simultaneousGesture(dragGesture(containerHeight: containerHeight, allowedDetents: allowedDetents))
-
-                        // Nav clearance: a transparent spacer the exact height of the tab bar
-                        // (visual items + home indicator). The opaque nav renders on top of this
-                        // region, so it is never seen — it simply prevents the sheet content from
-                        // sliding behind the nav. This is the only place safe-area bottom is
-                        // consumed; no other component should add bottom padding for the nav.
-                        Color.clear
-                            .frame(height: tabBarInset + 10) // 10pt intentional gap above tab bar
                     }
-                    // Restore ignoresSafeArea so the VStack's coordinate space covers the full
-                    // height including the tab bar region. Without this, SwiftUI double-applies
-                    // the bottom safe-area inset — once shrinking the proposed size and again
-                    // constraining the VStack — which creates the large dead zone regression.
-                    .ignoresSafeArea(edges: .bottom)
                     .animation(surfaceAnimation, value: detent)
                     .animation(surfaceAnimation, value: mode)
                 }
@@ -372,8 +357,8 @@ struct UnifiedBottomSurface: View {
     private func dragGesture(containerHeight: CGFloat, allowedDetents: [SurfaceDetent]) -> some Gesture {
         // Fix UX-002: Increased minimum distance from 5 to 10 to reduce interference with tap gestures
         DragGesture(minimumDistance: 10, coordinateSpace: .global)
-            .updating($dragTranslation) { value, state, _ in
-                state = value.translation.height
+            .onChanged { value in
+                dragTranslation = value.translation.height
             }
             .onEnded { value in
                 let velocity = value.predictedEndTranslation.height - value.translation.height
@@ -386,11 +371,13 @@ struct UnifiedBottomSurface: View {
                     let isFlickingDown = velocity > 500 || translation > 100
 
                     if isAtLowest && isFlickingDown {
-                        // Dismiss inspect mode
+                        // Dismiss inspect mode — reset drag in same frame
                         if reduceMotion {
+                            dragTranslation = 0
                             onDismissInspect()
                         } else {
                             withAnimation(.spring(response: 0.35, dampingFraction: 0.85)) {
+                                dragTranslation = 0
                                 onDismissInspect()
                             }
                         }
@@ -406,13 +393,15 @@ struct UnifiedBottomSurface: View {
                     allowedDetents: allowedDetents
                 )
 
-                if newDetent != detent {
-                    if reduceMotion {
+                // Reset translation and update detent in the same animation
+                // frame so the sheet smoothly snaps without jumping.
+                if reduceMotion {
+                    dragTranslation = 0
+                    detent = newDetent
+                } else {
+                    withAnimation(.spring(response: 0.35, dampingFraction: 0.85)) {
+                        dragTranslation = 0
                         detent = newDetent
-                    } else {
-                        withAnimation(.spring(response: 0.35, dampingFraction: 0.85)) {
-                            detent = newDetent
-                        }
                     }
                 }
             }

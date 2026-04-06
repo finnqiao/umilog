@@ -802,8 +802,14 @@ public final class MapVC: UIViewController, MLNMapViewDelegate, UIGestureRecogni
                     style.removeSource(oldSource)
                 }
 
-                // Create new source with features (not setting .shape later)
-                let newSource = MLNShapeSource(identifier: "sites", features: features, options: nil)
+                // Create new source with features — preserve clustering options
+                // so clusters continue to form after data updates.
+                let clusteringOptions: [MLNShapeSourceOption: Any] = [
+                    .clustered: true,
+                    .clusterRadius: MapTheme.Clustering.clusterRadius,
+                    .maximumZoomLevelForClustering: MapTheme.Clustering.maxClusterZoom
+                ]
+                let newSource = MLNShapeSource(identifier: "sites", features: features, options: clusteringOptions)
                 style.addSource(newSource)
                 self.siteSource = newSource
 
