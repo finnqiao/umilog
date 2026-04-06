@@ -2181,11 +2181,10 @@ public struct NewMapView: View {
 
     private var overlayControls: some View {
         GeometryReader { geo in
-            // Mirror the surface's containerHeight calculation: subtract the tab bar
-            // inset so detent heights are measured over the same usable region.
-            let tabBarInset = geo.safeAreaInsets.bottom
-            let surfaceHeight = surfaceDetent.height(in: geo.size.height - tabBarInset)
-            let controlsBottomPadding = surfaceHeight + tabBarInset + 96
+            // Mirror the surface's containerHeight: use the full proposed height
+            // (the TabView content area already ends at the tab bar top).
+            let surfaceHeight = surfaceDetent.height(in: geo.size.height)
+            let controlsBottomPadding = surfaceHeight + 96
             ZStack(alignment: .topLeading) {
                 topOverlay
 

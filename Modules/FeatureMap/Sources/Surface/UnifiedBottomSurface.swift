@@ -107,14 +107,12 @@ struct UnifiedBottomSurface: View {
 
     var body: some View {
         GeometryReader { geometry in
-            // Read the tab bar's occupied height (visual bar + home indicator) from the
-            // safe area reported at this level, before any ignoresSafeArea extension.
-            // This is the single source of truth for how much vertical space the nav owns.
-            let tabBarInset = geometry.safeAreaInsets.bottom
-
-            // Usable container height = everything strictly above the tab bar.
-            // All detent calculations are relative to this region.
-            let containerHeight = geometry.size.height - tabBarInset
+            // The GeometryReader sits inside a TabView content area whose
+            // proposed size already ends at the tab bar top. We use the full
+            // proposed height as our container — no safe-area subtraction
+            // needed, because the tab bar is managed by UIKit outside this
+            // coordinate space.
+            let containerHeight = geometry.size.height
 
             // Guard against invalid container height during layout
             if containerHeight > 0 {
@@ -151,20 +149,7 @@ struct UnifiedBottomSurface: View {
                             .shadow(color: Color.black.opacity(0.32), radius: 20, x: 0, y: -5)
                             // Fix UX-002: Use simultaneousGesture so taps on site cards can still register
                             .simultaneousGesture(dragGesture(containerHeight: containerHeight, allowedDetents: allowedDetents))
-
-                        // Nav clearance: a transparent spacer the exact height of the tab bar
-                        // (visual items + home indicator). The opaque nav renders on top of this
-                        // region, so it is never seen — it simply prevents the sheet content from
-                        // sliding behind the nav. This is the only place safe-area bottom is
-                        // consumed; no other component should add bottom padding for the nav.
-                        Color.clear
-                            .frame(height: tabBarInset) // Sit flush against tab bar — no extra gap
                     }
-                    // Restore ignoresSafeArea so the VStack's coordinate space covers the full
-                    // height including the tab bar region. Without this, SwiftUI double-applies
-                    // the bottom safe-area inset — once shrinking the proposed size and again
-                    // constraining the VStack — which creates the large dead zone regression.
-                    .ignoresSafeArea(edges: .bottom)
                     .animation(surfaceAnimation, value: detent)
                     .animation(surfaceAnimation, value: mode)
                 }
