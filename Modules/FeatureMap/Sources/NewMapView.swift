@@ -2254,7 +2254,7 @@ public struct NewMapView: View {
                                 }
                             )
                             .padding(.trailing, 16)
-                            .padding(.bottom, surfaceHeight + tabBarInset + 16)
+                            .padding(.bottom, surfaceHeight + tabBarHeight + safeAreaInsets.bottom + 16)
                             .allowsHitTesting(true)
                         }
                     }
