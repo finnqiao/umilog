@@ -353,7 +353,6 @@ private extension ContentView {
         TabView(selection: selectedTab) {
             NavigationStack {
                 NewMapView()
-                    .navigationBarTitleDisplayMode(.inline)
             }
             .tabItem { Label("Discover", systemImage: "map.fill") }
             .tag(Tab.map)
