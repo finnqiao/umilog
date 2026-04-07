@@ -1273,8 +1273,7 @@ public struct NewMapView: View {
         let base = AnyView(
             mapView
                 .tint(primaryColor)
-                .navigationTitle("")
-                .navigationBarTitleDisplayMode(.inline)
+                .toolbar(.hidden, for: .navigationBar)
         )
 
         let stateBound = AnyView(

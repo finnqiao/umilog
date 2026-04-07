@@ -145,7 +145,7 @@ struct UnifiedBottomSurface: View {
                         surfaceContent(containerHeight: containerHeight)
                             .frame(height: currentHeight)
                             .background(surfaceBackground)
-                            .clipShape(RoundedRectangle(cornerRadius: 24, style: .continuous))
+                            .clipShape(UnevenRoundedRectangle(topLeadingRadius: 24, bottomLeadingRadius: 0, bottomTrailingRadius: 0, topTrailingRadius: 24, style: .continuous))
                             .shadow(color: Color.black.opacity(0.32), radius: 20, x: 0, y: -5)
                             // Fix UX-002: Use simultaneousGesture so taps on site cards can still register
                             .simultaneousGesture(dragGesture(containerHeight: containerHeight, allowedDetents: allowedDetents))
