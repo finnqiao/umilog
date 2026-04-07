@@ -10,6 +10,7 @@ struct HorizontalSiteCarousel: View {
 
     let sites: [DiveSite]
     var onSiteTap: (DiveSite) -> Void
+    var onSeeAll: (() -> Void)?
 
     // MARK: - Body
 
@@ -18,11 +19,29 @@ struct HorizontalSiteCarousel: View {
             LazyHStack(spacing: 12) {
                 ForEach(sites.prefix(3)) { site in
                     CompactSiteCard(site: site)
-                        .contentShape(Rectangle())  // Ensure entire card is tappable
+                        .contentShape(Rectangle())
                         .onTapGesture {
                             Haptics.soft()
                             onSiteTap(site)
                         }
+                }
+
+                if sites.count > 3, let onSeeAll {
+                    Button(action: onSeeAll) {
+                        VStack(spacing: 6) {
+                            Image(systemName: "arrow.up.circle")
+                                .font(.system(size: 22, weight: .medium))
+                                .foregroundStyle(Color.lagoon)
+                            Text("See all")
+                                .font(.caption.weight(.medium))
+                                .foregroundStyle(Color.mist)
+                        }
+                        .frame(width: 80)
+                        .frame(maxHeight: .infinity)
+                        .background(Color.trench.opacity(0.6))
+                        .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+                    }
+                    .buttonStyle(.plain)
                 }
             }
             .padding(.horizontal, 16)
@@ -38,10 +57,15 @@ private struct CompactSiteCard: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 6) {
-            Text(site.name)
-                .font(.subheadline.weight(.semibold))
-                .foregroundStyle(Color.foam)
-                .lineLimit(1)
+            HStack(spacing: 6) {
+                Image(systemName: siteTypeIcon)
+                    .font(.system(size: 11, weight: .medium))
+                    .foregroundStyle(Color.reef.opacity(0.8))
+                Text(site.name)
+                    .font(.subheadline.weight(.semibold))
+                    .foregroundStyle(Color.foam)
+                    .lineLimit(1)
+            }
 
             Text(site.location)
                 .font(.caption)
@@ -57,11 +81,22 @@ private struct CompactSiteCard: View {
             }
         }
         .padding(12)
-        .frame(width: 160)
+        .frame(width: 170)
         .background(Color.trench)
         .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
         .accessibilityElement(children: .combine)
         .accessibilityLabel("\(site.name), \(site.location), \(site.difficulty.rawValue) difficulty, max depth \(Int(site.maxDepth)) meters")
+    }
+
+    private var siteTypeIcon: String {
+        switch site.type {
+        case .reef: return "leaf.fill"
+        case .wreck: return "ferry.fill"
+        case .wall: return "rectangle.portrait.fill"
+        case .cave: return "mountain.2.fill"
+        case .shore: return "beach.umbrella.fill"
+        case .drift: return "wind"
+        }
     }
 }
 

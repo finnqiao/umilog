@@ -2181,10 +2181,7 @@ public struct NewMapView: View {
 
     private var overlayControls: some View {
         GeometryReader { geo in
-            // Mirror the surface's containerHeight: use the full proposed height
-            // (the TabView content area already ends at the tab bar top).
             let surfaceHeight = surfaceDetent.height(in: geo.size.height)
-            let controlsBottomPadding = surfaceHeight + 96
             ZStack(alignment: .topLeading) {
                 topOverlay
 
@@ -2216,29 +2213,7 @@ public struct NewMapView: View {
                     .transition(.move(edge: .top).combined(with: .opacity))
                 }
 
-                if surfaceDetent != .expanded {
-                    VStack {
-                        Spacer()
-                        HStack {
-                            Spacer()
-                            MapControlCluster(
-                                isBoatModeEnabled: powerManager.isBoatModeEnabled,
-                                onLayerToggle: handleLayerToggleTapped,
-                                onLocateMe: handleLocateMeTapped,
-                                onToggleBoatMode: {
-                                    powerManager.toggleBoatMode()
-                                    Haptics.soft()
-                                }
-                            )
-                            .padding(.trailing, safeAreaInsets.trailing + 16)
-                            .padding(.bottom, controlsBottomPadding)
-                            .allowsHitTesting(true)
-                        }
-                    }
-                    .frame(width: geo.size.width, height: geo.size.height)
-                }
-
-                // QuickCaptureFAB - bottom right, always visible when not expanded (Resy-style)
+                // QuickCaptureFAB - bottom right, always visible when not expanded
                 if surfaceDetent != .expanded {
                     VStack {
                         Spacer()
@@ -2254,7 +2229,7 @@ public struct NewMapView: View {
                                 }
                             )
                             .padding(.trailing, 16)
-                            .padding(.bottom, surfaceHeight + tabBarHeight + safeAreaInsets.bottom + 16)
+                            .padding(.bottom, surfaceHeight + 16)
                             .allowsHitTesting(true)
                         }
                     }
@@ -2269,76 +2244,41 @@ public struct NewMapView: View {
     // MARK: - HUD Overlay
 
     private var topOverlay: some View {
-        let chipTopPadding = safeAreaInsets.top + 8 + 48 + 12
-        return ZStack(alignment: .top) {
-            VStack(spacing: 0) {
-                // Search capsule at top (primary navigation)
-                SearchCapsule(
-                    filterCount: uiViewModel.exploreFilters.activeCount,
-                    onTap: {
-                        uiViewModel.send(.openSearch)
-                        surfaceDetent = .expanded
-                        Haptics.soft()
-                    },
-                    onFilterTap: {
-                        uiViewModel.send(.openFilter)
-                        surfaceDetent = .expanded
-                        Haptics.soft()
-                    }
-                )
-                .padding(.horizontal, 16)
-                .padding(.top, safeAreaInsets.top + 8)
-
-                Spacer()
-
-                // Context label - bottom left, above surface
-                HStack {
-                    ContextLabel(
-                        mode: uiViewModel.mode,
-                        siteCount: hudSiteCount,
-                        isFiltered: hudIsFiltered,
-                        siteName: inspectedSiteName
-                    )
-                    .padding(.leading, safeAreaInsets.leading + 16)
-                    Spacer()
+        VStack(spacing: 0) {
+            // Search capsule at top (primary navigation)
+            SearchCapsule(
+                locationContext: searchBarLocationContext,
+                onTap: {
+                    uiViewModel.send(.openSearch)
+                    surfaceDetent = .expanded
+                    Haptics.soft()
+                },
+                onLocateMeTap: {
+                    handleLocateMeTapped()
                 }
-                .padding(.bottom, surfaceDetent.height(in: UIScreen.main.bounds.height - tabBarHeight - safeAreaInsets.bottom) + tabBarHeight + safeAreaInsets.bottom + 12)
-                .animation(.easeOut(duration: 0.2), value: uiViewModel.mode)
-                .allowsHitTesting(false)
-            }
+            )
+            .padding(.horizontal, 16)
+            .padding(.top, safeAreaInsets.top + 4)
+
+            Spacer()
         }
-        .overlay(alignment: .top) {
-            // Contextual chips rail - adapts to zoom level
-            if shouldShowContextualChips {
-                ContextualChipsRail(
-                    zoomLevel: uiViewModel.zoomLevel,
-                    destinations: uiViewModel.zoomLevel == .world
-                        ? (visibleDestinations.isEmpty ? RegionSummary.popular : visibleDestinations)
-                        : [],
-                    areas: uiViewModel.zoomLevel == .regional ? visibleAreas : [],
-                    breadcrumbPath: uiViewModel.currentHierarchyLevel.breadcrumbPath,
-                    onDestinationTap: { region in
-                        navigateToRegion(region)
-                        Haptics.soft()
-                    },
-                    onAreaTap: { area in
-                        navigateToArea(area)
-                        Haptics.soft()
-                    },
-                    onBreadcrumbTap: { index in
-                        // Navigate up based on breadcrumb index
-                        let path = uiViewModel.currentHierarchyLevel.breadcrumbPath
-                        let stepsUp = path.count - 1 - index
-                        for _ in 0..<stepsUp {
-                            uiViewModel.send(.navigateUp)
-                        }
-                        Haptics.soft()
-                    }
-                )
-                .padding(.top, chipTopPadding)
-                .transition(.opacity.combined(with: .move(edge: .top)))
-                .animation(.easeInOut(duration: 0.25), value: uiViewModel.zoomLevel)
+    }
+
+    /// Derive a location context string from the current hierarchy level for the search bar.
+    private var searchBarLocationContext: String? {
+        let hierarchy = uiViewModel.currentHierarchyLevel
+        switch hierarchy {
+        case .world:
+            return nil
+        case .country(let countryId):
+            return countryId
+        case .region(let countryId, let regionId):
+            if let countryId {
+                return "\(regionId) \u{00B7} \(countryId)"
             }
+            return regionId
+        case .area(let regionId, let areaId):
+            return "\(areaId) \u{00B7} \(regionId)"
         }
     }
 
