@@ -2212,29 +2212,6 @@ public struct NewMapView: View {
                     .transition(.move(edge: .top).combined(with: .opacity))
                 }
 
-                // QuickCaptureFAB - bottom right, always visible when not expanded
-                if surfaceDetent != .expanded {
-                    VStack {
-                        Spacer()
-                            .allowsHitTesting(false)
-                        HStack {
-                            Spacer()
-                                .allowsHitTesting(false)
-                            QuickCaptureFAB(
-                                nearbySite: geofenceManager.currentDiveSite,
-                                surfaceInterval: surfaceIntervalSinceLastDive,
-                                onTap: { site in
-                                    startLiveLog(at: site)
-                                }
-                            )
-                            .padding(.trailing, 16)
-                            .padding(.bottom, surfaceHeight + 16)
-                            .allowsHitTesting(true)
-                        }
-                    }
-                    .frame(width: geo.size.width, height: geo.size.height)
-                    .transition(.scale.combined(with: .opacity))
-                }
             }
             .frame(width: geo.size.width, height: geo.size.height)
         }
