@@ -113,7 +113,7 @@ struct ExploreContent: View {
                     .padding(.horizontal, 16)
                 }
             } else if !sites.isEmpty {
-                HorizontalSiteCarousel(sites: sites, onSiteTap: onSiteTap)
+                HorizontalSiteCarousel(sites: sites, onSiteTap: onSiteTap, onSeeAll: onExpandSearch)
             }
         case .regional:
             if !visibleAreas.isEmpty {
@@ -131,7 +131,7 @@ struct ExploreContent: View {
             }
         case .local:
             if !sites.isEmpty {
-                HorizontalSiteCarousel(sites: sites, onSiteTap: onSiteTap)
+                HorizontalSiteCarousel(sites: sites, onSiteTap: onSiteTap, onSeeAll: onExpandSearch)
             }
         }
     }
@@ -139,11 +139,15 @@ struct ExploreContent: View {
     // MARK: - Peek Header
 
     private var peekHeader: some View {
-        VStack(spacing: 10) {
-            // Dynamic title based on zoom level
-            HStack(spacing: 12) {
+        VStack(alignment: .leading, spacing: 6) {
+            // Primary title row
+            HStack(spacing: 8) {
+                Image(systemName: "water.waves")
+                    .font(.system(size: 14, weight: .semibold))
+                    .foregroundStyle(Color.reef)
+
                 dynamicTitle
-                    .font(.subheadline.weight(.semibold))
+                    .font(.headline)
                     .foregroundStyle(Color.foam)
 
                 Spacer()
@@ -152,12 +156,18 @@ struct ExploreContent: View {
                     lensChip(for: lens)
                 }
 
-                // Show reset button when any filters are active
                 if hasActiveFilters {
                     resetButton
                 }
 
                 filterEntryButton
+            }
+
+            // Subtitle hint at peek detent
+            if detent == .peek {
+                Text("Swipe up to explore")
+                    .font(.caption)
+                    .foregroundStyle(Color.mist.opacity(0.7))
             }
         }
     }
@@ -171,19 +181,19 @@ struct ExploreContent: View {
         switch zoomLevel {
         case .world:
             if visibleDestinations.isEmpty {
-                return Text("Featured destinations")
+                return Text("Discover dive sites")
             }
             return Text("\(visibleDestinations.count) destinations")
         case .regional:
             if let regionId = context.hierarchyLevel.regionId {
-                return Text("\(regionId) · \(visibleAreas.count) areas · \(sites.count) sites")
+                return Text("\(regionId) \u{00B7} \(sites.count) dive sites")
             }
-            return Text("\(visibleAreas.count) areas · \(sites.count) sites")
+            return Text("\(sites.count) dive sites")
         case .local:
             if let areaId = context.hierarchyLevel.areaId {
-                return Text("\(areaId) · \(sites.count) sites")
+                return Text("\(areaId) \u{00B7} \(sites.count) dive sites")
             }
-            return Text("\(sites.count) sites")
+            return Text("\(sites.count) dive sites")
         }
     }
 

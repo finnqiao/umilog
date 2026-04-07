@@ -2,12 +2,11 @@ import SwiftUI
 import UmiDesignSystem
 
 /// Full-width search capsule displayed at the top of the Discover screen.
-/// Replaces the floating search icon button with a primary search entry point.
-/// Tapping opens the search sheet in the bottom surface.
+/// Shows location context and provides search + locate-me actions.
 struct SearchCapsule: View {
-    let filterCount: Int
+    let locationContext: String?
     var onTap: () -> Void
-    var onFilterTap: () -> Void
+    var onLocateMeTap: () -> Void
 
     var body: some View {
         Button(action: onTap) {
@@ -16,35 +15,33 @@ struct SearchCapsule: View {
                     .font(.system(size: 15, weight: .medium))
                     .foregroundStyle(Color.mist)
 
-                Text("Search destinations, areas, sites")
-                    .font(.subheadline)
-                    .foregroundStyle(Color.mist)
+                VStack(alignment: .leading, spacing: 1) {
+                    Text("Explore dive sites")
+                        .font(.subheadline.weight(.medium))
+                        .foregroundStyle(Color.foam)
+
+                    if let context = locationContext, !context.isEmpty {
+                        Text(context)
+                            .font(.caption)
+                            .foregroundStyle(Color.mist)
+                            .lineLimit(1)
+                    }
+                }
 
                 Spacer()
 
-                // Filter badge button
+                // Locate me button
                 Button {
-                    onFilterTap()
+                    onLocateMeTap()
                 } label: {
-                    ZStack(alignment: .topTrailing) {
-                        Image(systemName: "slider.horizontal.3")
-                            .font(.system(size: 14, weight: .medium))
-                            .foregroundStyle(filterCount > 0 ? Color.lagoon : Color.mist)
-                            .frame(width: 32, height: 32)
-                            .background(
-                                Circle()
-                                    .fill(Color.trench)
-                            )
-
-                        if filterCount > 0 {
-                            Text("\(filterCount)")
-                                .font(.system(size: 9, weight: .bold))
-                                .foregroundStyle(Color.foam)
-                                .frame(width: 16, height: 16)
-                                .background(Circle().fill(Color.lagoon))
-                                .offset(x: 4, y: -4)
-                        }
-                    }
+                    Image(systemName: "location.fill")
+                        .font(.system(size: 13, weight: .medium))
+                        .foregroundStyle(Color.lagoon)
+                        .frame(width: 32, height: 32)
+                        .background(
+                            Circle()
+                                .fill(Color.trench)
+                        )
                 }
                 .buttonStyle(.plain)
             }
@@ -73,9 +70,9 @@ struct SearchCapsule: View {
         Color.abyss
             .ignoresSafeArea()
         VStack {
-            SearchCapsule(filterCount: 0, onTap: {}, onFilterTap: {})
+            SearchCapsule(locationContext: nil, onTap: {}, onLocateMeTap: {})
                 .padding(.horizontal, 16)
-            SearchCapsule(filterCount: 3, onTap: {}, onFilterTap: {})
+            SearchCapsule(locationContext: "Coral Triangle \u{00B7} Indonesia", onTap: {}, onLocateMeTap: {})
                 .padding(.horizontal, 16)
             Spacer()
         }
