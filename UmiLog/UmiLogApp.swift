@@ -33,12 +33,12 @@ struct UmiLogApp: App {
 
     private static func configureTabBarAppearance() {
         let appearance = UITabBarAppearance()
-        // Solid opaque background — no blur, no glass. The fixed nav must feel
-        // grounded and permanently distinct from the draggable sheet above it.
-        appearance.configureWithOpaqueBackground()
-        // Deep navy (#0A2342) — darker than the sheet surface, lighter than pure black.
-        // Matches Color.abyss from the design system.
-        appearance.backgroundColor = UIColor(red: 0.04, green: 0.14, blue: 0.26, alpha: 1.0)
+        // Translucent blurred background — lets the map canvas show through,
+        // creating a floating tab bar that preserves the map-first feel (Model A).
+        appearance.configureWithTransparentBackground()
+        appearance.backgroundEffect = UIBlurEffect(style: .systemUltraThinMaterialDark)
+        // Deep navy tint over the blur — keeps tabs readable against any map content.
+        appearance.backgroundColor = UIColor(red: 0.04, green: 0.14, blue: 0.26, alpha: 0.82)
         // Thin top separator — just enough contrast to mark the boundary.
         appearance.shadowColor = UIColor(white: 1.0, alpha: 0.08)
 
@@ -55,7 +55,7 @@ struct UmiLogApp: App {
         let tabBar = UITabBar.appearance()
         tabBar.standardAppearance = appearance
         tabBar.scrollEdgeAppearance = appearance
-        tabBar.isTranslucent = false
+        tabBar.isTranslucent = true
     }
 }
 
@@ -351,9 +351,7 @@ private extension ContentView {
 
     @ViewBuilder var tabs: some View {
         TabView(selection: selectedTab) {
-            NavigationStack {
-                NewMapView()
-            }
+            NewMapView()
             .tabItem { Label("Discover", systemImage: "map.fill") }
             .tag(Tab.map)
             .accessibilityLabel("Discover")

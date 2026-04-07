@@ -59,14 +59,25 @@ struct ExploreContent: View {
                 .padding(.top, 8)
                 .padding(.bottom, 12)
 
-            // Show horizontal carousel at peek detent
-            if detent == .peek {
+            switch detent {
+            case .hidden, .peek:
+                // Peek: header summary only — no cards, no clipping.
+                // "Swipe up to explore" hint is already in peekHeader.
+                EmptyView()
+
+            case .medium:
+                // Browse: horizontal carousel slides in once there is room to show it cleanly.
                 peekCarousel
                     .padding(.bottom, 16)
-            }
+                    .transition(
+                        .asymmetric(
+                            insertion: .opacity.combined(with: .offset(y: 12)),
+                            removal: .opacity
+                        )
+                    )
 
-            if detent != .peek {
-                // Quick filter pills row
+            case .expanded:
+                // Expanded: filter controls + breadcrumbs + full scrollable list.
                 QuickFilterPillsRow(
                     filterLens: $filterLens,
                     difficulties: $filterDifficulties

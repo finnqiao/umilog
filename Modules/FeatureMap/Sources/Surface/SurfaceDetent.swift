@@ -20,8 +20,9 @@ enum SurfaceDetent: Equatable, CaseIterable {
         case .hidden:
             return 0
         case .peek:
-            // 132pt min: drag handle (29pt) + header row (56pt) + carousel hint (47pt).
-            // 15% keeps the peek compact on larger screens while ensuring content fits.
+            // 132pt min: drag handle (29pt) + header row (~60pt) + vertical padding (~43pt).
+            // Peek shows only the area summary — no carousel. Cards appear at .medium.
+            // 15% keeps it compact on larger screens while ensuring the summary fits.
             return max(containerHeight * 0.15, 132)
         case .medium:
             return containerHeight * 0.60
