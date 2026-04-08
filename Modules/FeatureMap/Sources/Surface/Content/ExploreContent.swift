@@ -53,56 +53,140 @@ struct ExploreContent: View {
     // MARK: - Body
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 0) {
-            peekHeader
-                .padding(.horizontal, 16)
-                .padding(.top, 8)
-                .padding(.bottom, 12)
-
+        Group {
             switch detent {
             case .hidden, .peek:
-                // Peek: header summary only — no cards, no clipping.
-                // "Swipe up to explore" hint is already in peekHeader.
-                EmptyView()
+                // Peek: summary tray — handle is already above, just count + hint.
+                VStack(alignment: .leading, spacing: 0) {
+                    peekHeader
+                        .padding(.horizontal, 20)
+                        .padding(.top, 4)
+                        .padding(.bottom, 8)
+                    Spacer(minLength: 0)
+                }
 
             case .medium:
-                // Browse: horizontal carousel slides in once there is room to show it cleanly.
-                peekCarousel
-                    .padding(.bottom, 16)
-                    .transition(
-                        .asymmetric(
-                            insertion: .opacity.combined(with: .offset(y: 12)),
-                            removal: .opacity
-                        )
-                    )
+                // Browse: compact header immediately followed by cards.
+                VStack(alignment: .leading, spacing: 0) {
+                    browseHeaderRow
+                        .padding(.horizontal, 20)
+                        .padding(.top, 4)
+                    peekCarousel
+                        .padding(.top, 22)
+                        .padding(.bottom, 16)
+                    Spacer(minLength: 0)
+                }
 
             case .expanded:
-                // Expanded: filter controls + breadcrumbs + full scrollable list.
-                QuickFilterPillsRow(
-                    filterLens: $filterLens,
-                    difficulties: $filterDifficulties
-                )
-                .padding(.bottom, 12)
-
-                if !context.hierarchyLevel.isWorld {
-                    BreadcrumbRow(
-                        hierarchyLevel: context.hierarchyLevel,
-                        onNavigateUp: onNavigateUp,
-                        onResetToWorld: { onNavigateUp() }
-                    )
-                    .padding(.horizontal, 16)
-                    .padding(.bottom, 8)
-                }
-
-                if shouldShowRegionDetail, let regionDetail {
-                    RegionDetailCard(region: regionDetail)
-                        .padding(.horizontal, 16)
-                        .padding(.bottom, 12)
-                }
-
-                zoomAwareList
+                // Expanded: sheet owns search — entirely different layout.
+                expandedLayout
             }
         }
+        .animation(.easeInOut(duration: 0.18), value: detent)
+    }
+
+    // MARK: - Browse Layout
+
+    private var browseHeaderRow: some View {
+        HStack(spacing: 8) {
+            dynamicTitle
+                .font(.subheadline.weight(.semibold))
+                .foregroundStyle(Color.foam)
+
+            Spacer()
+
+            if hasActiveFilters {
+                resetButton
+            }
+
+            filterEntryButton
+        }
+    }
+
+    // MARK: - Expanded Layout
+
+    private var expandedLayout: some View {
+        VStack(alignment: .leading, spacing: 0) {
+            // Sheet-owned search row — replaces the top map search bar.
+            expandedSearchRow
+                .padding(.horizontal, 16)
+                .padding(.top, 8)
+                .padding(.bottom, 10)
+
+            // Filter chips row (lens + difficulty toggles).
+            QuickFilterPillsRow(
+                filterLens: $filterLens,
+                difficulties: $filterDifficulties
+            )
+            .padding(.bottom, 8)
+
+            // Breadcrumb — only when drilled past world level.
+            if !context.hierarchyLevel.isWorld {
+                BreadcrumbRow(
+                    hierarchyLevel: context.hierarchyLevel,
+                    onNavigateUp: onNavigateUp,
+                    onResetToWorld: { onNavigateUp() }
+                )
+                .padding(.horizontal, 16)
+                .padding(.bottom, 8)
+            }
+
+            // Region context card (optional).
+            if shouldShowRegionDetail, let regionDetail {
+                RegionDetailCard(region: regionDetail)
+                    .padding(.horizontal, 16)
+                    .padding(.bottom, 12)
+            }
+
+            zoomAwareList
+        }
+    }
+
+    private var expandedSearchRow: some View {
+        HStack(spacing: 10) {
+            // Search tap target — opens search mode.
+            Button {
+                Haptics.soft()
+                onExpandSearch()
+            } label: {
+                HStack(spacing: 8) {
+                    Image(systemName: "magnifyingglass")
+                        .font(.system(size: 14, weight: .medium))
+                        .foregroundStyle(Color.mist)
+                    Text(expandedSearchPlaceholder)
+                        .font(.subheadline)
+                        .foregroundStyle(Color.mist.opacity(0.75))
+                    Spacer()
+                }
+                .contentShape(Rectangle())
+            }
+            .buttonStyle(.plain)
+            .accessibilityLabel("Search dive sites")
+
+            // Filter entry — distinct from the search tap target.
+            Button {
+                Haptics.soft()
+                onOpenFilter()
+            } label: {
+                Image(systemName: "slider.horizontal.3")
+                    .font(.system(size: 14, weight: .medium))
+                    .foregroundStyle(hasActiveFilters ? Color.foam : Color.lagoon)
+                    .frame(width: 30, height: 30)
+                    .background(hasActiveFilters ? Color.lagoon : Color.trench)
+                    .clipShape(Circle())
+            }
+            .buttonStyle(.plain)
+            .accessibilityLabel(hasActiveFilters ? "Filters (active)" : "Filters")
+        }
+        .padding(.leading, 14)
+        .padding(.trailing, 8)
+        .padding(.vertical, 10)
+        .background(Color.trench.opacity(0.85))
+        .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
+    }
+
+    private var expandedSearchPlaceholder: String {
+        sites.count > 0 ? "Search \(sites.count) sites…" : "Search sites…"
     }
 
     // MARK: - Peek Carousel (zoom-aware)
@@ -174,12 +258,10 @@ struct ExploreContent: View {
                 filterEntryButton
             }
 
-            // Subtitle hint at peek detent
-            if detent == .peek {
-                Text("Swipe up to explore")
-                    .font(.caption)
-                    .foregroundStyle(Color.mist.opacity(0.7))
-            }
+            // Subtitle hint
+            Text("Swipe up to explore")
+                .font(.caption)
+                .foregroundStyle(Color.mist.opacity(0.7))
         }
     }
 
