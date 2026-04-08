@@ -107,10 +107,10 @@ struct ExploreContent: View {
         VStack(alignment: .leading, spacing: 0) {
             browseHeaderRow
                 .padding(.horizontal, 20)
-                .padding(.top, 6)
+                .padding(.top, 4)
 
             peekCarousel
-                .padding(.top, 20)
+                .padding(.top, 12)
                 .padding(.bottom, 16)
         }
         .frame(maxHeight: .infinity, alignment: .top)
@@ -153,6 +153,10 @@ struct ExploreContent: View {
                         onResetToWorld: { onNavigateUp() }
                     )
                 }
+
+                // Compact spatial anchor: keeps the user oriented without
+                // duplicating the full peek summary.
+                expandedContextLine
             }
             .padding(.horizontal, 16)
             .padding(.top, 6)
@@ -168,6 +172,43 @@ struct ExploreContent: View {
             }
 
             zoomAwareList
+        }
+    }
+
+    /// A single compact line that gives spatial orientation in expanded mode —
+    /// site count + region/area context — so the list never feels placeless.
+    @ViewBuilder
+    private var expandedContextLine: some View {
+        let label = expandedContextLabel
+        if let label {
+            HStack(spacing: 0) {
+                Text(label)
+                    .font(.caption)
+                    .foregroundStyle(Color.mist.opacity(0.65))
+                Spacer()
+            }
+        }
+    }
+
+    private var expandedContextLabel: String? {
+        let count = sites.count
+        guard count > 0 else { return nil }
+
+        switch zoomLevel {
+        case .world:
+            return "\(visibleDestinations.count) destinations worldwide"
+        case .regional:
+            if let regionId = context.hierarchyLevel.regionId {
+                return "\(count) site\(count == 1 ? "" : "s") in \(regionId)"
+            }
+            return "\(count) dive site\(count == 1 ? "" : "s")"
+        case .local:
+            if let areaId = context.hierarchyLevel.areaId {
+                return "\(count) site\(count == 1 ? "" : "s") near \(areaId)"
+            } else if let regionId = context.hierarchyLevel.regionId {
+                return "\(count) site\(count == 1 ? "" : "s") near \(regionId)"
+            }
+            return "\(count) nearby dive site\(count == 1 ? "" : "s")"
         }
     }
 
@@ -348,7 +389,7 @@ struct ExploreContent: View {
                     }
                 }
                 .padding(.horizontal, 16)
-                .padding(.bottom, 24)
+                .padding(.bottom, 40)
             }
         }
     }
@@ -383,7 +424,7 @@ struct ExploreContent: View {
                     }
                 }
                 .padding(.horizontal, visibleAreas.isEmpty ? 0 : 16)
-                .padding(.bottom, 24)
+                .padding(.bottom, 40)
             }
         }
     }
@@ -408,7 +449,7 @@ struct ExploreContent: View {
                         .id(site.id)
                     }
                 }
-                .padding(.bottom, 24)
+                .padding(.bottom, 40)
             }
         }
     }
