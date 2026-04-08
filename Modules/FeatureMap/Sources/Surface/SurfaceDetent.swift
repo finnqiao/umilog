@@ -20,14 +20,16 @@ enum SurfaceDetent: Equatable, CaseIterable {
         case .hidden:
             return 0
         case .peek:
-            // 132pt min: drag handle (29pt) + header row (~60pt) + vertical padding (~43pt).
-            // Peek shows only the area summary — no carousel. Cards appear at .medium.
-            // 15% keeps it compact on larger screens while ensuring the summary fits.
-            return max(containerHeight * 0.15, 132)
+            // Fixed 148pt: drag handle (29pt) + title row (~28pt) + subtitle (~18pt)
+            // + vertical padding (~43pt) + 30pt breathing room. Summary tray only —
+            // no carousel, no chips. Content-driven rather than % of screen so the
+            // peek feels identical on every device.
+            return 148
         case .medium:
-            // ~45% keeps the browse state compact and card-first.
-            // 300pt floor ensures the inspector hero image fits on small screens.
-            return max(containerHeight * 0.45, 300)
+            // Compact browse state: handle (29) + header (~32) + 20pt gap +
+            // carousel (~170) + 16pt bottom ≈ 267pt of content. Cap at 340pt so
+            // the browse state never feels oversized on large devices.
+            return min(max(containerHeight * 0.36, 292), 340)
         case .expanded:
             return containerHeight - 44
         }

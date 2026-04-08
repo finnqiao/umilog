@@ -291,6 +291,9 @@ struct UnifiedBottomSurface: View {
 
     // MARK: - Content Transition
 
+    /// Transition used when switching between UI *modes* (explore → inspect → filter → …).
+    /// Within a single mode, the per-detent content swap is driven by `ExploreContent.id(detent)`
+    /// with a plain `.opacity` transition so all movement rides on the same sheet spring.
     private var contentTransition: AnyTransition {
         if reduceMotion {
             return .opacity
@@ -301,8 +304,10 @@ struct UnifiedBottomSurface: View {
         )
     }
 
+    /// Animation for mode changes. Uses the same spring as the sheet height so
+    /// there is a single, coherent motion across all layers when state changes.
     private var contentAnimation: Animation? {
-        reduceMotion ? nil : .easeInOut(duration: 0.22)
+        reduceMotion ? nil : .spring(response: 0.35, dampingFraction: 0.85)
     }
 
     // MARK: - Drag Handle

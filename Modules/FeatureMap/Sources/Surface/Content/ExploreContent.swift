@@ -53,39 +53,70 @@ struct ExploreContent: View {
     // MARK: - Body
 
     var body: some View {
+        // `.id(detent)` forces SwiftUI to treat each detent as a distinct view
+        // tree so the old layout is fully removed before the new one renders —
+        // no ghosting, no header bleed-through. The opacity transition rides on
+        // the sheet's spring animation (set in UnifiedBottomSurface) — we do NOT
+        // add a second animation here.
         Group {
             switch detent {
             case .hidden, .peek:
-                // Peek: summary tray — handle is already above, just count + hint.
-                VStack(alignment: .leading, spacing: 0) {
-                    peekHeader
-                        .padding(.horizontal, 20)
-                        .padding(.top, 4)
-                        .padding(.bottom, 8)
-                    Spacer(minLength: 0)
-                }
-
+                peekLayout
             case .medium:
-                // Browse: compact header immediately followed by cards.
-                VStack(alignment: .leading, spacing: 0) {
-                    browseHeaderRow
-                        .padding(.horizontal, 20)
-                        .padding(.top, 4)
-                    peekCarousel
-                        .padding(.top, 22)
-                        .padding(.bottom, 16)
-                    Spacer(minLength: 0)
-                }
-
+                browseLayout
             case .expanded:
-                // Expanded: sheet owns search — entirely different layout.
                 expandedLayout
             }
         }
-        .animation(.easeInOut(duration: 0.18), value: detent)
+        .id(detent)
+        .transition(.opacity)
+    }
+
+    // MARK: - Peek Layout
+
+    /// Summary tray: title + one supporting line + one utility action.
+    /// Content-driven to match the 148pt fixed detent height — no Spacer padding.
+    private var peekLayout: some View {
+        VStack(alignment: .leading, spacing: 4) {
+            HStack(spacing: 8) {
+                dynamicTitle
+                    .font(.headline)
+                    .foregroundStyle(Color.foam)
+
+                Spacer()
+
+                filterEntryButton
+            }
+
+            Text("Swipe up to explore")
+                .font(.caption)
+                .foregroundStyle(Color.mist.opacity(0.7))
+        }
+        .padding(.horizontal, 20)
+        .padding(.top, 6)
+        .padding(.bottom, 10)
+        .frame(maxHeight: .infinity, alignment: .top)
     }
 
     // MARK: - Browse Layout
+
+    /// Compact card-first state: just the title row + carousel directly below.
+    /// No subtitle, no reset button, no lens chip — those live in peek or the
+    /// filter modal respectively.
+    private var browseLayout: some View {
+        VStack(alignment: .leading, spacing: 0) {
+            browseHeaderRow
+                .padding(.horizontal, 20)
+                .padding(.top, 6)
+
+            peekCarousel
+                .padding(.top, 20)
+                .padding(.bottom, 16)
+        }
+        .frame(maxHeight: .infinity, alignment: .top)
+    }
+
+    // MARK: - Browse Header
 
     private var browseHeaderRow: some View {
         HStack(spacing: 8) {
@@ -95,47 +126,45 @@ struct ExploreContent: View {
 
             Spacer()
 
-            if hasActiveFilters {
-                resetButton
-            }
-
             filterEntryButton
         }
     }
 
     // MARK: - Expanded Layout
 
+    /// Expanded state: sheet owns search. A sticky header container holds the
+    /// search row + filter chips (+ optional breadcrumb) with a subtle background
+    /// tint so it reads as a fixed anchor above the scrollable list.
     private var expandedLayout: some View {
-        VStack(alignment: .leading, spacing: 0) {
-            // Sheet-owned search row — replaces the top map search bar.
-            expandedSearchRow
-                .padding(.horizontal, 16)
-                .padding(.top, 8)
-                .padding(.bottom, 10)
+        VStack(spacing: 0) {
+            // Sticky header — fixed at top of sheet, owns search + chips.
+            VStack(spacing: 10) {
+                expandedSearchRow
 
-            // Filter chips row (lens + difficulty toggles).
-            QuickFilterPillsRow(
-                filterLens: $filterLens,
-                difficulties: $filterDifficulties
-            )
-            .padding(.bottom, 8)
-
-            // Breadcrumb — only when drilled past world level.
-            if !context.hierarchyLevel.isWorld {
-                BreadcrumbRow(
-                    hierarchyLevel: context.hierarchyLevel,
-                    onNavigateUp: onNavigateUp,
-                    onResetToWorld: { onNavigateUp() }
+                QuickFilterPillsRow(
+                    filterLens: $filterLens,
+                    difficulties: $filterDifficulties
                 )
-                .padding(.horizontal, 16)
-                .padding(.bottom, 8)
-            }
 
-            // Region context card (optional).
+                if !context.hierarchyLevel.isWorld {
+                    BreadcrumbRow(
+                        hierarchyLevel: context.hierarchyLevel,
+                        onNavigateUp: onNavigateUp,
+                        onResetToWorld: { onNavigateUp() }
+                    )
+                }
+            }
+            .padding(.horizontal, 16)
+            .padding(.top, 6)
+            .padding(.bottom, 12)
+            .background(Color.white.opacity(0.02))
+
+            // Region context card (optional, below sticky header).
             if shouldShowRegionDetail, let regionDetail {
                 RegionDetailCard(region: regionDetail)
                     .padding(.horizontal, 16)
-                    .padding(.bottom, 12)
+                    .padding(.top, 12)
+                    .padding(.bottom, 4)
             }
 
             zoomAwareList
@@ -231,39 +260,7 @@ struct ExploreContent: View {
         }
     }
 
-    // MARK: - Peek Header
-
-    private var peekHeader: some View {
-        VStack(alignment: .leading, spacing: 6) {
-            // Primary title row
-            HStack(spacing: 8) {
-                Image(systemName: "water.waves")
-                    .font(.system(size: 14, weight: .semibold))
-                    .foregroundStyle(Color.reef)
-
-                dynamicTitle
-                    .font(.headline)
-                    .foregroundStyle(Color.foam)
-
-                Spacer()
-
-                if let lens = context.filterLens {
-                    lensChip(for: lens)
-                }
-
-                if hasActiveFilters {
-                    resetButton
-                }
-
-                filterEntryButton
-            }
-
-            // Subtitle hint
-            Text("Swipe up to explore")
-                .font(.caption)
-                .foregroundStyle(Color.mist.opacity(0.7))
-        }
-    }
+    // MARK: - Dynamic Title
 
     /// Dynamic title that changes based on zoom level and context.
     private var dynamicTitle: Text {
@@ -294,57 +291,11 @@ struct ExploreContent: View {
         filterLens != nil || !filterDifficulties.isEmpty || !context.hierarchyLevel.isWorld
     }
 
-    private var resetButton: some View {
-        Button {
-            withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) {
-                onClearFilters()
-            }
-            Haptics.soft()
-        } label: {
-            HStack(spacing: 4) {
-                Image(systemName: "arrow.counterclockwise")
-                    .font(.system(size: 12, weight: .medium))
-                Text("Reset")
-                    .font(.caption)
-                    .fontWeight(.medium)
-            }
-            .foregroundStyle(Color.foam)
-            .padding(.horizontal, 10)
-            .padding(.vertical, 6)
-            .background(Color.trench)
-            .clipShape(Capsule())
-        }
-        .buttonStyle(.plain)
-        .accessibilityLabel("Reset all filters")
-    }
-
-    private var countLabel: Text {
-        if let lens = context.filterLens {
-            return Text("\(lens.displayName): \(sites.count)")
-        } else {
-            return Text("Sites nearby: \(sites.count)")
-        }
-    }
-
     private var shouldShowRegionDetail: Bool {
         guard let regionDetail else { return false }
         let hasTagline = regionDetail.tagline?.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty == false
         let hasDescription = regionDetail.description?.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty == false
         return hasTagline || hasDescription
-    }
-
-    private func lensChip(for lens: FilterLens) -> some View {
-        HStack(spacing: 4) {
-            Image(systemName: lens.iconName)
-                .font(.caption2)
-            Text(lens.displayName)
-                .font(.caption)
-        }
-        .foregroundStyle(Color.foam)
-        .padding(.horizontal, 8)
-        .padding(.vertical, 4)
-        .background(Color.trench)
-        .clipShape(Capsule())
     }
 
     private var filterEntryButton: some View {

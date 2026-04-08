@@ -37,10 +37,13 @@ struct UmiLogApp: App {
         // creating a floating tab bar that preserves the map-first feel (Model A).
         appearance.configureWithTransparentBackground()
         appearance.backgroundEffect = UIBlurEffect(style: .systemUltraThinMaterialDark)
-        // Deep navy tint over the blur — keeps tabs readable against any map content.
-        appearance.backgroundColor = UIColor(red: 0.04, green: 0.14, blue: 0.26, alpha: 0.82)
-        // Thin top separator — just enough contrast to mark the boundary.
-        appearance.shadowColor = UIColor(white: 1.0, alpha: 0.08)
+        // Deep navy tint — intentionally darker and slightly more transparent
+        // than the sheet surface (#122B4A / rgb 0.07, 0.17, 0.29) so the sheet
+        // reads as the dominant bottom surface and the tab bar recedes.
+        appearance.backgroundColor = UIColor(red: 0.035, green: 0.11, blue: 0.21, alpha: 0.72)
+        // No top separator — the sheet's curved upper edge is the only visual
+        // boundary needed in the bottom zone.
+        appearance.shadowColor = .clear
 
         let itemAppearance = UITabBarItemAppearance()
         itemAppearance.normal.iconColor = UIColor.umiMist
