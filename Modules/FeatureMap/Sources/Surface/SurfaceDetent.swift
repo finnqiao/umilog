@@ -25,7 +25,9 @@ enum SurfaceDetent: Equatable, CaseIterable {
             // 15% keeps it compact on larger screens while ensuring the summary fits.
             return max(containerHeight * 0.15, 132)
         case .medium:
-            return containerHeight * 0.60
+            // ~45% keeps the browse state compact and card-first.
+            // 300pt floor ensures the inspector hero image fits on small screens.
+            return max(containerHeight * 0.45, 300)
         case .expanded:
             return containerHeight - 44
         }

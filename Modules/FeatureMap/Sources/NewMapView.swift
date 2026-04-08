@@ -2235,6 +2235,11 @@ public struct NewMapView: View {
             )
             .padding(.horizontal, 16)
             .padding(.top, safeAreaInsets.top + 4)
+            // Yield search ownership to the sheet when it's expanded.
+            // The expanded explore layout shows its own inline search row.
+            .opacity(surfaceDetent == .expanded ? 0 : 1)
+            .allowsHitTesting(surfaceDetent != .expanded)
+            .animation(.easeInOut(duration: 0.2), value: surfaceDetent)
 
             Spacer()
         }
