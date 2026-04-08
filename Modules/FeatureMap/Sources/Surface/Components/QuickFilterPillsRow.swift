@@ -13,6 +13,9 @@ struct QuickFilterPillsRow: View {
     // MARK: - Body
 
     var body: some View {
+        // Horizontal padding is owned by the enclosing container (e.g. the
+        // sticky header in ExploreContent.expandedLayout) so this row can sit
+        // flush with other rows in its container.
         ScrollView(.horizontal, showsIndicators: false) {
             HStack(spacing: 8) {
                 // Lens pills
@@ -32,7 +35,7 @@ struct QuickFilterPillsRow: View {
                     difficultyPill(difficulty: difficulty)
                 }
             }
-            .padding(.horizontal, 16)
+            .padding(.vertical, 2)
         }
     }
 

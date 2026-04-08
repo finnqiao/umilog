@@ -2237,11 +2237,29 @@ public struct NewMapView: View {
             .padding(.top, safeAreaInsets.top + 4)
             // Yield search ownership to the sheet when it's expanded.
             // The expanded explore layout shows its own inline search row.
-            .opacity(surfaceDetent == .expanded ? 0 : 1)
+            // Medium is a transitional 0.75 so the handoff to expanded feels
+            // gradual instead of an abrupt cut — no visible ghosting with the
+            // sheet-owned search row.
+            .opacity(topSearchCapsuleOpacity)
             .allowsHitTesting(surfaceDetent != .expanded)
-            .animation(.easeInOut(duration: 0.2), value: surfaceDetent)
+            // Match the sheet's spring so the capsule and sheet move in lockstep.
+            .animation(.spring(response: 0.35, dampingFraction: 0.85), value: surfaceDetent)
 
             Spacer()
+        }
+    }
+
+    /// Opacity for the top `SearchCapsule` based on the sheet detent. Starts at
+    /// 1.0 during peek, steps to 0.75 during medium so the handoff to expanded
+    /// is visually anticipated, and 0 during expanded where the sheet owns search.
+    private var topSearchCapsuleOpacity: Double {
+        switch surfaceDetent {
+        case .expanded:
+            return 0
+        case .medium:
+            return 0.75
+        case .peek, .hidden:
+            return 1
         }
     }
 
