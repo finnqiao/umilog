@@ -77,6 +77,10 @@ struct UnifiedBottomSurface: View {
     var onClusterZoomIn: (() -> Void)?
     var onCloseCluster: (() -> Void)?
 
+    /// Height of the tab bar (points). The surface uses this to reserve space at
+    /// the bottom so the expanded sheet never slides behind the tab bar.
+    var tabBarHeight: CGFloat = 0
+
     // MARK: - State
 
     @State private var dragTranslation: CGFloat = 0
@@ -107,11 +111,9 @@ struct UnifiedBottomSurface: View {
 
     var body: some View {
         GeometryReader { geometry in
-            // The GeometryReader sits inside a TabView content area whose
-            // proposed size already ends at the tab bar top. We use the full
-            // proposed height as our container — no safe-area subtraction
-            // needed, because the tab bar is managed by UIKit outside this
-            // coordinate space.
+            // Raw height of the content area. On most devices this extends
+            // visually behind the UIKit tab bar (which renders on top), so we
+            // derive effectiveHeight below by subtracting tabBarHeight.
             let containerHeight = geometry.size.height
 
             // Guard against invalid container height during layout
@@ -121,12 +123,17 @@ struct UnifiedBottomSurface: View {
                     Color.clear
                         .allowsHitTesting(false)
                 } else {
+                    // Subtract the tab bar height so detent calculations treat the usable
+                    // area (above the tab bar) as the container, preventing the expanded
+                    // sheet from sliding behind the tab bar.
+                    let effectiveHeight = containerHeight - tabBarHeight
+
                     let allowedDetents = SurfaceDetent.allowed(for: mode)
-                    let baseHeight = detent.height(in: containerHeight)
+                    let baseHeight = detent.height(in: effectiveHeight)
                     // Exclude .hidden from drag bounds so the sheet never visually shrinks to zero
                     let draggableDetents = allowedDetents.filter { $0 != .hidden }
-                    let minHeight = draggableDetents.map { $0.height(in: containerHeight) }.min() ?? baseHeight
-                    let maxHeight = draggableDetents.map { $0.height(in: containerHeight) }.max() ?? baseHeight
+                    let minHeight = draggableDetents.map { $0.height(in: effectiveHeight) }.min() ?? baseHeight
+                    let maxHeight = draggableDetents.map { $0.height(in: effectiveHeight) }.max() ?? baseHeight
 
                     let adjustedTranslation = SurfaceGestures.computeRubberBandOffset(
                         translation: dragTranslation,
@@ -142,14 +149,16 @@ struct UnifiedBottomSurface: View {
                     VStack(spacing: 0) {
                         Spacer(minLength: 0)
 
-                        surfaceContent(containerHeight: containerHeight)
+                        surfaceContent(containerHeight: effectiveHeight)
                             .frame(height: currentHeight)
                             .background(surfaceBackground)
                             .clipShape(UnevenRoundedRectangle(topLeadingRadius: 24, bottomLeadingRadius: 0, bottomTrailingRadius: 0, topTrailingRadius: 24, style: .continuous))
                             .shadow(color: Color.black.opacity(0.32), radius: 20, x: 0, y: -5)
                             // Fix UX-002: Use simultaneousGesture so taps on site cards can still register
-                            .simultaneousGesture(dragGesture(containerHeight: containerHeight, allowedDetents: allowedDetents))
+                            .simultaneousGesture(dragGesture(containerHeight: effectiveHeight, allowedDetents: allowedDetents))
                     }
+                    // Bottom padding keeps the sheet's positional anchor above the tab bar.
+                    .padding(.bottom, tabBarHeight)
                     .animation(surfaceAnimation, value: detent)
                     .animation(surfaceAnimation, value: mode)
                 }

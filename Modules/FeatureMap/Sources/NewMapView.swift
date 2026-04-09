@@ -1650,6 +1650,7 @@ public struct NewMapView: View {
             exploreFilters: $uiViewModel.exploreFilters,
             filterLens: filterLensBinding,
             entryMode: $uiViewModel.entryMode,
+            tabBarHeight: tabBarHeight,
             filteredSites: unifiedFilteredSites,
             allSites: viewModel.sites,
             isLoading: viewModel.loading,
@@ -2249,15 +2250,17 @@ public struct NewMapView: View {
         }
     }
 
-    /// Opacity for the top `SearchCapsule` based on the sheet detent. Starts at
-    /// 1.0 during peek, steps to 0.75 during medium so the handoff to expanded
-    /// is visually anticipated, and 0 during expanded where the sheet owns search.
+    /// Opacity for the top `SearchCapsule` based on the sheet detent.
+    /// peek/hidden → fully visible (1.0).
+    /// medium → strongly dimmed (0.3) so the map search recedes and the browse
+    ///   state reads as its own mode, without two search systems competing.
+    /// expanded → invisible (0): the sheet's inline search row owns search entirely.
     private var topSearchCapsuleOpacity: Double {
         switch surfaceDetent {
         case .expanded:
             return 0
         case .medium:
-            return 0.75
+            return 0.3
         case .peek, .hidden:
             return 1
         }
