@@ -2,8 +2,9 @@ import SwiftUI
 import UmiDB
 import UmiDesignSystem
 
-/// Unified bottom surface that morphs based on the current UI mode.
-/// Replaces the old bottom sheet, preview card, and filter overlays.
+/// Unified bottom dock that owns both the draggable discovery surface and the
+/// persistent navigation row. One background, one shadow, one border, one
+/// motion system — no separate glass pill beneath it.
 struct UnifiedBottomSurface: View {
     // MARK: - Bindings
 
@@ -77,10 +78,6 @@ struct UnifiedBottomSurface: View {
     var onClusterZoomIn: (() -> Void)?
     var onCloseCluster: (() -> Void)?
 
-    /// Height of the tab bar (points). The surface uses this to reserve space at
-    /// the bottom so the expanded sheet never slides behind the tab bar.
-    var tabBarHeight: CGFloat = 0
-
     // MARK: - State
 
     @State private var dragTranslation: CGFloat = 0
@@ -89,6 +86,18 @@ struct UnifiedBottomSurface: View {
     // MARK: - Environment
 
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @Environment(\.safeAreaInsets) private var safeAreaInsets
+
+    // MARK: - Layout constants
+
+    /// Fixed height of the nav row icons + labels, exclusive of safe area.
+    private let navBaseHeight: CGFloat = 54
+    /// Height of the internal separator between content and nav zones.
+    private let separatorHeight: CGFloat = 1
+
+    private var navZoneHeight: CGFloat {
+        navBaseHeight + safeAreaInsets.bottom
+    }
 
     // MARK: - Computed Bindings
 
@@ -111,58 +120,75 @@ struct UnifiedBottomSurface: View {
 
     var body: some View {
         GeometryReader { geometry in
-            // Raw height of the content area. On most devices this extends
-            // visually behind the UIKit tab bar (which renders on top), so we
-            // derive effectiveHeight below by subtracting tabBarHeight.
             let containerHeight = geometry.size.height
 
-            // Guard against invalid container height during layout
-            if containerHeight > 0 {
-                // Hidden detent: completely hide the surface for ultra-minimal UI
-                if detent == .hidden {
-                    Color.clear
-                        .allowsHitTesting(false)
-                } else {
-                    // Subtract the tab bar height so detent calculations treat the usable
-                    // area (above the tab bar) as the container, preventing the expanded
-                    // sheet from sliding behind the tab bar.
-                    let effectiveHeight = containerHeight - tabBarHeight
+            guard containerHeight > 0 else { return AnyView(Color.clear) }
 
-                    let allowedDetents = SurfaceDetent.allowed(for: mode)
-                    let baseHeight = detent.height(in: effectiveHeight)
-                    // Exclude .hidden from drag bounds so the sheet never visually shrinks to zero
-                    let draggableDetents = allowedDetents.filter { $0 != .hidden }
-                    let minHeight = draggableDetents.map { $0.height(in: effectiveHeight) }.min() ?? baseHeight
-                    let maxHeight = draggableDetents.map { $0.height(in: effectiveHeight) }.max() ?? baseHeight
+            // The effective height available for the content/drag zone.
+            // Subtract nav zone so detent percentages don't eat into the nav area.
+            let effectiveHeight = max(0, containerHeight - navZoneHeight - separatorHeight)
 
-                    let adjustedTranslation = SurfaceGestures.computeRubberBandOffset(
-                        translation: dragTranslation,
-                        baseHeight: baseHeight,
-                        minHeight: minHeight,
-                        maxHeight: maxHeight
-                    )
+            let allowedDetents = SurfaceDetent.allowed(for: mode)
+            let baseContentHeight: CGFloat = detent == .hidden ? 0 : detent.height(in: effectiveHeight)
+            let draggableDetents = allowedDetents.filter { $0 != .hidden }
+            let minContentHeight = draggableDetents.map { $0.height(in: effectiveHeight) }.min() ?? baseContentHeight
+            let maxContentHeight = draggableDetents.map { $0.height(in: effectiveHeight) }.max() ?? baseContentHeight
 
-                    // Ensure currentHeight is always valid (positive and finite)
-                    let rawHeight = baseHeight - adjustedTranslation
-                    let currentHeight = max(minHeight, min(maxHeight, rawHeight))
+            let adjustedTranslation = SurfaceGestures.computeRubberBandOffset(
+                translation: dragTranslation,
+                baseHeight: baseContentHeight,
+                minHeight: minContentHeight,
+                maxHeight: maxContentHeight
+            )
 
+            let rawContentHeight = baseContentHeight - adjustedTranslation
+            let currentContentHeight = detent == .hidden
+                ? 0
+                : max(minContentHeight, min(maxContentHeight, rawContentHeight))
+
+            return AnyView(
+                VStack(spacing: 0) {
+                    Spacer(minLength: 0)
+
+                    // Outer dock container: one background, one shadow, one clip.
                     VStack(spacing: 0) {
-                        Spacer(minLength: 0)
-
+                        // ── Content zone (draggable) ──────────────────────────
                         surfaceContent(containerHeight: effectiveHeight)
-                            .frame(height: currentHeight)
-                            .background(surfaceBackground)
-                            .clipShape(UnevenRoundedRectangle(topLeadingRadius: 24, bottomLeadingRadius: 0, bottomTrailingRadius: 0, topTrailingRadius: 24, style: .continuous))
-                            .shadow(color: Color.black.opacity(0.32), radius: 20, x: 0, y: -5)
-                            // Fix UX-002: Use simultaneousGesture so taps on site cards can still register
-                            .simultaneousGesture(dragGesture(containerHeight: effectiveHeight, allowedDetents: allowedDetents))
+                            .frame(height: currentContentHeight)
+                            .clipped()
+                            .simultaneousGesture(
+                                dragGesture(containerHeight: effectiveHeight, allowedDetents: allowedDetents)
+                            )
+
+                        // ── Internal separator ────────────────────────────────
+                        Rectangle()
+                            .fill(Color.white.opacity(0.06))
+                            .frame(height: separatorHeight)
+
+                        // ── Nav zone (fixed, no separate background) ──────────
+                        DockNavRow()
+                            .frame(height: navBaseHeight)
+
+                        // Safe-area fill so the dock background extends through
+                        // the home indicator band — no black strip at the edge.
+                        Color.clear
+                            .frame(height: safeAreaInsets.bottom)
                     }
-                    // Bottom padding keeps the sheet's positional anchor above the tab bar.
-                    .padding(.bottom, tabBarHeight)
-                    .animation(surfaceAnimation, value: detent)
-                    .animation(surfaceAnimation, value: mode)
+                    .background(dockBackground)
+                    .clipShape(
+                        UnevenRoundedRectangle(
+                            topLeadingRadius: 28,
+                            bottomLeadingRadius: 0,
+                            bottomTrailingRadius: 0,
+                            topTrailingRadius: 28,
+                            style: .continuous
+                        )
+                    )
+                    .shadow(color: Color.black.opacity(0.28), radius: 24, x: 0, y: -6)
                 }
-            }
+                .animation(surfaceAnimation, value: detent)
+                .animation(surfaceAnimation, value: mode)
+            )
         }
     }
 
@@ -186,7 +212,6 @@ struct UnifiedBottomSurface: View {
 
     @ViewBuilder
     private func modeContent(containerHeight: CGFloat) -> some View {
-        // Wrap content in a container that applies transitions
         Group {
             switch mode {
             case .explore(let context):
@@ -300,9 +325,6 @@ struct UnifiedBottomSurface: View {
 
     // MARK: - Content Transition
 
-    /// Transition used when switching between UI *modes* (explore → inspect → filter → …).
-    /// Within a single mode, the per-detent content swap is driven by `ExploreContent.id(detent)`
-    /// with a plain `.opacity` transition so all movement rides on the same sheet spring.
     private var contentTransition: AnyTransition {
         if reduceMotion {
             return .opacity
@@ -313,8 +335,6 @@ struct UnifiedBottomSurface: View {
         )
     }
 
-    /// Animation for mode changes. Uses the same spring as the sheet height so
-    /// there is a single, coherent motion across all layers when state changes.
     private var contentAnimation: Animation? {
         reduceMotion ? nil : .spring(response: 0.35, dampingFraction: 0.85)
     }
@@ -324,12 +344,12 @@ struct UnifiedBottomSurface: View {
     private var dragHandle: some View {
         VStack(spacing: 0) {
             Capsule()
-                .fill(Color.mist.opacity(0.45))
-                .frame(width: 40, height: 5)
-                .padding(.top, 12)
-                .padding(.bottom, 12)
+                .fill(Color.mist.opacity(0.35))
+                .frame(width: 36, height: 4)
+                .padding(.top, 10)
+                .padding(.bottom, 10)
         }
-        .frame(height: 29)
+        .frame(height: 24)
         .frame(maxWidth: .infinity)
         .contentShape(Rectangle())
         .accessibilityLabel("Resize handle")
@@ -338,38 +358,45 @@ struct UnifiedBottomSurface: View {
 
     // MARK: - Background
 
-    private var surfaceBackground: some View {
+    /// Single dock background: solid navy, one subtle gradient, one top stroke.
+    /// No glass, no blur — one material for the whole component.
+    private var dockBackground: some View {
         ZStack {
-            // Solid elevated surface — deliberately lighter than the tab bar below
-            // (#0A2342) and slightly lighter than the map canvas, so the three layers
-            // (map → sheet → nav) read as a clear visual stack.
+            // Base fill: deep navy, opaque. No translucency so the map never
+            // bleeds through the nav zone or creates two visual layers.
             Color(red: 0.07, green: 0.17, blue: 0.29)  // ≈ #122B4A
 
-            // Gentle top-fade to add a sense of lift without glassmorphism.
+            // Subtle vertical gradient: slightly lighter at the drag edge,
+            // slightly darker toward the nav zone.
             LinearGradient(
-                colors: [Color.white.opacity(0.04), Color.clear],
+                colors: [Color.white.opacity(0.045), Color.clear],
                 startPoint: .top,
-                endPoint: .init(x: 0.5, y: 0.35)
+                endPoint: .init(x: 0.5, y: 0.3)
             )
 
-            // Lagoon-tinted top border: signals the interactive drag edge and
-            // provides crisp visual separation from the map beneath.
-            RoundedRectangle(cornerRadius: 24, style: .continuous)
-                .strokeBorder(
-                    LinearGradient(
-                        colors: [Color.lagoon.opacity(0.55), Color.lagoon.opacity(0.06)],
-                        startPoint: .top,
-                        endPoint: .init(x: 0.5, y: 0.25)
-                    ),
-                    lineWidth: 1
-                )
+            // Top stroke: lagoon-tinted at the drag edge, fading quickly.
+            // One border for the whole dock — not one per zone.
+            UnevenRoundedRectangle(
+                topLeadingRadius: 28,
+                bottomLeadingRadius: 0,
+                bottomTrailingRadius: 0,
+                topTrailingRadius: 28,
+                style: .continuous
+            )
+            .strokeBorder(
+                LinearGradient(
+                    colors: [Color.lagoon.opacity(0.45), Color.lagoon.opacity(0.04)],
+                    startPoint: .top,
+                    endPoint: .init(x: 0.5, y: 0.2)
+                ),
+                lineWidth: 1
+            )
         }
     }
 
     // MARK: - Gesture
 
     private func dragGesture(containerHeight: CGFloat, allowedDetents: [SurfaceDetent]) -> some Gesture {
-        // Fix UX-002: Increased minimum distance from 5 to 10 to reduce interference with tap gestures
         DragGesture(minimumDistance: 10, coordinateSpace: .global)
             .onChanged { value in
                 dragTranslation = value.translation.height
@@ -378,14 +405,13 @@ struct UnifiedBottomSurface: View {
                 let velocity = value.predictedEndTranslation.height - value.translation.height
                 let translation = value.translation.height
 
-                // Check for dismiss gesture: flicking down while in inspect mode at lowest detent
+                // Dismiss inspect mode on flick-down at lowest detent
                 if case .inspectSite = mode {
                     let lowestDetent = allowedDetents.min { $0.height(in: containerHeight) < $1.height(in: containerHeight) }
                     let isAtLowest = detent == lowestDetent
                     let isFlickingDown = velocity > 500 || translation > 100
 
                     if isAtLowest && isFlickingDown {
-                        // Dismiss inspect mode — reset drag in same frame
                         if reduceMotion {
                             dragTranslation = 0
                             onDismissInspect()
@@ -407,8 +433,6 @@ struct UnifiedBottomSurface: View {
                     allowedDetents: allowedDetents
                 )
 
-                // Reset translation and update detent in the same animation
-                // frame so the sheet smoothly snaps without jumping.
                 if reduceMotion {
                     dragTranslation = 0
                     detent = newDetent

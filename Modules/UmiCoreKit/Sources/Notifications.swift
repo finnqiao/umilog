@@ -13,4 +13,7 @@ public extension Notification.Name {
     static let mapDidBecomeInteractive = Notification.Name("app.umilog.mapDidBecomeInteractive")
     static let launchSafeModeDidChange = Notification.Name("app.umilog.launchSafeModeDidChange")
     static let launchSafeModeActivationRequested = Notification.Name("app.umilog.launchSafeModeActivationRequested")
+    /// Posted by the dock nav row when the user taps a tab other than Discover.
+    /// userInfo["tab"] is a String matching Tab.rawValue.
+    static let switchToTab = Notification.Name("app.umilog.switchToTab")
 }
