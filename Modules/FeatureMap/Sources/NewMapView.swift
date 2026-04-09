@@ -1650,7 +1650,6 @@ public struct NewMapView: View {
             exploreFilters: $uiViewModel.exploreFilters,
             filterLens: filterLensBinding,
             entryMode: $uiViewModel.entryMode,
-            tabBarHeight: tabBarHeight,
             filteredSites: unifiedFilteredSites,
             allSites: viewModel.sites,
             isLoading: viewModel.loading,
@@ -1872,7 +1871,8 @@ public struct NewMapView: View {
             },
             onCloseCluster: {
                 closeClusterExpand()
-            }
+            },
+            tabBarHeight: tabBarHeight
         )
     }
 
