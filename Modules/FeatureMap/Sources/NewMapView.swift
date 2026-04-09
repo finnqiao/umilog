@@ -631,7 +631,6 @@ public struct NewMapView: View {
     @StateObject private var uiViewModel = MapUIViewModel()
     @StateObject private var featuredService = FeaturedDestinationService.shared
     @Environment(\.safeAreaInsets) private var safeAreaInsets
-    private let tabBarHeight: CGFloat = 72
     // Start with world view to avoid flashing a hardcoded location
     @State private var mapRegion = MKCoordinateRegion(
         center: CLLocationCoordinate2D(latitude: -0.5, longitude: 130.5),
@@ -1634,7 +1633,8 @@ public struct NewMapView: View {
                 .padding(.horizontal, 16)
                 // Use screen height minus known nav occupied height so the clearance
                 // matches the surface's actual containerHeight calculation.
-                .padding(.bottom, surfaceDetent.height(in: UIScreen.main.bounds.height - tabBarHeight - safeAreaInsets.bottom) + tabBarHeight + safeAreaInsets.bottom + 12)
+                // Position above the dock: content zone height + nav zone (~54pt base + home indicator) + margin.
+                .padding(.bottom, surfaceDetent.height(in: UIScreen.main.bounds.height - 54 - safeAreaInsets.bottom) + 54 + safeAreaInsets.bottom + 12)
             }
             .transition(.move(edge: .bottom).combined(with: .opacity))
             .animation(.spring(response: 0.4, dampingFraction: 0.8), value: uiViewModel.proximityPrompt != nil)
@@ -1871,8 +1871,7 @@ public struct NewMapView: View {
             },
             onCloseCluster: {
                 closeClusterExpand()
-            },
-            tabBarHeight: tabBarHeight
+            }
         )
     }
 
@@ -2467,10 +2466,9 @@ public struct NewMapView: View {
     }
     
     private func updateTabBarVisibility(for detent: SurfaceDetent, mode: MapUIMode) {
-        // The fixed nav is always accessible — it never overlaps with the sheet now that
-        // the sheet is constrained to the safe-area above the tab bar.
-        // Always keep it visible so it remains a stable, grounded anchor.
-        NotificationCenter.default.post(name: .tabBarVisibilityShouldChange, object: nil, userInfo: ["hidden": false])
+        // The system tab bar is always hidden on the Discover screen — navigation is
+        // owned by the DockNavRow embedded inside UnifiedBottomSurface.
+        NotificationCenter.default.post(name: .tabBarVisibilityShouldChange, object: nil, userInfo: ["hidden": true])
     }
 
     private func isModalMode(_ mode: MapUIMode) -> Bool {
@@ -2610,18 +2608,6 @@ private struct MapBackgroundOverlay: View {
         )
         .ignoresSafeArea()
     }
-}
-
-private func overlayMetrics(for size: CGSize) -> OverlayMetrics {
-    // Exclusion zones
-    let effectiveTabBarHeight = surfaceDetent == .peek ? tabBarHeight : 0
-    let bottomNavExclusion = safeAreaInsets.bottom + effectiveTabBarHeight + 12
-    let navPadding = bottomNavExclusion + 16
-    let surfaceClearance = surfaceDetent.height(in: size.height) + 16
-
-    let bottomPadding = max(16, max(navPadding, surfaceClearance))
-
-    return OverlayMetrics(bottomPadding: bottomPadding)
 }
 
 // MARK: - Action Handlers
@@ -2967,9 +2953,6 @@ extension EnvironmentValues {
 
 // MARK: - Pin View
 
-private struct OverlayMetrics {
-    let bottomPadding: CGFloat
-}
 
 struct PinView: View {
     let site: DiveSite

@@ -32,17 +32,11 @@ struct UmiLogApp: App {
     }
 
     private static func configureTabBarAppearance() {
+        // Solid opaque tab bar for non-Discover tabs (History, Wildlife, Profile).
+        // The Discover tab hides this bar entirely and uses DockNavRow instead.
         let appearance = UITabBarAppearance()
-        // Translucent blurred background — lets the map canvas show through,
-        // creating a floating tab bar that preserves the map-first feel (Model A).
-        appearance.configureWithTransparentBackground()
-        appearance.backgroundEffect = UIBlurEffect(style: .systemUltraThinMaterialDark)
-        // Deep navy tint — intentionally darker and slightly more transparent
-        // than the sheet surface (#122B4A / rgb 0.07, 0.17, 0.29) so the sheet
-        // reads as the dominant bottom surface and the tab bar recedes.
-        appearance.backgroundColor = UIColor(red: 0.035, green: 0.11, blue: 0.21, alpha: 0.72)
-        // No top separator — the sheet's curved upper edge is the only visual
-        // boundary needed in the bottom zone.
+        appearance.configureWithOpaqueBackground()
+        appearance.backgroundColor = UIColor(red: 0.07, green: 0.17, blue: 0.29, alpha: 1.0)
         appearance.shadowColor = .clear
 
         let itemAppearance = UITabBarItemAppearance()
@@ -58,7 +52,7 @@ struct UmiLogApp: App {
         let tabBar = UITabBar.appearance()
         tabBar.standardAppearance = appearance
         tabBar.scrollEdgeAppearance = appearance
-        tabBar.isTranslucent = true
+        tabBar.isTranslucent = false
     }
 }
 
@@ -137,6 +131,13 @@ struct ContentView: View {
             if newTab == .log {
                 selectedTab.wrappedValue = .map
                 showingLogLauncher = true
+            }
+        }
+        .onReceive(NotificationCenter.default.publisher(for: .switchToTab)) { notification in
+            guard let tabName = notification.userInfo?["tab"] as? String,
+                  let tab = Tab(rawValue: tabName) else { return }
+            withAnimation(.easeInOut(duration: 0.2)) {
+                selectedTab.wrappedValue = tab
             }
         }
         .task(id: "\(appState.isDatabaseSeeded)-\(appState.onboardingCompleted)-\(appState.launchSafeModeEnabled)") {
