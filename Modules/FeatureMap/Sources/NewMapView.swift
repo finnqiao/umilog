@@ -1321,7 +1321,6 @@ public struct NewMapView: View {
                     if !isModalMode(uiViewModel.mode) {
                         lastNonModalDetent = newDetent
                     }
-                    updateTabBarVisibility(for: newDetent, mode: uiViewModel.mode)
                 }
                 .onChange(of: uiViewModel.mode) { oldMode, newMode in
                     let wasModal = isModalMode(oldMode)
@@ -1343,7 +1342,6 @@ public struct NewMapView: View {
                         }
                     }
 
-                    updateTabBarVisibility(for: targetDetent, mode: newMode)
                     if newMode.isInspecting && showCallout {
                         showCallout = false
                         calloutSite = nil
@@ -1413,7 +1411,6 @@ public struct NewMapView: View {
                 }
                 .onAppear {
                     launchSafeModeEnabled = UserDefaults.standard.bool(forKey: AppConstants.UserDefaultsKeys.launchSafeModeEnabled)
-                    updateTabBarVisibility(for: surfaceDetent, mode: uiViewModel.mode)
                 }
                 .onReceive(NotificationCenter.default.publisher(for: .launchSafeModeDidChange)) { notification in
                     let enabled = notification.userInfo?["enabled"] as? Bool ?? false
@@ -1428,9 +1425,6 @@ public struct NewMapView: View {
                     guard ready, !didReportMapInteractive else { return }
                     didReportMapInteractive = true
                     NotificationCenter.default.post(name: .mapDidBecomeInteractive, object: nil)
-                }
-                .onDisappear {
-                    NotificationCenter.default.post(name: .tabBarVisibilityShouldChange, object: nil, userInfo: ["hidden": false])
                 }
         )
 
@@ -1501,7 +1495,7 @@ public struct NewMapView: View {
                 .padding(.vertical, 12)
                 .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 16))
                 .shadow(radius: 8)
-                .padding(.top, safeAreaInsets.top + 60)
+                .padding(.top, 60)
 
                 Spacer()
             }
@@ -1603,7 +1597,7 @@ public struct NewMapView: View {
                         featuredService.completeFeaturedExperience()
                     }
                 )
-                .padding(.top, safeAreaInsets.top + 8)
+                .padding(.top, 8)
                 Spacer()
             }
             .transition(.opacity.combined(with: .move(edge: .top)))
@@ -2188,7 +2182,7 @@ public struct NewMapView: View {
                 if showDebugHUD {
                     debugHUD
                         .padding(.leading, 16)
-                        .padding(.top, safeAreaInsets.top + 16)
+                        .padding(.top, 16)
                         .allowsHitTesting(true)
                 }
 #endif
@@ -2206,7 +2200,7 @@ public struct NewMapView: View {
                             }
                         )
                         .padding(.horizontal, 16)
-                        .padding(.top, safeAreaInsets.top + 56)
+                        .padding(.top, 56)
                         Spacer()
                     }
                     .transition(.move(edge: .top).combined(with: .opacity))
@@ -2234,7 +2228,7 @@ public struct NewMapView: View {
                 }
             )
             .padding(.horizontal, 16)
-            .padding(.top, safeAreaInsets.top + 4)
+            .padding(.top, 4)
             // Yield search ownership to the sheet when it's expanded.
             // The expanded explore layout shows its own inline search row.
             // Medium is a transitional 0.75 so the handoff to expanded feels
@@ -2465,12 +2459,6 @@ public struct NewMapView: View {
         Haptics.tap()
     }
     
-    private func updateTabBarVisibility(for detent: SurfaceDetent, mode: MapUIMode) {
-        // The system tab bar is always hidden on the Discover screen — navigation is
-        // owned by the DockNavRow embedded inside UnifiedBottomSurface.
-        NotificationCenter.default.post(name: .tabBarVisibilityShouldChange, object: nil, userInfo: ["hidden": true])
-    }
-
     private func isModalMode(_ mode: MapUIMode) -> Bool {
         switch mode {
         case .search, .filter:

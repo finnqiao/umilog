@@ -5,7 +5,6 @@ public extension Notification.Name {
     static let diveLogUpdated = Notification.Name("app.umilog.diveLogUpdated")
     static let wishlistUpdated = Notification.Name("app.umilog.wishlistUpdated")
     static let startLiveLogRequested = Notification.Name("app.umilog.startLiveLogRequested")
-    static let tabBarVisibilityShouldChange = Notification.Name("app.umilog.tabBarVisibilityShouldChange")
     static let diveLogSavedSuccessfully = Notification.Name("app.umilog.diveLogSavedSuccessfully")
     static let showLogLauncher = Notification.Name("app.umilog.showLogLauncher")  // Fix UX-013: CTA for empty states
     static let networkStatusChanged = Notification.Name("app.umilog.networkStatusChanged")
@@ -13,7 +12,4 @@ public extension Notification.Name {
     static let mapDidBecomeInteractive = Notification.Name("app.umilog.mapDidBecomeInteractive")
     static let launchSafeModeDidChange = Notification.Name("app.umilog.launchSafeModeDidChange")
     static let launchSafeModeActivationRequested = Notification.Name("app.umilog.launchSafeModeActivationRequested")
-    /// Posted by the dock nav row when the user taps a tab other than Discover.
-    /// userInfo["tab"] is a String matching Tab.rawValue.
-    static let switchToTab = Notification.Name("app.umilog.switchToTab")
 }

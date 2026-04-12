@@ -2,9 +2,9 @@ import SwiftUI
 import UmiDB
 import UmiDesignSystem
 
-/// Unified bottom dock that owns both the draggable discovery surface and the
-/// persistent navigation row. One background, one shadow, one border, one
-/// motion system — no separate glass pill beneath it.
+/// Floating explorer sheet that hovers above the native tab bar. Pure content —
+/// no embedded navigation. Drag handle + persistent header + morphing body.
+/// One background, one shadow, one border, one motion system.
 struct UnifiedBottomSurface: View {
     // MARK: - Bindings
 
@@ -88,17 +88,6 @@ struct UnifiedBottomSurface: View {
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @Environment(\.safeAreaInsets) private var safeAreaInsets
 
-    // MARK: - Layout constants
-
-    /// Fixed height of the nav row icons + labels, exclusive of safe area.
-    private let navBaseHeight: CGFloat = 54
-    /// Height of the internal separator between content and nav zones.
-    private let separatorHeight: CGFloat = 1
-
-    private var navZoneHeight: CGFloat {
-        navBaseHeight + safeAreaInsets.bottom
-    }
-
     // MARK: - Computed Bindings
 
     /// Binding that reads/writes search query through the reducer context
@@ -124,9 +113,10 @@ struct UnifiedBottomSurface: View {
 
             guard containerHeight > 0 else { return AnyView(Color.clear) }
 
-            // The effective height available for the content/drag zone.
-            // Subtract nav zone so detent percentages don't eat into the nav area.
-            let effectiveHeight = max(0, containerHeight - navZoneHeight - separatorHeight)
+            // The full container height is available for the sheet. The native
+            // tab bar already insets this geometry, so the sheet bottom sits
+            // flush against the tab bar top automatically.
+            let effectiveHeight = containerHeight
 
             let allowedDetents = SurfaceDetent.allowed(for: mode)
             let baseContentHeight: CGFloat = detent == .hidden ? 0 : detent.height(in: effectiveHeight)
@@ -146,34 +136,22 @@ struct UnifiedBottomSurface: View {
                 ? 0
                 : max(minContentHeight, min(maxContentHeight, rawContentHeight))
 
+            // Normalised drag progress: 0 at the smallest allowed detent,
+            // 1 at the largest. Used by content views to morph smoothly.
+            let progressDenominator = max(maxContentHeight - minContentHeight, 1)
+            let dragProgress = max(0, min(1, (currentContentHeight - minContentHeight) / progressDenominator))
+
             return AnyView(
                 VStack(spacing: 0) {
                     Spacer(minLength: 0)
 
                     // Outer dock container: one background, one shadow, one clip.
-                    VStack(spacing: 0) {
-                        // ── Content zone (draggable) ──────────────────────────
-                        surfaceContent(containerHeight: effectiveHeight)
-                            .frame(height: currentContentHeight)
-                            .clipped()
-                            .simultaneousGesture(
-                                dragGesture(containerHeight: effectiveHeight, allowedDetents: allowedDetents)
-                            )
-
-                        // ── Internal separator ────────────────────────────────
-                        Rectangle()
-                            .fill(Color.white.opacity(0.06))
-                            .frame(height: separatorHeight)
-
-                        // ── Nav zone (fixed, no separate background) ──────────
-                        DockNavRow()
-                            .frame(height: navBaseHeight)
-
-                        // Safe-area fill so the dock background extends through
-                        // the home indicator band — no black strip at the edge.
-                        Color.clear
-                            .frame(height: safeAreaInsets.bottom)
-                    }
+                    surfaceContent(
+                        containerHeight: effectiveHeight,
+                        dragProgress: dragProgress
+                    )
+                    .frame(height: currentContentHeight)
+                    .clipped()
                     .background(dockBackground)
                     .clipShape(
                         UnevenRoundedRectangle(
@@ -184,7 +162,10 @@ struct UnifiedBottomSurface: View {
                             style: .continuous
                         )
                     )
-                    .shadow(color: Color.black.opacity(0.28), radius: 24, x: 0, y: -6)
+                    .shadow(color: Color.black.opacity(0.32), radius: 24, x: 0, y: -8)
+                    .simultaneousGesture(
+                        dragGesture(containerHeight: effectiveHeight, allowedDetents: allowedDetents)
+                    )
                 }
                 .animation(surfaceAnimation, value: detent)
                 .animation(surfaceAnimation, value: mode)
@@ -201,23 +182,24 @@ struct UnifiedBottomSurface: View {
     // MARK: - Surface Content
 
     @ViewBuilder
-    private func surfaceContent(containerHeight: CGFloat) -> some View {
+    private func surfaceContent(containerHeight: CGFloat, dragProgress: CGFloat) -> some View {
         VStack(spacing: 0) {
             dragHandle
 
-            modeContent(containerHeight: containerHeight)
+            modeContent(containerHeight: containerHeight, dragProgress: dragProgress)
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
         }
     }
 
     @ViewBuilder
-    private func modeContent(containerHeight: CGFloat) -> some View {
+    private func modeContent(containerHeight: CGFloat, dragProgress: CGFloat) -> some View {
         Group {
             switch mode {
             case .explore(let context):
                 ExploreContent(
                     context: context,
                     detent: detent,
+                    dragProgress: dragProgress,
                     sites: filteredSites,
                     loading: isLoading,
                     regionDetail: regionDetail,
@@ -358,16 +340,16 @@ struct UnifiedBottomSurface: View {
 
     // MARK: - Background
 
-    /// Single dock background: solid navy, one subtle gradient, one top stroke.
+    /// Single sheet background: solid navy, one subtle gradient, one top stroke.
     /// No glass, no blur — one material for the whole component.
     private var dockBackground: some View {
         ZStack {
             // Base fill: deep navy, opaque. No translucency so the map never
-            // bleeds through the nav zone or creates two visual layers.
+            // bleeds through and the sheet reads as one solid surface.
             Color(red: 0.07, green: 0.17, blue: 0.29)  // ≈ #122B4A
 
             // Subtle vertical gradient: slightly lighter at the drag edge,
-            // slightly darker toward the nav zone.
+            // settling toward the base fill below.
             LinearGradient(
                 colors: [Color.white.opacity(0.045), Color.clear],
                 startPoint: .top,
@@ -375,7 +357,7 @@ struct UnifiedBottomSurface: View {
             )
 
             // Top stroke: lagoon-tinted at the drag edge, fading quickly.
-            // One border for the whole dock — not one per zone.
+            // One border for the whole sheet.
             UnevenRoundedRectangle(
                 topLeadingRadius: 28,
                 bottomLeadingRadius: 0,

@@ -16,28 +16,28 @@ enum SurfaceDetent: Equatable, CaseIterable {
 
     /// Calculate the height for this detent given a container height.
     ///
-    /// `containerHeight` should be the *effective* usable height — i.e. the raw
-    /// geometry height already reduced by the tab bar height so the expanded sheet
-    /// never extends into the tab bar area. `UnifiedBottomSurface` handles this
-    /// reduction before calling here.
+    /// `containerHeight` is the GeometryReader-proposed height inside the
+    /// Discover tab's content area, which the system TabView already insets by
+    /// the native tab bar height. The expanded sheet therefore sits flush above
+    /// the tab bar without manual subtraction.
     func height(in containerHeight: CGFloat) -> CGFloat {
         switch self {
         case .hidden:
             return 0
         case .peek:
-            // Fixed 128pt: drag handle (29pt) + title row (~20pt) + subtitle (~14pt)
-            // + vertical padding (~40pt) + 25pt breathing room. Compact summary tray —
+            // Fixed 128pt: drag handle (24pt) + title row (~22pt) + hint line (~16pt)
+            // + vertical padding (~40pt) + breathing room. Compact summary tray —
             // no carousel, no chips. Content-driven so it feels identical on every device.
             return 128
         case .medium:
-            // Cards-first browse state. Content budget: handle (29) + top pad (4) +
-            // header (~20) + gap (12) + carousel (~82) + bottom (16) ≈ 163pt.
-            // Clamp to 252–288pt so there is comfortable breathing room without dead air.
-            return min(max(containerHeight * 0.36, 252), 288)
+            // Cards-first browse state. Content budget: handle (24) + top pad (4) +
+            // header (~22) + gap (12) + carousel (~110) + bottom (16) ≈ 188pt.
+            // Clamp to 280–320pt so the carousel breathes without dead air.
+            return min(max(containerHeight * 0.38, 280), 320)
         case .expanded:
-            // Take almost the full usable height, leaving 44pt at the top for the
-            // status-bar area. containerHeight has already had tabBarHeight subtracted
-            // by the caller, so the sheet bottom sits flush against the tab bar top.
+            // Take almost the full usable height, leaving 44pt for the status-bar
+            // area. The container is already inset by the tab bar so the sheet
+            // bottom sits flush against the tab bar top automatically.
             return containerHeight - 44
         }
     }

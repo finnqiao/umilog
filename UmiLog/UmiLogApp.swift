@@ -32,8 +32,8 @@ struct UmiLogApp: App {
     }
 
     private static func configureTabBarAppearance() {
-        // Solid opaque tab bar for non-Discover tabs (History, Wildlife, Profile).
-        // The Discover tab hides this bar entirely and uses DockNavRow instead.
+        // Solid opaque tab bar for all tabs. Acts as the persistent main menu
+        // floating beneath the map and the explorer sheet on Discover.
         let appearance = UITabBarAppearance()
         appearance.configureWithOpaqueBackground()
         appearance.backgroundColor = UIColor(red: 0.07, green: 0.17, blue: 0.29, alpha: 1.0)
@@ -80,7 +80,6 @@ struct ContentView: View {
     @State private var showingQuickLog = false
     @State private var showingLogLauncher = false
     @State private var pendingLiveLogSite: DiveSite?
-    @State private var isTabBarHidden = false
 
     var body: some View {
         ZStack {
@@ -116,28 +115,12 @@ struct ContentView: View {
         .onChange(of: scenePhase) { oldPhase, newPhase in
             handleScenePhaseChange(from: oldPhase, to: newPhase)
         }
-        .onReceive(NotificationCenter.default.publisher(for: .tabBarVisibilityShouldChange)) { notification in
-            guard let hidden = notification.userInfo?["hidden"] as? Bool else { return }
-            withAnimation(.easeInOut(duration: 0.2)) {
-                isTabBarHidden = hidden
-            }
-        }
-        .onChange(of: selectedTab.wrappedValue) { oldTab, newTab in
-            // Reset tab bar visibility when switching tabs (fix for UX-008)
-            // Always reset, not just when hidden, to fix potential state desync
-            withAnimation(.easeInOut(duration: 0.15)) {
-                isTabBarHidden = false
-            }
+        .onChange(of: selectedTab.wrappedValue) { _, newTab in
+            // The center "Log" tab is a virtual placeholder — tapping it
+            // restores the map underneath and presents the log launcher sheet.
             if newTab == .log {
                 selectedTab.wrappedValue = .map
                 showingLogLauncher = true
-            }
-        }
-        .onReceive(NotificationCenter.default.publisher(for: .switchToTab)) { notification in
-            guard let tabName = notification.userInfo?["tab"] as? String,
-                  let tab = Tab(rawValue: tabName) else { return }
-            withAnimation(.easeInOut(duration: 0.2)) {
-                selectedTab.wrappedValue = tab
             }
         }
         .task(id: "\(appState.isDatabaseSeeded)-\(appState.onboardingCompleted)-\(appState.launchSafeModeEnabled)") {
@@ -387,7 +370,6 @@ private extension ContentView {
             .accessibilityHint("View your profile and settings")
         }
         .tint(.oceanBlue)
-        .toolbar(isTabBarHidden ? .hidden : .visible, for: .tabBar)
         .safeAreaInset(edge: .top, spacing: 0) {
             // Offline banner rendered as a safe area inset so the TabView
             // fills the full screen and navigation bars stay flush with the top.

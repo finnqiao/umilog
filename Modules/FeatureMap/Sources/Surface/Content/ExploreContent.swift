@@ -12,6 +12,11 @@ struct ExploreContent: View {
 
     let context: ExploreContext
     let detent: SurfaceDetent
+    /// Continuous 0–1 fraction of the current drag position (0 = smallest detent,
+    /// 1 = largest). Used to cross-fade peek / browse / expanded layers so the
+    /// sheet contents morph smoothly as the user drags, instead of snapping at
+    /// detent thresholds.
+    var dragProgress: CGFloat = 0
     let sites: [DiveSite]
     let loading: Bool
     let regionDetail: UmiDB.Region?
@@ -53,31 +58,60 @@ struct ExploreContent: View {
     // MARK: - Body
 
     var body: some View {
-        // `.id(detent)` forces SwiftUI to treat each detent as a distinct view
-        // tree so the old layout is fully removed before the new one renders —
-        // no ghosting, no header bleed-through. The opacity transition rides on
-        // the sheet's spring animation (set in UnifiedBottomSurface) — we do NOT
-        // add a second animation here.
-        Group {
-            switch detent {
-            case .hidden, .peek:
-                peekLayout
-            case .medium:
-                browseLayout
-            case .expanded:
-                expandedLayout
-            }
+        // Layered cross-fade: all three layouts coexist, opacity-driven by the
+        // continuous drag progress. As the user drags the sheet, the content
+        // morphs smoothly — no snap-to-detent content swaps, no ghosting. The
+        // active layer (highest opacity) owns hit testing.
+        ZStack(alignment: .top) {
+            peekLayout
+                .opacity(peekOpacity)
+                .allowsHitTesting(peekOpacity > 0.5)
+
+            browseLayout
+                .opacity(browseOpacity)
+                .allowsHitTesting(browseOpacity > 0.5)
+
+            expandedLayout
+                .opacity(expandedOpacity)
+                .allowsHitTesting(expandedOpacity > 0.5)
         }
-        .id(detent)
-        .transition(.opacity)
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+        .animation(.easeInOut(duration: 0.18), value: dragProgress)
+    }
+
+    // MARK: - Layer Opacity Curves
+
+    /// Peek layer is fully visible at the smallest detent and fades out as the
+    /// user drags toward medium. Cleared by the time browse content reads.
+    private var peekOpacity: Double {
+        Double(1 - smoothstep(0.0, 0.22, dragProgress))
+    }
+
+    /// Browse (carousel) layer fades in as we leave peek and fades out as we
+    /// approach expanded — a bell curve centred on the medium detent.
+    private var browseOpacity: Double {
+        let fadeIn = Double(smoothstep(0.05, 0.30, dragProgress))
+        let fadeOut = Double(smoothstep(0.55, 0.85, dragProgress))
+        return fadeIn * (1 - fadeOut)
+    }
+
+    /// Expanded layer fades in as the sheet approaches its largest detent.
+    private var expandedOpacity: Double {
+        Double(smoothstep(0.55, 0.92, dragProgress))
+    }
+
+    /// Hermite smoothstep — gives a soft S-curve interpolation in [0, 1].
+    private func smoothstep(_ edge0: CGFloat, _ edge1: CGFloat, _ x: CGFloat) -> CGFloat {
+        let t = max(0, min(1, (x - edge0) / max(edge1 - edge0, 0.0001)))
+        return t * t * (3 - 2 * t)
     }
 
     // MARK: - Peek Layout
 
-    /// Summary tray: title + one supporting line + one utility action.
-    /// Content-driven to match the 148pt fixed detent height — no Spacer padding.
+    /// Summary tray: title + supporting hint + one utility action.
+    /// Content-driven to match the 128pt fixed detent height — no Spacer padding.
     private var peekLayout: some View {
-        VStack(alignment: .leading, spacing: 4) {
+        VStack(alignment: .leading, spacing: 6) {
             HStack(spacing: 8) {
                 dynamicTitle
                     .font(.headline)
@@ -88,14 +122,46 @@ struct ExploreContent: View {
                 filterEntryButton
             }
 
-            Text("Swipe up to explore")
-                .font(.caption)
-                .foregroundStyle(Color.mist.opacity(0.7))
+            HStack(spacing: 6) {
+                Image(systemName: "chevron.up")
+                    .font(.system(size: 10, weight: .semibold))
+                    .foregroundStyle(Color.lagoon.opacity(0.85))
+                Text(peekHintText)
+                    .font(.caption)
+                    .foregroundStyle(Color.mist.opacity(0.75))
+            }
         }
         .padding(.horizontal, 20)
         .padding(.top, 6)
         .padding(.bottom, 10)
         .frame(maxHeight: .infinity, alignment: .top)
+    }
+
+    /// Hint text shown beneath the title at peek so first-time users immediately
+    /// understand the sheet is draggable and what's underneath.
+    private var peekHintText: String {
+        let total = sites.count
+        switch zoomLevel {
+        case .world:
+            if !visibleDestinations.isEmpty {
+                let count = visibleDestinations.count
+                return "Swipe up to browse \(count) destination\(count == 1 ? "" : "s")"
+            }
+            return "Swipe up to browse dive sites"
+        case .regional:
+            if !visibleAreas.isEmpty {
+                let count = visibleAreas.count
+                return "Swipe up to browse \(count) area\(count == 1 ? "" : "s")"
+            } else if total > 0 {
+                return "Swipe up to browse \(total) site\(total == 1 ? "" : "s")"
+            }
+            return "Swipe up to browse this region"
+        case .local:
+            if total > 0 {
+                return "Swipe up to browse \(total) nearby site\(total == 1 ? "" : "s")"
+            }
+            return "Swipe up to browse nearby sites"
+        }
     }
 
     // MARK: - Browse Layout
@@ -344,11 +410,26 @@ struct ExploreContent: View {
             Haptics.soft()  // Fix UX-007: Add haptic feedback
             onOpenFilter()
         } label: {
-            Image(systemName: "slider.horizontal.3")
-                .font(.system(size: 16, weight: .medium))
-                .foregroundStyle(Color.lagoon)
+            HStack(spacing: 6) {
+                Image(systemName: "slider.horizontal.3")
+                    .font(.system(size: 13, weight: .semibold))
+                Text("Filter")
+                    .font(.caption.weight(.semibold))
+            }
+            .foregroundStyle(hasActiveFilters ? Color.foam : Color.lagoon)
+            .padding(.horizontal, 10)
+            .padding(.vertical, 6)
+            .background(
+                Capsule()
+                    .fill(hasActiveFilters ? Color.lagoon : Color.lagoon.opacity(0.14))
+            )
+            .overlay(
+                Capsule()
+                    .stroke(Color.lagoon.opacity(0.35), lineWidth: 1)
+            )
         }
-        .accessibilityLabel("Open filters")
+        .buttonStyle(.plain)
+        .accessibilityLabel(hasActiveFilters ? "Filters (active)" : "Open filters")
     }
 
     // MARK: - Zoom-Aware List
