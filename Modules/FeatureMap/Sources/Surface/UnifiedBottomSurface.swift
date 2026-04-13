@@ -334,8 +334,21 @@ struct UnifiedBottomSurface: View {
         .frame(height: 24)
         .frame(maxWidth: .infinity)
         .contentShape(Rectangle())
+        .onTapGesture {
+            let allowed = SurfaceDetent.allowed(for: mode)
+            guard let currentIndex = allowed.firstIndex(of: detent) else { return }
+            let nextIndex = (currentIndex + 1) % allowed.count
+            if reduceMotion {
+                detent = allowed[nextIndex]
+            } else {
+                withAnimation(.spring(response: 0.35, dampingFraction: 0.85)) {
+                    detent = allowed[nextIndex]
+                }
+            }
+        }
         .accessibilityLabel("Resize handle")
-        .accessibilityHint("Drag to expand or collapse the panel")
+        .accessibilityHint("Tap to cycle or drag to resize the panel")
+        .accessibilityAddTraits(.isButton)
     }
 
     // MARK: - Background

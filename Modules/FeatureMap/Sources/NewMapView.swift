@@ -1625,10 +1625,9 @@ public struct NewMapView: View {
                     }
                 )
                 .padding(.horizontal, 16)
-                // Use screen height minus known nav occupied height so the clearance
-                // matches the surface's actual containerHeight calculation.
-                // Position above the dock: content zone height + nav zone (~54pt base + home indicator) + margin.
-                .padding(.bottom, surfaceDetent.height(in: UIScreen.main.bounds.height - 54 - safeAreaInsets.bottom) + 54 + safeAreaInsets.bottom + 12)
+                .padding(.trailing, AppConstants.Layout.verticalTabBarWidth)
+                // Position above the bottom sheet + home indicator + margin.
+                .padding(.bottom, surfaceDetent.height(in: UIScreen.main.bounds.height - safeAreaInsets.bottom) + safeAreaInsets.bottom + 12)
             }
             .transition(.move(edge: .bottom).combined(with: .opacity))
             .animation(.spring(response: 0.4, dampingFraction: 0.8), value: uiViewModel.proximityPrompt != nil)
@@ -1867,6 +1866,7 @@ public struct NewMapView: View {
                 closeClusterExpand()
             }
         )
+        .padding(.trailing, AppConstants.Layout.verticalTabBarWidth)
     }
 
     /// Binding for MapUIMode that dispatches actions on set.
@@ -2173,41 +2173,43 @@ public struct NewMapView: View {
     }
 
     private var overlayControls: some View {
-        GeometryReader { geo in
-            let surfaceHeight = surfaceDetent.height(in: geo.size.height)
-            ZStack(alignment: .topLeading) {
-                topOverlay
+        // Removed the GeometryReader + .frame(width:height:) that used to wrap
+        // this ZStack. The full-screen frame was creating an invisible touch-
+        // blocking layer that intercepted ALL gestures, preventing the bottom
+        // sheet from receiving drags or taps. The surfaceHeight it computed was
+        // unused. Without the GeometryReader, touches in areas without
+        // interactive content (the Spacer below the search capsule) pass
+        // through to the layers beneath in the parent ZStack.
+        ZStack(alignment: .topLeading) {
+            topOverlay
 
 #if DEBUG
-                if showDebugHUD {
-                    debugHUD
-                        .padding(.leading, 16)
-                        .padding(.top, 16)
-                        .allowsHitTesting(true)
-                }
+            if showDebugHUD {
+                debugHUD
+                    .padding(.leading, 16)
+                    .padding(.top, 16)
+                    .allowsHitTesting(true)
+            }
 #endif
 
-                if showingLocationDeniedBanner {
-                    VStack {
-                        LocationDeniedBanner(
-                            onOpenSettings: {
-                                if let url = URL(string: UIApplication.openSettingsURLString) {
-                                    UIApplication.shared.open(url)
-                                }
-                            },
-                            onDismiss: {
-                                showingLocationDeniedBanner = false
+            if showingLocationDeniedBanner {
+                VStack {
+                    LocationDeniedBanner(
+                        onOpenSettings: {
+                            if let url = URL(string: UIApplication.openSettingsURLString) {
+                                UIApplication.shared.open(url)
                             }
-                        )
-                        .padding(.horizontal, 16)
-                        .padding(.top, 56)
-                        Spacer()
-                    }
-                    .transition(.move(edge: .top).combined(with: .opacity))
+                        },
+                        onDismiss: {
+                            showingLocationDeniedBanner = false
+                        }
+                    )
+                    .padding(.horizontal, 16)
+                    .padding(.top, 56)
+                    Spacer()
                 }
-
+                .transition(.move(edge: .top).combined(with: .opacity))
             }
-            .frame(width: geo.size.width, height: geo.size.height)
         }
     }
 
@@ -2227,7 +2229,8 @@ public struct NewMapView: View {
                     handleLocateMeTapped()
                 }
             )
-            .padding(.horizontal, 16)
+            .padding(.leading, 16)
+            .padding(.trailing, 16 + AppConstants.Layout.verticalTabBarWidth)
             .padding(.top, 4)
             // Yield search ownership to the sheet when it's expanded.
             // The expanded explore layout shows its own inline search row.
@@ -2245,15 +2248,15 @@ public struct NewMapView: View {
 
     /// Opacity for the top `SearchCapsule` based on the sheet detent.
     /// peek/hidden → fully visible (1.0).
-    /// medium → strongly dimmed (0.3) so the map search recedes and the browse
-    ///   state reads as its own mode, without two search systems competing.
+    /// medium → partially dimmed (0.5) so the capsule stays visible during
+    ///   the browse transition without competing with the sheet search row.
     /// expanded → invisible (0): the sheet's inline search row owns search entirely.
     private var topSearchCapsuleOpacity: Double {
         switch surfaceDetent {
         case .expanded:
             return 0
         case .medium:
-            return 0.3
+            return 0.5
         case .peek, .hidden:
             return 1
         }
