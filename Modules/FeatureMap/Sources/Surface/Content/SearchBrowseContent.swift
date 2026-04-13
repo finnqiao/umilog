@@ -55,8 +55,9 @@ struct SearchBrowseContent: View {
                         )
                     }
                 }
-                .padding(.horizontal, 2)
+                .padding(.horizontal, 16)
             }
+            .padding(.horizontal, -16)
         }
     }
 
@@ -95,7 +96,9 @@ struct SearchBrowseContent: View {
                         }
                     }
                 }
+                .padding(.horizontal, 16)
             }
+            .padding(.horizontal, -16)
         }
     }
 

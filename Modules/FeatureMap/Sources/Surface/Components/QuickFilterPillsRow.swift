@@ -35,6 +35,7 @@ struct QuickFilterPillsRow: View {
                     difficultyPill(difficulty: difficulty)
                 }
             }
+            .padding(.horizontal, 4)
             .padding(.vertical, 2)
         }
     }

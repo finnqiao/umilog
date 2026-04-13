@@ -23,6 +23,7 @@ struct CategoryGridCell: View {
                     .font(.caption.weight(.semibold))
                     .foregroundStyle(Color.foam)
                     .lineLimit(1)
+                    .minimumScaleFactor(0.8)
 
                 Spacer()
 

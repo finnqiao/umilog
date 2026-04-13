@@ -55,7 +55,7 @@ struct FilterContent: View {
                     shopsSection
                 }
                 .padding(.horizontal, 16)
-                .padding(.bottom, 24)
+                .padding(.bottom, 40)
             }
 
             // Footer
@@ -89,7 +89,7 @@ struct FilterContent: View {
                 .foregroundStyle(Color.mist)
                 .accessibilityAddTraits(.isHeader)
 
-            HStack(spacing: 8) {
+            FlowLayout(spacing: 8) {
                 lensChip(title: "All", lens: nil, isSelected: localLens == nil)
 
                 ForEach(FilterLens.allCases, id: \.self) { lens in
@@ -195,7 +195,7 @@ struct FilterContent: View {
                 .foregroundStyle(Color.mist)
                 .accessibilityAddTraits(.isHeader)
 
-            HStack(spacing: 8) {
+            FlowLayout(spacing: 8) {
                 ForEach(ExploreFilters.TimePeriod.allCases, id: \.self) { period in
                     filterChip(
                         title: period.rawValue,
@@ -253,7 +253,7 @@ struct FilterContent: View {
                 .foregroundStyle(Color.mist)
                 .accessibilityAddTraits(.isHeader)
 
-            HStack(spacing: 8) {
+            FlowLayout(spacing: 8) {
                 ForEach(ExploreFilters.EntryType.allCases, id: \.self) { type in
                     filterChip(
                         title: type.rawValue,
