@@ -21,7 +21,8 @@ struct UmiLogApp: App {
     @StateObject private var appState = AppState()
 
     init() {
-        Self.configureTabBarAppearance()
+        // Hide the native tab bar globally — replaced by custom VerticalTabBar.
+        UITabBar.appearance().isHidden = true
     }
     
     var body: some Scene {
@@ -31,29 +32,7 @@ struct UmiLogApp: App {
         }
     }
 
-    private static func configureTabBarAppearance() {
-        // Solid opaque tab bar for all tabs. Acts as the persistent main menu
-        // floating beneath the map and the explorer sheet on Discover.
-        let appearance = UITabBarAppearance()
-        appearance.configureWithOpaqueBackground()
-        appearance.backgroundColor = UIColor(red: 0.07, green: 0.17, blue: 0.29, alpha: 1.0)
-        appearance.shadowColor = .clear
-
-        let itemAppearance = UITabBarItemAppearance()
-        itemAppearance.normal.iconColor = UIColor.umiMist
-        itemAppearance.normal.titleTextAttributes = [.foregroundColor: UIColor.umiMist]
-        itemAppearance.selected.iconColor = UIColor.umiLagoon
-        itemAppearance.selected.titleTextAttributes = [.foregroundColor: UIColor.umiLagoon]
-
-        appearance.stackedLayoutAppearance = itemAppearance
-        appearance.inlineLayoutAppearance = itemAppearance
-        appearance.compactInlineLayoutAppearance = itemAppearance
-
-        let tabBar = UITabBar.appearance()
-        tabBar.standardAppearance = appearance
-        tabBar.scrollEdgeAppearance = appearance
-        tabBar.isTranslucent = false
-    }
+    // Native tab bar is hidden — replaced by VerticalTabBar.
 }
 
 /// Root view with tab navigation (map-first design)
@@ -115,14 +94,7 @@ struct ContentView: View {
         .onChange(of: scenePhase) { oldPhase, newPhase in
             handleScenePhaseChange(from: oldPhase, to: newPhase)
         }
-        .onChange(of: selectedTab.wrappedValue) { _, newTab in
-            // The center "Log" tab is a virtual placeholder — tapping it
-            // restores the map underneath and presents the log launcher sheet.
-            if newTab == .log {
-                selectedTab.wrappedValue = .map
-                showingLogLauncher = true
-            }
-        }
+        // Log tab is handled by VerticalTabBar.onLogTap directly.
         .task(id: "\(appState.isDatabaseSeeded)-\(appState.onboardingCompleted)-\(appState.launchSafeModeEnabled)") {
             if appState.isDatabaseSeeded && appState.onboardingCompleted {
                 appState.scheduleLaunchStabilityCheckpoint()
@@ -337,42 +309,33 @@ private extension ContentView {
     }
 
     @ViewBuilder var tabs: some View {
-        TabView(selection: selectedTab) {
-            NewMapView()
-            .tabItem { Label("Discover", systemImage: "map.fill") }
-            .tag(Tab.map)
-            .accessibilityLabel("Discover")
-            .accessibilityHint("Discover and explore dive sites")
+        ZStack(alignment: .trailing) {
+            // Tab content — map extends under the glass bar; other tabs are inset.
+            Group {
+                switch selectedTab.wrappedValue {
+                case .map:
+                    NewMapView()
+                case .history:
+                    NavigationStack { DiveHistoryView() }
+                        .padding(.trailing, AppConstants.Layout.verticalTabBarWidth)
+                case .log:
+                    // Should not be reachable — VerticalTabBar fires onLogTap instead.
+                    NewMapView()
+                case .wildlife:
+                    NavigationStack { WildlifeView() }
+                        .padding(.trailing, AppConstants.Layout.verticalTabBarWidth)
+                case .profile:
+                    NavigationStack { ProfileView() }
+                        .padding(.trailing, AppConstants.Layout.verticalTabBarWidth)
+                }
+            }
 
-            NavigationStack { DiveHistoryView() }
-            .tabItem { Label("History", systemImage: "clock.fill") }
-            .tag(Tab.history)
-            .accessibilityLabel("History")
-            .accessibilityHint("View your dive log history")
-
-            // Empty placeholder for center FAB
-            Text("")
-                .tabItem { Label("Log", systemImage: "plus.circle.fill") }
-                .tag(Tab.log)
-                .accessibilityLabel("Log a dive")
-                .accessibilityHint("Start logging a new dive")
-
-            NavigationStack { WildlifeView() }
-            .tabItem { Label("Wildlife", systemImage: "fish.fill") }
-            .tag(Tab.wildlife)
-            .accessibilityLabel("Wildlife")
-            .accessibilityHint("View marine species catalog")
-
-            NavigationStack { ProfileView() }
-            .tabItem { Label("Profile", systemImage: "person.fill") }
-            .tag(Tab.profile)
-            .accessibilityLabel("Profile")
-            .accessibilityHint("View your profile and settings")
+            // Floating vertical Liquid Glass tab bar on the trailing edge.
+            VerticalTabBar(selection: selectedTab, onLogTap: {
+                showingLogLauncher = true
+            })
         }
-        .tint(.oceanBlue)
         .safeAreaInset(edge: .top, spacing: 0) {
-            // Offline banner rendered as a safe area inset so the TabView
-            // fills the full screen and navigation bars stay flush with the top.
             if !networkMonitor.isConnected {
                 OfflineBanner()
                     .animation(.spring(response: 0.3), value: networkMonitor.isConnected)
@@ -439,6 +402,105 @@ enum Tab: String, Hashable {
     case log  // FAB trigger
     case wildlife
     case profile
+}
+
+// MARK: - Vertical Liquid Glass Tab Bar
+
+/// Floating vertical tab bar anchored to the trailing edge.
+/// Uses `.ultraThinMaterial` for a Liquid Glass look so the map
+/// bleeds through behind it.
+struct VerticalTabBar: View {
+    @Binding var selection: Tab
+    var onLogTap: () -> Void
+
+    private let barWidth: CGFloat = AppConstants.Layout.verticalTabBarWidth
+
+    private struct TabItem {
+        let tab: Tab
+        let icon: String
+    }
+
+    private let items: [TabItem] = [
+        TabItem(tab: .map, icon: "map.fill"),
+        TabItem(tab: .history, icon: "clock.fill"),
+        TabItem(tab: .log, icon: "plus.circle.fill"),
+        TabItem(tab: .wildlife, icon: "fish.fill"),
+        TabItem(tab: .profile, icon: "person.fill"),
+    ]
+
+    var body: some View {
+        VStack(spacing: 24) {
+            ForEach(items, id: \.tab) { item in
+                if item.tab == .log {
+                    logButton
+                } else {
+                    tabButton(item)
+                }
+            }
+        }
+        .frame(width: barWidth)
+        .frame(maxHeight: .infinity)
+        .background(
+            UnevenRoundedRectangle(
+                topLeadingRadius: 20,
+                bottomLeadingRadius: 20,
+                bottomTrailingRadius: 0,
+                topTrailingRadius: 0,
+                style: .continuous
+            )
+            .fill(.ultraThinMaterial)
+            .overlay(
+                UnevenRoundedRectangle(
+                    topLeadingRadius: 20,
+                    bottomLeadingRadius: 20,
+                    bottomTrailingRadius: 0,
+                    topTrailingRadius: 0,
+                    style: .continuous
+                )
+                .strokeBorder(
+                    LinearGradient(
+                        colors: [Color.lagoon.opacity(0.35), Color.lagoon.opacity(0.08)],
+                        startPoint: .top,
+                        endPoint: .bottom
+                    ),
+                    lineWidth: 1
+                )
+            )
+        )
+        .shadow(color: Color.black.opacity(0.25), radius: 16, x: -4, y: 0)
+    }
+
+    private func tabButton(_ item: TabItem) -> some View {
+        Button {
+            selection = item.tab
+        } label: {
+            Image(systemName: item.icon)
+                .font(.system(size: 20, weight: .medium))
+                .foregroundStyle(selection == item.tab ? Color.lagoon : Color.mist)
+                .frame(width: 44, height: 44)
+                .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel(item.tab.rawValue.capitalized)
+    }
+
+    private var logButton: some View {
+        Button {
+            onLogTap()
+        } label: {
+            Image(systemName: "plus.circle.fill")
+                .font(.system(size: 28, weight: .medium))
+                .foregroundStyle(Color.lagoon)
+                .frame(width: 44, height: 44)
+                .background(
+                    Circle()
+                        .fill(Color.lagoon.opacity(0.15))
+                )
+                .contentShape(Circle())
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel("Log a dive")
+    }
 }
 
 private enum LaunchCheckpoint: String {

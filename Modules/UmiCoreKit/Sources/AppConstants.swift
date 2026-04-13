@@ -29,6 +29,12 @@ public enum AppConstants {
         public static let launchStabilityDelay: TimeInterval = 12
     }
 
+    /// Layout constants for custom navigation and overlays
+    public enum Layout {
+        /// Width of the vertical tab bar on the trailing edge (icon-only, no labels).
+        public static let verticalTabBarWidth: CGFloat = 62
+    }
+
     /// Launch stability thresholds and limits
     public enum LaunchStability {
         /// Number of consecutive incomplete launches before enabling safe mode

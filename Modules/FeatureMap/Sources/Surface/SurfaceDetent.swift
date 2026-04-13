@@ -17,9 +17,8 @@ enum SurfaceDetent: Equatable, CaseIterable {
     /// Calculate the height for this detent given a container height.
     ///
     /// `containerHeight` is the GeometryReader-proposed height inside the
-    /// Discover tab's content area, which the system TabView already insets by
-    /// the native tab bar height. The expanded sheet therefore sits flush above
-    /// the tab bar without manual subtraction.
+    /// Discover tab's content area. With the native tab bar replaced by a
+    /// vertical sidebar, the full screen height (minus safe areas) is available.
     func height(in containerHeight: CGFloat) -> CGFloat {
         switch self {
         case .hidden:
@@ -36,8 +35,8 @@ enum SurfaceDetent: Equatable, CaseIterable {
             return min(max(containerHeight * 0.38, 280), 320)
         case .expanded:
             // Take almost the full usable height, leaving 44pt for the status-bar
-            // area. The container is already inset by the tab bar so the sheet
-            // bottom sits flush against the tab bar top automatically.
+            // area. No native tab bar to account for — the vertical sidebar is on
+            // the trailing edge and the sheet width is already inset by the caller.
             return containerHeight - 44
         }
     }
