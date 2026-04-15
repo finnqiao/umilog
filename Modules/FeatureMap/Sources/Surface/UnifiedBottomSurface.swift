@@ -86,7 +86,6 @@ struct UnifiedBottomSurface: View {
     // MARK: - Environment
 
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
-    @Environment(\.safeAreaInsets) private var safeAreaInsets
 
     // MARK: - Computed Bindings
 
