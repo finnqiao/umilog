@@ -657,7 +657,6 @@ public struct NewMapView: View {
 #endif
 
     // Selection and syncing
-    @State private var selectedSiteIdForScroll: String?
     @State private var followMap: Bool = true
 
     // Track camera fits for recenter
@@ -1988,8 +1987,6 @@ public struct NewMapView: View {
                 // Wrap in DispatchQueue.main.async to avoid SwiftUI state mutation during view update
                 DispatchQueue.main.async {
                     if let site = viewModel.sites.first(where: { $0.id == siteId }) {
-                        selectedSiteIdForScroll = site.id
-
                         // Close any existing inspection first (mutual exclusivity)
                         if uiViewModel.mode.isInspecting {
                             uiViewModel.send(.closeSiteInspection)
@@ -2094,8 +2091,6 @@ public struct NewMapView: View {
                 // Wrap in DispatchQueue.main.async to avoid SwiftUI state mutation during view update
                 DispatchQueue.main.async {
                     if let site = viewModel.sites.first(where: { $0.id == identifier }) {
-                        selectedSiteIdForScroll = site.id
-
                         // Close any existing inspection first (mutual exclusivity)
                         if uiViewModel.mode.isInspecting {
                             uiViewModel.send(.closeSiteInspection)
@@ -2741,7 +2736,6 @@ private struct MapBackgroundOverlay: View {
     private func handleSiteTap(_ site: DiveSite) {
         Haptics.soft()
         selectedSite = site
-        selectedSiteIdForScroll = site.id
         withAnimation(.easeInOut(duration: 0.3)) {
             focusMap(on: [site], singleSpan: 2.5)
             surfaceDetent = .medium

@@ -62,34 +62,10 @@ struct MapBounds {
 // MARK: - Map ViewModel
 
 /// Manages map data including sites, shops, and regions.
-/// UI state has been migrated to MapUIViewModel (Step 14).
-/// Legacy filter properties retained for backward compatibility with filter sheets.
+/// UI state is managed by MapUIViewModel (Step 14).
 @MainActor
 class MapViewModel: ObservableObject {
-    // MARK: - Legacy State (Deprecated - use MapUIViewModel instead)
-    // These properties are retained for backward compatibility with CombinedFilterLayersSheet.
-    // New code should use MapUIViewModel.exploreFilters and MapUIViewModel.exploreContext.filterLens.
-
-    @Published var mode: MapMode {
-        didSet {
-            saveFilterPreferences()
-        }
-    }
-    @Published var statusFilter: StatusFilter {
-        didSet {
-            saveFilterPreferences()
-        }
-    }
-    @Published var exploreFilter: ExploreFilter {
-        didSet {
-            saveFilterPreferences()
-        }
-    }
-    @Published var tier: Tier = .regions
-    @Published var selectedRegion: Region?
-    @Published var selectedArea: Area?
-
-    // MARK: - Active State
+    // MARK: - State
 
     @Published var layerSettings: MapLayerSettings = MapLayerSettings()
 
@@ -104,9 +80,6 @@ class MapViewModel: ObservableObject {
     private var wishlistObserver: NSObjectProtocol?
     private var safeModeObserver: NSObjectProtocol?
     private let defaults = UserDefaults.standard
-    private static let modeKey = "map.filter.mode"
-    private static let statusFilterKey = "map.filter.status"
-    private static let exploreFilterKey = "map.filter.explore"
     private var adaptiveViewportLimit: Int = UserDefaults.standard.bool(forKey: AppConstants.UserDefaultsKeys.launchSafeModeEnabled)
         ? AppConstants.LaunchStability.viewportSiteQuerySafeModeLimit
         : AppConstants.LaunchStability.viewportSiteQueryLimit
@@ -146,16 +119,6 @@ class MapViewModel: ObservableObject {
     }
 
     init() {
-        // Load persisted filter preferences
-        let savedMode = defaults.string(forKey: Self.modeKey) ?? "myMap"
-        self.mode = savedMode == "explore" ? .explore : .myMap
-
-        let savedStatusFilter = defaults.string(forKey: Self.statusFilterKey) ?? "wishlist"
-        self.statusFilter = Self.parseStatusFilter(savedStatusFilter)
-
-        let savedExploreFilter = defaults.string(forKey: Self.exploreFilterKey) ?? "all"
-        self.exploreFilter = Self.parseExploreFilter(savedExploreFilter)
-
         wishlistObserver = NotificationCenter.default.addObserver(
             forName: .wishlistUpdated,
             object: nil,
@@ -187,60 +150,7 @@ class MapViewModel: ObservableObject {
         }
     }
 
-    var filteredSites: [DiveSite] {
-        if mode == .myMap {
-            return applyMyMapFilters(to: visibleSites)
-        } else {
-            return applyExploreFilters(to: visibleSites)
-        }
-    }
-
-    func applyMyMapFilters(to sites: [DiveSite]) -> [DiveSite] {
-        sites.filter { site in
-            guard matchesHierarchy(site) else { return false }
-            switch statusFilter {
-            case .visited:
-                return site.visitedCount > 0
-            case .wishlist:
-                return site.wishlist
-            case .planned:
-                return site.isPlanned
-            }
-        }
-    }
-
-    func applyExploreFilters(to sites: [DiveSite]) -> [DiveSite] {
-        sites.filter { site in
-            guard matchesHierarchy(site) else { return false }
-            switch exploreFilter {
-            case .all:
-                return true
-            case .nearby:
-                return true // TODO: incorporate user location distance
-            case .popular:
-                return site.visitedCount > 5
-            case .beginner:
-                return site.difficulty == .beginner
-            case .wrecks:
-                return site.type == .wreck
-            }
-        }
-    }
-
-    private func matchesHierarchy(_ site: DiveSite) -> Bool {
-        if let region = selectedRegion, site.region != region.name {
-            return false
-        }
-        if let area = selectedArea {
-            let (siteArea, _) = parseAreaCountry(site.location)
-            if siteArea != area.name {
-                return false
-            }
-        }
-        return true
-    }
-
-    // MARK: - New Filter Methods (Step 14 migration)
+    // MARK: - Filter Methods (Step 14)
 
     /// Apply filters using the new unified state types.
     /// - Parameters:
@@ -335,10 +245,6 @@ class MapViewModel: ObservableObject {
         sites.filter { $0.wishlist }.count
     }
 
-    var plannedCount: Int {
-        0  // TODO
-    }
-
     var areasInSelectedRegion: [Area] {
         guard let region = selectedRegion else { return [] }
         let regionSites = sites.filter { $0.region == region.name }
@@ -357,12 +263,6 @@ class MapViewModel: ObservableObject {
             )
         }
             .sorted { $0.name < $1.name }
-    }
-
-    private func saveFilterPreferences() {
-        defaults.set(mode == .explore ? "explore" : "myMap", forKey: Self.modeKey)
-        defaults.set(statusFilterString(statusFilter), forKey: Self.statusFilterKey)
-        defaults.set(exploreFilterString(exploreFilter), forKey: Self.exploreFilterKey)
     }
 
     // MARK: - Map State Persistence (US-2)
@@ -390,42 +290,6 @@ class MapViewModel: ObservableObject {
         defaults.removeObject(forKey: Self.lastCenterLatKey)
         defaults.removeObject(forKey: Self.lastCenterLonKey)
         defaults.removeObject(forKey: Self.lastZoomKey)
-    }
-
-    private func statusFilterString(_ filter: StatusFilter) -> String {
-        switch filter {
-        case .visited: return "visited"
-        case .wishlist: return "wishlist"
-        case .planned: return "planned"
-        }
-    }
-
-    private func exploreFilterString(_ filter: ExploreFilter) -> String {
-        switch filter {
-        case .all: return "all"
-        case .nearby: return "nearby"
-        case .popular: return "popular"
-        case .beginner: return "beginner"
-        case .wrecks: return "wrecks"
-        }
-    }
-
-    private static func parseStatusFilter(_ string: String) -> StatusFilter {
-        switch string {
-        case "visited": return .visited
-        case "planned": return .planned
-        default: return .wishlist
-        }
-    }
-
-    private static func parseExploreFilter(_ string: String) -> ExploreFilter {
-        switch string {
-        case "nearby": return .nearby
-        case "popular": return .popular
-        case "beginner": return .beginner
-        case "wrecks": return .wrecks
-        default: return .all
-        }
     }
 
     private func applyWishlistUpdate(_ notification: Notification) {
@@ -716,40 +580,6 @@ class MapViewModel: ObservableObject {
 }
 
 // MARK: - Enums
-
-enum MapMode {
-    case myMap, explore
-}
-
-enum StatusFilter {
-    case visited, wishlist, planned
-}
-
-enum ExploreFilter {
-    case all, nearby, popular, beginner, wrecks
-}
-
-extension StatusFilter {
-    var displayName: String {
-        switch self {
-        case .visited: return "Visited"
-        case .wishlist: return "Wishlist"
-        case .planned: return "Planned"
-        }
-    }
-}
-
-extension ExploreFilter {
-    var displayName: String {
-        switch self {
-        case .all: return "All"
-        case .nearby: return "Nearby"
-        case .popular: return "Popular"
-        case .beginner: return "Beginner"
-        case .wrecks: return "Wrecks"
-        }
-    }
-}
 
 enum Tier {
     case regions, areas, sites
