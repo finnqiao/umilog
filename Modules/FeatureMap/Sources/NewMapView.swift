@@ -630,7 +630,6 @@ public struct NewMapView: View {
     @StateObject private var viewModel = MapViewModel()
     @StateObject private var uiViewModel = MapUIViewModel()
     @StateObject private var featuredService = FeaturedDestinationService.shared
-    @Environment(\.safeAreaInsets) private var safeAreaInsets
     // Start with world view to avoid flashing a hardcoded location
     @State private var mapRegion = MKCoordinateRegion(
         center: CLLocationCoordinate2D(latitude: -0.5, longitude: 130.5),
@@ -1618,27 +1617,31 @@ public struct NewMapView: View {
     @ViewBuilder
     private var proximityPromptOverlay: some View {
         if let prompt = uiViewModel.proximityPrompt, !prompt.isDismissed {
-            VStack {
-                Spacer()
-                ProximityPromptCard(
-                    state: prompt,
-                    onAccept: {
-                        uiViewModel.send(.acceptProximityPrompt)
-                        startLiveLog(at: prompt.site)
-                        Haptics.success()
-                    },
-                    onDismiss: {
-                        uiViewModel.send(.dismissProximityPrompt)
-                        Haptics.soft()
-                    }
-                )
-                .padding(.horizontal, 16)
-                .padding(.trailing, AppConstants.Layout.verticalTabBarWidth)
-                // Position above the bottom sheet + home indicator + margin.
-                .padding(.bottom, surfaceDetent.height(in: UIScreen.main.bounds.height - safeAreaInsets.bottom) + safeAreaInsets.bottom + 12)
+            GeometryReader { geometry in
+                let bottomInset = geometry.safeAreaInsets.bottom
+                VStack {
+                    Spacer()
+                    ProximityPromptCard(
+                        state: prompt,
+                        onAccept: {
+                            uiViewModel.send(.acceptProximityPrompt)
+                            startLiveLog(at: prompt.site)
+                            Haptics.success()
+                        },
+                        onDismiss: {
+                            uiViewModel.send(.dismissProximityPrompt)
+                            Haptics.soft()
+                        }
+                    )
+                    .padding(.horizontal, 16)
+                    .padding(.trailing, AppConstants.Layout.verticalTabBarWidth)
+                    // Position above the bottom sheet + home indicator + margin.
+                    .padding(.bottom, surfaceDetent.height(in: geometry.size.height - bottomInset) + bottomInset + 12)
+                }
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .transition(.move(edge: .bottom).combined(with: .opacity))
+                .animation(.spring(response: 0.4, dampingFraction: 0.8), value: uiViewModel.proximityPrompt != nil)
             }
-            .transition(.move(edge: .bottom).combined(with: .opacity))
-            .animation(.spring(response: 0.4, dampingFraction: 0.8), value: uiViewModel.proximityPrompt != nil)
         }
     }
 
