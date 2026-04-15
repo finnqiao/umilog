@@ -1,0 +1,294 @@
+{
+  "generated_at": "2026-04-15T15:56:26.700137+00:00",
+  "source_corpus": {
+    "total_sites": 32336,
+    "global_region_rows": 30734,
+    "wreck_like_rows": 29872,
+    "uk_wreck_like_rows": 29148
+  },
+  "curated_core": {
+    "site_count": 85,
+    "duplicate_clusters_within_1km": [],
+    "rows_missing_geography": [],
+    "rows_with_global_region": [],
+    "generic_wreck_rows": []
+  },
+  "benchmark_coverage": [
+    {
+      "destination_slug": "komodo-national-park",
+      "minimum_coverage": 0.9,
+      "benchmark_count": 6,
+      "curated_count": 6,
+      "coverage": 1.0,
+      "source_match_count": 4
+    },
+    {
+      "destination_slug": "raja-ampat",
+      "minimum_coverage": 0.85,
+      "benchmark_count": 6,
+      "curated_count": 6,
+      "coverage": 1.0,
+      "source_match_count": 5
+    },
+    {
+      "destination_slug": "nusa-penida-lembongan",
+      "minimum_coverage": 0.8,
+      "benchmark_count": 6,
+      "curated_count": 6,
+      "coverage": 1.0,
+      "source_match_count": 2
+    },
+    {
+      "destination_slug": "tulamben-amed",
+      "minimum_coverage": 0,
+      "benchmark_count": 6,
+      "curated_count": 6,
+      "coverage": 1.0,
+      "source_match_count": 2
+    },
+    {
+      "destination_slug": "gili-islands",
+      "minimum_coverage": 0,
+      "benchmark_count": 4,
+      "curated_count": 4,
+      "coverage": 1.0,
+      "source_match_count": 2
+    },
+    {
+      "destination_slug": "lembeh-strait",
+      "minimum_coverage": 0.8,
+      "benchmark_count": 6,
+      "curated_count": 6,
+      "coverage": 1.0,
+      "source_match_count": 0
+    },
+    {
+      "destination_slug": "bunaken-national-park",
+      "minimum_coverage": 0,
+      "benchmark_count": 5,
+      "curated_count": 5,
+      "coverage": 1.0,
+      "source_match_count": 2
+    },
+    {
+      "destination_slug": "alor-strait",
+      "minimum_coverage": 0,
+      "benchmark_count": 5,
+      "curated_count": 5,
+      "coverage": 1.0,
+      "source_match_count": 0
+    },
+    {
+      "destination_slug": "sinai-red-sea",
+      "minimum_coverage": 0,
+      "benchmark_count": 5,
+      "curated_count": 5,
+      "coverage": 1.0,
+      "source_match_count": 3
+    },
+    {
+      "destination_slug": "marsa-alam-offshore",
+      "minimum_coverage": 0,
+      "benchmark_count": 4,
+      "curated_count": 4,
+      "coverage": 1.0,
+      "source_match_count": 0
+    },
+    {
+      "destination_slug": "maldives-central-atolls",
+      "minimum_coverage": 0,
+      "benchmark_count": 5,
+      "curated_count": 5,
+      "coverage": 1.0,
+      "source_match_count": 3
+    },
+    {
+      "destination_slug": "palau-rock-islands",
+      "minimum_coverage": 0,
+      "benchmark_count": 5,
+      "curated_count": 5,
+      "coverage": 1.0,
+      "source_match_count": 4
+    },
+    {
+      "destination_slug": "great-barrier-reef-cairns",
+      "minimum_coverage": 0,
+      "benchmark_count": 4,
+      "curated_count": 4,
+      "coverage": 1.0,
+      "source_match_count": 1
+    },
+    {
+      "destination_slug": "cozumel-riviera-maya",
+      "minimum_coverage": 0,
+      "benchmark_count": 5,
+      "curated_count": 5,
+      "coverage": 1.0,
+      "source_match_count": 1
+    },
+    {
+      "destination_slug": "philippines-islands",
+      "minimum_coverage": 0,
+      "benchmark_count": 5,
+      "curated_count": 5,
+      "coverage": 1.0,
+      "source_match_count": 1
+    },
+    {
+      "destination_slug": "thailand-gulf-and-similan",
+      "minimum_coverage": 0,
+      "benchmark_count": 4,
+      "curated_count": 4,
+      "coverage": 1.0,
+      "source_match_count": 2
+    },
+    {
+      "destination_slug": "south-africa-east-coast",
+      "minimum_coverage": 0,
+      "benchmark_count": 4,
+      "curated_count": 4,
+      "coverage": 1.0,
+      "source_match_count": 0
+    }
+  ],
+  "source_benchmark_misses": [
+    {
+      "destination_slug": "komodo-national-park",
+      "missing_benchmark_sites": [
+        "Castle Rock",
+        "Cannibal Rock"
+      ]
+    },
+    {
+      "destination_slug": "raja-ampat",
+      "missing_benchmark_sites": [
+        "Cape Kri"
+      ]
+    },
+    {
+      "destination_slug": "nusa-penida-lembongan",
+      "missing_benchmark_sites": [
+        "Toyapakeh",
+        "Gamat Bay",
+        "SD Point",
+        "Blue Corner"
+      ]
+    },
+    {
+      "destination_slug": "tulamben-amed",
+      "missing_benchmark_sites": [
+        "Tulamben Drop Off",
+        "Seraya Secret",
+        "Kubu Wreck",
+        "Jemeluk Bay"
+      ]
+    },
+    {
+      "destination_slug": "gili-islands",
+      "missing_benchmark_sites": [
+        "Halik Reef",
+        "Bounty Wreck"
+      ]
+    },
+    {
+      "destination_slug": "lembeh-strait",
+      "missing_benchmark_sites": [
+        "Nudi Falls",
+        "Jahir",
+        "Air Prang",
+        "Police Pier",
+        "Hairball",
+        "TK 3"
+      ]
+    },
+    {
+      "destination_slug": "bunaken-national-park",
+      "missing_benchmark_sites": [
+        "Lekuan I",
+        "Lekuan II",
+        "Lekuan III"
+      ]
+    },
+    {
+      "destination_slug": "alor-strait",
+      "missing_benchmark_sites": [
+        "Babylon",
+        "Current City",
+        "Clown Valley",
+        "The Cathedral",
+        "Kal's Dream"
+      ]
+    },
+    {
+      "destination_slug": "sinai-red-sea",
+      "missing_benchmark_sites": [
+        "Blue Hole",
+        "The Canyon"
+      ]
+    },
+    {
+      "destination_slug": "marsa-alam-offshore",
+      "missing_benchmark_sites": [
+        "Elphinstone Reef",
+        "Daedalus Reef",
+        "Big Brother",
+        "Small Brother"
+      ]
+    },
+    {
+      "destination_slug": "maldives-central-atolls",
+      "missing_benchmark_sites": [
+        "Banana Reef",
+        "HP Reef"
+      ]
+    },
+    {
+      "destination_slug": "palau-rock-islands",
+      "missing_benchmark_sites": [
+        "German Channel"
+      ]
+    },
+    {
+      "destination_slug": "great-barrier-reef-cairns",
+      "missing_benchmark_sites": [
+        "Osprey Reef",
+        "Flynn Reef",
+        "Milln Reef"
+      ]
+    },
+    {
+      "destination_slug": "cozumel-riviera-maya",
+      "missing_benchmark_sites": [
+        "Palancar Gardens",
+        "Santa Rosa Wall",
+        "Columbia Deep",
+        "Dos Ojos"
+      ]
+    },
+    {
+      "destination_slug": "philippines-islands",
+      "missing_benchmark_sites": [
+        "Gato Island",
+        "Pescador Island",
+        "Sardine Run",
+        "Twin Rocks"
+      ]
+    },
+    {
+      "destination_slug": "thailand-gulf-and-similan",
+      "missing_benchmark_sites": [
+        "Sail Rock",
+        "Chumphon Pinnacle"
+      ]
+    },
+    {
+      "destination_slug": "south-africa-east-coast",
+      "missing_benchmark_sites": [
+        "Aliwal Shoal",
+        "Cathedral",
+        "Seven Mile Reef",
+        "Raggie Cave"
+      ]
+    }
+  ]
+}

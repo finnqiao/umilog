@@ -1,10 +1,10 @@
 {
   "regions": [
     {
-      "id": "indian-ocean",
-      "name": "Indian Ocean",
-      "latitude": 4.14473369174359,
-      "longitude": 73.55233738148718
+      "id": "africa",
+      "name": "Africa",
+      "latitude": -34.151489995577855,
+      "longitude": 18.511039441564012
     },
     {
       "id": "atlantic",
@@ -13,52 +13,10 @@
       "longitude": -4.026886764451049
     },
     {
-      "id": "southeast-asia",
-      "name": "Southeast Asia",
-      "latitude": 8.450481055,
-      "longitude": 111.98982616666666
-    },
-    {
-      "id": "south-america",
-      "name": "South America",
-      "latitude": 0.09296814799999946,
-      "longitude": -62.178480296
-    },
-    {
-      "id": "pacific-islands",
-      "name": "Pacific Islands",
-      "latitude": -42.61094969164706,
-      "longitude": 172.51386159505884
-    },
-    {
-      "id": "mediterranean",
-      "name": "Mediterranean",
-      "latitude": 40.72718070825352,
-      "longitude": 8.410409576338028
-    },
-    {
-      "id": "red-sea",
-      "name": "Red Sea",
-      "latitude": 29.157455588090908,
-      "longitude": 33.56690618172727
-    },
-    {
-      "id": "japan",
-      "name": "Japan",
-      "latitude": 30.774094873684213,
-      "longitude": 130.74043377802633
-    },
-    {
       "id": "australia",
       "name": "Australia",
       "latitude": -25.714064608151958,
       "longitude": 132.9968016845147
-    },
-    {
-      "id": "africa",
-      "name": "Africa",
-      "latitude": -34.151489995577855,
-      "longitude": 18.511039441564012
     },
     {
       "id": "caribbean",
@@ -67,16 +25,121 @@
       "longitude": -72.22402592666667
     },
     {
+      "id": "caribbean-mexico",
+      "name": "Caribbean Mexico",
+      "country_id": "MX",
+      "latitude": 20.5,
+      "longitude": -87.4
+    },
+    {
       "id": "central-america",
       "name": "Central America",
       "latitude": 15.0,
       "longitude": -86.0
     },
     {
+      "id": "coral-triangle",
+      "name": "Coral Triangle",
+      "country_id": null,
+      "latitude": -2.0,
+      "longitude": 123.0
+    },
+    {
       "id": "global",
       "name": "Global",
       "latitude": 0.0,
       "longitude": 0.0
+    },
+    {
+      "id": "great-barrier-reef",
+      "name": "Great Barrier Reef",
+      "country_id": "AU",
+      "latitude": -18.3,
+      "longitude": 147.7
+    },
+    {
+      "id": "indian-ocean",
+      "name": "Indian Ocean",
+      "latitude": 4.14473369174359,
+      "longitude": 73.55233738148718
+    },
+    {
+      "id": "japan",
+      "name": "Japan",
+      "latitude": 30.774094873684213,
+      "longitude": 130.74043377802633
+    },
+    {
+      "id": "maldives",
+      "name": "Maldives",
+      "country_id": "MV",
+      "latitude": 3.2,
+      "longitude": 73.2
+    },
+    {
+      "id": "mediterranean",
+      "name": "Mediterranean",
+      "latitude": 40.72718070825352,
+      "longitude": 8.410409576338028
+    },
+    {
+      "id": "pacific-islands",
+      "name": "Pacific Islands",
+      "latitude": -42.61094969164706,
+      "longitude": 172.51386159505884
+    },
+    {
+      "id": "palau",
+      "name": "Palau",
+      "country_id": "PW",
+      "latitude": 7.3,
+      "longitude": 134.4
+    },
+    {
+      "id": "philippines",
+      "name": "Philippines",
+      "country_id": "PH",
+      "latitude": 11.7,
+      "longitude": 122.9
+    },
+    {
+      "id": "red-sea",
+      "name": "Red Sea",
+      "latitude": 29.157455588090908,
+      "longitude": 33.56690618172727
+    },
+    {
+      "id": "red-sea-egypt",
+      "name": "Red Sea Egypt",
+      "country_id": "EG",
+      "latitude": 27.8,
+      "longitude": 34.2
+    },
+    {
+      "id": "south-africa",
+      "name": "South Africa",
+      "country_id": "ZA",
+      "latitude": -29.7,
+      "longitude": 31.1
+    },
+    {
+      "id": "south-america",
+      "name": "South America",
+      "latitude": 0.09296814799999946,
+      "longitude": -62.178480296
+    },
+    {
+      "id": "southeast-asia",
+      "name": "Southeast Asia",
+      "latitude": 8.450481055,
+      "longitude": 111.98982616666666
+    },
+    {
+      "id": "thailand",
+      "name": "Thailand",
+      "country_id": "TH",
+      "latitude": 9.5,
+      "longitude": 100.0
     }
   ]
 }

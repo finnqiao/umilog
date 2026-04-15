@@ -28,6 +28,12 @@ public struct DiveSite: Codable, Identifiable, Hashable {
     public let areaId: String?
     public let wikidataId: String?
     public let osmId: String?
+    public let aliases: [String]
+    public let curationScore: Double
+    public let popularityScore: Double
+    public let accessLevel: String
+    public let wreckVerified: Bool
+    public let destinationSlug: String?
 
     /// Computed property for MapKit compatibility
     public var coordinate: CLLocationCoordinate2D {
@@ -57,7 +63,13 @@ public struct DiveSite: Codable, Identifiable, Hashable {
         regionId: String? = nil,
         areaId: String? = nil,
         wikidataId: String? = nil,
-        osmId: String? = nil
+        osmId: String? = nil,
+        aliases: [String] = [],
+        curationScore: Double = 0,
+        popularityScore: Double = 0,
+        accessLevel: String = "unknown",
+        wreckVerified: Bool = false,
+        destinationSlug: String? = nil
     ) {
         self.id = id
         self.name = name
@@ -82,6 +94,12 @@ public struct DiveSite: Codable, Identifiable, Hashable {
         self.areaId = areaId
         self.wikidataId = wikidataId
         self.osmId = osmId
+        self.aliases = aliases
+        self.curationScore = curationScore
+        self.popularityScore = popularityScore
+        self.accessLevel = accessLevel
+        self.wreckVerified = wreckVerified
+        self.destinationSlug = destinationSlug
     }
     
     public enum Difficulty: String, Codable, CaseIterable {
@@ -129,6 +147,12 @@ extension DiveSite: FetchableRecord, PersistableRecord {
         static let areaId = Column(CodingKeys.areaId)
         static let wikidataId = Column(CodingKeys.wikidataId)
         static let osmId = Column(CodingKeys.osmId)
+        static let aliases = Column(CodingKeys.aliases)
+        static let curationScore = Column(CodingKeys.curationScore)
+        static let popularityScore = Column(CodingKeys.popularityScore)
+        static let accessLevel = Column(CodingKeys.accessLevel)
+        static let wreckVerified = Column(CodingKeys.wreckVerified)
+        static let destinationSlug = Column(CodingKeys.destinationSlug)
     }
 
     enum CodingKeys: String, CodingKey {
@@ -140,6 +164,12 @@ extension DiveSite: FetchableRecord, PersistableRecord {
         case areaId = "area_id"
         case wikidataId = "wikidata_id"
         case osmId = "osm_id"
+        case aliases
+        case curationScore = "curation_score"
+        case popularityScore = "popularity_score"
+        case accessLevel = "access_level"
+        case wreckVerified = "wreck_verified"
+        case destinationSlug = "destination_slug"
     }
 }
 

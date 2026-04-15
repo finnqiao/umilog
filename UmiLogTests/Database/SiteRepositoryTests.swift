@@ -136,6 +136,58 @@ final class SiteRepositoryTests: XCTestCase {
         XCTAssertEqual(beginnerSites.count, 1)
         XCTAssertEqual(beginnerSites.first?.name, "Beginner Site")
     }
+
+    func testSearch_matchesAliases() throws {
+        try siteRepository.create(
+            TestDatabase.makeSite(
+                id: "cape-kri",
+                name: "Kri Reef",
+                aliases: ["Cape Kri", "Kri Cape"],
+                destinationSlug: "raja-ampat"
+            )
+        )
+
+        let results = try siteRepository.search(query: "cape kri")
+        XCTAssertEqual(results.first?.id, "cape-kri")
+    }
+
+    func testFetchAll_ordersByCuratedSignals() throws {
+        try siteRepository.createMany([
+            TestDatabase.makeSite(id: "alpha", name: "Alpha", curationScore: 7.0, popularityScore: 7.0),
+            TestDatabase.makeSite(id: "zulu", name: "Zulu", curationScore: 9.5, popularityScore: 9.0),
+            TestDatabase.makeSite(id: "beta", name: "Beta", curationScore: 9.5, popularityScore: 8.0)
+        ])
+
+        let results = try siteRepository.fetchAll()
+        XCTAssertEqual(results.map(\.id), ["zulu", "beta", "alpha"])
+    }
+
+    func testToggleWishlist_preservesCuratedMetadata() throws {
+        let site = TestDatabase.makeSite(
+            id: "toyapakeh",
+            name: "Toyapakeh",
+            aliases: ["Toyapakeh Wall"],
+            curationScore: 9.7,
+            popularityScore: 9.4,
+            accessLevel: "boat",
+            destinationSlug: "nusa-penida-lembongan",
+            countryId: "ID",
+            regionId: "coral-triangle",
+            areaId: "nusa-penida-lembongan"
+        )
+        try siteRepository.create(site)
+
+        try siteRepository.toggleWishlist(siteId: site.id)
+
+        let fetched = try siteRepository.fetch(id: site.id)
+        XCTAssertEqual(fetched?.aliases, ["Toyapakeh Wall"])
+        XCTAssertEqual(fetched?.curationScore, 9.7)
+        XCTAssertEqual(fetched?.popularityScore, 9.4)
+        XCTAssertEqual(fetched?.accessLevel, "boat")
+        XCTAssertEqual(fetched?.destinationSlug, "nusa-penida-lembongan")
+        XCTAssertEqual(fetched?.regionId, "coral-triangle")
+        XCTAssertTrue(fetched?.wishlist ?? false)
+    }
 }
 
 // MARK: - MapBounds Helper for Tests

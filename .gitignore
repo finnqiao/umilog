@@ -133,6 +133,7 @@ Temporary Items
 # Development databases
 *.db
 *.db-journal
+!Resources/SeedDB/umilog_seed.db
 
 # Temporary files
 *.tmp

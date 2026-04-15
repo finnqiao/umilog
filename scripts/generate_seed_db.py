@@ -42,7 +42,7 @@ def load_json(filename: str) -> dict | list | None:
 
 
 def create_schema(conn: sqlite3.Connection):
-    """Create database schema matching iOS app migrations v1-v9."""
+    """Create database schema matching iOS app migrations v1-v10."""
     cursor = conn.cursor()
 
     # GRDB migration tracking table - must be created first
@@ -78,7 +78,13 @@ def create_schema(conn: sqlite3.Connection):
             area_id TEXT,
             wikidata_id TEXT,
             osm_id TEXT,
-            isPlanned INTEGER NOT NULL DEFAULT 0
+            isPlanned INTEGER NOT NULL DEFAULT 0,
+            aliases TEXT NOT NULL DEFAULT '[]',
+            curation_score REAL NOT NULL DEFAULT 0,
+            popularity_score REAL NOT NULL DEFAULT 0,
+            access_level TEXT NOT NULL DEFAULT 'unknown',
+            wreck_verified INTEGER NOT NULL DEFAULT 0,
+            destination_slug TEXT
         )
     """)
 
@@ -93,6 +99,9 @@ def create_schema(conn: sqlite3.Connection):
     cursor.execute("CREATE INDEX idx_sites_region_id ON sites(region_id)")
     cursor.execute("CREATE INDEX idx_sites_area_id ON sites(area_id)")
     cursor.execute("CREATE INDEX idx_sites_planned ON sites(isPlanned)")
+    cursor.execute("CREATE INDEX idx_sites_curation ON sites(curation_score, popularity_score)")
+    cursor.execute("CREATE INDEX idx_sites_destination_slug ON sites(destination_slug)")
+    cursor.execute("CREATE INDEX idx_sites_wreck_verified ON sites(wreck_verified)")
 
     # v1: Dives table (with v6 modifications for GPS drafts)
     cursor.execute("""
@@ -174,6 +183,15 @@ def create_schema(conn: sqlite3.Connection):
         )
     """)
     cursor.execute("CREATE INDEX idx_site_tags_tag ON site_tags(tag)")
+    cursor.execute("""
+        CREATE TABLE site_aliases (
+            site_id TEXT NOT NULL REFERENCES sites(id) ON DELETE CASCADE,
+            alias TEXT NOT NULL,
+            alias_normalized TEXT NOT NULL,
+            PRIMARY KEY (site_id, alias_normalized) ON CONFLICT REPLACE
+        )
+    """)
+    cursor.execute("CREATE INDEX idx_site_aliases_normalized ON site_aliases(alias_normalized)")
 
     # v4: Site facets
     cursor.execute("""
@@ -416,7 +434,7 @@ def create_schema(conn: sqlite3.Connection):
     # FTS5 tables (content-less for manual population)
     cursor.execute("""
         CREATE VIRTUAL TABLE sites_fts USING fts5(
-            name, region, location, tags, description,
+            name, aliases, region, location, tags, description,
             content='', contentless_delete=1
         )
     """)
@@ -431,15 +449,15 @@ def create_schema(conn: sqlite3.Connection):
     # v9: FTS5 incremental triggers for sites
     cursor.execute("""
         CREATE TRIGGER sites_fts_insert AFTER INSERT ON sites BEGIN
-            INSERT INTO sites_fts(rowid, name, region, location, tags, description)
-            VALUES (NEW.rowid, NEW.name, NEW.region, NEW.location, NEW.tags, NEW.description);
+            INSERT INTO sites_fts(rowid, name, aliases, region, location, tags, description)
+            VALUES (NEW.rowid, NEW.name, NEW.aliases, NEW.region, NEW.location, NEW.tags, NEW.description);
         END
     """)
     cursor.execute("""
         CREATE TRIGGER sites_fts_update AFTER UPDATE ON sites BEGIN
             DELETE FROM sites_fts WHERE rowid = OLD.rowid;
-            INSERT INTO sites_fts(rowid, name, region, location, tags, description)
-            VALUES (NEW.rowid, NEW.name, NEW.region, NEW.location, NEW.tags, NEW.description);
+            INSERT INTO sites_fts(rowid, name, aliases, region, location, tags, description)
+            VALUES (NEW.rowid, NEW.name, NEW.aliases, NEW.region, NEW.location, NEW.tags, NEW.description);
         END
     """)
     cursor.execute("""
@@ -477,7 +495,8 @@ def create_schema(conn: sqlite3.Connection):
         "v6_gps_draft_planned_sites",
         "v7_sync_trips_user_states",
         "v8_region_descriptions",
-        "v9_fts5_incremental_triggers"
+        "v9_fts5_incremental_triggers",
+        "v10_curated_site_metadata"
     ]
     cursor.executemany(
         "INSERT INTO grdb_migrations (identifier) VALUES (?)",
@@ -485,7 +504,7 @@ def create_schema(conn: sqlite3.Connection):
     )
 
     conn.commit()
-    log("Schema created with all migrations v1-v9")
+    log("Schema created with all migrations v1-v10")
 
 
 def seed_countries(conn: sqlite3.Connection):
@@ -559,6 +578,46 @@ def seed_areas(conn: sqlite3.Connection):
     log(f"  Inserted {len(areas)} areas")
 
 
+def normalize_alias(value: str) -> str:
+    """Normalize aliases for exact-match search."""
+    normalized = "".join(ch.lower() if ch.isalnum() else " " for ch in value)
+    return " ".join(normalized.split())
+
+
+def validate_curated_sites(sites: list[dict]):
+    """Validate curated-core quality gates before shipping the seed DB."""
+    errors = []
+    generic_wreck_patterns = (
+        "unnamed shipwreck",
+        "unknown shipwreck",
+    )
+    for site in sites:
+        if not site.get("country_id") or not site.get("region_id") or not site.get("area_id"):
+            errors.append(f"{site.get('id')}: missing geography ids")
+        if site.get("region") == "Global":
+            errors.append(f"{site.get('id')}: Global region is not allowed")
+        normalized_name = (site.get("name") or "").strip().lower()
+        if normalized_name in {"shipwreck", "wreck"} or any(pattern in normalized_name for pattern in generic_wreck_patterns):
+            errors.append(f"{site.get('id')}: generic wreck naming is not allowed")
+    if errors:
+        joined = "\n".join(f"  - {error}" for error in errors[:50])
+        raise RuntimeError(f"Curated core validation failed:\n{joined}")
+
+
+def load_curated_site_id_map() -> dict[str, str]:
+    """Map matched legacy/base site IDs onto curated site IDs."""
+    data = load_json("curated_core_sites")
+    if not data:
+        return {}
+
+    mapping: dict[str, str] = {}
+    for site in data.get("sites", []):
+        matched_base_id = (((site.get("provenance") or {}).get("matched_base_id")) or "").strip()
+        if matched_base_id:
+            mapping[matched_base_id] = site["id"]
+    return mapping
+
+
 def seed_species_families(conn: sqlite3.Connection):
     """Seed species families table."""
     data = load_json("families_catalog")
@@ -590,23 +649,26 @@ def seed_species_families(conn: sqlite3.Connection):
 
 
 def seed_sites(conn: sqlite3.Connection):
-    """Seed sites from enriched file."""
-    data = load_json("sites_enriched")
+    """Seed sites from the curated core artifact only."""
+    data = load_json("curated_core_sites")
     if not data:
-        log("  Warning: sites_enriched.json not found, trying fallback")
-        return
+        raise RuntimeError("curated_core_sites.json is required to generate the bundled seed DB")
 
     sites = data.get("sites", [])
+    validate_curated_sites(sites)
     cursor = conn.cursor()
     now = datetime.now().isoformat()
 
     rows = []
+    alias_rows = []
     for s in sites:
         # Build location from area and country
         area = (s.get("area") or "").strip()
         country = (s.get("country") or "").strip()
         parts = [p for p in [area, country] if p]
         location = ", ".join(parts) if parts else s.get("region", "")
+        aliases = s.get("aliases") or []
+        aliases = [alias.strip() for alias in aliases if isinstance(alias, str) and alias.strip()]
 
         rows.append((
             s["id"],
@@ -624,25 +686,43 @@ def seed_sites(conn: sqlite3.Connection):
             s.get("description"),
             s.get("wishlist", False),
             s.get("visitedCount", 0),
-            now,
-            "[]",  # tags
-            None,  # country_id
-            None,  # region_id
-            None,  # area_id
-            None,  # wikidata_id
-            None,  # osm_id
-            s.get("isPlanned", False)
+            s.get("createdAt", now),
+            json.dumps(s.get("tags") or []),
+            s.get("country_id"),
+            s.get("region_id"),
+            s.get("area_id"),
+            s.get("wikidata_id"),
+            s.get("osm_id"),
+            s.get("isPlanned", False),
+            json.dumps(aliases),
+            s.get("curation_score", 0),
+            s.get("popularity_score", 0),
+            s.get("access_level", "unknown"),
+            1 if s.get("wreck_verified", False) else 0,
+            s.get("destination_slug")
         ))
+
+        for alias in aliases:
+            normalized = normalize_alias(alias)
+            if normalized:
+                alias_rows.append((s["id"], alias, normalized))
 
     cursor.executemany(
         """INSERT INTO sites (id, name, location, latitude, longitude, region,
            averageDepth, maxDepth, averageTemp, averageVisibility, difficulty, type,
            description, wishlist, visitedCount, createdAt, tags, country_id, region_id,
-           area_id, wikidata_id, osm_id, isPlanned) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+           area_id, wikidata_id, osm_id, isPlanned, aliases, curation_score,
+           popularity_score, access_level, wreck_verified, destination_slug)
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
         rows
     )
+    if alias_rows:
+        cursor.executemany(
+            "INSERT INTO site_aliases (site_id, alias, alias_normalized) VALUES (?, ?, ?)",
+            alias_rows
+        )
     conn.commit()
-    log(f"  Inserted {len(sites)} sites")
+    log(f"  Inserted {len(sites)} sites from curated_core_sites")
 
 
 def load_species_descriptions() -> dict:
@@ -811,6 +891,7 @@ def seed_site_species_links(conn: sqlite3.Connection) -> dict:
 
     cursor.execute("SELECT id FROM sites")
     valid_sites = {row[0] for row in cursor.fetchall()}
+    curated_site_id_map = load_curated_site_id_map()
 
     species_site_counts = {}  # species_id -> number of sites
     rows = []
@@ -827,6 +908,7 @@ def seed_site_species_links(conn: sqlite3.Connection) -> dict:
             sites = species.get("sites", [])
             for site in sites:
                 site_id = site.get("id", "").strip()
+                site_id = curated_site_id_map.get(site_id, site_id)
                 if not site_id or site_id not in valid_sites:
                     continue
 
@@ -859,6 +941,7 @@ def seed_site_species_links(conn: sqlite3.Connection) -> dict:
         if data:
             for link in data.get("site_species", []):
                 site_id = link.get("site_id", "").strip()
+                site_id = curated_site_id_map.get(site_id, site_id)
                 species_id = link.get("species_id", "").strip()
 
                 if not site_id or not species_id:
@@ -1032,8 +1115,8 @@ def build_fts_indexes(conn: sqlite3.Connection):
         log(f"  Rebuilding sites FTS ({sites_fts_count} vs {sites_count} rows)")
         cursor.execute("DELETE FROM sites_fts")
         cursor.execute("""
-            INSERT INTO sites_fts(rowid, name, region, location, tags, description)
-            SELECT rowid, name, region, location, tags, description FROM sites
+            INSERT INTO sites_fts(rowid, name, aliases, region, location, tags, description)
+            SELECT rowid, name, aliases, region, location, tags, description FROM sites
         """)
 
     # FTS for species

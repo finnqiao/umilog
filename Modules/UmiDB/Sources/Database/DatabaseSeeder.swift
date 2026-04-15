@@ -1,5 +1,6 @@
 import Foundation
 import os
+import GRDB
 
 public enum DatabaseSeeder {
     static let logger = Logger(subsystem: "app.umilog", category: "DatabaseSeeder")
@@ -8,7 +9,7 @@ public enum DatabaseSeeder {
     private static let seedRefreshLastStepKey = "app.umilog.seedRefresh.lastStep"
     private static let seedRefreshLastErrorKey = "app.umilog.seedRefresh.lastError"
     private static let seedRefreshLastRunAtKey = "app.umilog.seedRefresh.lastRunAt"
-    public static let seedDataVersion = "2026-02-05-llm-enrichment-v5"
+    public static let seedDataVersion = "2026-04-15-curated-core-v1"
     
     // MARK: - Main Seeding Entry Point
 
@@ -33,10 +34,12 @@ public enum DatabaseSeeder {
         // Geographic hierarchy
         let geoRepo = GeographyRepository(database: db)
         let countryCount = try geoRepo.countCountries()
-        if countryCount == 0 {
+        let regionCount = try geoRepo.countRegions()
+        let areaCount = try geoRepo.countAreas()
+        if countryCount == 0 || regionCount == 0 || areaCount == 0 {
             try seedGeographicHierarchy(); seededSomething = true
         } else {
-            Self.logger.log("  ℹ️ Geographic hierarchy already present (\\(countryCount, privacy: .public) countries)")
+            Self.logger.log("  ℹ️ Geographic hierarchy already present (\\(countryCount, privacy: .public) countries, \\(regionCount, privacy: .public) regions, \\(areaCount, privacy: .public) areas)")
         }
 
         // Sites
@@ -77,10 +80,12 @@ public enum DatabaseSeeder {
         // v5: Geographic hierarchy (countries, regions, areas)
         let geoRepo = GeographyRepository(database: db)
         let countryCount = try geoRepo.countCountries()
-        if countryCount == 0 {
+        let regionCount = try geoRepo.countRegions()
+        let areaCount = try geoRepo.countAreas()
+        if countryCount == 0 || regionCount == 0 || areaCount == 0 {
             try seedGeographicHierarchy(); seededSomething = true
         } else {
-            Self.logger.log("  ℹ️ Geographic hierarchy already present (\\(countryCount, privacy: .public) countries)")
+            Self.logger.log("  ℹ️ Geographic hierarchy already present (\\(countryCount, privacy: .public) countries, \\(regionCount, privacy: .public) regions, \\(areaCount, privacy: .public) areas)")
         }
 
         // v5: Species families
@@ -498,7 +503,7 @@ public enum DatabaseSeeder {
     }
 
     private static func refreshSitesCatalog() throws {
-        guard let enrichedFile = optionalJSON("sites_enriched", as: EnrichedSitesSeedFile.self) else {
+        guard let (_, siteSeedFile) = loadPreferredSiteSeedFile() else {
             return
         }
 
@@ -511,13 +516,15 @@ public enum DatabaseSeeder {
                 existingById[site.id] = site
             }
 
-            for siteData in enrichedFile.sites {
+            for siteData in siteSeedFile.sites {
                 let updated = convertEnrichedSiteToModel(siteData)
                 if let existing = existingById[updated.id] {
                     let merged = mergeExistingSite(existing, updated: updated)
                     try merged.save(db)
+                    try replaceSiteAliases(for: merged, in: db)
                 } else {
                     try updated.insert(db)
+                    try replaceSiteAliases(for: updated, in: db)
                 }
             }
         }
@@ -637,6 +644,7 @@ public enum DatabaseSeeder {
         let validSiteIds = try db.read { db in
             Set(try String.fetchAll(db, sql: "SELECT id FROM sites"))
         }
+        let curatedSiteIdMapping = loadCuratedBaseSiteIdMapping()
 
         guard !validSpeciesIds.isEmpty, !validSiteIds.isEmpty else {
             Self.logger.log("  ℹ️ Skipping site-species links (missing species or sites)")
@@ -644,9 +652,10 @@ public enum DatabaseSeeder {
         }
 
         if let catalogLinks = try loadSiteSpeciesLinksFromCatalog() {
-            let filtered = catalogLinks.filter { validSpeciesIds.contains($0.speciesId) && validSiteIds.contains($0.siteId) }
+            let remapped = catalogLinks.compactMap { remapSiteSpeciesLink($0, validSiteIds: validSiteIds, curatedSiteIdMapping: curatedSiteIdMapping) }
+            let filtered = remapped.filter { validSpeciesIds.contains($0.speciesId) && validSiteIds.contains($0.siteId) }
             if filtered.count != catalogLinks.count {
-                Self.logger.log("  ℹ️ Filtered \\(catalogLinks.count - filtered.count, privacy: .public) invalid catalog links")
+                Self.logger.log("  ℹ️ Filtered \\(catalogLinks.count - filtered.count, privacy: .public) invalid catalog links after curated remap")
             }
             guard !filtered.isEmpty else {
                 Self.logger.log("  ℹ️ No valid catalog links to load")
@@ -668,7 +677,7 @@ public enum DatabaseSeeder {
             guard let likelihood = SiteSpeciesLink.Likelihood(rawValue: data.likelihood) else {
                 return nil
             }
-            return SiteSpeciesLink(
+            let link = SiteSpeciesLink(
                 siteId: data.site_id,
                 speciesId: data.species_id,
                 likelihood: likelihood,
@@ -679,6 +688,7 @@ public enum DatabaseSeeder {
                 sourceRecordCount: data.source_record_count,
                 lastUpdated: dateFormatter.date(from: data.last_updated) ?? Date()
             )
+            return remapSiteSpeciesLink(link, validSiteIds: validSiteIds, curatedSiteIdMapping: curatedSiteIdMapping)
         }
 
         let filtered = links.filter { validSpeciesIds.contains($0.speciesId) && validSiteIds.contains($0.siteId) }
@@ -691,6 +701,33 @@ public enum DatabaseSeeder {
         }
         try speciesRepo.createSiteLinks(filtered)
         Self.logger.log("  ✅ Loaded \\(filtered.count, privacy: .public) site-species links")
+    }
+
+    private static func remapSiteSpeciesLink(
+        _ link: SiteSpeciesLink,
+        validSiteIds: Set<String>,
+        curatedSiteIdMapping: [String: String]
+    ) -> SiteSpeciesLink? {
+        let resolvedSiteId: String
+        if validSiteIds.contains(link.siteId) {
+            resolvedSiteId = link.siteId
+        } else if let mapped = curatedSiteIdMapping[link.siteId], validSiteIds.contains(mapped) {
+            resolvedSiteId = mapped
+        } else {
+            return nil
+        }
+
+        return SiteSpeciesLink(
+            siteId: resolvedSiteId,
+            speciesId: link.speciesId,
+            likelihood: link.likelihood,
+            seasonMonths: link.seasonMonths,
+            depthMinM: link.depthMinM,
+            depthMaxM: link.depthMaxM,
+            source: link.source,
+            sourceRecordCount: link.sourceRecordCount,
+            lastUpdated: link.lastUpdated
+        )
     }
 
     private static func loadSiteSpeciesLinksFromCatalog() throws -> [SiteSpeciesLink]? {
@@ -743,13 +780,13 @@ public enum DatabaseSeeder {
     private static func seedSites() throws {
         Self.logger.log("  📍 Loading dive sites...")
 
-        if let enrichedFile = optionalJSON("sites_enriched", as: EnrichedSitesSeedFile.self) {
-            let sites = enrichedFile.sites.map { convertEnrichedSiteToModel($0) }
+        if let (sourceName, siteSeedFile) = loadPreferredSiteSeedFile() {
+            let sites = siteSeedFile.sites.map { convertEnrichedSiteToModel($0) }
 
             let db = AppDatabase.shared
             try db.siteRepository.createMany(sites)
 
-            Self.logger.log("  ✅ Loaded \\(sites.count, privacy: .public) sites across \\(Set(sites.map { $0.region }).count, privacy: .public) regions (enriched)")
+            Self.logger.log("  ✅ Loaded \(sites.count, privacy: .public) sites across \(Set(sites.map { $0.region }).count, privacy: .public) regions (\(sourceName, privacy: .public))")
             return
         }
         
@@ -943,7 +980,18 @@ public enum DatabaseSeeder {
             description: normalizedDescription(json.description),
             wishlist: json.wishlist ?? false,
             visitedCount: json.visitedCount ?? 0,
-            createdAt: Date()
+            createdAt: Date(),
+            countryId: json.country_id,
+            regionId: json.region_id,
+            areaId: json.area_id,
+            wikidataId: json.wikidata_id,
+            osmId: json.osm_id,
+            aliases: json.aliases ?? [],
+            curationScore: json.curation_score ?? 0,
+            popularityScore: json.popularity_score ?? 0,
+            accessLevel: json.access_level ?? "unknown",
+            wreckVerified: json.wreck_verified ?? false,
+            destinationSlug: json.destination_slug
         )
     }
 
@@ -965,14 +1013,73 @@ public enum DatabaseSeeder {
             wishlist: existing.wishlist,
             isPlanned: existing.isPlanned,
             visitedCount: existing.visitedCount,
-            tags: existing.tags,
+            tags: updated.tags.isEmpty ? existing.tags : updated.tags,
             createdAt: existing.createdAt,
-            countryId: existing.countryId,
-            regionId: existing.regionId,
-            areaId: existing.areaId,
-            wikidataId: existing.wikidataId,
-            osmId: existing.osmId
+            countryId: updated.countryId ?? existing.countryId,
+            regionId: updated.regionId ?? existing.regionId,
+            areaId: updated.areaId ?? existing.areaId,
+            wikidataId: updated.wikidataId ?? existing.wikidataId,
+            osmId: updated.osmId ?? existing.osmId,
+            aliases: updated.aliases.isEmpty ? existing.aliases : updated.aliases,
+            curationScore: updated.curationScore > 0 ? updated.curationScore : existing.curationScore,
+            popularityScore: updated.popularityScore > 0 ? updated.popularityScore : existing.popularityScore,
+            accessLevel: updated.accessLevel == "unknown" ? existing.accessLevel : updated.accessLevel,
+            wreckVerified: updated.wreckVerified || existing.wreckVerified,
+            destinationSlug: updated.destinationSlug ?? existing.destinationSlug
         )
+    }
+
+    private static func loadPreferredSiteSeedFile() -> (String, EnrichedSitesSeedFile)? {
+        if let curated = optionalJSON("curated_core_sites", as: EnrichedSitesSeedFile.self) {
+            return ("curated_core_sites", curated)
+        }
+        return nil
+    }
+
+    private static func normalizedAlias(_ value: String) -> String {
+        String(
+            value
+            .lowercased()
+            .map { $0.isLetter || $0.isNumber ? $0 : " " }
+        )
+            .split(whereSeparator: \.isWhitespace)
+            .map(String.init)
+            .joined(separator: " ")
+    }
+
+    private static func replaceSiteAliases(for site: DiveSite, in db: Database) throws {
+        try db.execute(sql: "DELETE FROM site_aliases WHERE site_id = ?", arguments: [site.id])
+
+        var seen = Set<String>()
+        seen.insert(normalizedAlias(site.name))
+
+        for alias in site.aliases {
+            let trimmed = alias.trimmingCharacters(in: .whitespacesAndNewlines)
+            let normalized = normalizedAlias(trimmed)
+            guard !trimmed.isEmpty, !normalized.isEmpty, !seen.contains(normalized) else {
+                continue
+            }
+            seen.insert(normalized)
+            try db.execute(
+                sql: "INSERT INTO site_aliases (site_id, alias, alias_normalized) VALUES (?, ?, ?)",
+                arguments: [site.id, trimmed, normalized]
+            )
+        }
+    }
+
+    private static func loadCuratedBaseSiteIdMapping() -> [String: String] {
+        guard let curated = optionalJSON("curated_core_sites", as: EnrichedSitesSeedFile.self) else {
+            return [:]
+        }
+
+        var mapping: [String: String] = [:]
+        for site in curated.sites {
+            if let matchedBaseId = site.provenance?.matched_base_id?.trimmingCharacters(in: .whitespacesAndNewlines),
+               !matchedBaseId.isEmpty {
+                mapping[matchedBaseId] = site.id
+            }
+        }
+        return mapping
     }
 
     private static func convertSiteType(_ typeString: String) -> DiveSite.SiteType {
@@ -1607,6 +1714,22 @@ private struct EnrichedSiteSeedData: Decodable {
     let description: String?
     let wishlist: Bool?
     let visitedCount: Int?
+    let country_id: String?
+    let region_id: String?
+    let area_id: String?
+    let wikidata_id: String?
+    let osm_id: String?
+    let aliases: [String]?
+    let curation_score: Double?
+    let popularity_score: Double?
+    let access_level: String?
+    let wreck_verified: Bool?
+    let destination_slug: String?
+    let provenance: SiteSeedProvenance?
+}
+
+private struct SiteSeedProvenance: Decodable {
+    let matched_base_id: String?
 }
 
 private struct EnrichedSiteLookup {

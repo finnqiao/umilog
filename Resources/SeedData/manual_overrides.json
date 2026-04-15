@@ -1,0 +1,69 @@
+{
+  "version": "2026-04-15-curated-core-v1",
+  "excluded_ids": [],
+  "excluded_name_patterns": [
+    "^unnamed shipwreck",
+    "^unknown shipwreck",
+    "^shipwreck$",
+    "^wreck$",
+    "\\bprotected wreck\\b",
+    "\\barchaeological wreck\\b",
+    "\\bhistoric wreck\\b"
+  ],
+  "site_overrides": {
+    "komodo-national-park::Batu Bolong": {
+      "base_site_id": "osm_node_5409736127"
+    },
+    "komodo-national-park::Manta Point": {
+      "base_site_id": "osm_node_10252897714"
+    },
+    "raja-ampat::Blue Magic": {
+      "base_site_id": "osm_node_5338514522"
+    },
+    "raja-ampat::Manta Sandy": {
+      "base_site_id": "osm_node_12167282450"
+    },
+    "raja-ampat::Melissa's Garden": {
+      "base_site_id": "osm_node_5453439730"
+    },
+    "raja-ampat::Sawandarek Jetty": {
+      "base_site_id": "osm_node_9865439531"
+    },
+    "raja-ampat::Chicken Reef": {
+      "base_site_id": "osm_node_12167252227"
+    },
+    "nusa-penida-lembongan::Crystal Bay": {
+      "base_site_id": "osm_node_4742534377"
+    },
+    "nusa-penida-lembongan::Manta Point": {
+      "base_site_id": "osm_node_2907339692"
+    },
+    "tulamben-amed::USAT Liberty Wreck": {
+      "base_site_id": "osm_node_2480654035"
+    },
+    "tulamben-amed::Amed Wall": {
+      "base_site_id": "osm_node_4527419399"
+    },
+    "gili-islands::Shark Point": {
+      "base_site_id": "osm_node_2395669759"
+    },
+    "bunaken-national-park::Mandolin": {
+      "base_site_id": "osm_node_7293835957"
+    },
+    "palau-rock-islands::Blue Corner": {
+      "base_site_id": "osm_node_4031041872"
+    },
+    "palau-rock-islands::Blue Holes": {
+      "base_site_id": "osm_node_5042664345"
+    },
+    "great-barrier-reef-cairns::Cod Hole": {
+      "base_site_id": "osm_node_270802348"
+    },
+    "sinai-red-sea::SS Thistlegorm": {
+      "base_site_id": "Q32276"
+    },
+    "thailand-gulf-and-similan::Richelieu Rock": {
+      "base_site_id": "osm_node_270804074"
+    }
+  }
+}
