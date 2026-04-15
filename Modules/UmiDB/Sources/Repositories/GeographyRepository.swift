@@ -182,7 +182,7 @@ public final class GeographyRepository {
     public func createCountries(_ countries: [Country]) throws {
         try database.write { db in
             for country in countries {
-                try country.insert(db)
+                try country.save(db)
             }
         }
     }
@@ -190,7 +190,7 @@ public final class GeographyRepository {
     public func createRegions(_ regions: [Region]) throws {
         try database.write { db in
             for region in regions {
-                try region.insert(db)
+                try region.save(db)
             }
         }
     }
@@ -198,7 +198,7 @@ public final class GeographyRepository {
     public func createAreas(_ areas: [Area]) throws {
         try database.write { db in
             for area in areas {
-                try area.insert(db)
+                try area.save(db)
             }
         }
     }

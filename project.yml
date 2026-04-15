@@ -113,7 +113,7 @@ targets:
         buildPhase: resources
       - path: Resources/SeedData/areas.json
         buildPhase: resources
-      - path: Resources/SeedData/sites_enriched.json
+      - path: Resources/SeedData/curated_core_sites.json
         buildPhase: resources
       - path: Resources/SeedData/site_species.json
         buildPhase: resources

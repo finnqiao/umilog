@@ -1,0 +1,3577 @@
+{
+  "version": "2026-04-15-curated-core-v1",
+  "generated_at": "2026-04-15T15:56:25.973468+00:00",
+  "site_count": 85,
+  "sites": [
+    {
+      "id": "curated_komodo-national-park_batu-bolong",
+      "name": "Batu Bolong",
+      "region": "Coral Triangle",
+      "area": "Komodo National Park",
+      "country": "Indonesia",
+      "latitude": -8.5370022,
+      "longitude": 119.6135648,
+      "averageDepth": 15.0,
+      "maxDepth": 30.0,
+      "averageTemp": 26.0,
+      "averageVisibility": 20.0,
+      "difficulty": "Advanced",
+      "type": "Reef",
+      "description": "Curated reef dive in Komodo National Park known for pinnacle, current.",
+      "wishlist": false,
+      "visitedCount": 0,
+      "tags": [
+        "pinnacle",
+        "current",
+        "pelagic",
+        "Scuba Diving"
+      ],
+      "country_id": "ID",
+      "region_id": "coral-triangle",
+      "area_id": "komodo-national-park",
+      "wikidata_id": null,
+      "osm_id": "osm_node_5409736127",
+      "aliases": [
+        "Batu Bolong Dive Site"
+      ],
+      "curation_score": 9.9,
+      "popularity_score": 9.8,
+      "access_level": "boat",
+      "wreck_verified": false,
+      "destination_slug": "komodo-national-park",
+      "provenance": {
+        "matched_base_id": "osm_node_5409736127",
+        "source_ids": [
+          "forum-komodo-scubaboard",
+          "policy-padi-dive-sites"
+        ]
+      }
+    },
+    {
+      "id": "curated_komodo-national-park_manta-point",
+      "name": "Manta Point",
+      "region": "Coral Triangle",
+      "area": "Komodo National Park",
+      "country": "Indonesia",
+      "latitude": -8.5335442,
+      "longitude": 119.5905966,
+      "averageDepth": 15.0,
+      "maxDepth": 30.0,
+      "averageTemp": 26.0,
+      "averageVisibility": 20.0,
+      "difficulty": "Intermediate",
+      "type": "Reef",
+      "description": "Curated reef dive in Komodo National Park known for manta rays, drift.",
+      "wishlist": false,
+      "visitedCount": 0,
+      "tags": [
+        "manta rays",
+        "drift",
+        "reef",
+        "Scuba Diving"
+      ],
+      "country_id": "ID",
+      "region_id": "coral-triangle",
+      "area_id": "komodo-national-park",
+      "wikidata_id": null,
+      "osm_id": "osm_node_10252897714",
+      "aliases": [
+        "Makassar Reef",
+        "Makassar Reef (Manta Point)",
+        "Manta Point dive site"
+      ],
+      "curation_score": 9.8,
+      "popularity_score": 9.7,
+      "access_level": "boat",
+      "wreck_verified": false,
+      "destination_slug": "komodo-national-park",
+      "provenance": {
+        "matched_base_id": "osm_node_10252897714",
+        "source_ids": [
+          "forum-komodo-scubaboard",
+          "policy-padi-dive-sites"
+        ]
+      }
+    },
+    {
+      "id": "curated_komodo-national-park_castle-rock",
+      "name": "Castle Rock",
+      "region": "Coral Triangle",
+      "area": "Komodo National Park",
+      "country": "Indonesia",
+      "latitude": -8.527,
+      "longitude": 119.671,
+      "averageDepth": 18.0,
+      "maxDepth": 30.0,
+      "averageTemp": 28.0,
+      "averageVisibility": 18.0,
+      "difficulty": "Advanced",
+      "type": "Reef",
+      "description": "Curated reef dive in Komodo National Park known for current, sharks.",
+      "wishlist": false,
+      "visitedCount": 0,
+      "tags": [
+        "current",
+        "sharks",
+        "schooling fish"
+      ],
+      "country_id": "ID",
+      "region_id": "coral-triangle",
+      "area_id": "komodo-national-park",
+      "wikidata_id": null,
+      "osm_id": null,
+      "aliases": [],
+      "curation_score": 9.7,
+      "popularity_score": 9.5,
+      "access_level": "boat",
+      "wreck_verified": false,
+      "destination_slug": "komodo-national-park",
+      "provenance": {
+        "matched_base_id": null,
+        "source_ids": [
+          "forum-komodo-scubaboard",
+          "policy-padi-dive-sites"
+        ]
+      }
+    },
+    {
+      "id": "curated_komodo-national-park_crystal-rock",
+      "name": "Crystal Rock",
+      "region": "Coral Triangle",
+      "area": "Komodo National Park",
+      "country": "Indonesia",
+      "latitude": -8.4416648,
+      "longitude": 119.5677822,
+      "averageDepth": 15.0,
+      "maxDepth": 30.0,
+      "averageTemp": 26.0,
+      "averageVisibility": 20.0,
+      "difficulty": "Advanced",
+      "type": "Reef",
+      "description": "Curated reef dive in Komodo National Park known for current, sharks.",
+      "wishlist": false,
+      "visitedCount": 0,
+      "tags": [
+        "current",
+        "sharks",
+        "reef",
+        "Scuba Diving"
+      ],
+      "country_id": "ID",
+      "region_id": "coral-triangle",
+      "area_id": "komodo-national-park",
+      "wikidata_id": null,
+      "osm_id": "osm_node_5767096953",
+      "aliases": [
+        "Cystal Rock Dive Site"
+      ],
+      "curation_score": 9.6,
+      "popularity_score": 9.4,
+      "access_level": "boat",
+      "wreck_verified": false,
+      "destination_slug": "komodo-national-park",
+      "provenance": {
+        "matched_base_id": "osm_node_5767096953",
+        "source_ids": [
+          "forum-komodo-scubaboard",
+          "policy-padi-dive-sites"
+        ]
+      }
+    },
+    {
+      "id": "curated_komodo-national-park_cauldron",
+      "name": "Cauldron",
+      "region": "Coral Triangle",
+      "area": "Komodo National Park",
+      "country": "Indonesia",
+      "latitude": -8.4609097,
+      "longitude": 119.5633723,
+      "averageDepth": 15.0,
+      "maxDepth": 30.0,
+      "averageTemp": 26.0,
+      "averageVisibility": 20.0,
+      "difficulty": "Advanced",
+      "type": "Reef",
+      "description": "Curated reef dive in Komodo National Park known for drift, channel.",
+      "wishlist": false,
+      "visitedCount": 0,
+      "tags": [
+        "drift",
+        "channel",
+        "current",
+        "Scuba Diving"
+      ],
+      "country_id": "ID",
+      "region_id": "coral-triangle",
+      "area_id": "komodo-national-park",
+      "wikidata_id": null,
+      "osm_id": "osm_node_5875544788",
+      "aliases": [
+        "The Cauldron",
+        "Shotgun",
+        "The Cauldron Dive Site"
+      ],
+      "curation_score": 9.5,
+      "popularity_score": 9.2,
+      "access_level": "boat",
+      "wreck_verified": false,
+      "destination_slug": "komodo-national-park",
+      "provenance": {
+        "matched_base_id": "osm_node_5875544788",
+        "source_ids": [
+          "forum-komodo-scubaboard",
+          "policy-padi-dive-sites"
+        ]
+      }
+    },
+    {
+      "id": "curated_komodo-national-park_cannibal-rock",
+      "name": "Cannibal Rock",
+      "region": "Coral Triangle",
+      "area": "Komodo National Park",
+      "country": "Indonesia",
+      "latitude": -8.742,
+      "longitude": 119.665,
+      "averageDepth": 18.0,
+      "maxDepth": 30.0,
+      "averageTemp": 28.0,
+      "averageVisibility": 18.0,
+      "difficulty": "Intermediate",
+      "type": "Reef",
+      "description": "Curated reef dive in Komodo National Park known for macro, soft coral.",
+      "wishlist": false,
+      "visitedCount": 0,
+      "tags": [
+        "macro",
+        "soft coral",
+        "pinnacle"
+      ],
+      "country_id": "ID",
+      "region_id": "coral-triangle",
+      "area_id": "komodo-national-park",
+      "wikidata_id": null,
+      "osm_id": null,
+      "aliases": [],
+      "curation_score": 9.4,
+      "popularity_score": 9.0,
+      "access_level": "boat",
+      "wreck_verified": false,
+      "destination_slug": "komodo-national-park",
+      "provenance": {
+        "matched_base_id": null,
+        "source_ids": [
+          "forum-komodo-scubaboard",
+          "policy-padi-dive-sites"
+        ]
+      }
+    },
+    {
+      "id": "curated_raja-ampat_cape-kri",
+      "name": "Cape Kri",
+      "region": "Coral Triangle",
+      "area": "Raja Ampat",
+      "country": "Indonesia",
+      "latitude": -0.5562,
+      "longitude": 130.6914,
+      "averageDepth": 19.0,
+      "maxDepth": 32.0,
+      "averageTemp": 28.0,
+      "averageVisibility": 22.0,
+      "difficulty": "Advanced",
+      "type": "Reef",
+      "description": "Curated reef dive in Raja Ampat known for reef, schooling fish.",
+      "wishlist": false,
+      "visitedCount": 0,
+      "tags": [
+        "reef",
+        "schooling fish",
+        "current"
+      ],
+      "country_id": "ID",
+      "region_id": "coral-triangle",
+      "area_id": "raja-ampat",
+      "wikidata_id": null,
+      "osm_id": null,
+      "aliases": [
+        "Kri Cape"
+      ],
+      "curation_score": 9.9,
+      "popularity_score": 9.9,
+      "access_level": "boat",
+      "wreck_verified": false,
+      "destination_slug": "raja-ampat",
+      "provenance": {
+        "matched_base_id": null,
+        "source_ids": [
+          "map-raja-ampat",
+          "policy-padi-dive-sites"
+        ]
+      }
+    },
+    {
+      "id": "curated_raja-ampat_blue-magic",
+      "name": "Blue Magic",
+      "region": "Coral Triangle",
+      "area": "Raja Ampat",
+      "country": "Indonesia",
+      "latitude": -0.5074179,
+      "longitude": 130.7368162,
+      "averageDepth": 15.0,
+      "maxDepth": 30.0,
+      "averageTemp": 26.0,
+      "averageVisibility": 20.0,
+      "difficulty": "Advanced",
+      "type": "Reef",
+      "description": "Curated reef dive in Raja Ampat known for pelagic, current.",
+      "wishlist": false,
+      "visitedCount": 0,
+      "tags": [
+        "pelagic",
+        "current",
+        "manta rays",
+        "Scuba Diving"
+      ],
+      "country_id": "ID",
+      "region_id": "coral-triangle",
+      "area_id": "raja-ampat",
+      "wikidata_id": null,
+      "osm_id": "osm_node_5338514522",
+      "aliases": [],
+      "curation_score": 9.8,
+      "popularity_score": 9.7,
+      "access_level": "boat",
+      "wreck_verified": false,
+      "destination_slug": "raja-ampat",
+      "provenance": {
+        "matched_base_id": "osm_node_5338514522",
+        "source_ids": [
+          "map-raja-ampat",
+          "policy-padi-dive-sites"
+        ]
+      }
+    },
+    {
+      "id": "curated_raja-ampat_manta-sandy",
+      "name": "Manta Sandy",
+      "region": "Coral Triangle",
+      "area": "Raja Ampat",
+      "country": "Indonesia",
+      "latitude": -0.5532675,
+      "longitude": 130.5299532,
+      "averageDepth": 15.0,
+      "maxDepth": 30.0,
+      "averageTemp": 26.0,
+      "averageVisibility": 20.0,
+      "difficulty": "Intermediate",
+      "type": "Reef",
+      "description": "Curated reef dive in Raja Ampat known for manta rays, cleaning station.",
+      "wishlist": false,
+      "visitedCount": 0,
+      "tags": [
+        "manta rays",
+        "cleaning station",
+        "sand",
+        "Scuba Diving"
+      ],
+      "country_id": "ID",
+      "region_id": "coral-triangle",
+      "area_id": "raja-ampat",
+      "wikidata_id": null,
+      "osm_id": "osm_node_12167282450",
+      "aliases": [],
+      "curation_score": 9.7,
+      "popularity_score": 9.6,
+      "access_level": "boat",
+      "wreck_verified": false,
+      "destination_slug": "raja-ampat",
+      "provenance": {
+        "matched_base_id": "osm_node_12167282450",
+        "source_ids": [
+          "map-raja-ampat",
+          "policy-padi-dive-sites"
+        ]
+      }
+    },
+    {
+      "id": "curated_raja-ampat_sawandarek-jetty",
+      "name": "Sawandarek Jetty",
+      "region": "Coral Triangle",
+      "area": "Raja Ampat",
+      "country": "Indonesia",
+      "latitude": -0.5897798,
+      "longitude": 130.6033001,
+      "averageDepth": 15.0,
+      "maxDepth": 30.0,
+      "averageTemp": 26.0,
+      "averageVisibility": 20.0,
+      "difficulty": "Beginner",
+      "type": "Reef",
+      "description": "Curated reef dive in Raja Ampat known for jetty, turtles.",
+      "wishlist": false,
+      "visitedCount": 0,
+      "tags": [
+        "jetty",
+        "turtles",
+        "reef",
+        "Scuba Diving"
+      ],
+      "country_id": "ID",
+      "region_id": "coral-triangle",
+      "area_id": "raja-ampat",
+      "wikidata_id": null,
+      "osm_id": "osm_node_9865439531",
+      "aliases": [
+        "Sawandarek"
+      ],
+      "curation_score": 9.5,
+      "popularity_score": 9.3,
+      "access_level": "boat",
+      "wreck_verified": false,
+      "destination_slug": "raja-ampat",
+      "provenance": {
+        "matched_base_id": "osm_node_9865439531",
+        "source_ids": [
+          "map-raja-ampat",
+          "policy-padi-dive-sites"
+        ]
+      }
+    },
+    {
+      "id": "curated_raja-ampat_melissa-s-garden",
+      "name": "Melissa's Garden",
+      "region": "Coral Triangle",
+      "area": "Raja Ampat",
+      "country": "Indonesia",
+      "latitude": -0.5898694,
+      "longitude": 130.3152067,
+      "averageDepth": 15.0,
+      "maxDepth": 30.0,
+      "averageTemp": 26.0,
+      "averageVisibility": 20.0,
+      "difficulty": "Intermediate",
+      "type": "Reef",
+      "description": "Curated reef dive in Raja Ampat known for coral garden, reef.",
+      "wishlist": false,
+      "visitedCount": 0,
+      "tags": [
+        "coral garden",
+        "reef",
+        "wide angle",
+        "Scuba Diving"
+      ],
+      "country_id": "ID",
+      "region_id": "coral-triangle",
+      "area_id": "raja-ampat",
+      "wikidata_id": null,
+      "osm_id": "osm_node_5453439730",
+      "aliases": [],
+      "curation_score": 9.6,
+      "popularity_score": 9.4,
+      "access_level": "boat",
+      "wreck_verified": false,
+      "destination_slug": "raja-ampat",
+      "provenance": {
+        "matched_base_id": "osm_node_5453439730",
+        "source_ids": [
+          "map-raja-ampat",
+          "policy-padi-dive-sites"
+        ]
+      }
+    },
+    {
+      "id": "curated_raja-ampat_chicken-reef",
+      "name": "Chicken Reef",
+      "region": "Coral Triangle",
+      "area": "Raja Ampat",
+      "country": "Indonesia",
+      "latitude": -0.5465947,
+      "longitude": 130.7025224,
+      "averageDepth": 15.0,
+      "maxDepth": 30.0,
+      "averageTemp": 26.0,
+      "averageVisibility": 20.0,
+      "difficulty": "Intermediate",
+      "type": "Reef",
+      "description": "Curated reef dive in Raja Ampat known for reef, fish life.",
+      "wishlist": false,
+      "visitedCount": 0,
+      "tags": [
+        "reef",
+        "fish life",
+        "current",
+        "Scuba Diving"
+      ],
+      "country_id": "ID",
+      "region_id": "coral-triangle",
+      "area_id": "raja-ampat",
+      "wikidata_id": null,
+      "osm_id": "osm_node_12167252227",
+      "aliases": [],
+      "curation_score": 9.3,
+      "popularity_score": 9.0,
+      "access_level": "boat",
+      "wreck_verified": false,
+      "destination_slug": "raja-ampat",
+      "provenance": {
+        "matched_base_id": "osm_node_12167252227",
+        "source_ids": [
+          "map-raja-ampat",
+          "policy-padi-dive-sites"
+        ]
+      }
+    },
+    {
+      "id": "curated_nusa-penida-lembongan_toyapakeh",
+      "name": "Toyapakeh",
+      "region": "Coral Triangle",
+      "area": "Nusa Penida and Lembongan",
+      "country": "Indonesia",
+      "latitude": -8.683,
+      "longitude": 115.455,
+      "averageDepth": 18.0,
+      "maxDepth": 30.0,
+      "averageTemp": 26.0,
+      "averageVisibility": 20.0,
+      "difficulty": "Intermediate",
+      "type": "Reef",
+      "description": "Curated reef dive in Nusa Penida and Lembongan known for reef, drift.",
+      "wishlist": false,
+      "visitedCount": 0,
+      "tags": [
+        "reef",
+        "drift",
+        "fish life"
+      ],
+      "country_id": "ID",
+      "region_id": "coral-triangle",
+      "area_id": "nusa-penida-lembongan",
+      "wikidata_id": null,
+      "osm_id": null,
+      "aliases": [
+        "Toyapakeh Wall",
+        "Toyapakeh Wall and Scope"
+      ],
+      "curation_score": 9.7,
+      "popularity_score": 9.4,
+      "access_level": "boat",
+      "wreck_verified": false,
+      "destination_slug": "nusa-penida-lembongan",
+      "provenance": {
+        "matched_base_id": null,
+        "source_ids": [
+          "map-nusa-penida",
+          "forum-bali-scubaboard"
+        ]
+      }
+    },
+    {
+      "id": "curated_nusa-penida-lembongan_gamat-bay",
+      "name": "Gamat Bay",
+      "region": "Coral Triangle",
+      "area": "Nusa Penida and Lembongan",
+      "country": "Indonesia",
+      "latitude": -8.69,
+      "longitude": 115.457,
+      "averageDepth": 18.0,
+      "maxDepth": 30.0,
+      "averageTemp": 26.0,
+      "averageVisibility": 20.0,
+      "difficulty": "Intermediate",
+      "type": "Reef",
+      "description": "Curated reef dive in Nusa Penida and Lembongan known for drift, mola mola.",
+      "wishlist": false,
+      "visitedCount": 0,
+      "tags": [
+        "drift",
+        "mola mola",
+        "reef"
+      ],
+      "country_id": "ID",
+      "region_id": "coral-triangle",
+      "area_id": "nusa-penida-lembongan",
+      "wikidata_id": null,
+      "osm_id": null,
+      "aliases": [
+        "Gamat"
+      ],
+      "curation_score": 9.4,
+      "popularity_score": 9.0,
+      "access_level": "boat",
+      "wreck_verified": false,
+      "destination_slug": "nusa-penida-lembongan",
+      "provenance": {
+        "matched_base_id": null,
+        "source_ids": [
+          "map-nusa-penida",
+          "forum-bali-scubaboard"
+        ]
+      }
+    },
+    {
+      "id": "curated_nusa-penida-lembongan_crystal-bay",
+      "name": "Crystal Bay",
+      "region": "Coral Triangle",
+      "area": "Nusa Penida and Lembongan",
+      "country": "Indonesia",
+      "latitude": -8.7155168,
+      "longitude": 115.4574864,
+      "averageDepth": 15.0,
+      "maxDepth": 30.0,
+      "averageTemp": 26.0,
+      "averageVisibility": 20.0,
+      "difficulty": "Intermediate",
+      "type": "Reef",
+      "description": "Also called Penida Bay by some, this divesite condition depends on currents, and may have strong downcurrent. Potential place for Mola-mola.",
+      "wishlist": false,
+      "visitedCount": 0,
+      "tags": [
+        "mola mola",
+        "bay",
+        "reef",
+        "Scuba Diving"
+      ],
+      "country_id": "ID",
+      "region_id": "coral-triangle",
+      "area_id": "nusa-penida-lembongan",
+      "wikidata_id": null,
+      "osm_id": "osm_node_4742534377",
+      "aliases": [],
+      "curation_score": 9.6,
+      "popularity_score": 9.5,
+      "access_level": "boat",
+      "wreck_verified": false,
+      "destination_slug": "nusa-penida-lembongan",
+      "provenance": {
+        "matched_base_id": "osm_node_4742534377",
+        "source_ids": [
+          "map-nusa-penida",
+          "forum-bali-scubaboard"
+        ]
+      }
+    },
+    {
+      "id": "curated_nusa-penida-lembongan_manta-point",
+      "name": "Manta Point",
+      "region": "Coral Triangle",
+      "area": "Nusa Penida and Lembongan",
+      "country": "Indonesia",
+      "latitude": -8.7947861,
+      "longitude": 115.5259217,
+      "averageDepth": 15.0,
+      "maxDepth": 30.0,
+      "averageTemp": 26.0,
+      "averageVisibility": 20.0,
+      "difficulty": "Intermediate",
+      "type": "Reef",
+      "description": "Curated reef dive in Nusa Penida and Lembongan known for manta rays, cleaning station.",
+      "wishlist": false,
+      "visitedCount": 0,
+      "tags": [
+        "manta rays",
+        "cleaning station",
+        "reef",
+        "Scuba Diving"
+      ],
+      "country_id": "ID",
+      "region_id": "coral-triangle",
+      "area_id": "nusa-penida-lembongan",
+      "wikidata_id": null,
+      "osm_id": "osm_node_2907339692",
+      "aliases": [],
+      "curation_score": 9.8,
+      "popularity_score": 9.8,
+      "access_level": "boat",
+      "wreck_verified": false,
+      "destination_slug": "nusa-penida-lembongan",
+      "provenance": {
+        "matched_base_id": "osm_node_2907339692",
+        "source_ids": [
+          "map-nusa-penida",
+          "forum-bali-scubaboard"
+        ]
+      }
+    },
+    {
+      "id": "curated_nusa-penida-lembongan_sd-point",
+      "name": "SD Point",
+      "region": "Coral Triangle",
+      "area": "Nusa Penida and Lembongan",
+      "country": "Indonesia",
+      "latitude": -8.6845,
+      "longitude": 115.471,
+      "averageDepth": 18.0,
+      "maxDepth": 30.0,
+      "averageTemp": 26.0,
+      "averageVisibility": 20.0,
+      "difficulty": "Advanced",
+      "type": "Reef",
+      "description": "Curated reef dive in Nusa Penida and Lembongan known for drift, reef.",
+      "wishlist": false,
+      "visitedCount": 0,
+      "tags": [
+        "drift",
+        "reef",
+        "schooling fish"
+      ],
+      "country_id": "ID",
+      "region_id": "coral-triangle",
+      "area_id": "nusa-penida-lembongan",
+      "wikidata_id": null,
+      "osm_id": null,
+      "aliases": [
+        "SD",
+        "Sekolah Dasar",
+        "SD Point (Sekolah Dasar)"
+      ],
+      "curation_score": 9.3,
+      "popularity_score": 8.9,
+      "access_level": "boat",
+      "wreck_verified": false,
+      "destination_slug": "nusa-penida-lembongan",
+      "provenance": {
+        "matched_base_id": null,
+        "source_ids": [
+          "map-nusa-penida",
+          "forum-bali-scubaboard"
+        ]
+      }
+    },
+    {
+      "id": "curated_nusa-penida-lembongan_blue-corner",
+      "name": "Blue Corner",
+      "region": "Coral Triangle",
+      "area": "Nusa Penida and Lembongan",
+      "country": "Indonesia",
+      "latitude": -8.67,
+      "longitude": 115.448,
+      "averageDepth": 18.0,
+      "maxDepth": 30.0,
+      "averageTemp": 26.0,
+      "averageVisibility": 20.0,
+      "difficulty": "Advanced",
+      "type": "Reef",
+      "description": "Curated reef dive in Nusa Penida and Lembongan known for drift, current.",
+      "wishlist": false,
+      "visitedCount": 0,
+      "tags": [
+        "drift",
+        "current",
+        "pelagic"
+      ],
+      "country_id": "ID",
+      "region_id": "coral-triangle",
+      "area_id": "nusa-penida-lembongan",
+      "wikidata_id": null,
+      "osm_id": null,
+      "aliases": [],
+      "curation_score": 9.4,
+      "popularity_score": 9.1,
+      "access_level": "boat",
+      "wreck_verified": false,
+      "destination_slug": "nusa-penida-lembongan",
+      "provenance": {
+        "matched_base_id": null,
+        "source_ids": [
+          "map-nusa-penida",
+          "forum-bali-scubaboard"
+        ]
+      }
+    },
+    {
+      "id": "curated_tulamben-amed_usat-liberty-wreck",
+      "name": "USAT Liberty Wreck",
+      "region": "Coral Triangle",
+      "area": "Tulamben and Amed",
+      "country": "Indonesia",
+      "latitude": -8.2739054,
+      "longitude": 115.5926122,
+      "averageDepth": 15.0,
+      "maxDepth": 30.0,
+      "averageTemp": 26.0,
+      "averageVisibility": 20.0,
+      "difficulty": "Beginner",
+      "type": "Wreck",
+      "description": "From underwater 4m down to 35m",
+      "wishlist": false,
+      "visitedCount": 0,
+      "tags": [
+        "wreck",
+        "shore",
+        "macro",
+        "Scuba Diving",
+        "Reef Dive"
+      ],
+      "country_id": "ID",
+      "region_id": "coral-triangle",
+      "area_id": "tulamben-amed",
+      "wikidata_id": "Q2468064",
+      "osm_id": "osm_node_2480654035",
+      "aliases": [
+        "USAT Liberty",
+        "USAT Liberty Wreck"
+      ],
+      "curation_score": 9.8,
+      "popularity_score": 9.8,
+      "access_level": "shore",
+      "wreck_verified": true,
+      "destination_slug": "tulamben-amed",
+      "provenance": {
+        "matched_base_id": "osm_node_2480654035",
+        "source_ids": [
+          "map-tulamben",
+          "forum-bali-scubaboard"
+        ]
+      }
+    },
+    {
+      "id": "curated_tulamben-amed_tulamben-drop-off",
+      "name": "Tulamben Drop Off",
+      "region": "Coral Triangle",
+      "area": "Tulamben and Amed",
+      "country": "Indonesia",
+      "latitude": -8.275,
+      "longitude": 115.5955,
+      "averageDepth": 16.0,
+      "maxDepth": 28.0,
+      "averageTemp": 27.0,
+      "averageVisibility": 16.0,
+      "difficulty": "Intermediate",
+      "type": "Reef",
+      "description": "Curated reef dive in Tulamben and Amed known for wall, shore.",
+      "wishlist": false,
+      "visitedCount": 0,
+      "tags": [
+        "wall",
+        "shore",
+        "reef"
+      ],
+      "country_id": "ID",
+      "region_id": "coral-triangle",
+      "area_id": "tulamben-amed",
+      "wikidata_id": null,
+      "osm_id": null,
+      "aliases": [
+        "Drop Off",
+        "Tulamben Wall"
+      ],
+      "curation_score": 9.4,
+      "popularity_score": 9.1,
+      "access_level": "shore",
+      "wreck_verified": false,
+      "destination_slug": "tulamben-amed",
+      "provenance": {
+        "matched_base_id": null,
+        "source_ids": [
+          "map-tulamben",
+          "forum-bali-scubaboard"
+        ]
+      }
+    },
+    {
+      "id": "curated_tulamben-amed_seraya-secret",
+      "name": "Seraya Secret",
+      "region": "Coral Triangle",
+      "area": "Tulamben and Amed",
+      "country": "Indonesia",
+      "latitude": -8.292,
+      "longitude": 115.623,
+      "averageDepth": 16.0,
+      "maxDepth": 28.0,
+      "averageTemp": 27.0,
+      "averageVisibility": 16.0,
+      "difficulty": "Intermediate",
+      "type": "Reef",
+      "description": "Curated reef dive in Tulamben and Amed known for macro, muck.",
+      "wishlist": false,
+      "visitedCount": 0,
+      "tags": [
+        "macro",
+        "muck",
+        "shore"
+      ],
+      "country_id": "ID",
+      "region_id": "coral-triangle",
+      "area_id": "tulamben-amed",
+      "wikidata_id": null,
+      "osm_id": null,
+      "aliases": [
+        "Seraya Secrets"
+      ],
+      "curation_score": 9.4,
+      "popularity_score": 9.2,
+      "access_level": "shore",
+      "wreck_verified": false,
+      "destination_slug": "tulamben-amed",
+      "provenance": {
+        "matched_base_id": null,
+        "source_ids": [
+          "map-tulamben",
+          "forum-bali-scubaboard"
+        ]
+      }
+    },
+    {
+      "id": "curated_tulamben-amed_kubu-wreck",
+      "name": "Kubu Wreck",
+      "region": "Coral Triangle",
+      "area": "Tulamben and Amed",
+      "country": "Indonesia",
+      "latitude": -8.246,
+      "longitude": 115.604,
+      "averageDepth": 16.0,
+      "maxDepth": 28.0,
+      "averageTemp": 27.0,
+      "averageVisibility": 16.0,
+      "difficulty": "Beginner",
+      "type": "Wreck",
+      "description": "Curated wreck dive in Tulamben and Amed known for wreck, shore.",
+      "wishlist": false,
+      "visitedCount": 0,
+      "tags": [
+        "wreck",
+        "shore",
+        "reef"
+      ],
+      "country_id": "ID",
+      "region_id": "coral-triangle",
+      "area_id": "tulamben-amed",
+      "wikidata_id": null,
+      "osm_id": null,
+      "aliases": [],
+      "curation_score": 9.1,
+      "popularity_score": 8.7,
+      "access_level": "shore",
+      "wreck_verified": true,
+      "destination_slug": "tulamben-amed",
+      "provenance": {
+        "matched_base_id": null,
+        "source_ids": [
+          "map-tulamben",
+          "forum-bali-scubaboard"
+        ]
+      }
+    },
+    {
+      "id": "curated_tulamben-amed_amed-wall",
+      "name": "Amed Wall",
+      "region": "Coral Triangle",
+      "area": "Tulamben and Amed",
+      "country": "Indonesia",
+      "latitude": -8.337564,
+      "longitude": 115.6617295,
+      "averageDepth": 15.0,
+      "maxDepth": 30.0,
+      "averageTemp": 26.0,
+      "averageVisibility": 20.0,
+      "difficulty": "Intermediate",
+      "type": "Reef",
+      "description": "Curated reef dive in Tulamben and Amed known for wall, shore.",
+      "wishlist": false,
+      "visitedCount": 0,
+      "tags": [
+        "wall",
+        "shore",
+        "reef",
+        "Scuba Diving"
+      ],
+      "country_id": "ID",
+      "region_id": "coral-triangle",
+      "area_id": "tulamben-amed",
+      "wikidata_id": null,
+      "osm_id": "osm_node_4527419399",
+      "aliases": [
+        "Amed wall"
+      ],
+      "curation_score": 9.0,
+      "popularity_score": 8.6,
+      "access_level": "shore",
+      "wreck_verified": false,
+      "destination_slug": "tulamben-amed",
+      "provenance": {
+        "matched_base_id": "osm_node_4527419399",
+        "source_ids": [
+          "map-tulamben",
+          "forum-bali-scubaboard"
+        ]
+      }
+    },
+    {
+      "id": "curated_tulamben-amed_jemeluk-bay",
+      "name": "Jemeluk Bay",
+      "region": "Coral Triangle",
+      "area": "Tulamben and Amed",
+      "country": "Indonesia",
+      "latitude": -8.3388,
+      "longitude": 115.6635,
+      "averageDepth": 16.0,
+      "maxDepth": 28.0,
+      "averageTemp": 27.0,
+      "averageVisibility": 16.0,
+      "difficulty": "Beginner",
+      "type": "Reef",
+      "description": "Curated reef dive in Tulamben and Amed known for bay, shore.",
+      "wishlist": false,
+      "visitedCount": 0,
+      "tags": [
+        "bay",
+        "shore",
+        "artificial reef"
+      ],
+      "country_id": "ID",
+      "region_id": "coral-triangle",
+      "area_id": "tulamben-amed",
+      "wikidata_id": null,
+      "osm_id": null,
+      "aliases": [
+        "Jemeluk"
+      ],
+      "curation_score": 8.9,
+      "popularity_score": 8.5,
+      "access_level": "shore",
+      "wreck_verified": false,
+      "destination_slug": "tulamben-amed",
+      "provenance": {
+        "matched_base_id": null,
+        "source_ids": [
+          "map-tulamben",
+          "forum-bali-scubaboard"
+        ]
+      }
+    },
+    {
+      "id": "curated_gili-islands_shark-point",
+      "name": "Shark Point",
+      "region": "Coral Triangle",
+      "area": "Gili Islands",
+      "country": "Indonesia",
+      "latitude": -8.3425401,
+      "longitude": 116.0236615,
+      "averageDepth": 15.0,
+      "maxDepth": 30.0,
+      "averageTemp": 26.0,
+      "averageVisibility": 20.0,
+      "difficulty": "Intermediate",
+      "type": "Reef",
+      "description": "source is Diveschool Notice Board - Location might have to be checked with a GPS",
+      "wishlist": false,
+      "visitedCount": 0,
+      "tags": [
+        "turtles",
+        "reef",
+        "boat",
+        "Scuba Diving"
+      ],
+      "country_id": "ID",
+      "region_id": "coral-triangle",
+      "area_id": "gili-islands",
+      "wikidata_id": null,
+      "osm_id": "osm_node_2395669759",
+      "aliases": [],
+      "curation_score": 9.2,
+      "popularity_score": 9.0,
+      "access_level": "boat",
+      "wreck_verified": false,
+      "destination_slug": "gili-islands",
+      "provenance": {
+        "matched_base_id": "osm_node_2395669759",
+        "source_ids": [
+          "map-gili",
+          "policy-padi-dive-sites"
+        ]
+      }
+    },
+    {
+      "id": "curated_gili-islands_halik-reef",
+      "name": "Halik Reef",
+      "region": "Coral Triangle",
+      "area": "Gili Islands",
+      "country": "Indonesia",
+      "latitude": -8.336235,
+      "longitude": 116.038308,
+      "averageDepth": 15.0,
+      "maxDepth": 30.0,
+      "averageTemp": 26.0,
+      "averageVisibility": 20.0,
+      "difficulty": "Intermediate",
+      "type": "Reef",
+      "description": "source is Diveschool Notice Board - Location might have to be checked with a GPS",
+      "wishlist": false,
+      "visitedCount": 0,
+      "tags": [
+        "reef",
+        "turtles",
+        "boat",
+        "Scuba Diving"
+      ],
+      "country_id": "ID",
+      "region_id": "coral-triangle",
+      "area_id": "gili-islands",
+      "wikidata_id": null,
+      "osm_id": "osm_node_2395669750",
+      "aliases": [
+        "Halik"
+      ],
+      "curation_score": 8.9,
+      "popularity_score": 8.5,
+      "access_level": "boat",
+      "wreck_verified": false,
+      "destination_slug": "gili-islands",
+      "provenance": {
+        "matched_base_id": "osm_node_2395669750",
+        "source_ids": [
+          "map-gili",
+          "policy-padi-dive-sites"
+        ]
+      }
+    },
+    {
+      "id": "curated_gili-islands_deep-turbo",
+      "name": "Deep Turbo",
+      "region": "Coral Triangle",
+      "area": "Gili Islands",
+      "country": "Indonesia",
+      "latitude": -8.3367441,
+      "longitude": 116.0462579,
+      "averageDepth": 15.0,
+      "maxDepth": 30.0,
+      "averageTemp": 26.0,
+      "averageVisibility": 20.0,
+      "difficulty": "Advanced",
+      "type": "Reef",
+      "description": "source is Diveschool Notice Board - Location might have to be checked with a GPS",
+      "wishlist": false,
+      "visitedCount": 0,
+      "tags": [
+        "drift",
+        "current",
+        "slope",
+        "Scuba Diving"
+      ],
+      "country_id": "ID",
+      "region_id": "coral-triangle",
+      "area_id": "gili-islands",
+      "wikidata_id": null,
+      "osm_id": "osm_node_2395669748",
+      "aliases": [],
+      "curation_score": 8.8,
+      "popularity_score": 8.3,
+      "access_level": "boat",
+      "wreck_verified": false,
+      "destination_slug": "gili-islands",
+      "provenance": {
+        "matched_base_id": "osm_node_2395669748",
+        "source_ids": [
+          "map-gili",
+          "policy-padi-dive-sites"
+        ]
+      }
+    },
+    {
+      "id": "curated_gili-islands_bounty-wreck",
+      "name": "Bounty Wreck",
+      "region": "Coral Triangle",
+      "area": "Gili Islands",
+      "country": "Indonesia",
+      "latitude": -8.3568341,
+      "longitude": 116.0512706,
+      "averageDepth": 15.0,
+      "maxDepth": 30.0,
+      "averageTemp": 26.0,
+      "averageVisibility": 20.0,
+      "difficulty": "Beginner",
+      "type": "Wreck",
+      "description": "source is Diveschool Notice Board - Location might have to be checked with a GPS",
+      "wishlist": false,
+      "visitedCount": 0,
+      "tags": [
+        "wreck",
+        "boat",
+        "training",
+        "Scuba Diving"
+      ],
+      "country_id": "ID",
+      "region_id": "coral-triangle",
+      "area_id": "gili-islands",
+      "wikidata_id": null,
+      "osm_id": "osm_node_2395669747",
+      "aliases": [
+        "Bounty"
+      ],
+      "curation_score": 8.6,
+      "popularity_score": 8.2,
+      "access_level": "boat",
+      "wreck_verified": true,
+      "destination_slug": "gili-islands",
+      "provenance": {
+        "matched_base_id": "osm_node_2395669747",
+        "source_ids": [
+          "map-gili",
+          "policy-padi-dive-sites"
+        ]
+      }
+    },
+    {
+      "id": "curated_lembeh-strait_nudi-falls",
+      "name": "Nudi Falls",
+      "region": "Coral Triangle",
+      "area": "Lembeh Strait",
+      "country": "Indonesia",
+      "latitude": 1.4621,
+      "longitude": 125.22835,
+      "averageDepth": 15.0,
+      "maxDepth": 24.0,
+      "averageTemp": 27.0,
+      "averageVisibility": 10.0,
+      "difficulty": "Intermediate",
+      "type": "Reef",
+      "description": "Curated reef dive in Lembeh Strait known for macro, muck.",
+      "wishlist": false,
+      "visitedCount": 0,
+      "tags": [
+        "macro",
+        "muck",
+        "critters"
+      ],
+      "country_id": "ID",
+      "region_id": "coral-triangle",
+      "area_id": "lembeh-strait",
+      "wikidata_id": null,
+      "osm_id": null,
+      "aliases": [],
+      "curation_score": 9.8,
+      "popularity_score": 9.4,
+      "access_level": "boat",
+      "wreck_verified": false,
+      "destination_slug": "lembeh-strait",
+      "provenance": {
+        "matched_base_id": null,
+        "source_ids": [
+          "operator-lembeh-map",
+          "zentacle-lembeh-sites"
+        ]
+      }
+    },
+    {
+      "id": "curated_lembeh-strait_jahir",
+      "name": "Jahir",
+      "region": "Coral Triangle",
+      "area": "Lembeh Strait",
+      "country": "Indonesia",
+      "latitude": 1.47305,
+      "longitude": 125.23532,
+      "averageDepth": 15.0,
+      "maxDepth": 24.0,
+      "averageTemp": 27.0,
+      "averageVisibility": 10.0,
+      "difficulty": "Beginner",
+      "type": "Reef",
+      "description": "Curated reef dive in Lembeh Strait known for macro, black sand.",
+      "wishlist": false,
+      "visitedCount": 0,
+      "tags": [
+        "macro",
+        "black sand",
+        "critters"
+      ],
+      "country_id": "ID",
+      "region_id": "coral-triangle",
+      "area_id": "lembeh-strait",
+      "wikidata_id": null,
+      "osm_id": null,
+      "aliases": [],
+      "curation_score": 9.6,
+      "popularity_score": 9.2,
+      "access_level": "boat",
+      "wreck_verified": false,
+      "destination_slug": "lembeh-strait",
+      "provenance": {
+        "matched_base_id": null,
+        "source_ids": [
+          "operator-lembeh-map",
+          "zentacle-lembeh-sites"
+        ]
+      }
+    },
+    {
+      "id": "curated_lembeh-strait_air-prang",
+      "name": "Air Prang",
+      "region": "Coral Triangle",
+      "area": "Lembeh Strait",
+      "country": "Indonesia",
+      "latitude": 1.47558,
+      "longitude": 125.23495,
+      "averageDepth": 15.0,
+      "maxDepth": 24.0,
+      "averageTemp": 27.0,
+      "averageVisibility": 10.0,
+      "difficulty": "Intermediate",
+      "type": "Reef",
+      "description": "Curated reef dive in Lembeh Strait known for macro, slope.",
+      "wishlist": false,
+      "visitedCount": 0,
+      "tags": [
+        "macro",
+        "slope",
+        "critters"
+      ],
+      "country_id": "ID",
+      "region_id": "coral-triangle",
+      "area_id": "lembeh-strait",
+      "wikidata_id": null,
+      "osm_id": null,
+      "aliases": [],
+      "curation_score": 9.4,
+      "popularity_score": 8.9,
+      "access_level": "boat",
+      "wreck_verified": false,
+      "destination_slug": "lembeh-strait",
+      "provenance": {
+        "matched_base_id": null,
+        "source_ids": [
+          "operator-lembeh-map",
+          "zentacle-lembeh-sites"
+        ]
+      }
+    },
+    {
+      "id": "curated_lembeh-strait_police-pier",
+      "name": "Police Pier",
+      "region": "Coral Triangle",
+      "area": "Lembeh Strait",
+      "country": "Indonesia",
+      "latitude": 1.45993,
+      "longitude": 125.2225,
+      "averageDepth": 15.0,
+      "maxDepth": 24.0,
+      "averageTemp": 27.0,
+      "averageVisibility": 10.0,
+      "difficulty": "Intermediate",
+      "type": "Reef",
+      "description": "Curated reef dive in Lembeh Strait known for macro, pier.",
+      "wishlist": false,
+      "visitedCount": 0,
+      "tags": [
+        "macro",
+        "pier",
+        "muck"
+      ],
+      "country_id": "ID",
+      "region_id": "coral-triangle",
+      "area_id": "lembeh-strait",
+      "wikidata_id": null,
+      "osm_id": null,
+      "aliases": [],
+      "curation_score": 9.7,
+      "popularity_score": 9.5,
+      "access_level": "boat",
+      "wreck_verified": false,
+      "destination_slug": "lembeh-strait",
+      "provenance": {
+        "matched_base_id": null,
+        "source_ids": [
+          "operator-lembeh-map",
+          "zentacle-lembeh-sites"
+        ]
+      }
+    },
+    {
+      "id": "curated_lembeh-strait_hairball",
+      "name": "Hairball",
+      "region": "Coral Triangle",
+      "area": "Lembeh Strait",
+      "country": "Indonesia",
+      "latitude": 1.4638,
+      "longitude": 125.217,
+      "averageDepth": 15.0,
+      "maxDepth": 24.0,
+      "averageTemp": 27.0,
+      "averageVisibility": 10.0,
+      "difficulty": "Intermediate",
+      "type": "Reef",
+      "description": "Curated reef dive in Lembeh Strait known for macro, black sand.",
+      "wishlist": false,
+      "visitedCount": 0,
+      "tags": [
+        "macro",
+        "black sand",
+        "rare critters"
+      ],
+      "country_id": "ID",
+      "region_id": "coral-triangle",
+      "area_id": "lembeh-strait",
+      "wikidata_id": null,
+      "osm_id": null,
+      "aliases": [],
+      "curation_score": 9.5,
+      "popularity_score": 9.0,
+      "access_level": "boat",
+      "wreck_verified": false,
+      "destination_slug": "lembeh-strait",
+      "provenance": {
+        "matched_base_id": null,
+        "source_ids": [
+          "operator-lembeh-map",
+          "zentacle-lembeh-sites"
+        ]
+      }
+    },
+    {
+      "id": "curated_lembeh-strait_tk-3",
+      "name": "TK 3",
+      "region": "Coral Triangle",
+      "area": "Lembeh Strait",
+      "country": "Indonesia",
+      "latitude": 1.4675,
+      "longitude": 125.224,
+      "averageDepth": 15.0,
+      "maxDepth": 24.0,
+      "averageTemp": 27.0,
+      "averageVisibility": 10.0,
+      "difficulty": "Intermediate",
+      "type": "Reef",
+      "description": "Curated reef dive in Lembeh Strait known for muck, black sand.",
+      "wishlist": false,
+      "visitedCount": 0,
+      "tags": [
+        "muck",
+        "black sand",
+        "macro"
+      ],
+      "country_id": "ID",
+      "region_id": "coral-triangle",
+      "area_id": "lembeh-strait",
+      "wikidata_id": null,
+      "osm_id": null,
+      "aliases": [
+        "TK3"
+      ],
+      "curation_score": 9.1,
+      "popularity_score": 8.6,
+      "access_level": "boat",
+      "wreck_verified": false,
+      "destination_slug": "lembeh-strait",
+      "provenance": {
+        "matched_base_id": null,
+        "source_ids": [
+          "operator-lembeh-map",
+          "zentacle-lembeh-sites"
+        ]
+      }
+    },
+    {
+      "id": "curated_bunaken-national-park_lekuan-i",
+      "name": "Lekuan I",
+      "region": "Coral Triangle",
+      "area": "Bunaken National Park",
+      "country": "Indonesia",
+      "latitude": 1.625,
+      "longitude": 124.766,
+      "averageDepth": 18.0,
+      "maxDepth": 30.0,
+      "averageTemp": 28.0,
+      "averageVisibility": 20.0,
+      "difficulty": "Intermediate",
+      "type": "Reef",
+      "description": "Curated reef dive in Bunaken National Park known for wall, turtles.",
+      "wishlist": false,
+      "visitedCount": 0,
+      "tags": [
+        "wall",
+        "turtles",
+        "reef"
+      ],
+      "country_id": "ID",
+      "region_id": "coral-triangle",
+      "area_id": "bunaken-national-park",
+      "wikidata_id": null,
+      "osm_id": null,
+      "aliases": [
+        "Lekuan 1"
+      ],
+      "curation_score": 9.4,
+      "popularity_score": 9.0,
+      "access_level": "boat",
+      "wreck_verified": false,
+      "destination_slug": "bunaken-national-park",
+      "provenance": {
+        "matched_base_id": null,
+        "source_ids": [
+          "map-bunaken",
+          "policy-padi-dive-sites"
+        ]
+      }
+    },
+    {
+      "id": "curated_bunaken-national-park_lekuan-ii",
+      "name": "Lekuan II",
+      "region": "Coral Triangle",
+      "area": "Bunaken National Park",
+      "country": "Indonesia",
+      "latitude": 1.632,
+      "longitude": 124.763,
+      "averageDepth": 18.0,
+      "maxDepth": 30.0,
+      "averageTemp": 28.0,
+      "averageVisibility": 20.0,
+      "difficulty": "Intermediate",
+      "type": "Reef",
+      "description": "Curated reef dive in Bunaken National Park known for wall, reef.",
+      "wishlist": false,
+      "visitedCount": 0,
+      "tags": [
+        "wall",
+        "reef",
+        "turtles"
+      ],
+      "country_id": "ID",
+      "region_id": "coral-triangle",
+      "area_id": "bunaken-national-park",
+      "wikidata_id": null,
+      "osm_id": null,
+      "aliases": [
+        "Lekuan 2"
+      ],
+      "curation_score": 9.3,
+      "popularity_score": 8.9,
+      "access_level": "boat",
+      "wreck_verified": false,
+      "destination_slug": "bunaken-national-park",
+      "provenance": {
+        "matched_base_id": null,
+        "source_ids": [
+          "map-bunaken",
+          "policy-padi-dive-sites"
+        ]
+      }
+    },
+    {
+      "id": "curated_bunaken-national-park_lekuan-iii",
+      "name": "Lekuan III",
+      "region": "Coral Triangle",
+      "area": "Bunaken National Park",
+      "country": "Indonesia",
+      "latitude": 1.64,
+      "longitude": 124.758,
+      "averageDepth": 18.0,
+      "maxDepth": 30.0,
+      "averageTemp": 28.0,
+      "averageVisibility": 20.0,
+      "difficulty": "Intermediate",
+      "type": "Reef",
+      "description": "Curated reef dive in Bunaken National Park known for wall, reef.",
+      "wishlist": false,
+      "visitedCount": 0,
+      "tags": [
+        "wall",
+        "reef",
+        "current"
+      ],
+      "country_id": "ID",
+      "region_id": "coral-triangle",
+      "area_id": "bunaken-national-park",
+      "wikidata_id": null,
+      "osm_id": null,
+      "aliases": [
+        "Lekuan 3"
+      ],
+      "curation_score": 9.2,
+      "popularity_score": 8.8,
+      "access_level": "boat",
+      "wreck_verified": false,
+      "destination_slug": "bunaken-national-park",
+      "provenance": {
+        "matched_base_id": null,
+        "source_ids": [
+          "map-bunaken",
+          "policy-padi-dive-sites"
+        ]
+      }
+    },
+    {
+      "id": "curated_bunaken-national-park_mandolin",
+      "name": "Mandolin",
+      "region": "Coral Triangle",
+      "area": "Bunaken National Park",
+      "country": "Indonesia",
+      "latitude": 1.6111528,
+      "longitude": 124.7329308,
+      "averageDepth": 15.0,
+      "maxDepth": 30.0,
+      "averageTemp": 26.0,
+      "averageVisibility": 20.0,
+      "difficulty": "Intermediate",
+      "type": "Reef",
+      "description": "Curated reef dive in Bunaken National Park known for wall, reef.",
+      "wishlist": false,
+      "visitedCount": 0,
+      "tags": [
+        "wall",
+        "reef",
+        "fish life",
+        "Scuba Diving"
+      ],
+      "country_id": "ID",
+      "region_id": "coral-triangle",
+      "area_id": "bunaken-national-park",
+      "wikidata_id": null,
+      "osm_id": "osm_node_7293835957",
+      "aliases": [],
+      "curation_score": 9.1,
+      "popularity_score": 8.7,
+      "access_level": "boat",
+      "wreck_verified": false,
+      "destination_slug": "bunaken-national-park",
+      "provenance": {
+        "matched_base_id": "osm_node_7293835957",
+        "source_ids": [
+          "map-bunaken",
+          "policy-padi-dive-sites"
+        ]
+      }
+    },
+    {
+      "id": "curated_bunaken-national-park_fukui",
+      "name": "Fukui",
+      "region": "Coral Triangle",
+      "area": "Bunaken National Park",
+      "country": "Indonesia",
+      "latitude": 1.6164622,
+      "longitude": 124.7506949,
+      "averageDepth": 15.0,
+      "maxDepth": 30.0,
+      "averageTemp": 26.0,
+      "averageVisibility": 20.0,
+      "difficulty": "Beginner",
+      "type": "Reef",
+      "description": "Curated reef dive in Bunaken National Park known for reef, macro.",
+      "wishlist": false,
+      "visitedCount": 0,
+      "tags": [
+        "reef",
+        "macro",
+        "slope",
+        "Scuba Diving"
+      ],
+      "country_id": "ID",
+      "region_id": "coral-triangle",
+      "area_id": "bunaken-national-park",
+      "wikidata_id": null,
+      "osm_id": "osm_node_7293853324",
+      "aliases": [
+        "Fukui Point"
+      ],
+      "curation_score": 8.9,
+      "popularity_score": 8.4,
+      "access_level": "boat",
+      "wreck_verified": false,
+      "destination_slug": "bunaken-national-park",
+      "provenance": {
+        "matched_base_id": "osm_node_7293853324",
+        "source_ids": [
+          "map-bunaken",
+          "policy-padi-dive-sites"
+        ]
+      }
+    },
+    {
+      "id": "curated_alor-strait_babylon",
+      "name": "Babylon",
+      "region": "Coral Triangle",
+      "area": "Alor Strait",
+      "country": "Indonesia",
+      "latitude": -8.249,
+      "longitude": 124.568,
+      "averageDepth": 18.0,
+      "maxDepth": 30.0,
+      "averageTemp": 27.0,
+      "averageVisibility": 18.0,
+      "difficulty": "Advanced",
+      "type": "Reef",
+      "description": "Curated reef dive in Alor Strait known for current, reef.",
+      "wishlist": false,
+      "visitedCount": 0,
+      "tags": [
+        "current",
+        "reef",
+        "pelagic"
+      ],
+      "country_id": "ID",
+      "region_id": "coral-triangle",
+      "area_id": "alor-strait",
+      "wikidata_id": null,
+      "osm_id": null,
+      "aliases": [],
+      "curation_score": 9.2,
+      "popularity_score": 8.8,
+      "access_level": "boat",
+      "wreck_verified": false,
+      "destination_slug": "alor-strait",
+      "provenance": {
+        "matched_base_id": null,
+        "source_ids": [
+          "policy-padi-dive-sites",
+          "policy-dive-number-map"
+        ]
+      }
+    },
+    {
+      "id": "curated_alor-strait_current-city",
+      "name": "Current City",
+      "region": "Coral Triangle",
+      "area": "Alor Strait",
+      "country": "Indonesia",
+      "latitude": -8.232,
+      "longitude": 124.528,
+      "averageDepth": 18.0,
+      "maxDepth": 30.0,
+      "averageTemp": 27.0,
+      "averageVisibility": 18.0,
+      "difficulty": "Advanced",
+      "type": "Reef",
+      "description": "Curated reef dive in Alor Strait known for drift, current.",
+      "wishlist": false,
+      "visitedCount": 0,
+      "tags": [
+        "drift",
+        "current",
+        "fish life"
+      ],
+      "country_id": "ID",
+      "region_id": "coral-triangle",
+      "area_id": "alor-strait",
+      "wikidata_id": null,
+      "osm_id": null,
+      "aliases": [],
+      "curation_score": 9.4,
+      "popularity_score": 9.0,
+      "access_level": "boat",
+      "wreck_verified": false,
+      "destination_slug": "alor-strait",
+      "provenance": {
+        "matched_base_id": null,
+        "source_ids": [
+          "policy-padi-dive-sites",
+          "policy-dive-number-map"
+        ]
+      }
+    },
+    {
+      "id": "curated_alor-strait_clown-valley",
+      "name": "Clown Valley",
+      "region": "Coral Triangle",
+      "area": "Alor Strait",
+      "country": "Indonesia",
+      "latitude": -8.266,
+      "longitude": 124.515,
+      "averageDepth": 18.0,
+      "maxDepth": 30.0,
+      "averageTemp": 27.0,
+      "averageVisibility": 18.0,
+      "difficulty": "Beginner",
+      "type": "Reef",
+      "description": "Curated reef dive in Alor Strait known for anemones, macro.",
+      "wishlist": false,
+      "visitedCount": 0,
+      "tags": [
+        "anemones",
+        "macro",
+        "reef"
+      ],
+      "country_id": "ID",
+      "region_id": "coral-triangle",
+      "area_id": "alor-strait",
+      "wikidata_id": null,
+      "osm_id": null,
+      "aliases": [],
+      "curation_score": 8.8,
+      "popularity_score": 8.3,
+      "access_level": "boat",
+      "wreck_verified": false,
+      "destination_slug": "alor-strait",
+      "provenance": {
+        "matched_base_id": null,
+        "source_ids": [
+          "policy-padi-dive-sites",
+          "policy-dive-number-map"
+        ]
+      }
+    },
+    {
+      "id": "curated_alor-strait_the-cathedral",
+      "name": "The Cathedral",
+      "region": "Coral Triangle",
+      "area": "Alor Strait",
+      "country": "Indonesia",
+      "latitude": -8.226,
+      "longitude": 124.547,
+      "averageDepth": 18.0,
+      "maxDepth": 30.0,
+      "averageTemp": 27.0,
+      "averageVisibility": 18.0,
+      "difficulty": "Intermediate",
+      "type": "Reef",
+      "description": "Curated reef dive in Alor Strait known for canyon, reef.",
+      "wishlist": false,
+      "visitedCount": 0,
+      "tags": [
+        "canyon",
+        "reef",
+        "current"
+      ],
+      "country_id": "ID",
+      "region_id": "coral-triangle",
+      "area_id": "alor-strait",
+      "wikidata_id": null,
+      "osm_id": null,
+      "aliases": [],
+      "curation_score": 9.0,
+      "popularity_score": 8.6,
+      "access_level": "boat",
+      "wreck_verified": false,
+      "destination_slug": "alor-strait",
+      "provenance": {
+        "matched_base_id": null,
+        "source_ids": [
+          "policy-padi-dive-sites",
+          "policy-dive-number-map"
+        ]
+      }
+    },
+    {
+      "id": "curated_alor-strait_kal-s-dream",
+      "name": "Kal's Dream",
+      "region": "Coral Triangle",
+      "area": "Alor Strait",
+      "country": "Indonesia",
+      "latitude": -8.207,
+      "longitude": 124.597,
+      "averageDepth": 18.0,
+      "maxDepth": 30.0,
+      "averageTemp": 27.0,
+      "averageVisibility": 18.0,
+      "difficulty": "Intermediate",
+      "type": "Reef",
+      "description": "Curated reef dive in Alor Strait known for wall, fish life.",
+      "wishlist": false,
+      "visitedCount": 0,
+      "tags": [
+        "wall",
+        "fish life",
+        "reef"
+      ],
+      "country_id": "ID",
+      "region_id": "coral-triangle",
+      "area_id": "alor-strait",
+      "wikidata_id": null,
+      "osm_id": null,
+      "aliases": [],
+      "curation_score": 8.8,
+      "popularity_score": 8.4,
+      "access_level": "boat",
+      "wreck_verified": false,
+      "destination_slug": "alor-strait",
+      "provenance": {
+        "matched_base_id": null,
+        "source_ids": [
+          "policy-padi-dive-sites",
+          "policy-dive-number-map"
+        ]
+      }
+    },
+    {
+      "id": "curated_sinai-red-sea_blue-hole",
+      "name": "Blue Hole",
+      "region": "Red Sea Egypt",
+      "area": "Sinai Red Sea",
+      "country": "Egypt",
+      "latitude": 28.5723,
+      "longitude": 34.537,
+      "averageDepth": 20.0,
+      "maxDepth": 32.0,
+      "averageTemp": 25.0,
+      "averageVisibility": 25.0,
+      "difficulty": "Advanced",
+      "type": "Reef",
+      "description": "Curated reef dive in Sinai Red Sea known for wall, shore.",
+      "wishlist": false,
+      "visitedCount": 0,
+      "tags": [
+        "wall",
+        "shore",
+        "deep"
+      ],
+      "country_id": "EG",
+      "region_id": "red-sea-egypt",
+      "area_id": "sinai-red-sea",
+      "wikidata_id": null,
+      "osm_id": null,
+      "aliases": [
+        "Blue Hole Dahab"
+      ],
+      "curation_score": 9.7,
+      "popularity_score": 9.6,
+      "access_level": "shore",
+      "wreck_verified": false,
+      "destination_slug": "sinai-red-sea",
+      "provenance": {
+        "matched_base_id": null,
+        "source_ids": [
+          "policy-padi-dive-sites"
+        ]
+      }
+    },
+    {
+      "id": "curated_sinai-red-sea_the-canyon",
+      "name": "The Canyon",
+      "region": "Red Sea Egypt",
+      "area": "Sinai Red Sea",
+      "country": "Egypt",
+      "latitude": 28.561,
+      "longitude": 34.528,
+      "averageDepth": 20.0,
+      "maxDepth": 32.0,
+      "averageTemp": 25.0,
+      "averageVisibility": 25.0,
+      "difficulty": "Advanced",
+      "type": "Reef",
+      "description": "Curated reef dive in Sinai Red Sea known for canyon, shore.",
+      "wishlist": false,
+      "visitedCount": 0,
+      "tags": [
+        "canyon",
+        "shore",
+        "deep"
+      ],
+      "country_id": "EG",
+      "region_id": "red-sea-egypt",
+      "area_id": "sinai-red-sea",
+      "wikidata_id": null,
+      "osm_id": null,
+      "aliases": [
+        "Canyon"
+      ],
+      "curation_score": 9.2,
+      "popularity_score": 8.8,
+      "access_level": "shore",
+      "wreck_verified": false,
+      "destination_slug": "sinai-red-sea",
+      "provenance": {
+        "matched_base_id": null,
+        "source_ids": [
+          "policy-padi-dive-sites"
+        ]
+      }
+    },
+    {
+      "id": "curated_sinai-red-sea_ss-thistlegorm",
+      "name": "SS Thistlegorm",
+      "region": "Red Sea Egypt",
+      "area": "Sinai Red Sea",
+      "country": "Egypt",
+      "latitude": 27.814166666,
+      "longitude": 33.92,
+      "averageDepth": 15.0,
+      "maxDepth": 30.0,
+      "averageTemp": 26.0,
+      "averageVisibility": 20.0,
+      "difficulty": "Intermediate",
+      "type": "Wreck",
+      "description": "British armed Merchant Navy ship built in 1940",
+      "wishlist": false,
+      "visitedCount": 0,
+      "tags": [
+        "wreck",
+        "boat",
+        "history"
+      ],
+      "country_id": "EG",
+      "region_id": "red-sea-egypt",
+      "area_id": "sinai-red-sea",
+      "wikidata_id": "Q32276",
+      "osm_id": "Q32276",
+      "aliases": [
+        "Thistlegorm"
+      ],
+      "curation_score": 9.9,
+      "popularity_score": 9.9,
+      "access_level": "boat",
+      "wreck_verified": true,
+      "destination_slug": "sinai-red-sea",
+      "provenance": {
+        "matched_base_id": "Q32276",
+        "source_ids": [
+          "policy-padi-dive-sites"
+        ]
+      }
+    },
+    {
+      "id": "curated_sinai-red-sea_shark-and-yolanda-reef",
+      "name": "Shark and Yolanda Reef",
+      "region": "Red Sea Egypt",
+      "area": "Sinai Red Sea",
+      "country": "Egypt",
+      "latitude": 27.725738888,
+      "longitude": 34.258688888,
+      "averageDepth": 15.0,
+      "maxDepth": 30.0,
+      "averageTemp": 26.0,
+      "averageVisibility": 20.0,
+      "difficulty": "Advanced",
+      "type": "Reef",
+      "description": "Curated reef dive in Sinai Red Sea known for drift, reef.",
+      "wishlist": false,
+      "visitedCount": 0,
+      "tags": [
+        "drift",
+        "reef",
+        "pelagic"
+      ],
+      "country_id": "EG",
+      "region_id": "red-sea-egypt",
+      "area_id": "sinai-red-sea",
+      "wikidata_id": "Q14300517",
+      "osm_id": "Q14300517",
+      "aliases": [
+        "Shark Reef",
+        "Yolanda Reef",
+        "Anemone City, Shark Reef and Jolanda Reef"
+      ],
+      "curation_score": 9.5,
+      "popularity_score": 9.4,
+      "access_level": "boat",
+      "wreck_verified": false,
+      "destination_slug": "sinai-red-sea",
+      "provenance": {
+        "matched_base_id": "Q14300517",
+        "source_ids": [
+          "policy-padi-dive-sites"
+        ]
+      }
+    },
+    {
+      "id": "curated_sinai-red-sea_jackson-reef",
+      "name": "Jackson Reef",
+      "region": "Red Sea Egypt",
+      "area": "Sinai Red Sea",
+      "country": "Egypt",
+      "latitude": 28.008830555,
+      "longitude": 34.47325,
+      "averageDepth": 15.0,
+      "maxDepth": 30.0,
+      "averageTemp": 26.0,
+      "averageVisibility": 20.0,
+      "difficulty": "Advanced",
+      "type": "Reef",
+      "description": "Reef at the Straits of Tiran",
+      "wishlist": false,
+      "visitedCount": 0,
+      "tags": [
+        "drift",
+        "reef",
+        "sharks"
+      ],
+      "country_id": "EG",
+      "region_id": "red-sea-egypt",
+      "area_id": "sinai-red-sea",
+      "wikidata_id": "Q14212223",
+      "osm_id": "Q14212223",
+      "aliases": [],
+      "curation_score": 9.3,
+      "popularity_score": 9.0,
+      "access_level": "boat",
+      "wreck_verified": false,
+      "destination_slug": "sinai-red-sea",
+      "provenance": {
+        "matched_base_id": "Q14212223",
+        "source_ids": [
+          "policy-padi-dive-sites"
+        ]
+      }
+    },
+    {
+      "id": "curated_marsa-alam-offshore_elphinstone-reef",
+      "name": "Elphinstone Reef",
+      "region": "Red Sea Egypt",
+      "area": "Marsa Alam and Offshore Reefs",
+      "country": "Egypt",
+      "latitude": 25.313,
+      "longitude": 34.86,
+      "averageDepth": 22.0,
+      "maxDepth": 34.0,
+      "averageTemp": 25.0,
+      "averageVisibility": 28.0,
+      "difficulty": "Advanced",
+      "type": "Reef",
+      "description": "Curated reef dive in Marsa Alam and Offshore Reefs known for wall, pelagic.",
+      "wishlist": false,
+      "visitedCount": 0,
+      "tags": [
+        "wall",
+        "pelagic",
+        "current"
+      ],
+      "country_id": "EG",
+      "region_id": "red-sea-egypt",
+      "area_id": "marsa-alam-offshore",
+      "wikidata_id": null,
+      "osm_id": null,
+      "aliases": [],
+      "curation_score": 9.8,
+      "popularity_score": 9.6,
+      "access_level": "boat",
+      "wreck_verified": false,
+      "destination_slug": "marsa-alam-offshore",
+      "provenance": {
+        "matched_base_id": null,
+        "source_ids": [
+          "policy-padi-dive-sites"
+        ]
+      }
+    },
+    {
+      "id": "curated_marsa-alam-offshore_daedalus-reef",
+      "name": "Daedalus Reef",
+      "region": "Red Sea Egypt",
+      "area": "Marsa Alam and Offshore Reefs",
+      "country": "Egypt",
+      "latitude": 24.923,
+      "longitude": 35.857,
+      "averageDepth": 22.0,
+      "maxDepth": 34.0,
+      "averageTemp": 25.0,
+      "averageVisibility": 28.0,
+      "difficulty": "Advanced",
+      "type": "Reef",
+      "description": "Curated reef dive in Marsa Alam and Offshore Reefs known for offshore, sharks.",
+      "wishlist": false,
+      "visitedCount": 0,
+      "tags": [
+        "offshore",
+        "sharks",
+        "wall"
+      ],
+      "country_id": "EG",
+      "region_id": "red-sea-egypt",
+      "area_id": "marsa-alam-offshore",
+      "wikidata_id": null,
+      "osm_id": null,
+      "aliases": [],
+      "curation_score": 9.6,
+      "popularity_score": 9.2,
+      "access_level": "liveaboard",
+      "wreck_verified": false,
+      "destination_slug": "marsa-alam-offshore",
+      "provenance": {
+        "matched_base_id": null,
+        "source_ids": [
+          "policy-padi-dive-sites"
+        ]
+      }
+    },
+    {
+      "id": "curated_marsa-alam-offshore_big-brother",
+      "name": "Big Brother",
+      "region": "Red Sea Egypt",
+      "area": "Marsa Alam and Offshore Reefs",
+      "country": "Egypt",
+      "latitude": 26.308,
+      "longitude": 34.851,
+      "averageDepth": 22.0,
+      "maxDepth": 34.0,
+      "averageTemp": 25.0,
+      "averageVisibility": 28.0,
+      "difficulty": "Advanced",
+      "type": "Reef",
+      "description": "Curated reef dive in Marsa Alam and Offshore Reefs known for wreck, wall.",
+      "wishlist": false,
+      "visitedCount": 0,
+      "tags": [
+        "wreck",
+        "wall",
+        "sharks"
+      ],
+      "country_id": "EG",
+      "region_id": "red-sea-egypt",
+      "area_id": "marsa-alam-offshore",
+      "wikidata_id": null,
+      "osm_id": null,
+      "aliases": [],
+      "curation_score": 9.5,
+      "popularity_score": 9.1,
+      "access_level": "liveaboard",
+      "wreck_verified": false,
+      "destination_slug": "marsa-alam-offshore",
+      "provenance": {
+        "matched_base_id": null,
+        "source_ids": [
+          "policy-padi-dive-sites"
+        ]
+      }
+    },
+    {
+      "id": "curated_marsa-alam-offshore_small-brother",
+      "name": "Small Brother",
+      "region": "Red Sea Egypt",
+      "area": "Marsa Alam and Offshore Reefs",
+      "country": "Egypt",
+      "latitude": 26.313,
+      "longitude": 34.842,
+      "averageDepth": 22.0,
+      "maxDepth": 34.0,
+      "averageTemp": 25.0,
+      "averageVisibility": 28.0,
+      "difficulty": "Advanced",
+      "type": "Reef",
+      "description": "Curated reef dive in Marsa Alam and Offshore Reefs known for wall, current.",
+      "wishlist": false,
+      "visitedCount": 0,
+      "tags": [
+        "wall",
+        "current",
+        "sharks"
+      ],
+      "country_id": "EG",
+      "region_id": "red-sea-egypt",
+      "area_id": "marsa-alam-offshore",
+      "wikidata_id": null,
+      "osm_id": null,
+      "aliases": [],
+      "curation_score": 9.3,
+      "popularity_score": 8.9,
+      "access_level": "liveaboard",
+      "wreck_verified": false,
+      "destination_slug": "marsa-alam-offshore",
+      "provenance": {
+        "matched_base_id": null,
+        "source_ids": [
+          "policy-padi-dive-sites"
+        ]
+      }
+    },
+    {
+      "id": "curated_maldives-central-atolls_banana-reef",
+      "name": "Banana Reef",
+      "region": "Maldives",
+      "area": "Maldives Central Atolls",
+      "country": "Maldives",
+      "latitude": 4.301,
+      "longitude": 73.55,
+      "averageDepth": 18.0,
+      "maxDepth": 30.0,
+      "averageTemp": 28.0,
+      "averageVisibility": 24.0,
+      "difficulty": "Intermediate",
+      "type": "Reef",
+      "description": "Curated reef dive in Maldives Central Atolls known for reef, fish life.",
+      "wishlist": false,
+      "visitedCount": 0,
+      "tags": [
+        "reef",
+        "fish life",
+        "current"
+      ],
+      "country_id": "MV",
+      "region_id": "maldives",
+      "area_id": "maldives-central-atolls",
+      "wikidata_id": null,
+      "osm_id": null,
+      "aliases": [],
+      "curation_score": 9.5,
+      "popularity_score": 9.2,
+      "access_level": "boat",
+      "wreck_verified": false,
+      "destination_slug": "maldives-central-atolls",
+      "provenance": {
+        "matched_base_id": null,
+        "source_ids": [
+          "map-maldives",
+          "policy-padi-dive-sites"
+        ]
+      }
+    },
+    {
+      "id": "curated_maldives-central-atolls_maaya-thila",
+      "name": "Maaya Thila",
+      "region": "Maldives",
+      "area": "Maldives Central Atolls",
+      "country": "Maldives",
+      "latitude": 4.0913626,
+      "longitude": 72.8619718,
+      "averageDepth": 15.0,
+      "maxDepth": 30.0,
+      "averageTemp": 26.0,
+      "averageVisibility": 20.0,
+      "difficulty": "Advanced",
+      "type": "Reef",
+      "description": "One of the most popular diving site in atoll. Water is not clear",
+      "wishlist": false,
+      "visitedCount": 0,
+      "tags": [
+        "night dive",
+        "pelagic",
+        "thila",
+        "Scuba Diving",
+        "Reef",
+        "Shark Dive"
+      ],
+      "country_id": "MV",
+      "region_id": "maldives",
+      "area_id": "maldives-central-atolls",
+      "wikidata_id": null,
+      "osm_id": "osm_node_8584458555",
+      "aliases": [],
+      "curation_score": 9.4,
+      "popularity_score": 9.0,
+      "access_level": "boat",
+      "wreck_verified": false,
+      "destination_slug": "maldives-central-atolls",
+      "provenance": {
+        "matched_base_id": "osm_node_8584458555",
+        "source_ids": [
+          "map-maldives",
+          "policy-padi-dive-sites"
+        ]
+      }
+    },
+    {
+      "id": "curated_maldives-central-atolls_fish-head",
+      "name": "Fish Head",
+      "region": "Maldives",
+      "area": "Maldives Central Atolls",
+      "country": "Maldives",
+      "latitude": 3.9445167,
+      "longitude": 72.9318167,
+      "averageDepth": 15.0,
+      "maxDepth": 30.0,
+      "averageTemp": 26.0,
+      "averageVisibility": 20.0,
+      "difficulty": "Advanced",
+      "type": "Reef",
+      "description": "Curated reef dive in Maldives Central Atolls known for sharks, reef.",
+      "wishlist": false,
+      "visitedCount": 0,
+      "tags": [
+        "sharks",
+        "reef",
+        "pelagic",
+        "Scuba Diving"
+      ],
+      "country_id": "MV",
+      "region_id": "maldives",
+      "area_id": "maldives-central-atolls",
+      "wikidata_id": null,
+      "osm_id": "osm_node_663869884",
+      "aliases": [],
+      "curation_score": 9.3,
+      "popularity_score": 8.9,
+      "access_level": "boat",
+      "wreck_verified": false,
+      "destination_slug": "maldives-central-atolls",
+      "provenance": {
+        "matched_base_id": "osm_node_663869884",
+        "source_ids": [
+          "map-maldives",
+          "policy-padi-dive-sites"
+        ]
+      }
+    },
+    {
+      "id": "curated_maldives-central-atolls_fotteyo-kandu",
+      "name": "Fotteyo Kandu",
+      "region": "Maldives",
+      "area": "Maldives Central Atolls",
+      "country": "Maldives",
+      "latitude": 3.4877081,
+      "longitude": 73.6981134,
+      "averageDepth": 15.0,
+      "maxDepth": 30.0,
+      "averageTemp": 26.0,
+      "averageVisibility": 20.0,
+      "difficulty": "Advanced",
+      "type": "Reef",
+      "description": "One of the most famous dive spot in Vaavu Atoll. A lot of soft corals and many fishes here. Very similar with Maalhos Thila visually",
+      "wishlist": false,
+      "visitedCount": 0,
+      "tags": [
+        "channel",
+        "current",
+        "soft coral",
+        "Scuba Diving",
+        "Reef"
+      ],
+      "country_id": "MV",
+      "region_id": "maldives",
+      "area_id": "maldives-central-atolls",
+      "wikidata_id": null,
+      "osm_id": "osm_node_7151743485",
+      "aliases": [],
+      "curation_score": 9.1,
+      "popularity_score": 8.6,
+      "access_level": "boat",
+      "wreck_verified": false,
+      "destination_slug": "maldives-central-atolls",
+      "provenance": {
+        "matched_base_id": "osm_node_7151743485",
+        "source_ids": [
+          "map-maldives",
+          "policy-padi-dive-sites"
+        ]
+      }
+    },
+    {
+      "id": "curated_maldives-central-atolls_hp-reef",
+      "name": "HP Reef",
+      "region": "Maldives",
+      "area": "Maldives Central Atolls",
+      "country": "Maldives",
+      "latitude": 4.281,
+      "longitude": 73.52,
+      "averageDepth": 18.0,
+      "maxDepth": 30.0,
+      "averageTemp": 28.0,
+      "averageVisibility": 24.0,
+      "difficulty": "Intermediate",
+      "type": "Reef",
+      "description": "Curated reef dive in Maldives Central Atolls known for reef, current.",
+      "wishlist": false,
+      "visitedCount": 0,
+      "tags": [
+        "reef",
+        "current",
+        "fish life"
+      ],
+      "country_id": "MV",
+      "region_id": "maldives",
+      "area_id": "maldives-central-atolls",
+      "wikidata_id": null,
+      "osm_id": null,
+      "aliases": [
+        "HP Reef North Male"
+      ],
+      "curation_score": 8.9,
+      "popularity_score": 8.4,
+      "access_level": "boat",
+      "wreck_verified": false,
+      "destination_slug": "maldives-central-atolls",
+      "provenance": {
+        "matched_base_id": null,
+        "source_ids": [
+          "map-maldives",
+          "policy-padi-dive-sites"
+        ]
+      }
+    },
+    {
+      "id": "curated_palau-rock-islands_blue-corner",
+      "name": "Blue Corner",
+      "region": "Palau",
+      "area": "Palau Rock Islands",
+      "country": "Palau",
+      "latitude": 7.1343222,
+      "longitude": 134.2213095,
+      "averageDepth": 15.0,
+      "maxDepth": 30.0,
+      "averageTemp": 26.0,
+      "averageVisibility": 20.0,
+      "difficulty": "Advanced",
+      "type": "Reef",
+      "description": "Curated reef dive in Palau Rock Islands known for current, pelagic.",
+      "wishlist": false,
+      "visitedCount": 0,
+      "tags": [
+        "current",
+        "pelagic",
+        "reef",
+        "Scuba Diving",
+        "Wall Dive",
+        "Reef Dive",
+        "Shark Dive",
+        "Big Fish"
+      ],
+      "country_id": "PW",
+      "region_id": "palau",
+      "area_id": "palau-rock-islands",
+      "wikidata_id": null,
+      "osm_id": "osm_node_4031041872",
+      "aliases": [],
+      "curation_score": 9.9,
+      "popularity_score": 9.8,
+      "access_level": "boat",
+      "wreck_verified": false,
+      "destination_slug": "palau-rock-islands",
+      "provenance": {
+        "matched_base_id": "osm_node_4031041872",
+        "source_ids": [
+          "map-palau",
+          "policy-padi-dive-sites"
+        ]
+      }
+    },
+    {
+      "id": "curated_palau-rock-islands_german-channel",
+      "name": "German Channel",
+      "region": "Palau",
+      "area": "Palau Rock Islands",
+      "country": "Palau",
+      "latitude": 7.172,
+      "longitude": 134.266,
+      "averageDepth": 18.0,
+      "maxDepth": 30.0,
+      "averageTemp": 28.0,
+      "averageVisibility": 25.0,
+      "difficulty": "Intermediate",
+      "type": "Reef",
+      "description": "Curated reef dive in Palau Rock Islands known for manta rays, channel.",
+      "wishlist": false,
+      "visitedCount": 0,
+      "tags": [
+        "manta rays",
+        "channel",
+        "reef"
+      ],
+      "country_id": "PW",
+      "region_id": "palau",
+      "area_id": "palau-rock-islands",
+      "wikidata_id": null,
+      "osm_id": null,
+      "aliases": [],
+      "curation_score": 9.7,
+      "popularity_score": 9.5,
+      "access_level": "boat",
+      "wreck_verified": false,
+      "destination_slug": "palau-rock-islands",
+      "provenance": {
+        "matched_base_id": null,
+        "source_ids": [
+          "map-palau",
+          "policy-padi-dive-sites"
+        ]
+      }
+    },
+    {
+      "id": "curated_palau-rock-islands_blue-holes",
+      "name": "Blue Holes",
+      "region": "Palau",
+      "area": "Palau Rock Islands",
+      "country": "Palau",
+      "latitude": 7.1372018,
+      "longitude": 134.2225545,
+      "averageDepth": 15.0,
+      "maxDepth": 30.0,
+      "averageTemp": 26.0,
+      "averageVisibility": 20.0,
+      "difficulty": "Intermediate",
+      "type": "Reef",
+      "description": "Curated reef dive in Palau Rock Islands known for cave, blue water.",
+      "wishlist": false,
+      "visitedCount": 0,
+      "tags": [
+        "cave",
+        "blue water",
+        "reef",
+        "Scuba Diving"
+      ],
+      "country_id": "PW",
+      "region_id": "palau",
+      "area_id": "palau-rock-islands",
+      "wikidata_id": null,
+      "osm_id": "osm_node_5042664345",
+      "aliases": [],
+      "curation_score": 9.5,
+      "popularity_score": 9.2,
+      "access_level": "boat",
+      "wreck_verified": false,
+      "destination_slug": "palau-rock-islands",
+      "provenance": {
+        "matched_base_id": "osm_node_5042664345",
+        "source_ids": [
+          "map-palau",
+          "policy-padi-dive-sites"
+        ]
+      }
+    },
+    {
+      "id": "curated_palau-rock-islands_ulong-channel",
+      "name": "Ulong Channel",
+      "region": "Palau",
+      "area": "Palau Rock Islands",
+      "country": "Palau",
+      "latitude": 7.2834381,
+      "longitude": 134.244683,
+      "averageDepth": 15.0,
+      "maxDepth": 30.0,
+      "averageTemp": 26.0,
+      "averageVisibility": 20.0,
+      "difficulty": "Advanced",
+      "type": "Reef",
+      "description": "Curated reef dive in Palau Rock Islands known for drift, channel.",
+      "wishlist": false,
+      "visitedCount": 0,
+      "tags": [
+        "drift",
+        "channel",
+        "sharks",
+        "Scuba Diving",
+        "Reef Dive",
+        "Shark Dive",
+        "Big Fish"
+      ],
+      "country_id": "PW",
+      "region_id": "palau",
+      "area_id": "palau-rock-islands",
+      "wikidata_id": null,
+      "osm_id": "osm_node_4031041880",
+      "aliases": [],
+      "curation_score": 9.4,
+      "popularity_score": 9.0,
+      "access_level": "boat",
+      "wreck_verified": false,
+      "destination_slug": "palau-rock-islands",
+      "provenance": {
+        "matched_base_id": "osm_node_4031041880",
+        "source_ids": [
+          "map-palau",
+          "policy-padi-dive-sites"
+        ]
+      }
+    },
+    {
+      "id": "curated_palau-rock-islands_chandelier-cave",
+      "name": "Chandelier Cave",
+      "region": "Palau",
+      "area": "Palau Rock Islands",
+      "country": "Palau",
+      "latitude": 7.3407011,
+      "longitude": 134.4506516,
+      "averageDepth": 15.0,
+      "maxDepth": 30.0,
+      "averageTemp": 26.0,
+      "averageVisibility": 20.0,
+      "difficulty": "Beginner",
+      "type": "Cave",
+      "description": "Curated cave dive in Palau Rock Islands known for cave, cavern.",
+      "wishlist": false,
+      "visitedCount": 0,
+      "tags": [
+        "cave",
+        "cavern",
+        "easy",
+        "Scuba Diving",
+        "Cave Dive"
+      ],
+      "country_id": "PW",
+      "region_id": "palau",
+      "area_id": "palau-rock-islands",
+      "wikidata_id": null,
+      "osm_id": "osm_node_4031041873",
+      "aliases": [],
+      "curation_score": 8.9,
+      "popularity_score": 8.6,
+      "access_level": "boat",
+      "wreck_verified": false,
+      "destination_slug": "palau-rock-islands",
+      "provenance": {
+        "matched_base_id": "osm_node_4031041873",
+        "source_ids": [
+          "map-palau",
+          "policy-padi-dive-sites"
+        ]
+      }
+    },
+    {
+      "id": "curated_great-barrier-reef-cairns_cod-hole",
+      "name": "Cod Hole",
+      "region": "Great Barrier Reef",
+      "area": "Great Barrier Reef Cairns and Ribbon Reefs",
+      "country": "Australia",
+      "latitude": -14.663675,
+      "longitude": 145.6634652,
+      "averageDepth": 15.0,
+      "maxDepth": 30.0,
+      "averageTemp": 26.0,
+      "averageVisibility": 20.0,
+      "difficulty": "Intermediate",
+      "type": "Reef",
+      "description": "Curated reef dive in Great Barrier Reef Cairns and Ribbon Reefs known for cod, reef.",
+      "wishlist": false,
+      "visitedCount": 0,
+      "tags": [
+        "cod",
+        "reef",
+        "wide angle",
+        "Scuba Diving"
+      ],
+      "country_id": "AU",
+      "region_id": "great-barrier-reef",
+      "area_id": "great-barrier-reef-cairns",
+      "wikidata_id": null,
+      "osm_id": "osm_node_270802348",
+      "aliases": [],
+      "curation_score": 9.6,
+      "popularity_score": 9.4,
+      "access_level": "boat",
+      "wreck_verified": false,
+      "destination_slug": "great-barrier-reef-cairns",
+      "provenance": {
+        "matched_base_id": "osm_node_270802348",
+        "source_ids": [
+          "policy-padi-dive-sites"
+        ]
+      }
+    },
+    {
+      "id": "curated_great-barrier-reef-cairns_osprey-reef",
+      "name": "Osprey Reef",
+      "region": "Great Barrier Reef",
+      "area": "Great Barrier Reef Cairns and Ribbon Reefs",
+      "country": "Australia",
+      "latitude": -13.895,
+      "longitude": 146.56,
+      "averageDepth": 17.0,
+      "maxDepth": 28.0,
+      "averageTemp": 26.0,
+      "averageVisibility": 22.0,
+      "difficulty": "Advanced",
+      "type": "Reef",
+      "description": "Curated reef dive in Great Barrier Reef Cairns and Ribbon Reefs known for wall, sharks.",
+      "wishlist": false,
+      "visitedCount": 0,
+      "tags": [
+        "wall",
+        "sharks",
+        "offshore"
+      ],
+      "country_id": "AU",
+      "region_id": "great-barrier-reef",
+      "area_id": "great-barrier-reef-cairns",
+      "wikidata_id": null,
+      "osm_id": null,
+      "aliases": [],
+      "curation_score": 9.5,
+      "popularity_score": 9.0,
+      "access_level": "liveaboard",
+      "wreck_verified": false,
+      "destination_slug": "great-barrier-reef-cairns",
+      "provenance": {
+        "matched_base_id": null,
+        "source_ids": [
+          "policy-padi-dive-sites"
+        ]
+      }
+    },
+    {
+      "id": "curated_great-barrier-reef-cairns_flynn-reef",
+      "name": "Flynn Reef",
+      "region": "Great Barrier Reef",
+      "area": "Great Barrier Reef Cairns and Ribbon Reefs",
+      "country": "Australia",
+      "latitude": -16.752,
+      "longitude": 146.261,
+      "averageDepth": 17.0,
+      "maxDepth": 28.0,
+      "averageTemp": 26.0,
+      "averageVisibility": 22.0,
+      "difficulty": "Intermediate",
+      "type": "Reef",
+      "description": "Curated reef dive in Great Barrier Reef Cairns and Ribbon Reefs known for reef, coral.",
+      "wishlist": false,
+      "visitedCount": 0,
+      "tags": [
+        "reef",
+        "coral",
+        "boat"
+      ],
+      "country_id": "AU",
+      "region_id": "great-barrier-reef",
+      "area_id": "great-barrier-reef-cairns",
+      "wikidata_id": null,
+      "osm_id": null,
+      "aliases": [],
+      "curation_score": 9.0,
+      "popularity_score": 8.5,
+      "access_level": "boat",
+      "wreck_verified": false,
+      "destination_slug": "great-barrier-reef-cairns",
+      "provenance": {
+        "matched_base_id": null,
+        "source_ids": [
+          "policy-padi-dive-sites"
+        ]
+      }
+    },
+    {
+      "id": "curated_great-barrier-reef-cairns_milln-reef",
+      "name": "Milln Reef",
+      "region": "Great Barrier Reef",
+      "area": "Great Barrier Reef Cairns and Ribbon Reefs",
+      "country": "Australia",
+      "latitude": -16.846,
+      "longitude": 146.23,
+      "averageDepth": 17.0,
+      "maxDepth": 28.0,
+      "averageTemp": 26.0,
+      "averageVisibility": 22.0,
+      "difficulty": "Intermediate",
+      "type": "Reef",
+      "description": "Curated reef dive in Great Barrier Reef Cairns and Ribbon Reefs known for reef, coral.",
+      "wishlist": false,
+      "visitedCount": 0,
+      "tags": [
+        "reef",
+        "coral",
+        "boat"
+      ],
+      "country_id": "AU",
+      "region_id": "great-barrier-reef",
+      "area_id": "great-barrier-reef-cairns",
+      "wikidata_id": null,
+      "osm_id": null,
+      "aliases": [],
+      "curation_score": 8.9,
+      "popularity_score": 8.4,
+      "access_level": "boat",
+      "wreck_verified": false,
+      "destination_slug": "great-barrier-reef-cairns",
+      "provenance": {
+        "matched_base_id": null,
+        "source_ids": [
+          "policy-padi-dive-sites"
+        ]
+      }
+    },
+    {
+      "id": "curated_cozumel-riviera-maya_palancar-gardens",
+      "name": "Palancar Gardens",
+      "region": "Caribbean Mexico",
+      "area": "Cozumel and Riviera Maya",
+      "country": "Mexico",
+      "latitude": 20.351,
+      "longitude": -87.024,
+      "averageDepth": 17.0,
+      "maxDepth": 28.0,
+      "averageTemp": 27.0,
+      "averageVisibility": 23.0,
+      "difficulty": "Intermediate",
+      "type": "Reef",
+      "description": "Curated reef dive in Cozumel and Riviera Maya known for drift, reef.",
+      "wishlist": false,
+      "visitedCount": 0,
+      "tags": [
+        "drift",
+        "reef",
+        "boat"
+      ],
+      "country_id": "MX",
+      "region_id": "caribbean-mexico",
+      "area_id": "cozumel-riviera-maya",
+      "wikidata_id": null,
+      "osm_id": null,
+      "aliases": [],
+      "curation_score": 9.5,
+      "popularity_score": 9.2,
+      "access_level": "boat",
+      "wreck_verified": false,
+      "destination_slug": "cozumel-riviera-maya",
+      "provenance": {
+        "matched_base_id": null,
+        "source_ids": [
+          "map-cozumel",
+          "policy-padi-dive-sites"
+        ]
+      }
+    },
+    {
+      "id": "curated_cozumel-riviera-maya_santa-rosa-wall",
+      "name": "Santa Rosa Wall",
+      "region": "Caribbean Mexico",
+      "area": "Cozumel and Riviera Maya",
+      "country": "Mexico",
+      "latitude": 20.443,
+      "longitude": -86.979,
+      "averageDepth": 17.0,
+      "maxDepth": 28.0,
+      "averageTemp": 27.0,
+      "averageVisibility": 23.0,
+      "difficulty": "Advanced",
+      "type": "Reef",
+      "description": "Curated reef dive in Cozumel and Riviera Maya known for wall, drift.",
+      "wishlist": false,
+      "visitedCount": 0,
+      "tags": [
+        "wall",
+        "drift",
+        "boat"
+      ],
+      "country_id": "MX",
+      "region_id": "caribbean-mexico",
+      "area_id": "cozumel-riviera-maya",
+      "wikidata_id": null,
+      "osm_id": null,
+      "aliases": [],
+      "curation_score": 9.3,
+      "popularity_score": 8.9,
+      "access_level": "boat",
+      "wreck_verified": false,
+      "destination_slug": "cozumel-riviera-maya",
+      "provenance": {
+        "matched_base_id": null,
+        "source_ids": [
+          "map-cozumel",
+          "policy-padi-dive-sites"
+        ]
+      }
+    },
+    {
+      "id": "curated_cozumel-riviera-maya_punta-sur",
+      "name": "Punta Sur",
+      "region": "Caribbean Mexico",
+      "area": "Cozumel and Riviera Maya",
+      "country": "Mexico",
+      "latitude": 20.2873171,
+      "longitude": -87.031631,
+      "averageDepth": 15.0,
+      "maxDepth": 30.0,
+      "averageTemp": 26.0,
+      "averageVisibility": 20.0,
+      "difficulty": "Advanced",
+      "type": "Reef",
+      "description": "Curated reef dive in Cozumel and Riviera Maya known for drift, reef.",
+      "wishlist": false,
+      "visitedCount": 0,
+      "tags": [
+        "drift",
+        "reef",
+        "pelagic",
+        "Scuba Diving"
+      ],
+      "country_id": "MX",
+      "region_id": "caribbean-mexico",
+      "area_id": "cozumel-riviera-maya",
+      "wikidata_id": null,
+      "osm_id": "osm_node_663869325",
+      "aliases": [
+        "Punta Sur Reef"
+      ],
+      "curation_score": 9.0,
+      "popularity_score": 8.6,
+      "access_level": "boat",
+      "wreck_verified": false,
+      "destination_slug": "cozumel-riviera-maya",
+      "provenance": {
+        "matched_base_id": "osm_node_663869325",
+        "source_ids": [
+          "map-cozumel",
+          "policy-padi-dive-sites"
+        ]
+      }
+    },
+    {
+      "id": "curated_cozumel-riviera-maya_columbia-deep",
+      "name": "Columbia Deep",
+      "region": "Caribbean Mexico",
+      "area": "Cozumel and Riviera Maya",
+      "country": "Mexico",
+      "latitude": 20.279,
+      "longitude": -87.009,
+      "averageDepth": 17.0,
+      "maxDepth": 28.0,
+      "averageTemp": 27.0,
+      "averageVisibility": 23.0,
+      "difficulty": "Advanced",
+      "type": "Reef",
+      "description": "Curated reef dive in Cozumel and Riviera Maya known for wall, drift.",
+      "wishlist": false,
+      "visitedCount": 0,
+      "tags": [
+        "wall",
+        "drift",
+        "deep"
+      ],
+      "country_id": "MX",
+      "region_id": "caribbean-mexico",
+      "area_id": "cozumel-riviera-maya",
+      "wikidata_id": null,
+      "osm_id": null,
+      "aliases": [],
+      "curation_score": 8.9,
+      "popularity_score": 8.5,
+      "access_level": "boat",
+      "wreck_verified": false,
+      "destination_slug": "cozumel-riviera-maya",
+      "provenance": {
+        "matched_base_id": null,
+        "source_ids": [
+          "map-cozumel",
+          "policy-padi-dive-sites"
+        ]
+      }
+    },
+    {
+      "id": "curated_cozumel-riviera-maya_dos-ojos",
+      "name": "Dos Ojos",
+      "region": "Caribbean Mexico",
+      "area": "Cozumel and Riviera Maya",
+      "country": "Mexico",
+      "latitude": 20.331,
+      "longitude": -87.395,
+      "averageDepth": 17.0,
+      "maxDepth": 28.0,
+      "averageTemp": 27.0,
+      "averageVisibility": 23.0,
+      "difficulty": "Intermediate",
+      "type": "Cave",
+      "description": "Curated cave dive in Cozumel and Riviera Maya known for cenote, cavern.",
+      "wishlist": false,
+      "visitedCount": 0,
+      "tags": [
+        "cenote",
+        "cavern",
+        "freshwater"
+      ],
+      "country_id": "MX",
+      "region_id": "caribbean-mexico",
+      "area_id": "cozumel-riviera-maya",
+      "wikidata_id": null,
+      "osm_id": null,
+      "aliases": [],
+      "curation_score": 9.7,
+      "popularity_score": 9.5,
+      "access_level": "shore",
+      "wreck_verified": false,
+      "destination_slug": "cozumel-riviera-maya",
+      "provenance": {
+        "matched_base_id": null,
+        "source_ids": [
+          "map-cozumel",
+          "policy-padi-dive-sites"
+        ]
+      }
+    },
+    {
+      "id": "curated_philippines-islands_monad-shoal",
+      "name": "Monad Shoal",
+      "region": "Philippines",
+      "area": "Philippines Islands",
+      "country": "Philippines",
+      "latitude": 11.3133913,
+      "longitude": 124.1947241,
+      "averageDepth": 5.0,
+      "maxDepth": 50.0,
+      "averageTemp": 26.0,
+      "averageVisibility": 20.0,
+      "difficulty": "Advanced",
+      "type": "Reef",
+      "description": "Curated reef dive in Philippines Islands known for thresher sharks, plateau.",
+      "wishlist": false,
+      "visitedCount": 0,
+      "tags": [
+        "thresher sharks",
+        "plateau",
+        "blue water",
+        "Scuba Diving",
+        "Reef"
+      ],
+      "country_id": "PH",
+      "region_id": "philippines",
+      "area_id": "philippines-islands",
+      "wikidata_id": null,
+      "osm_id": "osm_node_6215139685",
+      "aliases": [],
+      "curation_score": 9.6,
+      "popularity_score": 9.3,
+      "access_level": "boat",
+      "wreck_verified": false,
+      "destination_slug": "philippines-islands",
+      "provenance": {
+        "matched_base_id": "osm_node_6215139685",
+        "source_ids": [
+          "policy-padi-dive-sites"
+        ]
+      }
+    },
+    {
+      "id": "curated_philippines-islands_gato-island",
+      "name": "Gato Island",
+      "region": "Philippines",
+      "area": "Philippines Islands",
+      "country": "Philippines",
+      "latitude": 11.302,
+      "longitude": 123.959,
+      "averageDepth": 17.0,
+      "maxDepth": 28.0,
+      "averageTemp": 28.0,
+      "averageVisibility": 18.0,
+      "difficulty": "Intermediate",
+      "type": "Reef",
+      "description": "Curated reef dive in Philippines Islands known for cave, reef.",
+      "wishlist": false,
+      "visitedCount": 0,
+      "tags": [
+        "cave",
+        "reef",
+        "macro"
+      ],
+      "country_id": "PH",
+      "region_id": "philippines",
+      "area_id": "philippines-islands",
+      "wikidata_id": null,
+      "osm_id": null,
+      "aliases": [],
+      "curation_score": 9.1,
+      "popularity_score": 8.8,
+      "access_level": "boat",
+      "wreck_verified": false,
+      "destination_slug": "philippines-islands",
+      "provenance": {
+        "matched_base_id": null,
+        "source_ids": [
+          "policy-padi-dive-sites"
+        ]
+      }
+    },
+    {
+      "id": "curated_philippines-islands_pescador-island",
+      "name": "Pescador Island",
+      "region": "Philippines",
+      "area": "Philippines Islands",
+      "country": "Philippines",
+      "latitude": 9.946,
+      "longitude": 123.381,
+      "averageDepth": 17.0,
+      "maxDepth": 28.0,
+      "averageTemp": 28.0,
+      "averageVisibility": 18.0,
+      "difficulty": "Intermediate",
+      "type": "Reef",
+      "description": "Curated reef dive in Philippines Islands known for wall, reef.",
+      "wishlist": false,
+      "visitedCount": 0,
+      "tags": [
+        "wall",
+        "reef",
+        "schooling fish"
+      ],
+      "country_id": "PH",
+      "region_id": "philippines",
+      "area_id": "philippines-islands",
+      "wikidata_id": null,
+      "osm_id": null,
+      "aliases": [],
+      "curation_score": 9.0,
+      "popularity_score": 8.7,
+      "access_level": "boat",
+      "wreck_verified": false,
+      "destination_slug": "philippines-islands",
+      "provenance": {
+        "matched_base_id": null,
+        "source_ids": [
+          "policy-padi-dive-sites"
+        ]
+      }
+    },
+    {
+      "id": "curated_philippines-islands_sardine-run",
+      "name": "Sardine Run",
+      "region": "Philippines",
+      "area": "Philippines Islands",
+      "country": "Philippines",
+      "latitude": 9.943,
+      "longitude": 123.378,
+      "averageDepth": 17.0,
+      "maxDepth": 28.0,
+      "averageTemp": 28.0,
+      "averageVisibility": 18.0,
+      "difficulty": "Beginner",
+      "type": "Reef",
+      "description": "Curated reef dive in Philippines Islands known for sardines, shore.",
+      "wishlist": false,
+      "visitedCount": 0,
+      "tags": [
+        "sardines",
+        "shore",
+        "photography"
+      ],
+      "country_id": "PH",
+      "region_id": "philippines",
+      "area_id": "philippines-islands",
+      "wikidata_id": null,
+      "osm_id": null,
+      "aliases": [
+        "Moalboal Sardine Run"
+      ],
+      "curation_score": 9.4,
+      "popularity_score": 9.4,
+      "access_level": "shore",
+      "wreck_verified": false,
+      "destination_slug": "philippines-islands",
+      "provenance": {
+        "matched_base_id": null,
+        "source_ids": [
+          "policy-padi-dive-sites"
+        ]
+      }
+    },
+    {
+      "id": "curated_philippines-islands_twin-rocks",
+      "name": "Twin Rocks",
+      "region": "Philippines",
+      "area": "Philippines Islands",
+      "country": "Philippines",
+      "latitude": 13.76,
+      "longitude": 120.872,
+      "averageDepth": 17.0,
+      "maxDepth": 28.0,
+      "averageTemp": 28.0,
+      "averageVisibility": 18.0,
+      "difficulty": "Beginner",
+      "type": "Reef",
+      "description": "Curated reef dive in Philippines Islands known for muck, macro.",
+      "wishlist": false,
+      "visitedCount": 0,
+      "tags": [
+        "muck",
+        "macro",
+        "reef"
+      ],
+      "country_id": "PH",
+      "region_id": "philippines",
+      "area_id": "philippines-islands",
+      "wikidata_id": null,
+      "osm_id": null,
+      "aliases": [],
+      "curation_score": 8.8,
+      "popularity_score": 8.3,
+      "access_level": "boat",
+      "wreck_verified": false,
+      "destination_slug": "philippines-islands",
+      "provenance": {
+        "matched_base_id": null,
+        "source_ids": [
+          "policy-padi-dive-sites"
+        ]
+      }
+    },
+    {
+      "id": "curated_thailand-gulf-and-similan_richelieu-rock",
+      "name": "Richelieu Rock",
+      "region": "Thailand",
+      "area": "Thailand Gulf and Similan",
+      "country": "Thailand",
+      "latitude": 9.3634061,
+      "longitude": 98.0220602,
+      "averageDepth": 15.0,
+      "maxDepth": 30.0,
+      "averageTemp": 26.0,
+      "averageVisibility": 20.0,
+      "difficulty": "Advanced",
+      "type": "Reef",
+      "description": "Curated reef dive in Thailand Gulf and Similan known for pelagic, reef.",
+      "wishlist": false,
+      "visitedCount": 0,
+      "tags": [
+        "pelagic",
+        "reef",
+        "purple soft coral",
+        "Scuba Diving"
+      ],
+      "country_id": "TH",
+      "region_id": "thailand",
+      "area_id": "thailand-gulf-and-similan",
+      "wikidata_id": "Q7330401",
+      "osm_id": "osm_node_270804074",
+      "aliases": [],
+      "curation_score": 9.8,
+      "popularity_score": 9.6,
+      "access_level": "boat",
+      "wreck_verified": false,
+      "destination_slug": "thailand-gulf-and-similan",
+      "provenance": {
+        "matched_base_id": "osm_node_270804074",
+        "source_ids": [
+          "policy-padi-dive-sites"
+        ]
+      }
+    },
+    {
+      "id": "curated_thailand-gulf-and-similan_sail-rock",
+      "name": "Sail Rock",
+      "region": "Thailand",
+      "area": "Thailand Gulf and Similan",
+      "country": "Thailand",
+      "latitude": 10.095,
+      "longitude": 100.051,
+      "averageDepth": 16.0,
+      "maxDepth": 28.0,
+      "averageTemp": 28.0,
+      "averageVisibility": 16.0,
+      "difficulty": "Intermediate",
+      "type": "Reef",
+      "description": "Curated reef dive in Thailand Gulf and Similan known for chimney, reef.",
+      "wishlist": false,
+      "visitedCount": 0,
+      "tags": [
+        "chimney",
+        "reef",
+        "schooling fish"
+      ],
+      "country_id": "TH",
+      "region_id": "thailand",
+      "area_id": "thailand-gulf-and-similan",
+      "wikidata_id": null,
+      "osm_id": null,
+      "aliases": [],
+      "curation_score": 9.2,
+      "popularity_score": 8.9,
+      "access_level": "boat",
+      "wreck_verified": false,
+      "destination_slug": "thailand-gulf-and-similan",
+      "provenance": {
+        "matched_base_id": null,
+        "source_ids": [
+          "policy-padi-dive-sites"
+        ]
+      }
+    },
+    {
+      "id": "curated_thailand-gulf-and-similan_chumphon-pinnacle",
+      "name": "Chumphon Pinnacle",
+      "region": "Thailand",
+      "area": "Thailand Gulf and Similan",
+      "country": "Thailand",
+      "latitude": 10.766,
+      "longitude": 99.586,
+      "averageDepth": 16.0,
+      "maxDepth": 28.0,
+      "averageTemp": 28.0,
+      "averageVisibility": 16.0,
+      "difficulty": "Advanced",
+      "type": "Reef",
+      "description": "Curated reef dive in Thailand Gulf and Similan known for pinnacle, pelagic.",
+      "wishlist": false,
+      "visitedCount": 0,
+      "tags": [
+        "pinnacle",
+        "pelagic",
+        "current"
+      ],
+      "country_id": "TH",
+      "region_id": "thailand",
+      "area_id": "thailand-gulf-and-similan",
+      "wikidata_id": null,
+      "osm_id": null,
+      "aliases": [],
+      "curation_score": 9.1,
+      "popularity_score": 8.7,
+      "access_level": "boat",
+      "wreck_verified": false,
+      "destination_slug": "thailand-gulf-and-similan",
+      "provenance": {
+        "matched_base_id": null,
+        "source_ids": [
+          "policy-padi-dive-sites"
+        ]
+      }
+    },
+    {
+      "id": "curated_thailand-gulf-and-similan_shark-island",
+      "name": "Shark Island",
+      "region": "Thailand",
+      "area": "Thailand Gulf and Similan",
+      "country": "Thailand",
+      "latitude": 10.0623691,
+      "longitude": 99.8456663,
+      "averageDepth": 4.0,
+      "maxDepth": 25.0,
+      "averageTemp": 26.0,
+      "averageVisibility": 20.0,
+      "difficulty": "Intermediate",
+      "type": "Reef",
+      "description": "Curated reef dive in Thailand Gulf and Similan known for reef, shore.",
+      "wishlist": false,
+      "visitedCount": 0,
+      "tags": [
+        "reef",
+        "shore",
+        "training",
+        "Scuba Diving"
+      ],
+      "country_id": "TH",
+      "region_id": "thailand",
+      "area_id": "thailand-gulf-and-similan",
+      "wikidata_id": null,
+      "osm_id": "osm_node_859428997",
+      "aliases": [],
+      "curation_score": 8.7,
+      "popularity_score": 8.3,
+      "access_level": "boat",
+      "wreck_verified": false,
+      "destination_slug": "thailand-gulf-and-similan",
+      "provenance": {
+        "matched_base_id": "osm_node_859428997",
+        "source_ids": [
+          "policy-padi-dive-sites"
+        ]
+      }
+    },
+    {
+      "id": "curated_south-africa-east-coast_aliwal-shoal",
+      "name": "Aliwal Shoal",
+      "region": "South Africa",
+      "area": "South Africa East Coast",
+      "country": "South Africa",
+      "latitude": -30.258,
+      "longitude": 30.824,
+      "averageDepth": 18.0,
+      "maxDepth": 30.0,
+      "averageTemp": 22.0,
+      "averageVisibility": 15.0,
+      "difficulty": "Advanced",
+      "type": "Reef",
+      "description": "Curated reef dive in South Africa East Coast known for sharks, reef.",
+      "wishlist": false,
+      "visitedCount": 0,
+      "tags": [
+        "sharks",
+        "reef",
+        "boat"
+      ],
+      "country_id": "ZA",
+      "region_id": "south-africa",
+      "area_id": "south-africa-east-coast",
+      "wikidata_id": null,
+      "osm_id": null,
+      "aliases": [],
+      "curation_score": 9.3,
+      "popularity_score": 9.0,
+      "access_level": "boat",
+      "wreck_verified": false,
+      "destination_slug": "south-africa-east-coast",
+      "provenance": {
+        "matched_base_id": null,
+        "source_ids": [
+          "policy-padi-dive-sites"
+        ]
+      }
+    },
+    {
+      "id": "curated_south-africa-east-coast_cathedral",
+      "name": "Cathedral",
+      "region": "South Africa",
+      "area": "South Africa East Coast",
+      "country": "South Africa",
+      "latitude": -27.536,
+      "longitude": 32.692,
+      "averageDepth": 18.0,
+      "maxDepth": 30.0,
+      "averageTemp": 22.0,
+      "averageVisibility": 15.0,
+      "difficulty": "Advanced",
+      "type": "Reef",
+      "description": "Curated reef dive in South Africa East Coast known for cave, reef.",
+      "wishlist": false,
+      "visitedCount": 0,
+      "tags": [
+        "cave",
+        "reef",
+        "sharks"
+      ],
+      "country_id": "ZA",
+      "region_id": "south-africa",
+      "area_id": "south-africa-east-coast",
+      "wikidata_id": null,
+      "osm_id": null,
+      "aliases": [],
+      "curation_score": 8.9,
+      "popularity_score": 8.5,
+      "access_level": "boat",
+      "wreck_verified": false,
+      "destination_slug": "south-africa-east-coast",
+      "provenance": {
+        "matched_base_id": null,
+        "source_ids": [
+          "policy-padi-dive-sites"
+        ]
+      }
+    },
+    {
+      "id": "curated_south-africa-east-coast_seven-mile-reef",
+      "name": "Seven Mile Reef",
+      "region": "South Africa",
+      "area": "South Africa East Coast",
+      "country": "South Africa",
+      "latitude": -27.426,
+      "longitude": 32.71,
+      "averageDepth": 18.0,
+      "maxDepth": 30.0,
+      "averageTemp": 22.0,
+      "averageVisibility": 15.0,
+      "difficulty": "Advanced",
+      "type": "Reef",
+      "description": "Curated reef dive in South Africa East Coast known for reef, pelagic.",
+      "wishlist": false,
+      "visitedCount": 0,
+      "tags": [
+        "reef",
+        "pelagic",
+        "current"
+      ],
+      "country_id": "ZA",
+      "region_id": "south-africa",
+      "area_id": "south-africa-east-coast",
+      "wikidata_id": null,
+      "osm_id": null,
+      "aliases": [],
+      "curation_score": 8.8,
+      "popularity_score": 8.3,
+      "access_level": "boat",
+      "wreck_verified": false,
+      "destination_slug": "south-africa-east-coast",
+      "provenance": {
+        "matched_base_id": null,
+        "source_ids": [
+          "policy-padi-dive-sites"
+        ]
+      }
+    },
+    {
+      "id": "curated_south-africa-east-coast_raggie-cave",
+      "name": "Raggie Cave",
+      "region": "South Africa",
+      "area": "South Africa East Coast",
+      "country": "South Africa",
+      "latitude": -30.253,
+      "longitude": 30.82,
+      "averageDepth": 18.0,
+      "maxDepth": 30.0,
+      "averageTemp": 22.0,
+      "averageVisibility": 15.0,
+      "difficulty": "Advanced",
+      "type": "Reef",
+      "description": "Curated reef dive in South Africa East Coast known for sharks, cave.",
+      "wishlist": false,
+      "visitedCount": 0,
+      "tags": [
+        "sharks",
+        "cave",
+        "boat"
+      ],
+      "country_id": "ZA",
+      "region_id": "south-africa",
+      "area_id": "south-africa-east-coast",
+      "wikidata_id": null,
+      "osm_id": null,
+      "aliases": [],
+      "curation_score": 8.7,
+      "popularity_score": 8.2,
+      "access_level": "boat",
+      "wreck_verified": false,
+      "destination_slug": "south-africa-east-coast",
+      "provenance": {
+        "matched_base_id": null,
+        "source_ids": [
+          "policy-padi-dive-sites"
+        ]
+      }
+    }
+  ]
+}

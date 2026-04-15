@@ -1,0 +1,186 @@
+{
+  "version": "2026-04-15-curated-core-v1",
+  "sources": [
+    {
+      "id": "policy-dive-site-help",
+      "name": "dive.site Help",
+      "type": "curation_policy",
+      "url": "https://dive.site/help/",
+      "license": "public-web",
+      "role": "curation policy",
+      "weight": 1.0,
+      "destinations": [
+        "global-core"
+      ]
+    },
+    {
+      "id": "policy-dive-number-map",
+      "name": "Dive Number Map",
+      "type": "curation_policy",
+      "url": "https://divenumber.com/free_dive_site_map",
+      "license": "public-web",
+      "role": "regional map policy",
+      "weight": 0.9,
+      "destinations": [
+        "global-core"
+      ]
+    },
+    {
+      "id": "policy-padi-dive-sites",
+      "name": "PADI Dive Sites",
+      "type": "destination_directory",
+      "url": "https://www.padi.com/dive-sites/",
+      "license": "public-web",
+      "role": "popularity reference",
+      "weight": 0.8,
+      "destinations": [
+        "global-core"
+      ]
+    },
+    {
+      "id": "forum-komodo-scubaboard",
+      "name": "ScubaBoard Komodo trip report",
+      "type": "forum",
+      "url": "https://scubaboard.com/community/threads/trip-report-komodo-padang-bai-oct-2023.639306/",
+      "license": "public-web",
+      "role": "community confirmation",
+      "weight": 0.85,
+      "destinations": [
+        "komodo-national-park"
+      ]
+    },
+    {
+      "id": "forum-bali-scubaboard",
+      "name": "ScubaBoard Bali and Nusa Penida thread",
+      "type": "forum",
+      "url": "https://scubaboard.com/community/threads/bali-diving-other-padang-bai-and-tulamben.565929/",
+      "license": "public-web",
+      "role": "community confirmation",
+      "weight": 0.85,
+      "destinations": [
+        "nusa-penida-lembongan",
+        "tulamben-amed"
+      ]
+    },
+    {
+      "id": "operator-lembeh-map",
+      "name": "Divers Lodge Lembeh site map",
+      "type": "operator_map",
+      "url": "https://www.diverslodgelembeh.com/map/",
+      "license": "public-web",
+      "role": "authoritative destination map",
+      "weight": 0.95,
+      "destinations": [
+        "lembeh-strait"
+      ]
+    },
+    {
+      "id": "zentacle-lembeh-sites",
+      "name": "Zentacle Lembeh site pages",
+      "type": "destination_map",
+      "url": "https://www.zentacle.com/Beach/4184/police-pier",
+      "license": "public-web",
+      "role": "site coordinates and naming",
+      "weight": 0.9,
+      "destinations": [
+        "lembeh-strait"
+      ]
+    },
+    {
+      "id": "map-raja-ampat",
+      "name": "Raja Ampat public dive maps",
+      "type": "destination_map",
+      "url": "https://dive.site/en/in/asia/indonesia/raja-ampat/",
+      "license": "public-web",
+      "role": "destination map",
+      "weight": 0.9,
+      "destinations": [
+        "raja-ampat"
+      ]
+    },
+    {
+      "id": "map-nusa-penida",
+      "name": "Nusa Penida public dive maps",
+      "type": "destination_map",
+      "url": "https://dive.site/en/in/asia/indonesia/bali/nusa-penida/",
+      "license": "public-web",
+      "role": "destination map",
+      "weight": 0.9,
+      "destinations": [
+        "nusa-penida-lembongan"
+      ]
+    },
+    {
+      "id": "map-tulamben",
+      "name": "Tulamben public dive maps",
+      "type": "destination_map",
+      "url": "https://dive.site/en/in/asia/indonesia/bali/tulamben/",
+      "license": "public-web",
+      "role": "destination map",
+      "weight": 0.9,
+      "destinations": [
+        "tulamben-amed"
+      ]
+    },
+    {
+      "id": "map-gili",
+      "name": "Gili Islands public dive maps",
+      "type": "destination_map",
+      "url": "https://dive.site/en/in/asia/indonesia/gili-islands/",
+      "license": "public-web",
+      "role": "destination map",
+      "weight": 0.85,
+      "destinations": [
+        "gili-islands"
+      ]
+    },
+    {
+      "id": "map-bunaken",
+      "name": "Bunaken public dive maps",
+      "type": "destination_map",
+      "url": "https://dive.site/en/in/asia/indonesia/north-sulawesi/bunaken/",
+      "license": "public-web",
+      "role": "destination map",
+      "weight": 0.85,
+      "destinations": [
+        "bunaken-national-park"
+      ]
+    },
+    {
+      "id": "map-maldives",
+      "name": "Maldives public dive maps",
+      "type": "destination_map",
+      "url": "https://dive.site/en/in/asia/maldives/",
+      "license": "public-web",
+      "role": "destination map",
+      "weight": 0.85,
+      "destinations": [
+        "maldives-central-atolls"
+      ]
+    },
+    {
+      "id": "map-palau",
+      "name": "Palau public dive maps",
+      "type": "destination_map",
+      "url": "https://dive.site/en/in/pacific/palau/",
+      "license": "public-web",
+      "role": "destination map",
+      "weight": 0.9,
+      "destinations": [
+        "palau-rock-islands"
+      ]
+    },
+    {
+      "id": "map-cozumel",
+      "name": "Cozumel and Riviera Maya public dive maps",
+      "type": "destination_map",
+      "url": "https://dive.site/en/in/north-america/mexico/cozumel/",
+      "license": "public-web",
+      "role": "destination map",
+      "weight": 0.85,
+      "destinations": [
+        "cozumel-riviera-maya"
+      ]
+    }
+  ]
+}

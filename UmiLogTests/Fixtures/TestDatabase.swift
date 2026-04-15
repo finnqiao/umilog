@@ -16,7 +16,16 @@ enum TestDatabase {
         longitude: Double = 33.8,
         region: String = "Red Sea",
         maxDepth: Double = 30.0,
-        difficulty: DiveSite.Difficulty = .intermediate
+        difficulty: DiveSite.Difficulty = .intermediate,
+        aliases: [String] = [],
+        curationScore: Double = 0,
+        popularityScore: Double = 0,
+        accessLevel: String = "unknown",
+        wreckVerified: Bool = false,
+        destinationSlug: String? = nil,
+        countryId: String? = nil,
+        regionId: String? = nil,
+        areaId: String? = nil
     ) -> DiveSite {
         DiveSite(
             id: id,
@@ -36,7 +45,16 @@ enum TestDatabase {
             isPlanned: false,
             visitedCount: 0,
             tags: [],
-            createdAt: Date()
+            createdAt: Date(),
+            countryId: countryId,
+            regionId: regionId,
+            areaId: areaId,
+            aliases: aliases,
+            curationScore: curationScore,
+            popularityScore: popularityScore,
+            accessLevel: accessLevel,
+            wreckVerified: wreckVerified,
+            destinationSlug: destinationSlug
         )
     }
 

@@ -764,6 +764,14 @@ public struct NewMapView: View {
         return viewModel.regions.first { $0.id == regionId }
     }
 
+    private func siteMatchesRegion(_ site: DiveSite, regionId: String) -> Bool {
+        site.regionId == regionId || site.region == regionId
+    }
+
+    private func siteMatchesArea(_ site: DiveSite, areaId: String) -> Bool {
+        site.areaId == areaId || parseAreaCountry(site.location).area == areaId
+    }
+
     /// The current tier based on hierarchy level (for backward compat with tier-based views).
     private var currentTier: Tier {
         switch currentHierarchy {
@@ -781,7 +789,7 @@ public struct NewMapView: View {
     /// Areas in the currently selected region, using new hierarchy.
     private var areasInCurrentRegion: [Area] {
         guard let regionId = currentRegionId else { return [] }
-        let regionSites = viewModel.sites.filter { $0.region == regionId }
+        let regionSites = viewModel.sites.filter { siteMatchesRegion($0, regionId: regionId) }
         let groups = Dictionary(grouping: regionSites) { parseAreaCountry($0.location).area }
         let shopsInRegion = viewModel.shops.filter { $0.region == regionId }
         return groups.map { entry in
@@ -1116,7 +1124,7 @@ public struct NewMapView: View {
         let baseSites: [DiveSite] = scope == .discover ? discoverSitesList : savedSitesList
         let filteredSites: [DiveSite] = {
             if let regionId = currentRegionId {
-                return baseSites.filter { $0.region == regionId }
+                return baseSites.filter { siteMatchesRegion($0, regionId: regionId) }
             }
             return baseSites
         }()
@@ -1215,7 +1223,7 @@ public struct NewMapView: View {
 
     private func fitSelectedArea() {
         guard let areaId = currentAreaId else { return }
-        let areaSites = viewModel.sites.filter { parseAreaCountry($0.location).area == areaId }
+        let areaSites = viewModel.sites.filter { siteMatchesArea($0, areaId: areaId) }
         focusMap(on: areaSites.isEmpty ? viewModel.sites : areaSites)
     }
 
@@ -2887,9 +2895,9 @@ private struct MapBackgroundOverlay: View {
         let base: [DiveSite]
         // Use new hierarchy helpers
         if let areaId = currentAreaId {
-            base = viewportSites.filter { parseAreaCountry($0.location).area == areaId }
+            base = viewportSites.filter { siteMatchesArea($0, areaId: areaId) }
         } else if let regionId = currentRegionId {
-            base = viewportSites.filter { $0.region == regionId }
+            base = viewportSites.filter { siteMatchesRegion($0, regionId: regionId) }
         } else {
             base = viewportSites
         }

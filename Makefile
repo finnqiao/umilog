@@ -231,10 +231,19 @@ clean-images:
 SEED_DB_DIR=$(PWD)/Resources/SeedDB
 SEED_DB_OUTPUT=$(SEED_DB_DIR)/umilog_seed.db
 
+# Build curated core artifacts from the benchmark/source registry pipeline
+.PHONY: curated-core-build
+curated-core-build:
+	python3 scripts/build_curated_core.py
+
+.PHONY: dive-sites-audit
+dive-sites-audit: curated-core-build
+	python3 scripts/audit_dive_sites.py
+
 # Generate pre-seeded SQLite database for app bundle
 # This eliminates JSON parsing and individual inserts at runtime
 .PHONY: seed-db-generate
-seed-db-generate:
+seed-db-generate: curated-core-build
 	@echo "Generating pre-seeded database..."
 	@mkdir -p $(SEED_DB_DIR)
 	python3 scripts/generate_seed_db.py $(SEED_DB_OUTPUT)

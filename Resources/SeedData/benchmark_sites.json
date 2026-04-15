@@ -1,0 +1,1921 @@
+{
+  "version": "2026-04-15-curated-core-v1",
+  "destinations": [
+    {
+      "destination_slug": "komodo-national-park",
+      "region_id": "coral-triangle",
+      "region": "Coral Triangle",
+      "country_id": "ID",
+      "country": "Indonesia",
+      "area_id": "komodo-national-park",
+      "area": "Komodo National Park",
+      "latitude": -8.55,
+      "longitude": 119.62,
+      "bounds": {
+        "min_lat": -8.78,
+        "max_lat": -8.4,
+        "min_lon": 119.5,
+        "max_lon": 119.75
+      },
+      "minimum_coverage": 0.9,
+      "source_ids": [
+        "forum-komodo-scubaboard",
+        "policy-padi-dive-sites"
+      ],
+      "defaults": {
+        "averageDepth": 18,
+        "maxDepth": 30,
+        "averageTemp": 28,
+        "averageVisibility": 18,
+        "access_level": "boat",
+        "curation_score": 9.3,
+        "popularity_score": 8.8
+      },
+      "sites": [
+        {
+          "name": "Batu Bolong",
+          "latitude": -8.537,
+          "longitude": 119.6136,
+          "type": "Reef",
+          "difficulty": "Advanced",
+          "tags": [
+            "pinnacle",
+            "current",
+            "pelagic"
+          ],
+          "curation_score": 9.9,
+          "popularity_score": 9.8,
+          "access_level": "boat",
+          "aliases": [
+            "Batu Bolong Dive Site"
+          ]
+        },
+        {
+          "name": "Manta Point",
+          "latitude": -8.5335,
+          "longitude": 119.5906,
+          "type": "Reef",
+          "difficulty": "Intermediate",
+          "tags": [
+            "manta rays",
+            "drift",
+            "reef"
+          ],
+          "curation_score": 9.8,
+          "popularity_score": 9.7,
+          "access_level": "boat",
+          "aliases": [
+            "Makassar Reef"
+          ],
+          "match_names": [
+            "Makassar Reef (Manta Point)",
+            "Manta Point dive site"
+          ]
+        },
+        {
+          "name": "Castle Rock",
+          "latitude": -8.527,
+          "longitude": 119.671,
+          "type": "Reef",
+          "difficulty": "Advanced",
+          "tags": [
+            "current",
+            "sharks",
+            "schooling fish"
+          ],
+          "curation_score": 9.7,
+          "popularity_score": 9.5,
+          "access_level": "boat"
+        },
+        {
+          "name": "Crystal Rock",
+          "latitude": -8.515,
+          "longitude": 119.642,
+          "type": "Reef",
+          "difficulty": "Advanced",
+          "tags": [
+            "current",
+            "sharks",
+            "reef"
+          ],
+          "curation_score": 9.6,
+          "popularity_score": 9.4,
+          "access_level": "boat",
+          "aliases": [
+            "Cystal Rock Dive Site"
+          ],
+          "match_names": [
+            "Cystal Rock Dive Site"
+          ]
+        },
+        {
+          "name": "Cauldron",
+          "latitude": -8.49,
+          "longitude": 119.584,
+          "type": "Reef",
+          "difficulty": "Advanced",
+          "tags": [
+            "drift",
+            "channel",
+            "current"
+          ],
+          "curation_score": 9.5,
+          "popularity_score": 9.2,
+          "access_level": "boat",
+          "aliases": [
+            "The Cauldron",
+            "Shotgun"
+          ]
+        },
+        {
+          "name": "Cannibal Rock",
+          "latitude": -8.742,
+          "longitude": 119.665,
+          "type": "Reef",
+          "difficulty": "Intermediate",
+          "tags": [
+            "macro",
+            "soft coral",
+            "pinnacle"
+          ],
+          "curation_score": 9.4,
+          "popularity_score": 9.0,
+          "access_level": "boat"
+        }
+      ]
+    },
+    {
+      "destination_slug": "raja-ampat",
+      "region_id": "coral-triangle",
+      "region": "Coral Triangle",
+      "country_id": "ID",
+      "country": "Indonesia",
+      "area_id": "raja-ampat",
+      "area": "Raja Ampat",
+      "latitude": -0.56,
+      "longitude": 130.58,
+      "bounds": {
+        "min_lat": -0.75,
+        "max_lat": -0.4,
+        "min_lon": 130.25,
+        "max_lon": 130.82
+      },
+      "minimum_coverage": 0.85,
+      "source_ids": [
+        "map-raja-ampat",
+        "policy-padi-dive-sites"
+      ],
+      "defaults": {
+        "averageDepth": 19,
+        "maxDepth": 32,
+        "averageTemp": 28,
+        "averageVisibility": 22,
+        "access_level": "boat",
+        "curation_score": 9.4,
+        "popularity_score": 9.0
+      },
+      "sites": [
+        {
+          "name": "Cape Kri",
+          "latitude": -0.5562,
+          "longitude": 130.6914,
+          "type": "Reef",
+          "difficulty": "Advanced",
+          "tags": [
+            "reef",
+            "schooling fish",
+            "current"
+          ],
+          "curation_score": 9.9,
+          "popularity_score": 9.9,
+          "access_level": "boat",
+          "aliases": [
+            "Kri Cape"
+          ]
+        },
+        {
+          "name": "Blue Magic",
+          "latitude": -0.5074,
+          "longitude": 130.7368,
+          "type": "Reef",
+          "difficulty": "Advanced",
+          "tags": [
+            "pelagic",
+            "current",
+            "manta rays"
+          ],
+          "curation_score": 9.8,
+          "popularity_score": 9.7,
+          "access_level": "boat"
+        },
+        {
+          "name": "Manta Sandy",
+          "latitude": -0.5533,
+          "longitude": 130.53,
+          "type": "Reef",
+          "difficulty": "Intermediate",
+          "tags": [
+            "manta rays",
+            "cleaning station",
+            "sand"
+          ],
+          "curation_score": 9.7,
+          "popularity_score": 9.6,
+          "access_level": "boat"
+        },
+        {
+          "name": "Sawandarek Jetty",
+          "latitude": -0.5898,
+          "longitude": 130.6033,
+          "type": "Reef",
+          "difficulty": "Beginner",
+          "tags": [
+            "jetty",
+            "turtles",
+            "reef"
+          ],
+          "curation_score": 9.5,
+          "popularity_score": 9.3,
+          "access_level": "boat",
+          "aliases": [
+            "Sawandarek"
+          ]
+        },
+        {
+          "name": "Melissa's Garden",
+          "latitude": -0.5899,
+          "longitude": 130.3152,
+          "type": "Reef",
+          "difficulty": "Intermediate",
+          "tags": [
+            "coral garden",
+            "reef",
+            "wide angle"
+          ],
+          "curation_score": 9.6,
+          "popularity_score": 9.4,
+          "access_level": "boat"
+        },
+        {
+          "name": "Chicken Reef",
+          "latitude": -0.5466,
+          "longitude": 130.7025,
+          "type": "Reef",
+          "difficulty": "Intermediate",
+          "tags": [
+            "reef",
+            "fish life",
+            "current"
+          ],
+          "curation_score": 9.3,
+          "popularity_score": 9.0,
+          "access_level": "boat"
+        }
+      ]
+    },
+    {
+      "destination_slug": "nusa-penida-lembongan",
+      "region_id": "coral-triangle",
+      "region": "Coral Triangle",
+      "country_id": "ID",
+      "country": "Indonesia",
+      "area_id": "nusa-penida-lembongan",
+      "area": "Nusa Penida and Lembongan",
+      "latitude": -8.71,
+      "longitude": 115.47,
+      "bounds": {
+        "min_lat": -8.86,
+        "max_lat": -8.63,
+        "min_lon": 115.39,
+        "max_lon": 115.57
+      },
+      "minimum_coverage": 0.8,
+      "source_ids": [
+        "map-nusa-penida",
+        "forum-bali-scubaboard"
+      ],
+      "defaults": {
+        "averageDepth": 18,
+        "maxDepth": 30,
+        "averageTemp": 26,
+        "averageVisibility": 20,
+        "access_level": "boat",
+        "curation_score": 9.2,
+        "popularity_score": 8.8
+      },
+      "sites": [
+        {
+          "name": "Toyapakeh",
+          "latitude": -8.683,
+          "longitude": 115.455,
+          "type": "Reef",
+          "difficulty": "Intermediate",
+          "tags": [
+            "reef",
+            "drift",
+            "fish life"
+          ],
+          "curation_score": 9.7,
+          "popularity_score": 9.4,
+          "access_level": "boat",
+          "aliases": [
+            "Toyapakeh Wall"
+          ],
+          "match_names": [
+            "Toyapakeh Wall and Scope"
+          ]
+        },
+        {
+          "name": "Gamat Bay",
+          "latitude": -8.69,
+          "longitude": 115.457,
+          "type": "Reef",
+          "difficulty": "Intermediate",
+          "tags": [
+            "drift",
+            "mola mola",
+            "reef"
+          ],
+          "curation_score": 9.4,
+          "popularity_score": 9.0,
+          "access_level": "boat",
+          "aliases": [
+            "Gamat"
+          ]
+        },
+        {
+          "name": "Crystal Bay",
+          "latitude": -8.7155,
+          "longitude": 115.4575,
+          "type": "Reef",
+          "difficulty": "Intermediate",
+          "tags": [
+            "mola mola",
+            "bay",
+            "reef"
+          ],
+          "curation_score": 9.6,
+          "popularity_score": 9.5,
+          "access_level": "boat"
+        },
+        {
+          "name": "Manta Point",
+          "latitude": -8.7948,
+          "longitude": 115.5259,
+          "type": "Reef",
+          "difficulty": "Intermediate",
+          "tags": [
+            "manta rays",
+            "cleaning station",
+            "reef"
+          ],
+          "curation_score": 9.8,
+          "popularity_score": 9.8,
+          "access_level": "boat"
+        },
+        {
+          "name": "SD Point",
+          "latitude": -8.6845,
+          "longitude": 115.471,
+          "type": "Reef",
+          "difficulty": "Advanced",
+          "tags": [
+            "drift",
+            "reef",
+            "schooling fish"
+          ],
+          "curation_score": 9.3,
+          "popularity_score": 8.9,
+          "access_level": "boat",
+          "aliases": [
+            "SD",
+            "Sekolah Dasar"
+          ],
+          "match_names": [
+            "SD Point (Sekolah Dasar)"
+          ]
+        },
+        {
+          "name": "Blue Corner",
+          "latitude": -8.67,
+          "longitude": 115.448,
+          "type": "Reef",
+          "difficulty": "Advanced",
+          "tags": [
+            "drift",
+            "current",
+            "pelagic"
+          ],
+          "curation_score": 9.4,
+          "popularity_score": 9.1,
+          "access_level": "boat"
+        }
+      ]
+    },
+    {
+      "destination_slug": "tulamben-amed",
+      "region_id": "coral-triangle",
+      "region": "Coral Triangle",
+      "country_id": "ID",
+      "country": "Indonesia",
+      "area_id": "tulamben-amed",
+      "area": "Tulamben and Amed",
+      "latitude": -8.3,
+      "longitude": 115.63,
+      "bounds": {
+        "min_lat": -8.4,
+        "max_lat": -8.2,
+        "min_lon": 115.55,
+        "max_lon": 115.72
+      },
+      "source_ids": [
+        "map-tulamben",
+        "forum-bali-scubaboard"
+      ],
+      "defaults": {
+        "averageDepth": 16,
+        "maxDepth": 28,
+        "averageTemp": 27,
+        "averageVisibility": 16,
+        "access_level": "shore",
+        "curation_score": 9.1,
+        "popularity_score": 8.7
+      },
+      "sites": [
+        {
+          "name": "USAT Liberty Wreck",
+          "latitude": -8.2739,
+          "longitude": 115.5926,
+          "type": "Wreck",
+          "difficulty": "Beginner",
+          "tags": [
+            "wreck",
+            "shore",
+            "macro"
+          ],
+          "curation_score": 9.8,
+          "popularity_score": 9.8,
+          "access_level": "shore",
+          "aliases": [
+            "USAT Liberty"
+          ],
+          "match_names": [
+            "USAT Liberty Wreck"
+          ],
+          "wreck_verified": true
+        },
+        {
+          "name": "Tulamben Drop Off",
+          "latitude": -8.275,
+          "longitude": 115.5955,
+          "type": "Reef",
+          "difficulty": "Intermediate",
+          "tags": [
+            "wall",
+            "shore",
+            "reef"
+          ],
+          "curation_score": 9.4,
+          "popularity_score": 9.1,
+          "access_level": "shore",
+          "aliases": [
+            "Drop Off",
+            "Tulamben Wall"
+          ]
+        },
+        {
+          "name": "Seraya Secret",
+          "latitude": -8.292,
+          "longitude": 115.623,
+          "type": "Reef",
+          "difficulty": "Intermediate",
+          "tags": [
+            "macro",
+            "muck",
+            "shore"
+          ],
+          "curation_score": 9.4,
+          "popularity_score": 9.2,
+          "access_level": "shore",
+          "aliases": [
+            "Seraya Secrets"
+          ]
+        },
+        {
+          "name": "Kubu Wreck",
+          "latitude": -8.246,
+          "longitude": 115.604,
+          "type": "Wreck",
+          "difficulty": "Beginner",
+          "tags": [
+            "wreck",
+            "shore",
+            "reef"
+          ],
+          "curation_score": 9.1,
+          "popularity_score": 8.7,
+          "access_level": "shore",
+          "wreck_verified": true
+        },
+        {
+          "name": "Amed Wall",
+          "latitude": -8.3376,
+          "longitude": 115.6617,
+          "type": "Reef",
+          "difficulty": "Intermediate",
+          "tags": [
+            "wall",
+            "shore",
+            "reef"
+          ],
+          "curation_score": 9.0,
+          "popularity_score": 8.6,
+          "access_level": "shore",
+          "match_names": [
+            "Amed wall"
+          ]
+        },
+        {
+          "name": "Jemeluk Bay",
+          "latitude": -8.3388,
+          "longitude": 115.6635,
+          "type": "Reef",
+          "difficulty": "Beginner",
+          "tags": [
+            "bay",
+            "shore",
+            "artificial reef"
+          ],
+          "curation_score": 8.9,
+          "popularity_score": 8.5,
+          "access_level": "shore",
+          "aliases": [
+            "Jemeluk"
+          ]
+        }
+      ]
+    },
+    {
+      "destination_slug": "gili-islands",
+      "region_id": "coral-triangle",
+      "region": "Coral Triangle",
+      "country_id": "ID",
+      "country": "Indonesia",
+      "area_id": "gili-islands",
+      "area": "Gili Islands",
+      "latitude": -8.35,
+      "longitude": 116.04,
+      "bounds": {
+        "min_lat": -8.43,
+        "max_lat": -8.28,
+        "min_lon": 115.98,
+        "max_lon": 116.08
+      },
+      "source_ids": [
+        "map-gili",
+        "policy-padi-dive-sites"
+      ],
+      "defaults": {
+        "averageDepth": 16,
+        "maxDepth": 28,
+        "averageTemp": 28,
+        "averageVisibility": 18,
+        "access_level": "boat",
+        "curation_score": 8.9,
+        "popularity_score": 8.5
+      },
+      "sites": [
+        {
+          "name": "Shark Point",
+          "latitude": -8.3425,
+          "longitude": 116.0237,
+          "type": "Reef",
+          "difficulty": "Intermediate",
+          "tags": [
+            "turtles",
+            "reef",
+            "boat"
+          ],
+          "curation_score": 9.2,
+          "popularity_score": 9.0,
+          "access_level": "boat"
+        },
+        {
+          "name": "Halik Reef",
+          "latitude": -8.3445,
+          "longitude": 116.029,
+          "type": "Reef",
+          "difficulty": "Intermediate",
+          "tags": [
+            "reef",
+            "turtles",
+            "boat"
+          ],
+          "curation_score": 8.9,
+          "popularity_score": 8.5,
+          "access_level": "boat"
+        },
+        {
+          "name": "Deep Turbo",
+          "latitude": -8.3475,
+          "longitude": 116.042,
+          "type": "Reef",
+          "difficulty": "Advanced",
+          "tags": [
+            "drift",
+            "current",
+            "slope"
+          ],
+          "curation_score": 8.8,
+          "popularity_score": 8.3,
+          "access_level": "boat"
+        },
+        {
+          "name": "Bounty Wreck",
+          "latitude": -8.352,
+          "longitude": 116.039,
+          "type": "Wreck",
+          "difficulty": "Beginner",
+          "tags": [
+            "wreck",
+            "boat",
+            "training"
+          ],
+          "curation_score": 8.6,
+          "popularity_score": 8.2,
+          "access_level": "boat",
+          "wreck_verified": true
+        }
+      ]
+    },
+    {
+      "destination_slug": "lembeh-strait",
+      "region_id": "coral-triangle",
+      "region": "Coral Triangle",
+      "country_id": "ID",
+      "country": "Indonesia",
+      "area_id": "lembeh-strait",
+      "area": "Lembeh Strait",
+      "latitude": 1.468,
+      "longitude": 125.228,
+      "bounds": {
+        "min_lat": 1.44,
+        "max_lat": 1.49,
+        "min_lon": 125.21,
+        "max_lon": 125.25
+      },
+      "minimum_coverage": 0.8,
+      "source_ids": [
+        "operator-lembeh-map",
+        "zentacle-lembeh-sites"
+      ],
+      "defaults": {
+        "averageDepth": 15,
+        "maxDepth": 24,
+        "averageTemp": 27,
+        "averageVisibility": 10,
+        "access_level": "boat",
+        "curation_score": 9.2,
+        "popularity_score": 8.9
+      },
+      "sites": [
+        {
+          "name": "Nudi Falls",
+          "latitude": 1.4621,
+          "longitude": 125.22835,
+          "type": "Reef",
+          "difficulty": "Intermediate",
+          "tags": [
+            "macro",
+            "muck",
+            "critters"
+          ],
+          "curation_score": 9.8,
+          "popularity_score": 9.4,
+          "access_level": "boat"
+        },
+        {
+          "name": "Jahir",
+          "latitude": 1.47305,
+          "longitude": 125.23532,
+          "type": "Reef",
+          "difficulty": "Beginner",
+          "tags": [
+            "macro",
+            "black sand",
+            "critters"
+          ],
+          "curation_score": 9.6,
+          "popularity_score": 9.2,
+          "access_level": "boat"
+        },
+        {
+          "name": "Air Prang",
+          "latitude": 1.47558,
+          "longitude": 125.23495,
+          "type": "Reef",
+          "difficulty": "Intermediate",
+          "tags": [
+            "macro",
+            "slope",
+            "critters"
+          ],
+          "curation_score": 9.4,
+          "popularity_score": 8.9,
+          "access_level": "boat"
+        },
+        {
+          "name": "Police Pier",
+          "latitude": 1.45993,
+          "longitude": 125.2225,
+          "type": "Reef",
+          "difficulty": "Intermediate",
+          "tags": [
+            "macro",
+            "pier",
+            "muck"
+          ],
+          "curation_score": 9.7,
+          "popularity_score": 9.5,
+          "access_level": "boat"
+        },
+        {
+          "name": "Hairball",
+          "latitude": 1.4638,
+          "longitude": 125.217,
+          "type": "Reef",
+          "difficulty": "Intermediate",
+          "tags": [
+            "macro",
+            "black sand",
+            "rare critters"
+          ],
+          "curation_score": 9.5,
+          "popularity_score": 9.0,
+          "access_level": "boat"
+        },
+        {
+          "name": "TK 3",
+          "latitude": 1.4675,
+          "longitude": 125.224,
+          "type": "Reef",
+          "difficulty": "Intermediate",
+          "tags": [
+            "muck",
+            "black sand",
+            "macro"
+          ],
+          "curation_score": 9.1,
+          "popularity_score": 8.6,
+          "access_level": "boat",
+          "aliases": [
+            "TK3"
+          ]
+        }
+      ]
+    },
+    {
+      "destination_slug": "bunaken-national-park",
+      "region_id": "coral-triangle",
+      "region": "Coral Triangle",
+      "country_id": "ID",
+      "country": "Indonesia",
+      "area_id": "bunaken-national-park",
+      "area": "Bunaken National Park",
+      "latitude": 1.63,
+      "longitude": 124.75,
+      "bounds": {
+        "min_lat": 1.56,
+        "max_lat": 1.78,
+        "min_lon": 124.68,
+        "max_lon": 124.82
+      },
+      "source_ids": [
+        "map-bunaken",
+        "policy-padi-dive-sites"
+      ],
+      "defaults": {
+        "averageDepth": 18,
+        "maxDepth": 30,
+        "averageTemp": 28,
+        "averageVisibility": 20,
+        "access_level": "boat",
+        "curation_score": 9.0,
+        "popularity_score": 8.6
+      },
+      "sites": [
+        {
+          "name": "Lekuan I",
+          "latitude": 1.625,
+          "longitude": 124.766,
+          "type": "Reef",
+          "difficulty": "Intermediate",
+          "tags": [
+            "wall",
+            "turtles",
+            "reef"
+          ],
+          "curation_score": 9.4,
+          "popularity_score": 9.0,
+          "access_level": "boat",
+          "aliases": [
+            "Lekuan 1"
+          ]
+        },
+        {
+          "name": "Lekuan II",
+          "latitude": 1.632,
+          "longitude": 124.763,
+          "type": "Reef",
+          "difficulty": "Intermediate",
+          "tags": [
+            "wall",
+            "reef",
+            "turtles"
+          ],
+          "curation_score": 9.3,
+          "popularity_score": 8.9,
+          "access_level": "boat",
+          "aliases": [
+            "Lekuan 2"
+          ]
+        },
+        {
+          "name": "Lekuan III",
+          "latitude": 1.64,
+          "longitude": 124.758,
+          "type": "Reef",
+          "difficulty": "Intermediate",
+          "tags": [
+            "wall",
+            "reef",
+            "current"
+          ],
+          "curation_score": 9.2,
+          "popularity_score": 8.8,
+          "access_level": "boat",
+          "aliases": [
+            "Lekuan 3"
+          ]
+        },
+        {
+          "name": "Mandolin",
+          "latitude": 1.6112,
+          "longitude": 124.7329,
+          "type": "Reef",
+          "difficulty": "Intermediate",
+          "tags": [
+            "wall",
+            "reef",
+            "fish life"
+          ],
+          "curation_score": 9.1,
+          "popularity_score": 8.7,
+          "access_level": "boat"
+        },
+        {
+          "name": "Fukui",
+          "latitude": 1.6205,
+          "longitude": 124.755,
+          "type": "Reef",
+          "difficulty": "Beginner",
+          "tags": [
+            "reef",
+            "macro",
+            "slope"
+          ],
+          "curation_score": 8.9,
+          "popularity_score": 8.4,
+          "access_level": "boat"
+        }
+      ]
+    },
+    {
+      "destination_slug": "alor-strait",
+      "region_id": "coral-triangle",
+      "region": "Coral Triangle",
+      "country_id": "ID",
+      "country": "Indonesia",
+      "area_id": "alor-strait",
+      "area": "Alor Strait",
+      "latitude": -8.24,
+      "longitude": 124.53,
+      "bounds": {
+        "min_lat": -8.42,
+        "max_lat": -8.05,
+        "min_lon": 124.35,
+        "max_lon": 124.72
+      },
+      "source_ids": [
+        "policy-padi-dive-sites",
+        "policy-dive-number-map"
+      ],
+      "defaults": {
+        "averageDepth": 18,
+        "maxDepth": 30,
+        "averageTemp": 27,
+        "averageVisibility": 18,
+        "access_level": "boat",
+        "curation_score": 8.9,
+        "popularity_score": 8.5
+      },
+      "sites": [
+        {
+          "name": "Babylon",
+          "latitude": -8.249,
+          "longitude": 124.568,
+          "type": "Reef",
+          "difficulty": "Advanced",
+          "tags": [
+            "current",
+            "reef",
+            "pelagic"
+          ],
+          "curation_score": 9.2,
+          "popularity_score": 8.8,
+          "access_level": "boat"
+        },
+        {
+          "name": "Current City",
+          "latitude": -8.232,
+          "longitude": 124.528,
+          "type": "Reef",
+          "difficulty": "Advanced",
+          "tags": [
+            "drift",
+            "current",
+            "fish life"
+          ],
+          "curation_score": 9.4,
+          "popularity_score": 9.0,
+          "access_level": "boat"
+        },
+        {
+          "name": "Clown Valley",
+          "latitude": -8.266,
+          "longitude": 124.515,
+          "type": "Reef",
+          "difficulty": "Beginner",
+          "tags": [
+            "anemones",
+            "macro",
+            "reef"
+          ],
+          "curation_score": 8.8,
+          "popularity_score": 8.3,
+          "access_level": "boat"
+        },
+        {
+          "name": "The Cathedral",
+          "latitude": -8.226,
+          "longitude": 124.547,
+          "type": "Reef",
+          "difficulty": "Intermediate",
+          "tags": [
+            "canyon",
+            "reef",
+            "current"
+          ],
+          "curation_score": 9.0,
+          "popularity_score": 8.6,
+          "access_level": "boat"
+        },
+        {
+          "name": "Kal's Dream",
+          "latitude": -8.207,
+          "longitude": 124.597,
+          "type": "Reef",
+          "difficulty": "Intermediate",
+          "tags": [
+            "wall",
+            "fish life",
+            "reef"
+          ],
+          "curation_score": 8.8,
+          "popularity_score": 8.4,
+          "access_level": "boat"
+        }
+      ]
+    },
+    {
+      "destination_slug": "sinai-red-sea",
+      "region_id": "red-sea-egypt",
+      "region": "Red Sea Egypt",
+      "country_id": "EG",
+      "country": "Egypt",
+      "area_id": "sinai-red-sea",
+      "area": "Sinai Red Sea",
+      "latitude": 28.05,
+      "longitude": 34.35,
+      "bounds": {
+        "min_lat": 27.5,
+        "max_lat": 28.8,
+        "min_lon": 33.8,
+        "max_lon": 34.7
+      },
+      "source_ids": [
+        "policy-padi-dive-sites"
+      ],
+      "defaults": {
+        "averageDepth": 20,
+        "maxDepth": 32,
+        "averageTemp": 25,
+        "averageVisibility": 25,
+        "access_level": "boat",
+        "curation_score": 9.2,
+        "popularity_score": 9.0
+      },
+      "sites": [
+        {
+          "name": "Blue Hole",
+          "latitude": 28.5723,
+          "longitude": 34.537,
+          "type": "Reef",
+          "difficulty": "Advanced",
+          "tags": [
+            "wall",
+            "shore",
+            "deep"
+          ],
+          "curation_score": 9.7,
+          "popularity_score": 9.6,
+          "access_level": "shore",
+          "aliases": [
+            "Blue Hole Dahab"
+          ]
+        },
+        {
+          "name": "The Canyon",
+          "latitude": 28.561,
+          "longitude": 34.528,
+          "type": "Reef",
+          "difficulty": "Advanced",
+          "tags": [
+            "canyon",
+            "shore",
+            "deep"
+          ],
+          "curation_score": 9.2,
+          "popularity_score": 8.8,
+          "access_level": "shore",
+          "aliases": [
+            "Canyon"
+          ]
+        },
+        {
+          "name": "SS Thistlegorm",
+          "latitude": 27.8142,
+          "longitude": 33.92,
+          "type": "Wreck",
+          "difficulty": "Intermediate",
+          "tags": [
+            "wreck",
+            "boat",
+            "history"
+          ],
+          "curation_score": 9.9,
+          "popularity_score": 9.9,
+          "access_level": "boat",
+          "aliases": [
+            "Thistlegorm"
+          ],
+          "wreck_verified": true
+        },
+        {
+          "name": "Shark and Yolanda Reef",
+          "latitude": 27.7257,
+          "longitude": 34.2587,
+          "type": "Reef",
+          "difficulty": "Advanced",
+          "tags": [
+            "drift",
+            "reef",
+            "pelagic"
+          ],
+          "curation_score": 9.5,
+          "popularity_score": 9.4,
+          "access_level": "boat",
+          "aliases": [
+            "Shark Reef",
+            "Yolanda Reef"
+          ],
+          "match_names": [
+            "Anemone City, Shark Reef and Jolanda Reef"
+          ]
+        },
+        {
+          "name": "Jackson Reef",
+          "latitude": 27.9985,
+          "longitude": 34.4775,
+          "type": "Reef",
+          "difficulty": "Advanced",
+          "tags": [
+            "drift",
+            "reef",
+            "sharks"
+          ],
+          "curation_score": 9.3,
+          "popularity_score": 9.0,
+          "access_level": "boat"
+        }
+      ]
+    },
+    {
+      "destination_slug": "marsa-alam-offshore",
+      "region_id": "red-sea-egypt",
+      "region": "Red Sea Egypt",
+      "country_id": "EG",
+      "country": "Egypt",
+      "area_id": "marsa-alam-offshore",
+      "area": "Marsa Alam and Offshore Reefs",
+      "latitude": 25.5,
+      "longitude": 35.6,
+      "bounds": {
+        "min_lat": 24.5,
+        "max_lat": 27.4,
+        "min_lon": 34.6,
+        "max_lon": 36.8
+      },
+      "source_ids": [
+        "policy-padi-dive-sites"
+      ],
+      "defaults": {
+        "averageDepth": 22,
+        "maxDepth": 34,
+        "averageTemp": 25,
+        "averageVisibility": 28,
+        "access_level": "boat",
+        "curation_score": 9.1,
+        "popularity_score": 8.9
+      },
+      "sites": [
+        {
+          "name": "Elphinstone Reef",
+          "latitude": 25.313,
+          "longitude": 34.86,
+          "type": "Reef",
+          "difficulty": "Advanced",
+          "tags": [
+            "wall",
+            "pelagic",
+            "current"
+          ],
+          "curation_score": 9.8,
+          "popularity_score": 9.6,
+          "access_level": "boat"
+        },
+        {
+          "name": "Daedalus Reef",
+          "latitude": 24.923,
+          "longitude": 35.857,
+          "type": "Reef",
+          "difficulty": "Advanced",
+          "tags": [
+            "offshore",
+            "sharks",
+            "wall"
+          ],
+          "curation_score": 9.6,
+          "popularity_score": 9.2,
+          "access_level": "liveaboard"
+        },
+        {
+          "name": "Big Brother",
+          "latitude": 26.308,
+          "longitude": 34.851,
+          "type": "Reef",
+          "difficulty": "Advanced",
+          "tags": [
+            "wreck",
+            "wall",
+            "sharks"
+          ],
+          "curation_score": 9.5,
+          "popularity_score": 9.1,
+          "access_level": "liveaboard"
+        },
+        {
+          "name": "Small Brother",
+          "latitude": 26.313,
+          "longitude": 34.842,
+          "type": "Reef",
+          "difficulty": "Advanced",
+          "tags": [
+            "wall",
+            "current",
+            "sharks"
+          ],
+          "curation_score": 9.3,
+          "popularity_score": 8.9,
+          "access_level": "liveaboard"
+        }
+      ]
+    },
+    {
+      "destination_slug": "maldives-central-atolls",
+      "region_id": "maldives",
+      "region": "Maldives",
+      "country_id": "MV",
+      "country": "Maldives",
+      "area_id": "maldives-central-atolls",
+      "area": "Maldives Central Atolls",
+      "latitude": 3.6,
+      "longitude": 73.35,
+      "bounds": {
+        "min_lat": 2.7,
+        "max_lat": 4.2,
+        "min_lon": 72.6,
+        "max_lon": 73.9
+      },
+      "source_ids": [
+        "map-maldives",
+        "policy-padi-dive-sites"
+      ],
+      "defaults": {
+        "averageDepth": 18,
+        "maxDepth": 30,
+        "averageTemp": 28,
+        "averageVisibility": 24,
+        "access_level": "boat",
+        "curation_score": 9.2,
+        "popularity_score": 8.9
+      },
+      "sites": [
+        {
+          "name": "Banana Reef",
+          "latitude": 4.301,
+          "longitude": 73.55,
+          "type": "Reef",
+          "difficulty": "Intermediate",
+          "tags": [
+            "reef",
+            "fish life",
+            "current"
+          ],
+          "curation_score": 9.5,
+          "popularity_score": 9.2,
+          "access_level": "boat"
+        },
+        {
+          "name": "Maaya Thila",
+          "latitude": 3.963,
+          "longitude": 72.818,
+          "type": "Reef",
+          "difficulty": "Advanced",
+          "tags": [
+            "night dive",
+            "pelagic",
+            "thila"
+          ],
+          "curation_score": 9.4,
+          "popularity_score": 9.0,
+          "access_level": "boat"
+        },
+        {
+          "name": "Fish Head",
+          "latitude": 3.903,
+          "longitude": 72.81,
+          "type": "Reef",
+          "difficulty": "Advanced",
+          "tags": [
+            "sharks",
+            "reef",
+            "pelagic"
+          ],
+          "curation_score": 9.3,
+          "popularity_score": 8.9,
+          "access_level": "boat"
+        },
+        {
+          "name": "Fotteyo Kandu",
+          "latitude": 3.083,
+          "longitude": 73.47,
+          "type": "Reef",
+          "difficulty": "Advanced",
+          "tags": [
+            "channel",
+            "current",
+            "soft coral"
+          ],
+          "curation_score": 9.1,
+          "popularity_score": 8.6,
+          "access_level": "boat"
+        },
+        {
+          "name": "HP Reef",
+          "latitude": 4.281,
+          "longitude": 73.52,
+          "type": "Reef",
+          "difficulty": "Intermediate",
+          "tags": [
+            "reef",
+            "current",
+            "fish life"
+          ],
+          "curation_score": 8.9,
+          "popularity_score": 8.4,
+          "access_level": "boat",
+          "aliases": [
+            "HP Reef North Male"
+          ]
+        }
+      ]
+    },
+    {
+      "destination_slug": "palau-rock-islands",
+      "region_id": "palau",
+      "region": "Palau",
+      "country_id": "PW",
+      "country": "Palau",
+      "area_id": "palau-rock-islands",
+      "area": "Palau Rock Islands",
+      "latitude": 7.14,
+      "longitude": 134.28,
+      "bounds": {
+        "min_lat": 6.9,
+        "max_lat": 7.4,
+        "min_lon": 133.9,
+        "max_lon": 134.6
+      },
+      "source_ids": [
+        "map-palau",
+        "policy-padi-dive-sites"
+      ],
+      "defaults": {
+        "averageDepth": 18,
+        "maxDepth": 30,
+        "averageTemp": 28,
+        "averageVisibility": 25,
+        "access_level": "boat",
+        "curation_score": 9.3,
+        "popularity_score": 9.0
+      },
+      "sites": [
+        {
+          "name": "Blue Corner",
+          "latitude": 7.1343,
+          "longitude": 134.2213,
+          "type": "Reef",
+          "difficulty": "Advanced",
+          "tags": [
+            "current",
+            "pelagic",
+            "reef"
+          ],
+          "curation_score": 9.9,
+          "popularity_score": 9.8,
+          "access_level": "boat"
+        },
+        {
+          "name": "German Channel",
+          "latitude": 7.172,
+          "longitude": 134.266,
+          "type": "Reef",
+          "difficulty": "Intermediate",
+          "tags": [
+            "manta rays",
+            "channel",
+            "reef"
+          ],
+          "curation_score": 9.7,
+          "popularity_score": 9.5,
+          "access_level": "boat"
+        },
+        {
+          "name": "Blue Holes",
+          "latitude": 7.1372,
+          "longitude": 134.2226,
+          "type": "Reef",
+          "difficulty": "Intermediate",
+          "tags": [
+            "cave",
+            "blue water",
+            "reef"
+          ],
+          "curation_score": 9.5,
+          "popularity_score": 9.2,
+          "access_level": "boat"
+        },
+        {
+          "name": "Ulong Channel",
+          "latitude": 7.278,
+          "longitude": 134.248,
+          "type": "Reef",
+          "difficulty": "Advanced",
+          "tags": [
+            "drift",
+            "channel",
+            "sharks"
+          ],
+          "curation_score": 9.4,
+          "popularity_score": 9.0,
+          "access_level": "boat"
+        },
+        {
+          "name": "Chandelier Cave",
+          "latitude": 7.339,
+          "longitude": 134.474,
+          "type": "Cave",
+          "difficulty": "Beginner",
+          "tags": [
+            "cave",
+            "cavern",
+            "easy"
+          ],
+          "curation_score": 8.9,
+          "popularity_score": 8.6,
+          "access_level": "boat"
+        }
+      ]
+    },
+    {
+      "destination_slug": "great-barrier-reef-cairns",
+      "region_id": "great-barrier-reef",
+      "region": "Great Barrier Reef",
+      "country_id": "AU",
+      "country": "Australia",
+      "area_id": "great-barrier-reef-cairns",
+      "area": "Great Barrier Reef Cairns and Ribbon Reefs",
+      "latitude": -15.5,
+      "longitude": 145.9,
+      "bounds": {
+        "min_lat": -17.0,
+        "max_lat": -13.5,
+        "min_lon": 145.0,
+        "max_lon": 147.2
+      },
+      "source_ids": [
+        "policy-padi-dive-sites"
+      ],
+      "defaults": {
+        "averageDepth": 17,
+        "maxDepth": 28,
+        "averageTemp": 26,
+        "averageVisibility": 22,
+        "access_level": "boat",
+        "curation_score": 9.1,
+        "popularity_score": 8.8
+      },
+      "sites": [
+        {
+          "name": "Cod Hole",
+          "latitude": -14.6637,
+          "longitude": 145.6635,
+          "type": "Reef",
+          "difficulty": "Intermediate",
+          "tags": [
+            "cod",
+            "reef",
+            "wide angle"
+          ],
+          "curation_score": 9.6,
+          "popularity_score": 9.4,
+          "access_level": "boat"
+        },
+        {
+          "name": "Osprey Reef",
+          "latitude": -13.895,
+          "longitude": 146.56,
+          "type": "Reef",
+          "difficulty": "Advanced",
+          "tags": [
+            "wall",
+            "sharks",
+            "offshore"
+          ],
+          "curation_score": 9.5,
+          "popularity_score": 9.0,
+          "access_level": "liveaboard"
+        },
+        {
+          "name": "Flynn Reef",
+          "latitude": -16.752,
+          "longitude": 146.261,
+          "type": "Reef",
+          "difficulty": "Intermediate",
+          "tags": [
+            "reef",
+            "coral",
+            "boat"
+          ],
+          "curation_score": 9.0,
+          "popularity_score": 8.5,
+          "access_level": "boat"
+        },
+        {
+          "name": "Milln Reef",
+          "latitude": -16.846,
+          "longitude": 146.23,
+          "type": "Reef",
+          "difficulty": "Intermediate",
+          "tags": [
+            "reef",
+            "coral",
+            "boat"
+          ],
+          "curation_score": 8.9,
+          "popularity_score": 8.4,
+          "access_level": "boat"
+        }
+      ]
+    },
+    {
+      "destination_slug": "cozumel-riviera-maya",
+      "region_id": "caribbean-mexico",
+      "region": "Caribbean Mexico",
+      "country_id": "MX",
+      "country": "Mexico",
+      "area_id": "cozumel-riviera-maya",
+      "area": "Cozumel and Riviera Maya",
+      "latitude": 20.43,
+      "longitude": -87.02,
+      "bounds": {
+        "min_lat": 19.8,
+        "max_lat": 20.7,
+        "min_lon": -87.6,
+        "max_lon": -86.7
+      },
+      "source_ids": [
+        "map-cozumel",
+        "policy-padi-dive-sites"
+      ],
+      "defaults": {
+        "averageDepth": 17,
+        "maxDepth": 28,
+        "averageTemp": 27,
+        "averageVisibility": 23,
+        "access_level": "boat",
+        "curation_score": 9.0,
+        "popularity_score": 8.7
+      },
+      "sites": [
+        {
+          "name": "Palancar Gardens",
+          "latitude": 20.351,
+          "longitude": -87.024,
+          "type": "Reef",
+          "difficulty": "Intermediate",
+          "tags": [
+            "drift",
+            "reef",
+            "boat"
+          ],
+          "curation_score": 9.5,
+          "popularity_score": 9.2,
+          "access_level": "boat"
+        },
+        {
+          "name": "Santa Rosa Wall",
+          "latitude": 20.443,
+          "longitude": -86.979,
+          "type": "Reef",
+          "difficulty": "Advanced",
+          "tags": [
+            "wall",
+            "drift",
+            "boat"
+          ],
+          "curation_score": 9.3,
+          "popularity_score": 8.9,
+          "access_level": "boat"
+        },
+        {
+          "name": "Punta Sur",
+          "latitude": 20.273,
+          "longitude": -87.043,
+          "type": "Reef",
+          "difficulty": "Advanced",
+          "tags": [
+            "drift",
+            "reef",
+            "pelagic"
+          ],
+          "curation_score": 9.0,
+          "popularity_score": 8.6,
+          "access_level": "boat"
+        },
+        {
+          "name": "Columbia Deep",
+          "latitude": 20.279,
+          "longitude": -87.009,
+          "type": "Reef",
+          "difficulty": "Advanced",
+          "tags": [
+            "wall",
+            "drift",
+            "deep"
+          ],
+          "curation_score": 8.9,
+          "popularity_score": 8.5,
+          "access_level": "boat"
+        },
+        {
+          "name": "Dos Ojos",
+          "latitude": 20.331,
+          "longitude": -87.395,
+          "type": "Cave",
+          "difficulty": "Intermediate",
+          "tags": [
+            "cenote",
+            "cavern",
+            "freshwater"
+          ],
+          "curation_score": 9.7,
+          "popularity_score": 9.5,
+          "access_level": "shore"
+        }
+      ]
+    },
+    {
+      "destination_slug": "philippines-islands",
+      "region_id": "philippines",
+      "region": "Philippines",
+      "country_id": "PH",
+      "country": "Philippines",
+      "area_id": "philippines-islands",
+      "area": "Philippines Islands",
+      "latitude": 11.2,
+      "longitude": 123.8,
+      "bounds": {
+        "min_lat": 9.0,
+        "max_lat": 14.7,
+        "min_lon": 119.8,
+        "max_lon": 125.5
+      },
+      "source_ids": [
+        "policy-padi-dive-sites"
+      ],
+      "defaults": {
+        "averageDepth": 17,
+        "maxDepth": 28,
+        "averageTemp": 28,
+        "averageVisibility": 18,
+        "access_level": "boat",
+        "curation_score": 9.0,
+        "popularity_score": 8.7
+      },
+      "sites": [
+        {
+          "name": "Monad Shoal",
+          "latitude": 11.335,
+          "longitude": 124.12,
+          "type": "Reef",
+          "difficulty": "Advanced",
+          "tags": [
+            "thresher sharks",
+            "plateau",
+            "blue water"
+          ],
+          "curation_score": 9.6,
+          "popularity_score": 9.3,
+          "access_level": "boat"
+        },
+        {
+          "name": "Gato Island",
+          "latitude": 11.302,
+          "longitude": 123.959,
+          "type": "Reef",
+          "difficulty": "Intermediate",
+          "tags": [
+            "cave",
+            "reef",
+            "macro"
+          ],
+          "curation_score": 9.1,
+          "popularity_score": 8.8,
+          "access_level": "boat"
+        },
+        {
+          "name": "Pescador Island",
+          "latitude": 9.946,
+          "longitude": 123.381,
+          "type": "Reef",
+          "difficulty": "Intermediate",
+          "tags": [
+            "wall",
+            "reef",
+            "schooling fish"
+          ],
+          "curation_score": 9.0,
+          "popularity_score": 8.7,
+          "access_level": "boat"
+        },
+        {
+          "name": "Sardine Run",
+          "latitude": 9.943,
+          "longitude": 123.378,
+          "type": "Reef",
+          "difficulty": "Beginner",
+          "tags": [
+            "sardines",
+            "shore",
+            "photography"
+          ],
+          "curation_score": 9.4,
+          "popularity_score": 9.4,
+          "access_level": "shore",
+          "aliases": [
+            "Moalboal Sardine Run"
+          ]
+        },
+        {
+          "name": "Twin Rocks",
+          "latitude": 13.76,
+          "longitude": 120.872,
+          "type": "Reef",
+          "difficulty": "Beginner",
+          "tags": [
+            "muck",
+            "macro",
+            "reef"
+          ],
+          "curation_score": 8.8,
+          "popularity_score": 8.3,
+          "access_level": "boat"
+        }
+      ]
+    },
+    {
+      "destination_slug": "thailand-gulf-and-similan",
+      "region_id": "thailand",
+      "region": "Thailand",
+      "country_id": "TH",
+      "country": "Thailand",
+      "area_id": "thailand-gulf-and-similan",
+      "area": "Thailand Gulf and Similan",
+      "latitude": 9.9,
+      "longitude": 99.0,
+      "bounds": {
+        "min_lat": 8.6,
+        "max_lat": 10.8,
+        "min_lon": 97.8,
+        "max_lon": 100.9
+      },
+      "source_ids": [
+        "policy-padi-dive-sites"
+      ],
+      "defaults": {
+        "averageDepth": 16,
+        "maxDepth": 28,
+        "averageTemp": 28,
+        "averageVisibility": 16,
+        "access_level": "boat",
+        "curation_score": 8.9,
+        "popularity_score": 8.5
+      },
+      "sites": [
+        {
+          "name": "Richelieu Rock",
+          "latitude": 9.3634,
+          "longitude": 98.0221,
+          "type": "Reef",
+          "difficulty": "Advanced",
+          "tags": [
+            "pelagic",
+            "reef",
+            "purple soft coral"
+          ],
+          "curation_score": 9.8,
+          "popularity_score": 9.6,
+          "access_level": "boat"
+        },
+        {
+          "name": "Sail Rock",
+          "latitude": 10.095,
+          "longitude": 100.051,
+          "type": "Reef",
+          "difficulty": "Intermediate",
+          "tags": [
+            "chimney",
+            "reef",
+            "schooling fish"
+          ],
+          "curation_score": 9.2,
+          "popularity_score": 8.9,
+          "access_level": "boat"
+        },
+        {
+          "name": "Chumphon Pinnacle",
+          "latitude": 10.766,
+          "longitude": 99.586,
+          "type": "Reef",
+          "difficulty": "Advanced",
+          "tags": [
+            "pinnacle",
+            "pelagic",
+            "current"
+          ],
+          "curation_score": 9.1,
+          "popularity_score": 8.7,
+          "access_level": "boat"
+        },
+        {
+          "name": "Shark Island",
+          "latitude": 10.054,
+          "longitude": 99.829,
+          "type": "Reef",
+          "difficulty": "Intermediate",
+          "tags": [
+            "reef",
+            "shore",
+            "training"
+          ],
+          "curation_score": 8.7,
+          "popularity_score": 8.3,
+          "access_level": "boat"
+        }
+      ]
+    },
+    {
+      "destination_slug": "south-africa-east-coast",
+      "region_id": "south-africa",
+      "region": "South Africa",
+      "country_id": "ZA",
+      "country": "South Africa",
+      "area_id": "south-africa-east-coast",
+      "area": "South Africa East Coast",
+      "latitude": -29.4,
+      "longitude": 32.7,
+      "bounds": {
+        "min_lat": -31.2,
+        "max_lat": -26.8,
+        "min_lon": 30.6,
+        "max_lon": 33.6
+      },
+      "source_ids": [
+        "policy-padi-dive-sites"
+      ],
+      "defaults": {
+        "averageDepth": 18,
+        "maxDepth": 30,
+        "averageTemp": 22,
+        "averageVisibility": 15,
+        "access_level": "boat",
+        "curation_score": 8.8,
+        "popularity_score": 8.4
+      },
+      "sites": [
+        {
+          "name": "Aliwal Shoal",
+          "latitude": -30.258,
+          "longitude": 30.824,
+          "type": "Reef",
+          "difficulty": "Advanced",
+          "tags": [
+            "sharks",
+            "reef",
+            "boat"
+          ],
+          "curation_score": 9.3,
+          "popularity_score": 9.0,
+          "access_level": "boat"
+        },
+        {
+          "name": "Cathedral",
+          "latitude": -27.536,
+          "longitude": 32.692,
+          "type": "Reef",
+          "difficulty": "Advanced",
+          "tags": [
+            "cave",
+            "reef",
+            "sharks"
+          ],
+          "curation_score": 8.9,
+          "popularity_score": 8.5,
+          "access_level": "boat"
+        },
+        {
+          "name": "Seven Mile Reef",
+          "latitude": -27.426,
+          "longitude": 32.71,
+          "type": "Reef",
+          "difficulty": "Advanced",
+          "tags": [
+            "reef",
+            "pelagic",
+            "current"
+          ],
+          "curation_score": 8.8,
+          "popularity_score": 8.3,
+          "access_level": "boat"
+        },
+        {
+          "name": "Raggie Cave",
+          "latitude": -30.253,
+          "longitude": 30.82,
+          "type": "Reef",
+          "difficulty": "Advanced",
+          "tags": [
+            "sharks",
+            "cave",
+            "boat"
+          ],
+          "curation_score": 8.7,
+          "popularity_score": 8.2,
+          "access_level": "boat"
+        }
+      ]
+    }
+  ]
+}

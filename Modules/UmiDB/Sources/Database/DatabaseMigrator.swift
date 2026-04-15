@@ -538,6 +538,65 @@ public enum DatabaseMigrator {
             """)
         }
 
+        // MARK: - v10: Curated Site Metadata + Alias Search
+        migrator.registerMigration("v10_curated_site_metadata") { db in
+            try db.alter(table: "sites") { t in
+                t.add(column: "aliases", .text).notNull().defaults(to: "[]")
+                t.add(column: "curation_score", .double).notNull().defaults(to: 0)
+                t.add(column: "popularity_score", .double).notNull().defaults(to: 0)
+                t.add(column: "access_level", .text).notNull().defaults(to: "unknown")
+                t.add(column: "wreck_verified", .boolean).notNull().defaults(to: false)
+                t.add(column: "destination_slug", .text)
+            }
+
+            try db.create(table: "site_aliases") { t in
+                t.column("site_id", .text).notNull()
+                    .references("sites", onDelete: .cascade)
+                t.column("alias", .text).notNull()
+                t.column("alias_normalized", .text).notNull()
+                t.primaryKey(["site_id", "alias_normalized"], onConflict: .replace)
+            }
+            try db.create(index: "idx_site_aliases_normalized", on: "site_aliases", columns: ["alias_normalized"])
+            try db.create(index: "idx_sites_curation", on: "sites", columns: ["curation_score", "popularity_score"])
+            try db.create(index: "idx_sites_destination_slug", on: "sites", columns: ["destination_slug"])
+            try db.create(index: "idx_sites_wreck_verified", on: "sites", columns: ["wreck_verified"])
+
+            try db.execute(sql: "DROP TRIGGER IF EXISTS sites_fts_insert")
+            try db.execute(sql: "DROP TRIGGER IF EXISTS sites_fts_update")
+            try db.execute(sql: "DROP TRIGGER IF EXISTS sites_fts_delete")
+            try db.execute(sql: "DROP TABLE IF EXISTS sites_fts")
+            try db.create(virtualTable: "sites_fts", using: FTS5()) { t in
+                t.column("name")
+                t.column("aliases")
+                t.column("region")
+                t.column("location")
+                t.column("tags")
+                t.column("description")
+            }
+            try db.execute(sql: """
+                INSERT INTO sites_fts(rowid, name, aliases, region, location, tags, description)
+                SELECT rowid, name, aliases, region, location, tags, description FROM sites
+            """)
+            try db.execute(sql: """
+                CREATE TRIGGER IF NOT EXISTS sites_fts_insert AFTER INSERT ON sites BEGIN
+                    INSERT INTO sites_fts(rowid, name, aliases, region, location, tags, description)
+                    VALUES (NEW.rowid, NEW.name, NEW.aliases, NEW.region, NEW.location, NEW.tags, NEW.description);
+                END
+            """)
+            try db.execute(sql: """
+                CREATE TRIGGER IF NOT EXISTS sites_fts_update AFTER UPDATE ON sites BEGIN
+                    DELETE FROM sites_fts WHERE rowid = OLD.rowid;
+                    INSERT INTO sites_fts(rowid, name, aliases, region, location, tags, description)
+                    VALUES (NEW.rowid, NEW.name, NEW.aliases, NEW.region, NEW.location, NEW.tags, NEW.description);
+                END
+            """)
+            try db.execute(sql: """
+                CREATE TRIGGER IF NOT EXISTS sites_fts_delete AFTER DELETE ON sites BEGIN
+                    DELETE FROM sites_fts WHERE rowid = OLD.rowid;
+                END
+            """)
+        }
+
         // Run migrations
         try migrator.migrate(writer)
     }

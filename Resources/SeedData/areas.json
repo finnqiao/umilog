@@ -1,3 +1,157 @@
 {
-  "areas": []
+  "areas": [
+    {
+      "id": "komodo-national-park",
+      "name": "Komodo National Park",
+      "region_id": "coral-triangle",
+      "country_id": "ID",
+      "latitude": -8.55,
+      "longitude": 119.62,
+      "wikidata_id": null
+    },
+    {
+      "id": "raja-ampat",
+      "name": "Raja Ampat",
+      "region_id": "coral-triangle",
+      "country_id": "ID",
+      "latitude": -0.56,
+      "longitude": 130.58,
+      "wikidata_id": null
+    },
+    {
+      "id": "nusa-penida-lembongan",
+      "name": "Nusa Penida and Lembongan",
+      "region_id": "coral-triangle",
+      "country_id": "ID",
+      "latitude": -8.71,
+      "longitude": 115.47,
+      "wikidata_id": null
+    },
+    {
+      "id": "tulamben-amed",
+      "name": "Tulamben and Amed",
+      "region_id": "coral-triangle",
+      "country_id": "ID",
+      "latitude": -8.3,
+      "longitude": 115.63,
+      "wikidata_id": null
+    },
+    {
+      "id": "gili-islands",
+      "name": "Gili Islands",
+      "region_id": "coral-triangle",
+      "country_id": "ID",
+      "latitude": -8.35,
+      "longitude": 116.04,
+      "wikidata_id": null
+    },
+    {
+      "id": "lembeh-strait",
+      "name": "Lembeh Strait",
+      "region_id": "coral-triangle",
+      "country_id": "ID",
+      "latitude": 1.468,
+      "longitude": 125.228,
+      "wikidata_id": null
+    },
+    {
+      "id": "bunaken-national-park",
+      "name": "Bunaken National Park",
+      "region_id": "coral-triangle",
+      "country_id": "ID",
+      "latitude": 1.63,
+      "longitude": 124.75,
+      "wikidata_id": null
+    },
+    {
+      "id": "alor-strait",
+      "name": "Alor Strait",
+      "region_id": "coral-triangle",
+      "country_id": "ID",
+      "latitude": -8.24,
+      "longitude": 124.53,
+      "wikidata_id": null
+    },
+    {
+      "id": "sinai-red-sea",
+      "name": "Sinai Red Sea",
+      "region_id": "red-sea-egypt",
+      "country_id": "EG",
+      "latitude": 28.05,
+      "longitude": 34.35,
+      "wikidata_id": null
+    },
+    {
+      "id": "marsa-alam-offshore",
+      "name": "Marsa Alam and Offshore Reefs",
+      "region_id": "red-sea-egypt",
+      "country_id": "EG",
+      "latitude": 25.5,
+      "longitude": 35.6,
+      "wikidata_id": null
+    },
+    {
+      "id": "maldives-central-atolls",
+      "name": "Maldives Central Atolls",
+      "region_id": "maldives",
+      "country_id": "MV",
+      "latitude": 3.6,
+      "longitude": 73.35,
+      "wikidata_id": null
+    },
+    {
+      "id": "palau-rock-islands",
+      "name": "Palau Rock Islands",
+      "region_id": "palau",
+      "country_id": "PW",
+      "latitude": 7.14,
+      "longitude": 134.28,
+      "wikidata_id": null
+    },
+    {
+      "id": "great-barrier-reef-cairns",
+      "name": "Great Barrier Reef Cairns and Ribbon Reefs",
+      "region_id": "great-barrier-reef",
+      "country_id": "AU",
+      "latitude": -15.5,
+      "longitude": 145.9,
+      "wikidata_id": null
+    },
+    {
+      "id": "cozumel-riviera-maya",
+      "name": "Cozumel and Riviera Maya",
+      "region_id": "caribbean-mexico",
+      "country_id": "MX",
+      "latitude": 20.43,
+      "longitude": -87.02,
+      "wikidata_id": null
+    },
+    {
+      "id": "philippines-islands",
+      "name": "Philippines Islands",
+      "region_id": "philippines",
+      "country_id": "PH",
+      "latitude": 11.2,
+      "longitude": 123.8,
+      "wikidata_id": null
+    },
+    {
+      "id": "thailand-gulf-and-similan",
+      "name": "Thailand Gulf and Similan",
+      "region_id": "thailand",
+      "country_id": "TH",
+      "latitude": 9.9,
+      "longitude": 99.0,
+      "wikidata_id": null
+    },
+    {
+      "id": "south-africa-east-coast",
+      "name": "South Africa East Coast",
+      "region_id": "south-africa",
+      "country_id": "ZA",
+      "latitude": -29.4,
+      "longitude": 32.7,
+      "wikidata_id": null
+    }
+  ]
 }
