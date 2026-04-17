@@ -715,11 +715,13 @@ public struct NewMapView: View {
 
     private var baseSitesForCounts: [DiveSite] {
         let viewportSites = viewModel.visibleSites.isEmpty ? viewModel.sites : viewModel.visibleSites
-        if scope == .discover {
-            return viewModel.applyExploreFilters(to: viewportSites)
-        } else {
-            return viewModel.applyMyMapFilters(to: viewportSites)
-        }
+        let lens: FilterLens? = scope == .discover ? nil : uiViewModel.exploreContext?.filterLens
+        return viewModel.applyFilters(
+            to: viewportSites,
+            filters: uiViewModel.exploreFilters,
+            lens: lens,
+            hierarchy: uiViewModel.currentHierarchyLevel
+        )
     }
 
     /// Sites filtered using the new unified state types from MapUIViewModel.
@@ -2884,7 +2886,12 @@ private struct MapBackgroundOverlay: View {
 
     private var savedSitesList: [DiveSite] {
         let base = viewModel.visibleSites.isEmpty ? viewModel.sites : viewModel.visibleSites
-        return viewModel.applyMyMapFilters(to: base)
+        return viewModel.applyFilters(
+            to: base,
+            filters: uiViewModel.exploreFilters,
+            lens: uiViewModel.exploreContext?.filterLens,
+            hierarchy: uiViewModel.currentHierarchyLevel
+        )
     }
     
     private var discoverSitesList: [DiveSite] {
