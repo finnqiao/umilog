@@ -245,8 +245,7 @@ class MapViewModel: ObservableObject {
         sites.filter { $0.wishlist }.count
     }
 
-    var areasInSelectedRegion: [Area] {
-        guard let region = selectedRegion else { return [] }
+    func areasInRegion(_ region: Region) -> [Area] {
         let regionSites = sites.filter { $0.region == region.name }
         let groups = Dictionary(grouping: regionSites) { parseAreaCountry($0.location).area }
         let shopsInRegion = shops.filter { $0.region == region.name }
@@ -394,18 +393,6 @@ class MapViewModel: ObservableObject {
             isUsingSampledDataset = false
             fallbackSites = []
         }
-    }
-
-    func resetToRegions() {
-        selectedRegion = nil
-        selectedArea = nil
-        tier = .regions
-    }
-
-    func resetToAreas() {
-        guard selectedRegion != nil else { return }
-        selectedArea = nil
-        tier = .areas
     }
 
     private var viewportDebounceTask: Task<Void, Never>?
