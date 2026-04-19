@@ -108,14 +108,19 @@ struct ExploreContent: View {
 
     // MARK: - Peek Layout
 
-    /// Summary tray: title + supporting hint + one utility action.
-    /// Content-driven to match the 128pt fixed detent height — no Spacer padding.
+    /// Introductory drawer content: viewport summary, marker legend, and next-step guidance.
     private var peekLayout: some View {
-        VStack(alignment: .leading, spacing: 6) {
-            HStack(spacing: 8) {
-                dynamicTitle
-                    .font(.headline)
-                    .foregroundStyle(Color.foam)
+        VStack(alignment: .leading, spacing: 10) {
+            HStack(alignment: .top, spacing: 12) {
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(peekTitle)
+                        .font(.headline)
+                        .foregroundStyle(Color.foam)
+
+                    Text(peekSummaryText)
+                        .font(.subheadline)
+                        .foregroundStyle(Color.mist.opacity(0.88))
+                }
 
                 Spacer()
 
@@ -124,44 +129,73 @@ struct ExploreContent: View {
 
             HStack(spacing: 6) {
                 Image(systemName: "chevron.up")
-                    .font(.system(size: 10, weight: .semibold))
-                    .foregroundStyle(Color.lagoon.opacity(0.85))
+                    .font(.system(size: 11, weight: .bold))
+                    .foregroundStyle(Color.lagoon.opacity(0.90))
                 Text(peekHintText)
                     .font(.caption)
-                    .foregroundStyle(Color.mist.opacity(0.75))
+                    .foregroundStyle(Color.mist.opacity(0.82))
             }
+
+            HStack(spacing: 8) {
+                PeekLegendChip(
+                    tint: Color.oceanBlue,
+                    title: "Blue pin",
+                    detail: "Single site"
+                )
+                PeekLegendChip(
+                    tint: Color(red: 0.90, green: 0.79, blue: 0.59),
+                    title: "Tan count",
+                    detail: "Zoom cluster"
+                )
+            }
+
+            Text(peekInstructionText)
+                .font(.caption)
+                .foregroundStyle(Color.mist.opacity(0.72))
         }
         .padding(.horizontal, 20)
         .padding(.top, 6)
-        .padding(.bottom, 10)
+        .padding(.bottom, 14)
         .frame(maxHeight: .infinity, alignment: .top)
     }
 
     /// Hint text shown beneath the title at peek so first-time users immediately
     /// understand the sheet is draggable and what's underneath.
     private var peekHintText: String {
-        let total = sites.count
         switch zoomLevel {
         case .world:
-            if !visibleDestinations.isEmpty {
-                let count = visibleDestinations.count
-                return "Swipe up to browse \(count) destination\(count == 1 ? "" : "s")"
-            }
-            return "Swipe up to browse dive sites"
+            return "Pull up to browse destinations and refine the map"
+        case .regional:
+            return "Pull up to browse areas, sites, and filters"
+        case .local:
+            return "Pull up to browse sites in this map area"
+        }
+    }
+
+    private var peekTitle: String {
+        "Explore the map"
+    }
+
+    private var peekSummaryText: String {
+        switch zoomLevel {
+        case .world:
+            let count = visibleDestinations.count
+            return count > 0
+                ? "\(count) destination\(count == 1 ? "" : "s") in view"
+                : "\(sites.count) dive site\(sites.count == 1 ? "" : "s") in view"
         case .regional:
             if !visibleAreas.isEmpty {
                 let count = visibleAreas.count
-                return "Swipe up to browse \(count) area\(count == 1 ? "" : "s")"
-            } else if total > 0 {
-                return "Swipe up to browse \(total) site\(total == 1 ? "" : "s")"
+                return "\(count) area\(count == 1 ? "" : "s") and \(sites.count) site\(sites.count == 1 ? "" : "s") in this region"
             }
-            return "Swipe up to browse this region"
+            return "\(sites.count) site\(sites.count == 1 ? "" : "s") in this map area"
         case .local:
-            if total > 0 {
-                return "Swipe up to browse \(total) nearby site\(total == 1 ? "" : "s")"
-            }
-            return "Swipe up to browse nearby sites"
+            return "\(sites.count) site\(sites.count == 1 ? "" : "s") in this map area"
         }
+    }
+
+    private var peekInstructionText: String {
+        "Tap tan clusters to zoom. Use Filters to narrow by type, difficulty, or night diving."
     }
 
     // MARK: - Browse Layout
@@ -322,7 +356,7 @@ struct ExploreContent: View {
     }
 
     private var expandedSearchPlaceholder: String {
-        sites.count > 0 ? "Search \(sites.count) sites…" : "Search sites…"
+        "Search places, sites, or species"
     }
 
     // MARK: - Peek Carousel (zoom-aware)
@@ -380,22 +414,22 @@ struct ExploreContent: View {
             if visibleDestinations.isEmpty {
                 return Text("Discover dive sites")
             }
-            return Text("\(visibleDestinations.count) destinations")
+            return Text("\(visibleDestinations.count) destinations in view")
         case .regional:
             if let regionId = context.hierarchyLevel.regionId {
-                return Text("\(regionId) \u{00B7} \(sites.count) dive sites")
+                return Text("\(regionId) \u{00B7} \(sites.count) sites in view")
             }
-            return Text("\(sites.count) dive sites")
+            return Text("\(sites.count) sites in view")
         case .local:
             if let areaId = context.hierarchyLevel.areaId {
-                return Text("\(areaId) \u{00B7} \(sites.count) dive sites")
+                return Text("\(areaId) \u{00B7} \(sites.count) sites in map area")
             }
-            return Text("\(sites.count) dive sites")
+            return Text("\(sites.count) sites in map area")
         }
     }
 
     private var hasActiveFilters: Bool {
-        filterLens != nil || !filterDifficulties.isEmpty || !context.hierarchyLevel.isWorld
+        filterLens != nil || !filterDifficulties.isEmpty
     }
 
     private var shouldShowRegionDetail: Bool {
@@ -413,7 +447,7 @@ struct ExploreContent: View {
             HStack(spacing: 6) {
                 Image(systemName: "slider.horizontal.3")
                     .font(.system(size: 13, weight: .semibold))
-                Text("Filter")
+                Text(filterButtonTitle)
                     .font(.caption.weight(.semibold))
             }
             .foregroundStyle(hasActiveFilters ? Color.foam : Color.lagoon)
@@ -430,6 +464,21 @@ struct ExploreContent: View {
         }
         .buttonStyle(.plain)
         .accessibilityLabel(hasActiveFilters ? "Filters (active)" : "Open filters")
+    }
+
+    private var filterButtonTitle: String {
+        if hasActiveFilters {
+            return "Filters (\(activeFilterCount))"
+        }
+        return "Filters"
+    }
+
+    private var activeFilterCount: Int {
+        var count = filterDifficulties.count
+        if filterLens != nil {
+            count += 1
+        }
+        return count
     }
 
     // MARK: - Zoom-Aware List
@@ -458,7 +507,11 @@ struct ExploreContent: View {
     @ViewBuilder
     private var destinationList: some View {
         if visibleDestinations.isEmpty {
-            emptyState
+            if hasActiveFilters {
+                filteredEmptyState
+            } else {
+                emptyState
+            }
         } else {
             ScrollView {
                 LazyVStack(spacing: 8) {
@@ -480,7 +533,11 @@ struct ExploreContent: View {
     @ViewBuilder
     private var areaList: some View {
         if visibleAreas.isEmpty && sites.isEmpty {
-            sparseViewport
+            if hasActiveFilters {
+                filteredEmptyState
+            } else {
+                sparseViewport
+            }
         } else {
             ScrollView {
                 LazyVStack(spacing: 8) {
@@ -515,7 +572,11 @@ struct ExploreContent: View {
     @ViewBuilder
     private var siteList: some View {
         if sites.isEmpty {
-            sparseViewport
+            if hasActiveFilters {
+                filteredEmptyState
+            } else {
+                sparseViewport
+            }
         } else {
             ScrollView {
                 LazyVStack(spacing: 0) {
@@ -626,6 +687,39 @@ struct ExploreContent: View {
 }
 
 // MARK: - Region Detail
+
+private struct PeekLegendChip: View {
+    let tint: Color
+    let title: String
+    let detail: String
+
+    var body: some View {
+        HStack(spacing: 6) {
+            Circle()
+                .fill(tint)
+                .frame(width: 8, height: 8)
+
+            VStack(alignment: .leading, spacing: 0) {
+                Text(title)
+                    .font(.caption.weight(.semibold))
+                    .foregroundStyle(Color.foam)
+                Text(detail)
+                    .font(.caption2)
+                    .foregroundStyle(Color.mist.opacity(0.78))
+            }
+        }
+        .padding(.horizontal, 10)
+        .padding(.vertical, 7)
+        .background(
+            Capsule()
+                .fill(Color.trench.opacity(0.86))
+                .overlay(
+                    Capsule()
+                        .stroke(tint.opacity(0.16), lineWidth: 1)
+                )
+        )
+    }
+}
 
 private struct RegionDetailCard: View {
     let region: UmiDB.Region

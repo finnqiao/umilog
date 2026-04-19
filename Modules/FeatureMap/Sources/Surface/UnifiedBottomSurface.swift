@@ -324,13 +324,22 @@ struct UnifiedBottomSurface: View {
 
     private var dragHandle: some View {
         VStack(spacing: 0) {
-            Capsule()
-                .fill(Color.mist.opacity(0.35))
-                .frame(width: 36, height: 4)
-                .padding(.top, 10)
-                .padding(.bottom, 10)
+            VStack(spacing: 5) {
+                Capsule()
+                    .fill(Color.foam.opacity(0.78))
+                    .frame(width: 44, height: 5)
+
+                HStack(spacing: 3) {
+                    Image(systemName: "chevron.up")
+                    Image(systemName: "chevron.up")
+                }
+                .font(.system(size: 9, weight: .bold))
+                .foregroundStyle(Color.lagoon.opacity(0.88))
+            }
+            .padding(.top, 10)
+            .padding(.bottom, 10)
         }
-        .frame(height: 24)
+        .frame(height: 34)
         .frame(maxWidth: .infinity)
         .contentShape(Rectangle())
         .onTapGesture {
@@ -359,6 +368,13 @@ struct UnifiedBottomSurface: View {
             // Base fill: deep navy, opaque. No translucency so the map never
             // bleeds through and the sheet reads as one solid surface.
             Color(red: 0.07, green: 0.17, blue: 0.29)  // ≈ #122B4A
+
+            LinearGradient(
+                colors: [Color.white.opacity(0.08), Color.clear],
+                startPoint: .top,
+                endPoint: .init(x: 0.5, y: 0.18)
+            )
+            .frame(maxHeight: .infinity, alignment: .top)
 
             // Subtle vertical gradient: slightly lighter at the drag edge,
             // settling toward the base fill below.

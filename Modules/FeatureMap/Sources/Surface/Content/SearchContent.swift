@@ -464,7 +464,7 @@ struct SearchContent: View {
                 .font(.system(size: 16))
                 .foregroundStyle(Color.mist)
 
-            TextField("Search dive sites...", text: $query)
+            TextField("Search places, sites, or species", text: $query)
                 .textFieldStyle(.plain)
                 .font(.body)
                 .foregroundStyle(Color.foam)

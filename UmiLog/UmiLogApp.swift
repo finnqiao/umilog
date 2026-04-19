@@ -420,54 +420,52 @@ struct VerticalTabBar: View {
         let icon: String
     }
 
-    private let items: [TabItem] = [
+    private let navigationItems: [TabItem] = [
         TabItem(tab: .map, icon: "map.fill"),
         TabItem(tab: .history, icon: "clock.fill"),
-        TabItem(tab: .log, icon: "plus.circle.fill"),
+    ]
+
+    private let utilityItems: [TabItem] = [
         TabItem(tab: .wildlife, icon: "fish.fill"),
         TabItem(tab: .profile, icon: "person.fill"),
     ]
 
     var body: some View {
-        VStack(spacing: 24) {
-            ForEach(items, id: \.tab) { item in
-                if item.tab == .log {
-                    logButton
-                } else {
-                    tabButton(item)
-                }
-            }
+        VStack(spacing: 16) {
+            floatingGroup(navigationItems, label: "Navigation")
+            logButton
+            floatingGroup(utilityItems, label: "More")
         }
         .frame(width: barWidth)
         .frame(maxHeight: .infinity)
+    }
+
+    private func floatingGroup(_ items: [TabItem], label: String) -> some View {
+        VStack(spacing: 10) {
+            ForEach(items, id: \.tab) { item in
+                tabButton(item)
+            }
+        }
+        .padding(.vertical, 10)
+        .padding(.horizontal, 6)
         .background(
-            UnevenRoundedRectangle(
-                topLeadingRadius: 20,
-                bottomLeadingRadius: 20,
-                bottomTrailingRadius: 0,
-                topTrailingRadius: 0,
-                style: .continuous
-            )
-            .fill(.ultraThinMaterial)
-            .overlay(
-                UnevenRoundedRectangle(
-                    topLeadingRadius: 20,
-                    bottomLeadingRadius: 20,
-                    bottomTrailingRadius: 0,
-                    topTrailingRadius: 0,
-                    style: .continuous
+            RoundedRectangle(cornerRadius: 24, style: .continuous)
+                .fill(.ultraThinMaterial)
+                .overlay(
+                    RoundedRectangle(cornerRadius: 24, style: .continuous)
+                        .strokeBorder(
+                            LinearGradient(
+                                colors: [Color.lagoon.opacity(0.30), Color.lagoon.opacity(0.06)],
+                                startPoint: .top,
+                                endPoint: .bottom
+                            ),
+                            lineWidth: 1
+                        )
                 )
-                .strokeBorder(
-                    LinearGradient(
-                        colors: [Color.lagoon.opacity(0.35), Color.lagoon.opacity(0.08)],
-                        startPoint: .top,
-                        endPoint: .bottom
-                    ),
-                    lineWidth: 1
-                )
-            )
         )
-        .shadow(color: Color.black.opacity(0.25), radius: 16, x: -4, y: 0)
+        .shadow(color: Color.black.opacity(0.20), radius: 14, x: -4, y: 8)
+        .accessibilityElement(children: .contain)
+        .accessibilityLabel(label)
     }
 
     private func tabButton(_ item: TabItem) -> some View {
@@ -478,6 +476,17 @@ struct VerticalTabBar: View {
                 .font(.system(size: 20, weight: .medium))
                 .foregroundStyle(selection == item.tab ? Color.lagoon : Color.mist)
                 .frame(width: 44, height: 44)
+                .background(
+                    Circle()
+                        .fill(selection == item.tab ? Color.lagoon.opacity(0.16) : Color.clear)
+                )
+                .overlay(
+                    Circle()
+                        .stroke(
+                            selection == item.tab ? Color.lagoon.opacity(0.28) : Color.clear,
+                            lineWidth: 1
+                        )
+                )
                 .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
@@ -489,13 +498,24 @@ struct VerticalTabBar: View {
             onLogTap()
         } label: {
             Image(systemName: "plus.circle.fill")
-                .font(.system(size: 28, weight: .medium))
-                .foregroundStyle(Color.lagoon)
-                .frame(width: 44, height: 44)
+                .font(.system(size: 28, weight: .semibold))
+                .foregroundStyle(Color.foam)
+                .frame(width: 50, height: 50)
                 .background(
                     Circle()
-                        .fill(Color.lagoon.opacity(0.15))
+                        .fill(
+                            LinearGradient(
+                                colors: [Color.lagoon, Color.oceanBlue],
+                                startPoint: .topLeading,
+                                endPoint: .bottomTrailing
+                            )
+                        )
+                        .overlay(
+                            Circle()
+                                .stroke(Color.white.opacity(0.16), lineWidth: 1)
+                        )
                 )
+                .shadow(color: Color.lagoon.opacity(0.30), radius: 12, x: 0, y: 8)
                 .contentShape(Circle())
         }
         .buttonStyle(.plain)

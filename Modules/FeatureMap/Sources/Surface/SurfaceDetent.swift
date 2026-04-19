@@ -24,15 +24,14 @@ enum SurfaceDetent: Equatable, CaseIterable {
         case .hidden:
             return 0
         case .peek:
-            // Fixed 128pt: drag handle (24pt) + title row (~22pt) + hint line (~16pt)
-            // + vertical padding (~40pt) + breathing room. Compact summary tray —
-            // no carousel, no chips. Content-driven so it feels identical on every device.
-            return 128
+            // Taller introductory drawer: stronger handle, viewport summary,
+            // legend, and a short "what to do next" cue.
+            return 176
         case .medium:
             // Cards-first browse state. Content budget: handle (24) + top pad (4) +
             // header (~22) + gap (12) + carousel (~110) + bottom (16) ≈ 188pt.
-            // Clamp to 280–320pt so the carousel breathes without dead air.
-            return min(max(containerHeight * 0.38, 280), 320)
+            // Clamp to 300–360pt so the drawer reads like a true sheet.
+            return min(max(containerHeight * 0.42, 300), 360)
         case .expanded:
             // Take almost the full usable height, leaving 44pt for the status-bar
             // area. No native tab bar to account for — the vertical sidebar is on

@@ -2,9 +2,10 @@ import SwiftUI
 import UmiDesignSystem
 
 /// Full-width search capsule displayed at the top of the Discover screen.
-/// Shows location context and provides search + locate-me actions.
+/// Shows search guidance plus current map context.
 struct SearchCapsule: View {
-    let locationContext: String?
+    let title: String
+    let subtitle: String?
     var onTap: () -> Void
     var onLocateMeTap: () -> Void
 
@@ -15,13 +16,13 @@ struct SearchCapsule: View {
                     .font(.system(size: 15, weight: .medium))
                     .foregroundStyle(Color.mist)
 
-                VStack(alignment: .leading, spacing: 1) {
-                    Text("Explore dive sites")
-                        .font(.subheadline.weight(.medium))
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(title)
+                        .font(.subheadline.weight(.semibold))
                         .foregroundStyle(Color.foam)
 
-                    if let context = locationContext, !context.isEmpty {
-                        Text(context)
+                    if let subtitle, !subtitle.isEmpty {
+                        Text(subtitle)
                             .font(.caption)
                             .foregroundStyle(Color.mist)
                             .lineLimit(1)
@@ -60,8 +61,8 @@ struct SearchCapsule: View {
         }
         .buttonStyle(.plain)
         .contentShape(Capsule())
-        .accessibilityLabel("Search dive sites")
-        .accessibilityHint("Opens search to find destinations, areas, and sites")
+        .accessibilityLabel(title)
+        .accessibilityHint("Opens search for places, dive sites, and species")
     }
 }
 
@@ -70,9 +71,19 @@ struct SearchCapsule: View {
         Color.abyss
             .ignoresSafeArea()
         VStack {
-            SearchCapsule(locationContext: nil, onTap: {}, onLocateMeTap: {})
+            SearchCapsule(
+                title: "Search places, sites, or species",
+                subtitle: "Aegean Sea · 72 sites in this map area",
+                onTap: {},
+                onLocateMeTap: {}
+            )
                 .padding(.horizontal, 16)
-            SearchCapsule(locationContext: "Coral Triangle \u{00B7} Indonesia", onTap: {}, onLocateMeTap: {})
+            SearchCapsule(
+                title: "Search places, sites, or species",
+                subtitle: "Coral Triangle · 12 destinations in view",
+                onTap: {},
+                onLocateMeTap: {}
+            )
                 .padding(.horizontal, 16)
             Spacer()
         }

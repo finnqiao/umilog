@@ -196,6 +196,8 @@ class SiteAnnotation: NSObject, MKAnnotation {
 class SiteAnnotationView: MKAnnotationView {
     static let reuseIdentifier = "SiteAnnotation"
 
+    private let oceanMarkerColor = UIColor(red: 0.34, green: 0.60, blue: 0.96, alpha: 1.0)
+
     override init(annotation: MKAnnotation?, reuseIdentifier: String?) {
         super.init(annotation: annotation, reuseIdentifier: reuseIdentifier)
         clusteringIdentifier = "site"
@@ -209,6 +211,7 @@ class SiteAnnotationView: MKAnnotationView {
 
     private let pinView = UIView()
     private let statusRing = UIView()
+    private let centerDot = UIView()
     private let pinSize: CGFloat = 24
 
     private func setupView() {
@@ -216,9 +219,10 @@ class SiteAnnotationView: MKAnnotationView {
         canShowCallout = false  // We handle selection via delegate
         isEnabled = true  // Make tappable
 
-        // Tan/cream colored pin like reference images
+        // Single dive sites are always ocean-blue; a status ring communicates
+        // visited/saved state so the base marker meaning stays unambiguous.
         pinView.frame = CGRect(x: 0, y: 0, width: pinSize, height: pinSize)
-        pinView.backgroundColor = UIColor(red: 0.96, green: 0.87, blue: 0.70, alpha: 1.0) // Tan/cream
+        pinView.backgroundColor = oceanMarkerColor
         pinView.layer.cornerRadius = pinSize / 2
         pinView.layer.borderWidth = 2
         pinView.layer.borderColor = UIColor.white.cgColor
@@ -226,6 +230,14 @@ class SiteAnnotationView: MKAnnotationView {
         pinView.layer.shadowOffset = CGSize(width: 0, height: 2)
         pinView.layer.shadowRadius = 4
         pinView.layer.shadowOpacity = 0.3
+
+        centerDot.frame = CGRect(x: 0, y: 0, width: 8, height: 8)
+        centerDot.backgroundColor = UIColor.white
+        centerDot.layer.cornerRadius = 4
+        centerDot.layer.shadowColor = UIColor.black.cgColor
+        centerDot.layer.shadowOffset = CGSize(width: 0, height: 1)
+        centerDot.layer.shadowRadius = 2
+        centerDot.layer.shadowOpacity = 0.12
 
         // Status ring (hidden by default)
         let ringSize = pinSize + 6
@@ -242,25 +254,19 @@ class SiteAnnotationView: MKAnnotationView {
 
         statusRing.center = CGPoint(x: tapSize / 2, y: tapSize / 2)
         pinView.center = CGPoint(x: tapSize / 2, y: tapSize / 2)
+        centerDot.center = pinView.center
         addSubview(statusRing)
         addSubview(pinView)
+        addSubview(centerDot)
 
         // Accessibility
         isAccessibilityElement = true
         accessibilityTraits = .button
     }
 
-    /// Configure pin color based on difficulty and status ring for logged/saved state.
-    func configure(difficulty: DiveSite.Difficulty, isLogged: Bool, isSaved: Bool) {
-        // Difficulty tinting
-        switch difficulty {
-        case .beginner:
-            pinView.backgroundColor = UIColor(red: 0.24, green: 0.86, blue: 0.59, alpha: 1.0) // #3DDC97
-        case .intermediate:
-            pinView.backgroundColor = UIColor(red: 0.38, green: 0.65, blue: 0.98, alpha: 1.0) // #60A5FA
-        case .advanced:
-            pinView.backgroundColor = UIColor(red: 0.98, green: 0.75, blue: 0.14, alpha: 1.0) // #FBBF24
-        }
+    /// Configure a single-site marker plus status ring for logged/saved state.
+    func configure(difficulty _: DiveSite.Difficulty, isLogged: Bool, isSaved: Bool) {
+        pinView.backgroundColor = oceanMarkerColor
 
         // Status ring
         if isLogged {
@@ -288,6 +294,7 @@ class SiteAnnotationView: MKAnnotationView {
 
 class ClusterAnnotationView: MKAnnotationView {
     private let countLabel = UILabel()
+    private let haloView = UIView()
 
     override init(annotation: MKAnnotation?, reuseIdentifier: String?) {
         super.init(annotation: annotation, reuseIdentifier: reuseIdentifier)
@@ -305,10 +312,16 @@ class ClusterAnnotationView: MKAnnotationView {
 
             // Adjust size based on count
             let count = cluster.memberAnnotations.count
-            let size: CGFloat = count > 100 ? 56 : count > 50 ? 48 : count > 10 ? 40 : 32
+            let size: CGFloat = count > 100 ? 58 : count > 50 ? 50 : count > 10 ? 42 : 36
             frame.size = CGSize(width: size, height: size)
             layer.cornerRadius = size / 2
             countLabel.frame = bounds
+            haloView.frame = bounds.insetBy(dx: -4, dy: -4)
+            haloView.layer.cornerRadius = haloView.bounds.width / 2
+            countLabel.font = UIFont.systemFont(
+                ofSize: count > 99 ? 15 : 14,
+                weight: .bold
+            )
         }
     }
 
@@ -317,14 +330,19 @@ class ClusterAnnotationView: MKAnnotationView {
         canShowCallout = false  // We handle selection via delegate
         isEnabled = true  // Make tappable
 
-        // Tan/cream background like reference
-        backgroundColor = UIColor(red: 0.96, green: 0.87, blue: 0.70, alpha: 1.0)
-        layer.borderWidth = 2.5
+        haloView.backgroundColor = UIColor(red: 0.96, green: 0.87, blue: 0.70, alpha: 0.18)
+        haloView.layer.borderWidth = 1
+        haloView.layer.borderColor = UIColor.white.withAlphaComponent(0.12).cgColor
+        insertSubview(haloView, at: 0)
+
+        // Warm grouped marker to contrast with single-site blue pins.
+        backgroundColor = UIColor(red: 0.93, green: 0.84, blue: 0.66, alpha: 1.0)
+        layer.borderWidth = 3
         layer.borderColor = UIColor.white.cgColor
         layer.shadowColor = UIColor.black.cgColor
         layer.shadowOffset = CGSize(width: 0, height: 2)
-        layer.shadowRadius = 4
-        layer.shadowOpacity = 0.3
+        layer.shadowRadius = 6
+        layer.shadowOpacity = 0.28
 
         // Count label
         countLabel.textAlignment = .center
@@ -595,6 +613,40 @@ class AreaAnnotationView: MKAnnotationView {
     override func layoutSubviews() {
         super.layoutSubviews()
         containerView.center = CGPoint(x: bounds.midX, y: bounds.midY)
+    }
+}
+
+private struct MapGuideChip: View {
+    let icon: String
+    let tint: Color
+    let title: String
+    let detail: String
+
+    var body: some View {
+        HStack(spacing: 7) {
+            Image(systemName: icon)
+                .font(.system(size: 12, weight: .semibold))
+                .foregroundStyle(tint)
+
+            VStack(alignment: .leading, spacing: 0) {
+                Text(title)
+                    .font(.caption.weight(.semibold))
+                    .foregroundStyle(Color.foam)
+                Text(detail)
+                    .font(.caption2)
+                    .foregroundStyle(Color.mist.opacity(0.78))
+            }
+        }
+        .padding(.horizontal, 10)
+        .padding(.vertical, 8)
+        .background(
+            Capsule()
+                .fill(Color.abyss.opacity(0.78))
+                .overlay(
+                    Capsule()
+                        .stroke(tint.opacity(0.18), lineWidth: 1)
+                )
+        )
     }
 }
 
@@ -2224,10 +2276,11 @@ public struct NewMapView: View {
     // MARK: - HUD Overlay
 
     private var topOverlay: some View {
-        VStack(spacing: 0) {
+        VStack(spacing: 10) {
             // Search capsule at top (primary navigation)
             SearchCapsule(
-                locationContext: searchBarLocationContext,
+                title: searchCapsuleTitle,
+                subtitle: searchCapsuleSubtitle,
                 onTap: {
                     uiViewModel.send(.openSearch)
                     surfaceDetent = .expanded
@@ -2250,6 +2303,15 @@ public struct NewMapView: View {
             // Match the sheet's spring so the capsule and sheet move in lockstep.
             .animation(.spring(response: 0.35, dampingFraction: 0.85), value: surfaceDetent)
 
+            if shouldShowMapGuide {
+                mapGuideRow
+                    .padding(.leading, 16)
+                    .padding(.trailing, 16 + AppConstants.Layout.verticalTabBarWidth)
+                    .opacity(topGuideOpacity)
+                    .animation(.spring(response: 0.35, dampingFraction: 0.85), value: surfaceDetent)
+                    .transition(.move(edge: .top).combined(with: .opacity))
+            }
+
             Spacer()
         }
     }
@@ -2270,22 +2332,97 @@ public struct NewMapView: View {
         }
     }
 
-    /// Derive a location context string from the current hierarchy level for the search bar.
-    private var searchBarLocationContext: String? {
-        let hierarchy = uiViewModel.currentHierarchyLevel
-        switch hierarchy {
+    private var topGuideOpacity: Double {
+        topSearchCapsuleOpacity
+    }
+
+    private var searchCapsuleTitle: String {
+        "Search places, sites, or species"
+    }
+
+    private var searchCapsuleSubtitle: String? {
+        let mapContext = mapContextLabel
+        let viewport = viewportSummaryLabel
+
+        if let mapContext, !mapContext.isEmpty {
+            return "\(mapContext) \u{00B7} \(viewport)"
+        }
+
+        return viewport
+    }
+
+    private var mapContextLabel: String? {
+        switch uiViewModel.currentHierarchyLevel {
         case .world:
             return nil
         case .country(let countryId):
             return countryId
         case .region(let countryId, let regionId):
-            if let countryId {
+            if let countryId, !countryId.isEmpty {
                 return "\(regionId) \u{00B7} \(countryId)"
             }
             return regionId
         case .area(let regionId, let areaId):
             return "\(areaId) \u{00B7} \(regionId)"
         }
+    }
+
+    private var viewportSummaryLabel: String {
+        let filteredPrefix = hudIsFiltered ? "filtered " : ""
+
+        switch uiViewModel.zoomLevel {
+        case .world:
+            if !visibleDestinations.isEmpty {
+                let destinationCount = abbreviatedCount(visibleDestinations.count)
+                return "\(destinationCount) destination\(visibleDestinations.count == 1 ? "" : "s") in view"
+            }
+
+            let siteCount = abbreviatedCount(hudSiteCount)
+            return "\(siteCount) \(filteredPrefix)site\(hudSiteCount == 1 ? "" : "s") in this map area"
+        case .regional:
+            if !visibleAreas.isEmpty {
+                let areaCount = abbreviatedCount(visibleAreas.count)
+                let siteCount = abbreviatedCount(hudSiteCount)
+                return "\(areaCount) area\(visibleAreas.count == 1 ? "" : "s"), \(siteCount) site\(hudSiteCount == 1 ? "" : "s") in view"
+            }
+
+            let siteCount = abbreviatedCount(hudSiteCount)
+            return "\(siteCount) \(filteredPrefix)site\(hudSiteCount == 1 ? "" : "s") in this map area"
+        case .local:
+            let siteCount = abbreviatedCount(hudSiteCount)
+            return "\(siteCount) \(filteredPrefix)site\(hudSiteCount == 1 ? "" : "s") in this map area"
+        }
+    }
+
+    private var shouldShowMapGuide: Bool {
+        shouldShowContextualChips
+    }
+
+    private var mapGuideRow: some View {
+        ScrollView(.horizontal, showsIndicators: false) {
+            HStack(spacing: 8) {
+                MapGuideChip(
+                    icon: "mappin.circle.fill",
+                    tint: .oceanBlue,
+                    title: "Blue pin",
+                    detail: "Single site"
+                )
+                MapGuideChip(
+                    icon: "circle.grid.2x2.fill",
+                    tint: Color(red: 0.90, green: 0.79, blue: 0.59),
+                    title: "Tan count",
+                    detail: "Tap to zoom"
+                )
+                MapGuideChip(
+                    icon: "line.3.horizontal.decrease.circle.fill",
+                    tint: .lagoon,
+                    title: "Pull up",
+                    detail: "Browse and filter"
+                )
+            }
+            .padding(.vertical, 2)
+        }
+        .scrollClipDisabled()
     }
 
     private var inspectedSiteName: String? {
@@ -2307,7 +2444,8 @@ public struct NewMapView: View {
         let isPeekOrHidden = surfaceDetent == .peek || surfaceDetent == .hidden
         let notInspecting = uiViewModel.inspectedSiteId == nil
         let isExploreOrNearMe = uiViewModel.mode.isExplore || uiViewModel.mode.isNearMe
-        return isPeekOrHidden && notInspecting && isExploreOrNearMe
+        let notModal = !isModalMode(uiViewModel.mode)
+        return isPeekOrHidden && notInspecting && isExploreOrNearMe && notModal
     }
 
     // Keep backward compat
