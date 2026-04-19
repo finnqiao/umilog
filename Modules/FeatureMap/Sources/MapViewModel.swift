@@ -245,25 +245,6 @@ class MapViewModel: ObservableObject {
         sites.filter { $0.wishlist }.count
     }
 
-    func areasInRegion(_ region: Region) -> [Area] {
-        let regionSites = sites.filter { $0.region == region.name }
-        let groups = Dictionary(grouping: regionSites) { parseAreaCountry($0.location).area }
-        let shopsInRegion = shops.filter { $0.region == region.name }
-        return groups.map { entry in
-            let areaName = entry.key
-            let country = parseAreaCountry(entry.value.first!.location).country
-            let shopCount = shopsInRegion.filter { ($0.area ?? "") == areaName }.count
-            return Area(
-                id: areaName,
-                name: areaName,
-                country: country,
-                siteCount: entry.value.count,
-                shopCount: shopCount
-            )
-        }
-            .sorted { $0.name < $1.name }
-    }
-
     // MARK: - Map State Persistence (US-2)
 
     /// Save map state (center + zoom) to UserDefaults

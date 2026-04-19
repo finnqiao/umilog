@@ -765,9 +765,20 @@ public struct NewMapView: View {
     
     private var primaryColor: Color { scope == .discover ? .reef : .lagoon }
 
+    private var mySitesFilterLens: FilterLens? {
+        switch mySitesTab {
+        case .timeline:
+            return .logged
+        case .saved:
+            return .saved
+        case .planned:
+            return .planned
+        }
+    }
+
     private var baseSitesForCounts: [DiveSite] {
         let viewportSites = viewModel.visibleSites.isEmpty ? viewModel.sites : viewModel.visibleSites
-        let lens: FilterLens? = scope == .discover ? nil : uiViewModel.exploreContext?.filterLens
+        let lens: FilterLens? = scope == .discover ? uiViewModel.exploreContext?.filterLens : mySitesFilterLens
         return viewModel.applyFilters(
             to: viewportSites,
             filters: uiViewModel.exploreFilters,
@@ -3027,7 +3038,7 @@ private struct MapBackgroundOverlay: View {
         return viewModel.applyFilters(
             to: base,
             filters: uiViewModel.exploreFilters,
-            lens: uiViewModel.exploreContext?.filterLens,
+            lens: mySitesFilterLens,
             hierarchy: uiViewModel.currentHierarchyLevel
         )
     }
