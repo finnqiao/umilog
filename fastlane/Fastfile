@@ -10,6 +10,32 @@ platform :ios do
   # SETUP & UTILITIES
   # ============================================
 
+  private_lane :handle_app_store_connect_error do |options|
+    error_message = options[:error].to_s
+
+    if error_message.match?(/required agreement.*(missing|expired)|in-effect agreement/i)
+      UI.user_error!("App Store Connect is blocking TestFlight uploads because a required agreement is missing or expired. Sign the latest agreements at https://appstoreconnect.apple.com/agreements/#/ and rerun the lane.")
+    end
+
+    raise options[:error]
+  end
+
+  private_lane :verify_testflight_upload_ready do |options|
+    options ||= {}
+    UI.message("Checking App Store Connect access before starting the archive...")
+
+    query_options = {
+      app_identifier: "app.umilog",
+      live: false,
+      initial_build_number: 1
+    }
+    query_options[:api_key] = options[:api_key] if options[:api_key]
+
+    app_store_build_number(**query_options)
+  rescue => error
+    handle_app_store_connect_error(error: error)
+  end
+
   before_all do
     # Ensure we're on a clean git state (optional)
     # ensure_git_status_clean
@@ -125,13 +151,18 @@ platform :ios do
 
   desc "Upload to TestFlight (internal testing)"
   lane :beta do
+    verify_testflight_upload_ready
     build_testflight
 
-    upload_to_testflight(
-      skip_waiting_for_build_processing: true,
-      distribute_external: false,
-      notify_external_testers: false
-    )
+    begin
+      upload_to_testflight(
+        skip_waiting_for_build_processing: true,
+        distribute_external: false,
+        notify_external_testers: false
+      )
+    rescue => error
+      handle_app_store_connect_error(error: error)
+    end
 
     # Commit build number change (version lives in project.yml, not xcodeproj)
     sh("cd .. && git add project.yml && git commit -m 'chore: bump build number for TestFlight'")
@@ -178,6 +209,8 @@ platform :ios do
       is_key_content_base64: true
     )
 
+    verify_testflight_upload_ready(api_key: api_key)
+
     # Only appstore certs needed for TestFlight; readonly avoids cert creation.
     match(
       type: "appstore",
@@ -218,11 +251,15 @@ platform :ios do
       include_bitcode: false
     )
 
-    upload_to_testflight(
-      api_key: api_key,
-      skip_waiting_for_build_processing: true,
-      distribute_external: false
-    )
+    begin
+      upload_to_testflight(
+        api_key: api_key,
+        skip_waiting_for_build_processing: true,
+        distribute_external: false
+      )
+    rescue => error
+      handle_app_store_connect_error(error: error)
+    end
   end
 
   # ============================================

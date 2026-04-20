@@ -407,8 +407,12 @@ enum Tab: String, Hashable {
 // MARK: - Vertical Liquid Glass Tab Bar
 
 /// Floating vertical tab bar anchored to the trailing edge.
-/// Uses `.ultraThinMaterial` for a Liquid Glass look so the map
-/// bleeds through behind it.
+///
+/// Plan §6: one continuous glass pill containing all four destinations.
+/// The FAB is rendered as a separate floating button **below** the pill with a
+/// visible gap, so navigation and creation read as distinct roles rather than
+/// "arbitrary floating shortcuts." Selected tab shows a leading-edge indicator
+/// bar rather than a halo to keep the weight low on a narrow pill.
 struct VerticalTabBar: View {
     @Binding var selection: Tab
     var onLogTap: () -> Void
@@ -420,39 +424,38 @@ struct VerticalTabBar: View {
         let icon: String
     }
 
-    private let navigationItems: [TabItem] = [
+    private let items: [TabItem] = [
         TabItem(tab: .map, icon: "map.fill"),
         TabItem(tab: .history, icon: "clock.fill"),
-    ]
-
-    private let utilityItems: [TabItem] = [
         TabItem(tab: .wildlife, icon: "fish.fill"),
         TabItem(tab: .profile, icon: "person.fill"),
     ]
 
     var body: some View {
-        VStack(spacing: 16) {
-            floatingGroup(navigationItems, label: "Navigation")
-            logButton
-            floatingGroup(utilityItems, label: "More")
+        VStack {
+            Spacer()
+            VStack(spacing: 12) {
+                navigationPill
+                logButton
+            }
+            Spacer()
         }
         .frame(width: barWidth)
-        .frame(maxHeight: .infinity)
     }
 
-    private func floatingGroup(_ items: [TabItem], label: String) -> some View {
-        VStack(spacing: 10) {
+    private var navigationPill: some View {
+        VStack(spacing: 8) {
             ForEach(items, id: \.tab) { item in
                 tabButton(item)
             }
         }
         .padding(.vertical, 10)
-        .padding(.horizontal, 6)
+        .padding(.horizontal, 4)
         .background(
-            RoundedRectangle(cornerRadius: 24, style: .continuous)
+            RoundedRectangle(cornerRadius: 26, style: .continuous)
                 .fill(.ultraThinMaterial)
                 .overlay(
-                    RoundedRectangle(cornerRadius: 24, style: .continuous)
+                    RoundedRectangle(cornerRadius: 26, style: .continuous)
                         .strokeBorder(
                             LinearGradient(
                                 colors: [Color.lagoon.opacity(0.30), Color.lagoon.opacity(0.06)],
@@ -465,42 +468,41 @@ struct VerticalTabBar: View {
         )
         .shadow(color: Color.black.opacity(0.20), radius: 14, x: -4, y: 8)
         .accessibilityElement(children: .contain)
-        .accessibilityLabel(label)
+        .accessibilityLabel("Navigation")
     }
 
     private func tabButton(_ item: TabItem) -> some View {
-        Button {
+        let isSelected = selection == item.tab
+        return Button {
             selection = item.tab
+            Haptics.soft()
         } label: {
-            Image(systemName: item.icon)
-                .font(.system(size: 20, weight: .medium))
-                .foregroundStyle(selection == item.tab ? Color.lagoon : Color.mist)
-                .frame(width: 44, height: 44)
-                .background(
-                    Circle()
-                        .fill(selection == item.tab ? Color.lagoon.opacity(0.16) : Color.clear)
-                )
-                .overlay(
-                    Circle()
-                        .stroke(
-                            selection == item.tab ? Color.lagoon.opacity(0.28) : Color.clear,
-                            lineWidth: 1
-                        )
-                )
-                .contentShape(Rectangle())
+            HStack(spacing: 0) {
+                Capsule()
+                    .fill(isSelected ? Color.lagoon : Color.clear)
+                    .frame(width: 3, height: 20)
+                Image(systemName: item.icon)
+                    .font(.system(size: 18, weight: .medium))
+                    .foregroundStyle(isSelected ? Color.lagoon : Color.mist)
+                    .frame(maxWidth: .infinity)
+                    .frame(height: 44)
+            }
+            .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
         .accessibilityLabel(item.tab.rawValue.capitalized)
+        .accessibilityAddTraits(isSelected ? .isSelected : [])
     }
 
     private var logButton: some View {
         Button {
             onLogTap()
+            Haptics.tap()
         } label: {
-            Image(systemName: "plus.circle.fill")
-                .font(.system(size: 28, weight: .semibold))
+            Image(systemName: "plus")
+                .font(.system(size: 20, weight: .bold))
                 .foregroundStyle(Color.foam)
-                .frame(width: 50, height: 50)
+                .frame(width: 44, height: 44)
                 .background(
                     Circle()
                         .fill(
@@ -512,10 +514,10 @@ struct VerticalTabBar: View {
                         )
                         .overlay(
                             Circle()
-                                .stroke(Color.white.opacity(0.16), lineWidth: 1)
+                                .stroke(Color.white.opacity(0.18), lineWidth: 1)
                         )
                 )
-                .shadow(color: Color.lagoon.opacity(0.30), radius: 12, x: 0, y: 8)
+                .shadow(color: Color.lagoon.opacity(0.30), radius: 10, x: 0, y: 6)
                 .contentShape(Circle())
         }
         .buttonStyle(.plain)

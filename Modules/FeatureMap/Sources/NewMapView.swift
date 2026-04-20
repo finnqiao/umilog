@@ -616,40 +616,6 @@ class AreaAnnotationView: MKAnnotationView {
     }
 }
 
-private struct MapGuideChip: View {
-    let icon: String
-    let tint: Color
-    let title: String
-    let detail: String
-
-    var body: some View {
-        HStack(spacing: 7) {
-            Image(systemName: icon)
-                .font(.system(size: 12, weight: .semibold))
-                .foregroundStyle(tint)
-
-            VStack(alignment: .leading, spacing: 0) {
-                Text(title)
-                    .font(.caption.weight(.semibold))
-                    .foregroundStyle(Color.foam)
-                Text(detail)
-                    .font(.caption2)
-                    .foregroundStyle(Color.mist.opacity(0.78))
-            }
-        }
-        .padding(.horizontal, 10)
-        .padding(.vertical, 8)
-        .background(
-            Capsule()
-                .fill(Color.abyss.opacity(0.78))
-                .overlay(
-                    Capsule()
-                        .stroke(tint.opacity(0.18), lineWidth: 1)
-                )
-        )
-    }
-}
-
 struct MapLayerSettings: Equatable {
     var showUnderwaterGlow: Bool = true
     var showClusters: Bool = true
@@ -757,6 +723,7 @@ public struct NewMapView: View {
 
     // Coming Soon toast state
     @State private var showingComingSoonToast = false
+    @State private var showingCoachMarks: Bool = MapCoachMarksView.shouldShow
     @State private var comingSoonFeature = ""
     
     public init(appearance: MapAppearance = .default) {
@@ -1542,6 +1509,12 @@ public struct NewMapView: View {
             comingSoonToastOverlay
                 .allowsHitTesting(showingComingSoonToast)  // Fix UX-003: Disable hit test when hidden
             overlayControls  // Fix UX-003: Render HUD controls LAST so search button is clickable
+
+            if showingCoachMarks {
+                MapCoachMarksView(isShowing: $showingCoachMarks)
+                    .transition(.opacity)
+                    .zIndex(100)
+            }
         }
     }
 
@@ -1941,7 +1914,6 @@ public struct NewMapView: View {
                 closeClusterExpand()
             }
         )
-        .padding(.trailing, AppConstants.Layout.verticalTabBarWidth)
     }
 
     /// Binding for MapUIMode that dispatches actions on set.
@@ -2302,7 +2274,7 @@ public struct NewMapView: View {
                 }
             )
             .padding(.leading, 16)
-            .padding(.trailing, 16 + AppConstants.Layout.verticalTabBarWidth)
+            .padding(.trailing, 16)
             .padding(.top, 4)
             // Yield search ownership to the sheet when it's expanded.
             // The expanded explore layout shows its own inline search row.
@@ -2313,15 +2285,6 @@ public struct NewMapView: View {
             .allowsHitTesting(surfaceDetent != .expanded)
             // Match the sheet's spring so the capsule and sheet move in lockstep.
             .animation(.spring(response: 0.35, dampingFraction: 0.85), value: surfaceDetent)
-
-            if shouldShowMapGuide {
-                mapGuideRow
-                    .padding(.leading, 16)
-                    .padding(.trailing, 16 + AppConstants.Layout.verticalTabBarWidth)
-                    .opacity(topGuideOpacity)
-                    .animation(.spring(response: 0.35, dampingFraction: 0.85), value: surfaceDetent)
-                    .transition(.move(edge: .top).combined(with: .opacity))
-            }
 
             Spacer()
         }
@@ -2343,23 +2306,18 @@ public struct NewMapView: View {
         }
     }
 
-    private var topGuideOpacity: Double {
-        topSearchCapsuleOpacity
-    }
-
     private var searchCapsuleTitle: String {
-        "Search places, sites, or species"
+        "Search sites, species, places"
     }
 
+    /// Per plan §3d: the viewport count does not live in the search capsule.
+    /// Only the map context (country/region/area) appears here, so the count
+    /// owns a single home in the peek sheet.
     private var searchCapsuleSubtitle: String? {
-        let mapContext = mapContextLabel
-        let viewport = viewportSummaryLabel
-
-        if let mapContext, !mapContext.isEmpty {
-            return "\(mapContext) \u{00B7} \(viewport)"
+        guard let mapContext = mapContextLabel, !mapContext.isEmpty else {
+            return nil
         }
-
-        return viewport
+        return mapContext
     }
 
     private var mapContextLabel: String? {
@@ -2403,37 +2361,6 @@ public struct NewMapView: View {
             let siteCount = abbreviatedCount(hudSiteCount)
             return "\(siteCount) \(filteredPrefix)site\(hudSiteCount == 1 ? "" : "s") in this map area"
         }
-    }
-
-    private var shouldShowMapGuide: Bool {
-        shouldShowContextualChips
-    }
-
-    private var mapGuideRow: some View {
-        ScrollView(.horizontal, showsIndicators: false) {
-            HStack(spacing: 8) {
-                MapGuideChip(
-                    icon: "mappin.circle.fill",
-                    tint: .oceanBlue,
-                    title: "Blue pin",
-                    detail: "Single site"
-                )
-                MapGuideChip(
-                    icon: "circle.grid.2x2.fill",
-                    tint: Color(red: 0.90, green: 0.79, blue: 0.59),
-                    title: "Tan count",
-                    detail: "Tap to zoom"
-                )
-                MapGuideChip(
-                    icon: "line.3.horizontal.decrease.circle.fill",
-                    tint: .lagoon,
-                    title: "Pull up",
-                    detail: "Browse and filter"
-                )
-            }
-            .padding(.vertical, 2)
-        }
-        .scrollClipDisabled()
     }
 
     private var inspectedSiteName: String? {

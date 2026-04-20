@@ -7,10 +7,13 @@ struct MapCoachMarksView: View {
     @Binding var isShowing: Bool
     @State private var currentStep: Int = 0
 
+    // Includes marker legend per plan §3c — the legend is taught once here
+    // instead of living as a persistent row on the map.
     private let steps: [(icon: String, title: String, description: String)] = [
-        ("hand.pinch", "Pinch to Zoom", "Use two fingers to zoom in and explore dive sites in detail."),
-        ("hand.draw", "Pan to Explore", "Drag with one finger to move around the map."),
-        ("hand.tap", "Tap Clusters", "Tap grouped pins to zoom in and reveal individual sites.")
+        ("mappin.circle.fill", "Blue pins are sites", "Tap a blue pin to open a dive site and see details."),
+        ("circle.grid.2x2.fill", "Tan circles are clusters", "Tap a cluster with a number to zoom in and reveal individual sites."),
+        ("chevron.up", "Pull up to browse", "Drag the handle on the bottom sheet to browse areas, sites, and filters."),
+        ("hand.pinch", "Pinch to zoom", "Use two fingers to zoom in and explore in detail.")
     ]
 
     var body: some View {

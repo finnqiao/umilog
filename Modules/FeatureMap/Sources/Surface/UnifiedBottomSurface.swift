@@ -322,41 +322,26 @@ struct UnifiedBottomSurface: View {
 
     // MARK: - Drag Handle
 
+    /// Standard iOS-style capsule grabber via the shared `DragHandle` primitive
+    /// (plan §3e). No chevrons — the affordance is universally understood.
     private var dragHandle: some View {
-        VStack(spacing: 0) {
-            VStack(spacing: 5) {
-                Capsule()
-                    .fill(Color.foam.opacity(0.78))
-                    .frame(width: 44, height: 5)
-
-                HStack(spacing: 3) {
-                    Image(systemName: "chevron.up")
-                    Image(systemName: "chevron.up")
-                }
-                .font(.system(size: 9, weight: .bold))
-                .foregroundStyle(Color.lagoon.opacity(0.88))
-            }
-            .padding(.top, 10)
-            .padding(.bottom, 10)
-        }
-        .frame(height: 34)
-        .frame(maxWidth: .infinity)
-        .contentShape(Rectangle())
-        .onTapGesture {
-            let allowed = SurfaceDetent.allowed(for: mode)
-            guard let currentIndex = allowed.firstIndex(of: detent) else { return }
-            let nextIndex = (currentIndex + 1) % allowed.count
-            if reduceMotion {
-                detent = allowed[nextIndex]
-            } else {
-                withAnimation(.spring(response: 0.35, dampingFraction: 0.85)) {
+        DragHandle(color: .foam)
+            .contentShape(Rectangle())
+            .onTapGesture {
+                let allowed = SurfaceDetent.allowed(for: mode)
+                guard let currentIndex = allowed.firstIndex(of: detent) else { return }
+                let nextIndex = (currentIndex + 1) % allowed.count
+                if reduceMotion {
                     detent = allowed[nextIndex]
+                } else {
+                    withAnimation(.spring(response: 0.35, dampingFraction: 0.85)) {
+                        detent = allowed[nextIndex]
+                    }
                 }
             }
-        }
-        .accessibilityLabel("Resize handle")
-        .accessibilityHint("Tap to cycle or drag to resize the panel")
-        .accessibilityAddTraits(.isButton)
+            .accessibilityLabel("Resize handle")
+            .accessibilityHint("Tap to cycle or drag to resize the panel")
+            .accessibilityAddTraits(.isButton)
     }
 
     // MARK: - Background

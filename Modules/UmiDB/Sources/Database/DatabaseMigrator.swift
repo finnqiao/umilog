@@ -597,6 +597,25 @@ public enum DatabaseMigrator {
             """)
         }
 
+        // MARK: - v11: Denormalized Site Name on Dives
+        // Captures site name + location on the dive row at write-time so the UI
+        // doesn't render "Unknown Site" when a siteId fails to resolve
+        // (deleted site, stale seed reference, sync gap).
+        migrator.registerMigration("v11_dive_site_denormalization") { db in
+            try db.alter(table: "dives") { t in
+                t.add(column: "siteName", .text)
+                t.add(column: "siteLocation", .text)
+            }
+
+            // Backfill existing rows from the current site catalog.
+            try db.execute(sql: """
+                UPDATE dives
+                SET siteName = (SELECT name FROM sites WHERE sites.id = dives.siteId),
+                    siteLocation = (SELECT location FROM sites WHERE sites.id = dives.siteId)
+                WHERE siteId IS NOT NULL
+            """)
+        }
+
         // Run migrations
         try migrator.migrate(writer)
     }

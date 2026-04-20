@@ -8,6 +8,8 @@
 	<string>UmiLog</string>
 	<key>CFBundleExecutable</key>
 	<string>$(EXECUTABLE_NAME)</string>
+	<key>CFBundleIconName</key>
+	<string>AppIcon</string>
 	<key>CFBundleIdentifier</key>
 	<string>$(PRODUCT_BUNDLE_IDENTIFIER)</string>
 	<key>CFBundleInfoDictionaryVersion</key>
@@ -17,7 +19,7 @@
 	<key>CFBundlePackageType</key>
 	<string>APPL</string>
 	<key>CFBundleShortVersionString</key>
-	<string>1.0.0</string>
+	<string>$(MARKETING_VERSION)</string>
 	<key>CFBundleURLTypes</key>
 	<array>
 		<dict>
@@ -30,15 +32,13 @@
 		</dict>
 	</array>
 	<key>CFBundleVersion</key>
-	<string>1</string>
-	<key>CFBundleIconName</key>
-	<string>AppIcon</string>
-	<key>NSFaceIDUsageDescription</key>
-	<string>UmiLog uses Face ID to secure your dive logs.</string>
+	<string>$(CURRENT_PROJECT_VERSION)</string>
 	<key>NSBluetoothAlwaysUsageDescription</key>
 	<string>Connect your dive computer to sync dive data automatically.</string>
 	<key>NSCameraUsageDescription</key>
 	<string>Take photos of marine life to attach to wildlife sightings.</string>
+	<key>NSFaceIDUsageDescription</key>
+	<string>UmiLog uses Face ID to secure your dive logs.</string>
 	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
 	<string>UmiLog can remind you to log a dive when you arrive at or leave a dive site using low-power geofencing.</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
@@ -47,10 +47,10 @@
 	<string>UmiLog uses the microphone for voice input during dive logging.</string>
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>Select photos to attach to sightings and certification cards.</string>
-	<key>NSUserNotificationsUsageDescription</key>
-	<string>Get dive reminders at dive sites and alerts for important gear events.</string>
 	<key>NSSpeechRecognitionUsageDescription</key>
 	<string>UmiLog uses voice recognition for hands-free dive logging. All processing happens on your device.</string>
+	<key>NSUserNotificationsUsageDescription</key>
+	<string>Get dive reminders at dive sites and alerts for important gear events.</string>
 	<key>UILaunchScreen</key>
 	<dict>
 		<key>UIColorName</key>

@@ -1,19 +1,67 @@
 import Foundation
 import GRDB
+import os
 
 public final class DiveRepository {
     private let database: AppDatabase
-    
+    private static let logger = Logger(subsystem: "app.umilog", category: "DiveRepository")
+
     public init(database: AppDatabase) {
         self.database = database
     }
-    
+
     // MARK: - Create
-    
+
     public func create(_ dive: DiveLog) throws {
         try database.write { db in
-            try dive.insert(db)
+            let denormalized = try Self.denormalizingSiteFields(dive, db: db)
+            try denormalized.insert(db)
         }
+    }
+
+    /// Returns `dive` with `siteName`/`siteLocation` populated from the `sites` table.
+    /// If the caller already supplied both denormalized fields, respects them.
+    /// If `siteId` is nil or the lookup fails, leaves the fields nil and emits a
+    /// structured log event (see §1c) so data-integrity gaps remain visible.
+    private static func denormalizingSiteFields(_ dive: DiveLog, db: Database) throws -> DiveLog {
+        guard let siteId = dive.siteId else { return dive }
+        if dive.siteName != nil && dive.siteLocation != nil { return dive }
+
+        let row = try Row.fetchOne(
+            db,
+            sql: "SELECT name, location FROM sites WHERE id = ?",
+            arguments: [siteId]
+        )
+        guard let row else {
+            logger.error("site_lookup_failed: dive=\(dive.id, privacy: .public) siteId=\(siteId, privacy: .public)")
+            return dive
+        }
+        return DiveLog(
+            id: dive.id,
+            siteId: dive.siteId,
+            siteName: dive.siteName ?? row["name"],
+            siteLocation: dive.siteLocation ?? row["location"],
+            pendingLatitude: dive.pendingLatitude,
+            pendingLongitude: dive.pendingLongitude,
+            date: dive.date,
+            startTime: dive.startTime,
+            endTime: dive.endTime,
+            maxDepth: dive.maxDepth,
+            averageDepth: dive.averageDepth,
+            bottomTime: dive.bottomTime,
+            startPressure: dive.startPressure,
+            endPressure: dive.endPressure,
+            temperature: dive.temperature,
+            visibility: dive.visibility,
+            current: dive.current,
+            conditions: dive.conditions,
+            notes: dive.notes,
+            instructorName: dive.instructorName,
+            instructorNumber: dive.instructorNumber,
+            signed: dive.signed,
+            createdAt: dive.createdAt,
+            updatedAt: dive.updatedAt
+        )
     }
     
     // MARK: - Read
@@ -53,10 +101,9 @@ public final class DiveRepository {
     // MARK: - Update
     
     public func update(_ dive: DiveLog) throws {
-        let updatedDive = dive
-        // Update timestamp (need to make struct mutable first)
         try database.write { db in
-            try updatedDive.update(db)
+            let denormalized = try Self.denormalizingSiteFields(dive, db: db)
+            try denormalized.update(db)
         }
     }
     
@@ -116,9 +163,11 @@ public final class DiveRepository {
         try database.write { db in
             guard let dive = try DiveLog.fetchOne(db, key: diveId) else { return }
 
-            let updated = DiveLog(
+            let relinked = DiveLog(
                 id: dive.id,
                 siteId: siteId,
+                siteName: nil,
+                siteLocation: nil,
                 pendingLatitude: nil,
                 pendingLongitude: nil,
                 date: dive.date,
@@ -140,7 +189,8 @@ public final class DiveRepository {
                 createdAt: dive.createdAt,
                 updatedAt: Date()
             )
-            try updated.update(db)
+            let denormalized = try Self.denormalizingSiteFields(relinked, db: db)
+            try denormalized.update(db)
         }
     }
 

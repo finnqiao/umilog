@@ -1,16 +1,28 @@
 import Foundation
 import GRDB
+import os
+
+private let speciesRepoLogger = Logger(subsystem: "app.umilog", category: "SpeciesRepository")
 
 public struct SpeciesCategorySummary: Identifiable, Hashable {
     public let id: String
     public let category: WildlifeSpecies.Category
-    public let speciesCount: Int
+    /// Total species in the catalog for this category. Independent of user activity.
+    public let catalogCount: Int
+    /// Distinct species the user has logged in sightings for this category.
+    /// Zero on a fresh install even when the catalog is populated.
+    public let sightingsCount: Int
 
-    public init(category: WildlifeSpecies.Category, speciesCount: Int) {
+    public init(category: WildlifeSpecies.Category, catalogCount: Int, sightingsCount: Int = 0) {
         self.id = category.rawValue
         self.category = category
-        self.speciesCount = speciesCount
+        self.catalogCount = catalogCount
+        self.sightingsCount = sightingsCount
     }
+
+    /// Back-compat: old callers that expect a single count read the catalog size.
+    /// Prefer `catalogCount` / `sightingsCount` explicitly.
+    public var speciesCount: Int { catalogCount }
 }
 
 public struct SpeciesFamilySummary: Identifiable, Hashable {
@@ -125,25 +137,54 @@ public final class SpeciesRepository {
         }
     }
 
-    /// Summary counts by category (for browsing UI)
+    /// Summary counts by category (for browsing UI).
+    /// Returns both catalog size (constant per install) and sightings count
+    /// (distinct species the user has logged for this category).
+    /// Emits a structured log event when the catalog is empty — that's a seed
+    /// failure, not a legitimate user state.
     public func fetchCategorySummaries() throws -> [SpeciesCategorySummary] {
         try database.read { db in
-            let rows = try Row.fetchAll(
+            let catalogRows = try Row.fetchAll(
                 db,
                 sql: "SELECT category, COUNT(*) AS count FROM wildlife_species GROUP BY category"
             )
-            var countByCategory: [WildlifeSpecies.Category: Int] = [:]
-            for row in rows {
+            var catalogByCategory: [WildlifeSpecies.Category: Int] = [:]
+            for row in catalogRows {
                 guard let raw = row["category"] as? String,
                       let category = WildlifeSpecies.Category(rawValue: raw) else {
                     continue
                 }
-                countByCategory[category] = row["count"] as? Int ?? 0
+                catalogByCategory[category] = row["count"] as? Int ?? 0
             }
 
-            return WildlifeSpecies.Category.allCases.map { category in
-                SpeciesCategorySummary(category: category, speciesCount: countByCategory[category] ?? 0)
+            let sightingRows = try Row.fetchAll(db, sql: """
+                SELECT ws.category, COUNT(DISTINCT s.speciesId) AS count
+                FROM sightings s
+                JOIN wildlife_species ws ON s.speciesId = ws.id
+                GROUP BY ws.category
+            """)
+            var sightingsByCategory: [WildlifeSpecies.Category: Int] = [:]
+            for row in sightingRows {
+                guard let raw = row["category"] as? String,
+                      let category = WildlifeSpecies.Category(rawValue: raw) else {
+                    continue
+                }
+                sightingsByCategory[category] = row["count"] as? Int ?? 0
             }
+
+            let summaries = WildlifeSpecies.Category.allCases.map { category in
+                SpeciesCategorySummary(
+                    category: category,
+                    catalogCount: catalogByCategory[category] ?? 0,
+                    sightingsCount: sightingsByCategory[category] ?? 0
+                )
+            }
+
+            let totalCatalog = summaries.reduce(0) { $0 + $1.catalogCount }
+            if totalCatalog == 0 {
+                speciesRepoLogger.error("species_catalog_empty: fetchCategorySummaries returned 0 catalog rows across all categories (likely seed failure)")
+            }
+            return summaries
         }
     }
 

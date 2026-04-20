@@ -17,8 +17,31 @@ public struct WildlifeView: View {
 
     public var body: some View {
         VStack(spacing: 0) {
-            scopeChips
             browseChips
+            InlineSearchField(
+                text: $searchText,
+                placeholder: "Search species"
+            )
+            .padding(.horizontal, 16)
+            .padding(.bottom, 8)
+
+            if shouldShowZeroStateBanner {
+                ZeroStateBanner(
+                    title: "Log a dive to start your species collection",
+                    message: "Tag sightings on each dive. We'll track what you've seen against the catalog.",
+                    primaryTitle: "Log a dive",
+                    primaryAction: {
+                        NotificationCenter.default.post(name: .showLogLauncher, object: nil)
+                    },
+                    secondaryTitle: "Browse reef species",
+                    secondaryAction: {
+                        selectedCategory = .fish
+                    },
+                    storageKey: "app.umilog.wildlife.zerostate.dismissed"
+                )
+                .padding(.horizontal, 16)
+                .padding(.bottom, 8)
+            }
 
             ScrollView {
                 content
@@ -31,7 +54,12 @@ public struct WildlifeView: View {
             }
         }
         .navigationTitle("Wildlife")
-        .searchable(text: $searchText, prompt: "Search species...")
+        .navigationBarTitleDisplayMode(.inline)
+        .toolbar {
+            ToolbarItem(placement: .topBarTrailing) {
+                scopeMenu
+            }
+        }
         .underwaterAccent()
         .background(Color.abyss.ignoresSafeArea())
         .onChange(of: browseMode) { _, newValue in
@@ -77,29 +105,38 @@ public struct WildlifeView: View {
         !searchText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
     }
 
-    private var scopeChips: some View {
-        ScrollView(.horizontal, showsIndicators: false) {
-            HStack(spacing: 8) {
-                ScopeChip(title: "All-time", isSelected: scope == .allTime) {
-                    scope = .allTime
-                    viewModel.updateScope(.allTime, areaBounds: nil)
-                }
-                .accessibilityLabel("All-time sightings")
-                .accessibilityHint("Shows species from all your dives")
-                .accessibilityAddTraits(scope == .allTime ? .isSelected : [])
-
-                ScopeChip(title: "This area", isSelected: scope == .thisArea) {
-                    scope = .thisArea
-                    viewModel.updateScope(.thisArea, areaBounds: viewModel.currentAreaBounds)
-                }
-                .accessibilityLabel("This area sightings")
-                .accessibilityHint("Shows species from dive sites in the current map area")
-                .accessibilityAddTraits(scope == .thisArea ? .isSelected : [])
+    /// Scope moves to the toolbar as a small menu (plan §5). It's secondary —
+    /// the user's primary action is browsing Categories/Families, not switching
+    /// all-time vs viewport scope.
+    private var scopeMenu: some View {
+        Menu {
+            Button {
+                scope = .allTime
+                viewModel.updateScope(.allTime, areaBounds: nil)
+            } label: {
+                Label("All-time", systemImage: scope == .allTime ? "checkmark" : "")
             }
-            .padding(.horizontal, 16)
-            .padding(.vertical, 8)
+            Button {
+                scope = .thisArea
+                viewModel.updateScope(.thisArea, areaBounds: viewModel.currentAreaBounds)
+            } label: {
+                Label("This map area", systemImage: scope == .thisArea ? "checkmark" : "")
+            }
+        } label: {
+            Image(systemName: scope == .thisArea ? "scope" : "globe")
+                .foregroundStyle(Color.lagoon)
         }
-        .background(Color.trench)
+        .accessibilityLabel("Scope")
+        .accessibilityValue(scope == .thisArea ? "This map area" : "All-time")
+    }
+
+    /// Show the banner when the catalog is populated but the user has logged
+    /// zero sightings across all categories. Both conditions prevent false
+    /// positives during seed loading.
+    private var shouldShowZeroStateBanner: Bool {
+        let catalog = viewModel.categorySummaries.reduce(0) { $0 + $1.catalogCount }
+        let sightings = viewModel.categorySummaries.reduce(0) { $0 + $1.sightingsCount }
+        return catalog > 0 && sightings == 0 && !isSearching
     }
 
     private var browseChips: some View {
@@ -301,7 +338,7 @@ private enum WildlifeBrowseMode: CaseIterable {
         case .families:
             return "Families"
         case .all:
-            return "All"
+            return "All species"
         }
     }
 }
@@ -370,14 +407,40 @@ struct CategoryCard: View {
                 .fontWeight(.semibold)
                 .foregroundStyle(Color.foam)
 
-            Text("\(summary.speciesCount) species")
-                .font(.caption2)
-                .foregroundStyle(Color.mist)
+            countLine
         }
         .padding(12)
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(Color.trench)
         .cornerRadius(16)
+    }
+
+    @ViewBuilder
+    private var countLine: some View {
+        if summary.catalogCount == 0 {
+            Text("not yet available")
+                .font(.caption2)
+                .foregroundStyle(Color.mist.opacity(0.6))
+        } else if summary.sightingsCount == 0 {
+            HStack(spacing: 4) {
+                Text("\(summary.catalogCount) species")
+                    .font(.caption2)
+                    .foregroundStyle(Color.mist)
+                Text("· not yet logged")
+                    .font(.caption2)
+                    .foregroundStyle(Color.mist.opacity(0.6))
+            }
+        } else {
+            HStack(spacing: 4) {
+                Text("\(summary.sightingsCount)")
+                    .font(.caption2)
+                    .fontWeight(.semibold)
+                    .foregroundStyle(Color.lagoon)
+                Text("/ \(summary.catalogCount) species")
+                    .font(.caption2)
+                    .foregroundStyle(Color.mist)
+            }
+        }
     }
 
     private var categoryIcon: String {

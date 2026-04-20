@@ -11,20 +11,27 @@ public struct DiveHistoryView: View {
     public init() {}
 
     public var body: some View {
-        Group {
-            if viewModel.isLoading && viewModel.dives.isEmpty {
-                ProgressView()
-                    .frame(maxWidth: .infinity, maxHeight: .infinity)
-            } else if viewModel.filteredDives.isEmpty {
-                emptyStateView
-            } else {
-                VStack(spacing: 0) {
-                    // Quick filter row
-                    if !viewModel.dives.isEmpty {
-                        quickFilterRow
-                            .padding(.vertical, 8)
-                    }
+        VStack(spacing: 0) {
+            // Quick filter row + inline search sit at the top of the content,
+            // not docked at the bottom via .searchable() (plan §9).
+            if !viewModel.dives.isEmpty {
+                quickFilterRow
+                    .padding(.vertical, 8)
+                InlineSearchField(
+                    text: $viewModel.searchText,
+                    placeholder: "Search dives, sites, or notes"
+                )
+                .padding(.horizontal, 16)
+                .padding(.bottom, 8)
+            }
 
+            Group {
+                if viewModel.isLoading && viewModel.dives.isEmpty {
+                    ProgressView()
+                        .frame(maxWidth: .infinity, maxHeight: .infinity)
+                } else if viewModel.filteredDives.isEmpty {
+                    emptyStateView
+                } else {
                     List {
                         ForEach(viewModel.filteredDives) { dive in
                             NavigationLink {
@@ -49,7 +56,7 @@ public struct DiveHistoryView: View {
             }
         }
         .navigationTitle("Dive History")
-        .searchable(text: $viewModel.searchText, prompt: "Search dives, sites, or notes")
+        .navigationBarTitleDisplayMode(.inline)
         .refreshable {
             await viewModel.refresh()
         }
@@ -180,10 +187,25 @@ private struct DiveHistoryRow: View {
         return dive.date > sevenDaysAgo
     }
 
+    /// Display name fallback priority: site?.name → dive.siteName → "Dive on {date}".
+    /// Never "Unknown Site" — that reads as a lookup failure the user can't fix.
+    private var displayTitle: String {
+        if let name = site?.name { return name }
+        if let name = dive.siteName, !name.isEmpty { return name }
+        return "Dive on \(shortDate(dive.date))"
+    }
+
+    /// Secondary line (location). Hidden entirely when both site record and
+    /// denormalized location are missing.
+    private var displayLocation: String? {
+        if let location = site?.location, !location.isEmpty { return location }
+        if let location = dive.siteLocation, !location.isEmpty { return location }
+        return nil
+    }
+
     private var accessibilitySummary: String {
-        let siteName = site?.name ?? "Unknown site"
         let dateString = formatDate(dive.date)
-        var summary = "\(siteName), \(dateString). "
+        var summary = "\(displayTitle), \(dateString). "
         summary += "Depth \(String(format: "%.1f", dive.maxDepth)) meters, "
         summary += "bottom time \(dive.bottomTime) minutes, "
         summary += "water temperature \(String(format: "%.0f", dive.temperature)) degrees."
@@ -197,26 +219,27 @@ private struct DiveHistoryRow: View {
     }
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            // Header
-            HStack {
-                if let site = site {
-                    VStack(alignment: .leading, spacing: 2) {
-                        Text(site.name)
-                            .font(.headline)
-                        Text(site.location)
-                            .font(.subheadline)
-                            .foregroundStyle(.secondary)
-                    }
-                } else {
-                    Text("Unknown Site")
-                        .font(.headline)
-                }
+        VStack(alignment: .leading, spacing: 6) {
+            // Header: site name is the anchor; date + single badge sit right.
+            HStack(alignment: .firstTextBaseline) {
+                Text(displayTitle)
+                    .font(.headline)
+                    .foregroundStyle(Color.foam)
+                    .lineLimit(1)
 
                 Spacer()
 
                 HStack(spacing: 8) {
-                    if isRecentlyLogged {
+                    Text(shortDate(dive.date))
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+
+                    // Badge precedence per plan §4: Signed > NEW. Only one shows.
+                    if dive.signed {
+                        Image(systemName: "rosette")
+                            .font(.caption)
+                            .foregroundStyle(Color.seaGreen)
+                    } else if isRecentlyLogged {
                         Text("NEW")
                             .font(.caption2)
                             .fontWeight(.bold)
@@ -226,40 +249,28 @@ private struct DiveHistoryRow: View {
                             .background(Color.seaGreen)
                             .cornerRadius(4)
                     }
-
-                    if dive.signed {
-                        Image(systemName: "rosette")
-                            .foregroundStyle(Color.seaGreen)
-                    }
                 }
             }
 
-            // Stats
-            HStack(spacing: 16) {
-                Label(String(format: "%.1fm", dive.maxDepth), systemImage: "arrow.down")
-                    .font(.subheadline)
-                    .foregroundStyle(Color.diveTeal)
-
-                Label(DurationFormatter.formatCompact(minutes: dive.bottomTime), systemImage: "clock")
-                    .font(.subheadline)
+            if let location = displayLocation {
+                Text(location)
+                    .font(.caption)
                     .foregroundStyle(.secondary)
-
-                Label(String(format: "%.0f°C", dive.temperature), systemImage: "thermometer")
-                    .font(.subheadline)
-                    .foregroundStyle(.secondary)
+                    .lineLimit(1)
             }
 
-            // Date
-            Text(formatDate(dive.date))
-                .font(.caption)
+            // Stats on one line with middle-dot separators — no per-metric icons.
+            Text(statsLine)
+                .font(.subheadline)
                 .foregroundStyle(.secondary)
 
-            // Notes preview
+            // Notes preview only when present, single line.
             if !dive.notes.isEmpty {
                 Text(dive.notes)
                     .font(.caption)
-                    .foregroundStyle(.secondary)
-                    .lineLimit(2)
+                    .foregroundStyle(.secondary.opacity(0.8))
+                    .italic()
+                    .lineLimit(1)
             }
         }
         .padding(.vertical, 4)
@@ -267,11 +278,25 @@ private struct DiveHistoryRow: View {
         .accessibilityLabel(accessibilitySummary)
         .accessibilityHint("Double tap to view dive details")
     }
+
+    private var statsLine: String {
+        let depth = String(format: "%.1fm", dive.maxDepth)
+        let duration = DurationFormatter.formatCompact(minutes: dive.bottomTime)
+        let temp = String(format: "%.0f°C", dive.temperature)
+        return "\(depth) · \(duration) · \(temp)"
+    }
     
     private func formatDate(_ date: Date) -> String {
         let formatter = DateFormatter()
         formatter.dateStyle = .medium
         formatter.timeStyle = .short
+        return formatter.string(from: date)
+    }
+
+    private func shortDate(_ date: Date) -> String {
+        let formatter = DateFormatter()
+        formatter.dateStyle = .medium
+        formatter.timeStyle = .none
         return formatter.string(from: date)
     }
 }

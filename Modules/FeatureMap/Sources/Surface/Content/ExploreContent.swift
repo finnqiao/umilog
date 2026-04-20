@@ -108,9 +108,10 @@ struct ExploreContent: View {
 
     // MARK: - Peek Layout
 
-    /// Introductory drawer content: viewport summary, marker legend, and next-step guidance.
+    /// Peek layout per plan §3e: title + count, single pull hint, Filters button.
+    /// Legend and teaching copy moved to the one-time coachmark (plan §3c).
     private var peekLayout: some View {
-        VStack(alignment: .leading, spacing: 10) {
+        VStack(alignment: .leading, spacing: 8) {
             HStack(alignment: .top, spacing: 12) {
                 VStack(alignment: .leading, spacing: 4) {
                     Text(peekTitle)
@@ -131,27 +132,10 @@ struct ExploreContent: View {
                 Image(systemName: "chevron.up")
                     .font(.system(size: 11, weight: .bold))
                     .foregroundStyle(Color.lagoon.opacity(0.90))
-                Text(peekHintText)
+                Text("Pull up to browse and filter")
                     .font(.caption)
                     .foregroundStyle(Color.mist.opacity(0.82))
             }
-
-            HStack(spacing: 8) {
-                PeekLegendChip(
-                    tint: Color.oceanBlue,
-                    title: "Blue pin",
-                    detail: "Single site"
-                )
-                PeekLegendChip(
-                    tint: Color(red: 0.90, green: 0.79, blue: 0.59),
-                    title: "Tan count",
-                    detail: "Zoom cluster"
-                )
-            }
-
-            Text(peekInstructionText)
-                .font(.caption)
-                .foregroundStyle(Color.mist.opacity(0.72))
         }
         .padding(.horizontal, 20)
         .padding(.top, 6)
@@ -159,43 +143,28 @@ struct ExploreContent: View {
         .frame(maxHeight: .infinity, alignment: .top)
     }
 
-    /// Hint text shown beneath the title at peek so first-time users immediately
-    /// understand the sheet is draggable and what's underneath.
-    private var peekHintText: String {
-        switch zoomLevel {
-        case .world:
-            return "Pull up to browse destinations and refine the map"
-        case .regional:
-            return "Pull up to browse areas, sites, and filters"
-        case .local:
-            return "Pull up to browse sites in this map area"
-        }
-    }
-
     private var peekTitle: String {
         "Explore the map"
     }
 
+    /// Count language standardized per plan §3f: always "in this map area"
+    /// (viewport semantics), never "in view" or "nearby".
     private var peekSummaryText: String {
         switch zoomLevel {
         case .world:
             let count = visibleDestinations.count
             return count > 0
-                ? "\(count) destination\(count == 1 ? "" : "s") in view"
-                : "\(sites.count) dive site\(sites.count == 1 ? "" : "s") in view"
+                ? "\(count) destination\(count == 1 ? "" : "s") in this map area"
+                : "\(sites.count) dive site\(sites.count == 1 ? "" : "s") in this map area"
         case .regional:
             if !visibleAreas.isEmpty {
                 let count = visibleAreas.count
-                return "\(count) area\(count == 1 ? "" : "s") and \(sites.count) site\(sites.count == 1 ? "" : "s") in this region"
+                return "\(count) area\(count == 1 ? "" : "s") and \(sites.count) site\(sites.count == 1 ? "" : "s") in this map area"
             }
             return "\(sites.count) site\(sites.count == 1 ? "" : "s") in this map area"
         case .local:
             return "\(sites.count) site\(sites.count == 1 ? "" : "s") in this map area"
         }
-    }
-
-    private var peekInstructionText: String {
-        "Tap tan clusters to zoom. Use Filters to narrow by type, difficulty, or night diving."
     }
 
     // MARK: - Browse Layout
@@ -687,39 +656,6 @@ struct ExploreContent: View {
 }
 
 // MARK: - Region Detail
-
-private struct PeekLegendChip: View {
-    let tint: Color
-    let title: String
-    let detail: String
-
-    var body: some View {
-        HStack(spacing: 6) {
-            Circle()
-                .fill(tint)
-                .frame(width: 8, height: 8)
-
-            VStack(alignment: .leading, spacing: 0) {
-                Text(title)
-                    .font(.caption.weight(.semibold))
-                    .foregroundStyle(Color.foam)
-                Text(detail)
-                    .font(.caption2)
-                    .foregroundStyle(Color.mist.opacity(0.78))
-            }
-        }
-        .padding(.horizontal, 10)
-        .padding(.vertical, 7)
-        .background(
-            Capsule()
-                .fill(Color.trench.opacity(0.86))
-                .overlay(
-                    Capsule()
-                        .stroke(tint.opacity(0.16), lineWidth: 1)
-                )
-        )
-    }
-}
 
 private struct RegionDetailCard: View {
     let region: UmiDB.Region

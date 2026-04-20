@@ -5,6 +5,13 @@ import GRDB
 public struct DiveLog: Codable, Identifiable {
     public let id: String
     public let siteId: String?
+    /// Denormalized site name captured at write-time. Survives site deletion and
+    /// keeps the row identifiable when the site lookup returns nil. Populated by
+    /// `DiveRepository.create`/`update` from the site record when a `siteId` resolves.
+    public let siteName: String?
+    /// Denormalized site location (e.g., "Red Sea, Egypt"), captured at write-time
+    /// for the same reason as `siteName`.
+    public let siteLocation: String?
     public let pendingLatitude: Double?
     public let pendingLongitude: Double?
     public let date: Date
@@ -30,10 +37,12 @@ public struct DiveLog: Codable, Identifiable {
     public var hasPendingLocation: Bool {
         siteId == nil && pendingLatitude != nil && pendingLongitude != nil
     }
-    
+
     public init(
         id: String = UUID().uuidString,
         siteId: String? = nil,
+        siteName: String? = nil,
+        siteLocation: String? = nil,
         pendingLatitude: Double? = nil,
         pendingLongitude: Double? = nil,
         date: Date,
@@ -57,6 +66,8 @@ public struct DiveLog: Codable, Identifiable {
     ) {
         self.id = id
         self.siteId = siteId
+        self.siteName = siteName
+        self.siteLocation = siteLocation
         self.pendingLatitude = pendingLatitude
         self.pendingLongitude = pendingLongitude
         self.date = date
@@ -101,6 +112,8 @@ extension DiveLog: FetchableRecord, PersistableRecord {
     public enum Columns {
         static let id = Column(CodingKeys.id)
         static let siteId = Column(CodingKeys.siteId)
+        static let siteName = Column(CodingKeys.siteName)
+        static let siteLocation = Column(CodingKeys.siteLocation)
         static let pendingLatitude = Column(CodingKeys.pendingLatitude)
         static let pendingLongitude = Column(CodingKeys.pendingLongitude)
         static let date = Column(CodingKeys.date)
