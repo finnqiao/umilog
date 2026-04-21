@@ -172,14 +172,23 @@ def generate_description(client, region: dict, stats: dict) -> dict:
 
 
 def main():
-    if len(sys.argv) != 5:
-        print("Usage: region_descriptions.py <regions_json> <sites_json> <species_json> <output_json>")
+    # Cost guardrail: require --live flag or check env var
+    if os.environ.get("DISABLE_LLM_CALLS", "").lower() in ("true", "1", "yes"):
+        print("Error: LLM calls disabled (DISABLE_LLM_CALLS=true). Use --live flag to override.")
+        sys.exit(1)
+    if "--live" not in sys.argv:
+        print("Warning: This script makes paid Gemini API calls.")
+        print("Pass --live to confirm, or set DISABLE_LLM_CALLS=true to block.")
+    # Remove --live from argv for normal arg parsing
+    args = [a for a in sys.argv[1:] if a != "--live"]
+    if len(args) != 4:
+        print("Usage: region_descriptions.py [--live] <regions_json> <sites_json> <species_json> <output_json>")
         sys.exit(1)
 
-    regions_path = Path(sys.argv[1])
-    sites_path = Path(sys.argv[2])
-    species_path = Path(sys.argv[3])
-    output_path = Path(sys.argv[4])
+    regions_path = Path(args[0])
+    sites_path = Path(args[1])
+    species_path = Path(args[2])
+    output_path = Path(args[3])
 
     for path in [regions_path, sites_path, species_path]:
         if not path.exists():

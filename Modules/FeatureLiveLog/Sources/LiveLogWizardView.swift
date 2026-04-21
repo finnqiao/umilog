@@ -1,4 +1,6 @@
 import SwiftUI
+import PhotosUI
+import UIKit
 import UmiDB
 import UmiLocationKit
 import UmiCoreKit
@@ -240,14 +242,26 @@ struct LabeledIntTextField: View {
 
 // MARK: - Step 3: Wildlife & Notes
 
-import UmiCoreKit
-
 struct StepWildlifeNotes: View {
     @Binding var draft: LogDraft
     @State private var search: String = ""
     @State private var results: [WildlifeSpecies] = []
+    @State private var speciesNames: [String: String] = [:]
+    @State private var showingPhotoPicker = false
+    @State private var pickerItem: PhotosPickerItem?
+    @State private var targetSpeciesForImport: String?
+    @State private var showingCamera = false
+    @State private var targetSpeciesForCamera: String?
     private let speciesRepo = SpeciesRepository(database: AppDatabase.shared)
-    
+
+    private var selectedSpeciesIds: [String] {
+        draft.selectedSpecies.sorted { lhs, rhs in
+            let leftName = speciesNames[lhs] ?? lhs
+            let rightName = speciesNames[rhs] ?? rhs
+            return leftName.localizedCaseInsensitiveCompare(rightName) == .orderedAscending
+        }
+    }
+
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             Text("Wildlife & Notes").font(.headline)
@@ -261,6 +275,7 @@ struct StepWildlifeNotes: View {
                         SelectableChip(title: sp.name, selected: draft.selectedSpecies.contains(sp.id)) {
                             if draft.selectedSpecies.contains(sp.id) {
                                 draft.selectedSpecies.remove(sp.id)
+                                draft.speciesPhotos.removeValue(forKey: sp.id)
                             } else {
                                 draft.selectedSpecies.insert(sp.id)
                             }
@@ -269,7 +284,33 @@ struct StepWildlifeNotes: View {
                 }
                 .padding(.vertical, 4)
             }
-            
+
+            if !selectedSpeciesIds.isEmpty {
+                VStack(alignment: .leading, spacing: 10) {
+                    Text("Sighting Photos")
+                        .font(.subheadline.weight(.semibold))
+                    ForEach(selectedSpeciesIds, id: \.self) { speciesId in
+                        SpeciesPhotoRow(
+                            speciesName: speciesNames[speciesId] ?? speciesId,
+                            photos: draft.speciesPhotos[speciesId] ?? [],
+                            onAddCamera: {
+                                targetSpeciesForCamera = speciesId
+                                showingCamera = true
+                            },
+                            onAddLibrary: {
+                                targetSpeciesForImport = speciesId
+                                showingPhotoPicker = true
+                            },
+                            onRemovePhoto: { photoId in
+                                var photos = draft.speciesPhotos[speciesId] ?? []
+                                photos.removeAll { $0.id == photoId }
+                                draft.speciesPhotos[speciesId] = photos
+                            }
+                        )
+                    }
+                }
+            }
+
             Text("Notes").font(.caption).foregroundStyle(.secondary)
             TextEditor(text: $draft.notes)
                 .frame(minHeight: 120)
@@ -277,15 +318,86 @@ struct StepWildlifeNotes: View {
                 .background(Color.gray.opacity(0.08))
                 .cornerRadius(10)
         }
-        .task { await loadResults() }
+        .task {
+            await loadResults()
+            await loadSpeciesNames(for: Array(draft.selectedSpecies))
+        }
+        .onChange(of: draft.selectedSpecies) { _, newValue in
+            let allowed = Set(newValue)
+            draft.speciesPhotos = draft.speciesPhotos.filter { allowed.contains($0.key) }
+            Task { await loadSpeciesNames(for: Array(newValue)) }
+        }
+        .photosPicker(isPresented: $showingPhotoPicker, selection: $pickerItem, matching: .images)
+        .onChange(of: pickerItem) { _, newItem in
+            guard let speciesId = targetSpeciesForImport else { return }
+            Task {
+                guard let data = try? await newItem?.loadTransferable(type: Data.self) else { return }
+                addLibraryPhoto(data: data, to: speciesId)
+            }
+        }
+        .sheet(isPresented: $showingCamera) {
+            CameraImagePicker(
+                sourceType: .camera,
+                onImagePicked: { image in
+                    guard let speciesId = targetSpeciesForCamera else { return }
+                    addCameraPhoto(image: image, to: speciesId)
+                }
+            )
+        }
     }
-    
+
     private func loadResults() async {
         do {
             results = try speciesRepo.search(search)
         } catch {
             results = []
         }
+    }
+
+    private func loadSpeciesNames(for ids: [String]) async {
+        guard !ids.isEmpty else { return }
+        do {
+            let species = try AppDatabase.shared.read { db in
+                try WildlifeSpecies.fetchAll(db, keys: ids)
+            }
+            await MainActor.run {
+                for item in species {
+                    speciesNames[item.id] = item.name
+                }
+            }
+        } catch {
+            Log.wildlife.debug("Failed to load species labels: \(error.localizedDescription)")
+        }
+    }
+
+    private func addLibraryPhoto(data: Data, to speciesId: String) {
+        var photos = draft.speciesPhotos[speciesId] ?? []
+        guard photos.count < 10 else { return }
+        let metadata = PhotoMetadataExtractor.extract(from: data)
+        photos.append(
+            DraftSightingPhotoInput(
+                imageData: data,
+                capturedAt: metadata.capturedAt,
+                latitude: metadata.latitude,
+                longitude: metadata.longitude
+            )
+        )
+        draft.speciesPhotos[speciesId] = photos
+    }
+
+    private func addCameraPhoto(image: UIImage, to speciesId: String) {
+        var photos = draft.speciesPhotos[speciesId] ?? []
+        guard photos.count < 10,
+              let data = image.jpegData(compressionQuality: 0.9) else { return }
+        photos.append(
+            DraftSightingPhotoInput(
+                imageData: data,
+                capturedAt: Date(),
+                latitude: nil,
+                longitude: nil
+            )
+        )
+        draft.speciesPhotos[speciesId] = photos
     }
 }
 
@@ -310,6 +422,68 @@ struct SelectableChip: View {
         .accessibilityValue(selected ? "Selected" : "Not selected")
         .accessibilityHint("Double tap to \(selected ? "deselect" : "select") this species")
         .accessibilityAddTraits(selected ? .isSelected : [])
+    }
+}
+
+private struct SpeciesPhotoRow: View {
+    let speciesName: String
+    let photos: [DraftSightingPhotoInput]
+    var onAddCamera: () -> Void
+    var onAddLibrary: () -> Void
+    var onRemovePhoto: (String) -> Void
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            HStack {
+                Text(speciesName)
+                    .font(.caption.weight(.semibold))
+                Spacer()
+                Text("\(photos.count)/10")
+                    .font(.caption2)
+                    .foregroundStyle(.secondary)
+            }
+
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: 8) {
+                    Menu {
+                        Button("Take Photo", systemImage: "camera", action: onAddCamera)
+                        Button("Choose from Library", systemImage: "photo", action: onAddLibrary)
+                    } label: {
+                        RoundedRectangle(cornerRadius: 10)
+                            .fill(Color.gray.opacity(0.15))
+                            .frame(width: 74, height: 74)
+                            .overlay {
+                                Image(systemName: "plus")
+                                    .font(.headline)
+                            }
+                    }
+
+                    ForEach(photos) { photo in
+                        Group {
+                            if let image = UIImage(data: photo.imageData) {
+                                Image(uiImage: image)
+                                    .resizable()
+                                    .scaledToFill()
+                            } else {
+                                RoundedRectangle(cornerRadius: 10)
+                                    .fill(Color.gray.opacity(0.12))
+                                    .overlay {
+                                        Image(systemName: "photo")
+                                    }
+                            }
+                        }
+                        .frame(width: 74, height: 74)
+                        .clipShape(RoundedRectangle(cornerRadius: 10))
+                        .contextMenu {
+                            Button("Remove", role: .destructive) {
+                                onRemovePhoto(photo.id)
+                            }
+                        }
+                    }
+                }
+                .padding(.vertical, 2)
+            }
+        }
     }
 }
 
@@ -375,6 +549,12 @@ struct StepReviewSave: View {
                                 .padding(6)
                                 .background(Color.diveTeal.opacity(0.15))
                                 .cornerRadius(8)
+                        }
+                        let photoCount = draft.speciesPhotos.values.flatMap { $0 }.count
+                        if photoCount > 0 {
+                            Text("Photos attached: \(photoCount)")
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
                         }
                     }
                     .frame(maxWidth: .infinity, alignment: .leading)
@@ -451,7 +631,7 @@ enum WizardSaver {
               let maxDepth = draft.maxDepthM,
               let bottomTime = draft.bottomTimeMin else { return false }
         let database = AppDatabase.shared
-        let diveRepo = DiveRepository(database: database)
+        var writtenPhotoPaths: [String] = []
         do {
             let end = draft.startTime.addingTimeInterval(Double(bottomTime) * 60)
             let dive = DiveLog(
@@ -468,14 +648,39 @@ enum WizardSaver {
                 visibility: draft.visibilityM ?? 15,
                 notes: draft.notes
             )
-            try diveRepo.create(dive)
-            
-            // Save sightings
+
             try database.write { db in
-                for speciesId in draft.selectedSpecies {
-                    let s = WildlifeSighting(diveId: dive.id, speciesId: speciesId)
-                    try s.insert(db)
+                try dive.insert(db)
+
+                for speciesId in draft.selectedSpecies.sorted() {
+                    let sighting = WildlifeSighting(diveId: dive.id, speciesId: speciesId)
+                    try sighting.insert(db)
+
+                    let photoInputs = Array((draft.speciesPhotos[speciesId] ?? []).prefix(10))
+                    for (index, photoInput) in photoInputs.enumerated() {
+                        guard let image = UIImage(data: photoInput.imageData) else { continue }
+                        let saved = try SightingPhotoStorageService.shared.savePhoto(
+                            image: image,
+                            sightingId: sighting.id
+                        )
+                        writtenPhotoPaths.append(saved.filename)
+                        writtenPhotoPaths.append(saved.thumbnailFilename)
+
+                        let record = SightingPhoto(
+                            sightingId: sighting.id,
+                            filename: saved.filename,
+                            thumbnailFilename: saved.thumbnailFilename,
+                            width: saved.width,
+                            height: saved.height,
+                            capturedAt: photoInput.capturedAt,
+                            latitude: photoInput.latitude,
+                            longitude: photoInput.longitude,
+                            sortOrder: index
+                        )
+                        try record.insert(db)
+                    }
                 }
+
                 // Update site visited count + wishlist
                 if let existing = try DiveSite.fetchOne(db, key: site.id) {
                     let updated = DiveSite(
@@ -493,8 +698,15 @@ enum WizardSaver {
                         type: existing.type,
                         description: existing.description,
                         wishlist: false,
+                        isPlanned: existing.isPlanned,
                         visitedCount: existing.visitedCount + 1,
-                        createdAt: existing.createdAt
+                        tags: existing.tags,
+                        createdAt: existing.createdAt,
+                        countryId: existing.countryId,
+                        regionId: existing.regionId,
+                        areaId: existing.areaId,
+                        wikidataId: existing.wikidataId,
+                        osmId: existing.osmId
                     )
                     try updated.update(db)
                 }
@@ -502,6 +714,9 @@ enum WizardSaver {
             NotificationCenter.default.post(name: .diveLogUpdated, object: nil)
             return true
         } catch {
+            for path in writtenPhotoPaths {
+                SightingPhotoStorageService.shared.deleteFile(relativePath: path)
+            }
             Log.diveLog.error("Wizard save failed: \(error.localizedDescription)")
             return false
         }

@@ -45,6 +45,7 @@ extension WildlifeSighting: FetchableRecord, PersistableRecord {
 extension WildlifeSighting {
     public static let dive = belongsTo(DiveLog.self)
     public static let species = belongsTo(WildlifeSpecies.self)
+    public static let photos = hasMany(SightingPhoto.self)
 }
 
 /// Wildlife species catalog

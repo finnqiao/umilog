@@ -40,6 +40,8 @@ public struct DiveMapPowerSettings: Equatable {
 
 public struct DiveMapView: UIViewControllerRepresentable {
     public var annotations: [DiveMapAnnotation]
+    public var heatmapPoints: [DiveMapHeatmapPoint]
+    public var showHeatmap: Bool
     public var initialCamera: DiveMapCamera
     public var cameraUpdateToken: Int
     public var layerSettings: DiveMapLayerSettings
@@ -60,6 +62,8 @@ public struct DiveMapView: UIViewControllerRepresentable {
 
     public init(
         annotations: [DiveMapAnnotation],
+        heatmapPoints: [DiveMapHeatmapPoint] = [],
+        showHeatmap: Bool = false,
         initialCamera: DiveMapCamera = DiveMapCamera(
             center: CLLocationCoordinate2D(latitude: 0.0, longitude: 120.0),
             zoomLevel: 4.0
@@ -74,6 +78,8 @@ public struct DiveMapView: UIViewControllerRepresentable {
         onTileLoadingChange: ((Bool) -> Void)? = nil
     ) {
         self.annotations = annotations
+        self.heatmapPoints = heatmapPoints
+        self.showHeatmap = showHeatmap
         self.initialCamera = initialCamera
         self.cameraUpdateToken = cameraUpdateToken
         self.layerSettings = layerSettings
@@ -101,6 +107,8 @@ public struct DiveMapView: UIViewControllerRepresentable {
         controller.layerSettings = layerSettings
         controller.powerSettings = powerSettings
         controller.annotations = annotations
+        controller.heatmapPoints = heatmapPoints
+        controller.showHeatmap = showHeatmap
         return controller
     }
 
@@ -117,6 +125,8 @@ public struct DiveMapView: UIViewControllerRepresentable {
         }
         uiViewController.layerSettings = layerSettings
         uiViewController.powerSettings = powerSettings
+        uiViewController.heatmapPoints = heatmapPoints
+        uiViewController.showHeatmap = showHeatmap
         uiViewController.update(annotations: annotations)
     }
 }

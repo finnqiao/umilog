@@ -1,6 +1,7 @@
 import Foundation
 import CloudKit
 import UmiDB
+import UmiCoreKit
 
 // MARK: - DiveLog + SyncableRecord
 
@@ -192,6 +193,157 @@ extension UserSiteState: SyncableRecord {
             lastVisitedAt: ckRecord["lastVisitedAt"] as? Date,
             createdAt: ckRecord["createdAt"] as? Date ?? Date(),
             updatedAt: ckRecord["updatedAt"] as? Date ?? Date()
+        )
+    }
+}
+
+// MARK: - Certification + SyncableRecord
+
+extension Certification: SyncableRecord {
+    public static var ckRecordType: String { "Certification" }
+
+    public var localId: String { id }
+
+    public static var encryptedFields: [String] {
+        ["certNumber", "notes", "instructorNumber"]
+    }
+
+    public func toCKRecord(zoneID: CKRecordZone.ID, encryptor: FieldEncryptor?) throws -> CKRecord {
+        let recordID = CKRecord.ID(recordName: id, zoneID: zoneID)
+        let record = CKRecord(recordType: Self.ckRecordType, recordID: recordID)
+
+        record["agency"] = agency.rawValue as CKRecordValue
+        record["agencyOther"] = agencyOther as CKRecordValue?
+        record["level"] = level as CKRecordValue
+        record["certDate"] = certDate as CKRecordValue?
+        record["expiryDate"] = expiryDate as CKRecordValue?
+        record["instructorName"] = instructorName as CKRecordValue?
+        record["divesAtCert"] = divesAtCert as CKRecordValue?
+        record["isPrimary"] = isPrimary as CKRecordValue
+        record["createdAt"] = createdAt as CKRecordValue
+        record["updatedAt"] = updatedAt as CKRecordValue
+
+        if let encryptor, let certNumber, !certNumber.isEmpty {
+            record["certNumberEncrypted"] = try encryptor.encrypt(certNumber) as CKRecordValue
+        } else {
+            record["certNumber"] = certNumber as CKRecordValue?
+        }
+
+        if let encryptor, let notes, !notes.isEmpty {
+            record["notesEncrypted"] = try encryptor.encrypt(notes) as CKRecordValue
+        } else {
+            record["notes"] = notes as CKRecordValue?
+        }
+
+        if let encryptor, let instructorNumber, !instructorNumber.isEmpty {
+            record["instructorNumberEncrypted"] = try encryptor.encrypt(instructorNumber) as CKRecordValue
+        } else {
+            record["instructorNumber"] = instructorNumber as CKRecordValue?
+        }
+
+        if let cardImageFront {
+            record["cardImageFront"] = cardImageFront as CKRecordValue
+            if let url = CertificationCardStorageService.shared.imageURL(forRelativePath: cardImageFront) {
+                record["cardFrontAsset"] = CKAsset(fileURL: url)
+            }
+        }
+
+        if let cardImageBack {
+            record["cardImageBack"] = cardImageBack as CKRecordValue
+            if let url = CertificationCardStorageService.shared.imageURL(forRelativePath: cardImageBack) {
+                record["cardBackAsset"] = CKAsset(fileURL: url)
+            }
+        }
+
+        return record
+    }
+
+    public mutating func updateFrom(ckRecord: CKRecord, decryptor: FieldEncryptor?) throws {
+        var certNumberValue = ckRecord["certNumber"] as? String
+        var notesValue = ckRecord["notes"] as? String
+        var instructorNumberValue = ckRecord["instructorNumber"] as? String
+
+        if let encrypted = ckRecord["certNumberEncrypted"] as? Data, let decryptor {
+            certNumberValue = try decryptor.decrypt(encrypted)
+        }
+        if let encrypted = ckRecord["notesEncrypted"] as? Data, let decryptor {
+            notesValue = try decryptor.decrypt(encrypted)
+        }
+        if let encrypted = ckRecord["instructorNumberEncrypted"] as? Data, let decryptor {
+            instructorNumberValue = try decryptor.decrypt(encrypted)
+        }
+
+        self = Certification(
+            id: ckRecord.recordID.recordName,
+            agency: CertAgency(rawValue: ckRecord["agency"] as? String ?? "") ?? .other,
+            agencyOther: ckRecord["agencyOther"] as? String,
+            level: ckRecord["level"] as? String ?? "Certification",
+            certNumber: certNumberValue,
+            certDate: ckRecord["certDate"] as? Date,
+            expiryDate: ckRecord["expiryDate"] as? Date,
+            instructorName: ckRecord["instructorName"] as? String,
+            instructorNumber: instructorNumberValue,
+            divesAtCert: ckRecord["divesAtCert"] as? Int,
+            cardImageFront: ckRecord["cardImageFront"] as? String,
+            cardImageBack: ckRecord["cardImageBack"] as? String,
+            notes: notesValue,
+            isPrimary: ckRecord["isPrimary"] as? Bool ?? false,
+            createdAt: ckRecord["createdAt"] as? Date ?? Date(),
+            updatedAt: ckRecord["updatedAt"] as? Date ?? Date()
+        )
+    }
+}
+
+// MARK: - SightingPhoto + SyncableRecord
+
+extension SightingPhoto: SyncableRecord {
+    public static var ckRecordType: String { "SightingPhoto" }
+
+    public var localId: String { id }
+
+    public var updatedAt: Date { createdAt }
+
+    public static var encryptedFields: [String] { [] }
+
+    public func toCKRecord(zoneID: CKRecordZone.ID, encryptor: FieldEncryptor?) throws -> CKRecord {
+        let recordID = CKRecord.ID(recordName: id, zoneID: zoneID)
+        let record = CKRecord(recordType: Self.ckRecordType, recordID: recordID)
+
+        record["sightingId"] = sightingId as CKRecordValue
+        record["filename"] = filename as CKRecordValue
+        record["thumbnailFilename"] = thumbnailFilename as CKRecordValue
+        record["width"] = width as CKRecordValue
+        record["height"] = height as CKRecordValue
+        record["capturedAt"] = capturedAt as CKRecordValue?
+        record["latitude"] = latitude as CKRecordValue?
+        record["longitude"] = longitude as CKRecordValue?
+        record["sortOrder"] = sortOrder as CKRecordValue
+        record["createdAt"] = createdAt as CKRecordValue
+
+        if let photoURL = SightingPhotoStorageService.shared.imageURL(forRelativePath: filename) {
+            record["photoAsset"] = CKAsset(fileURL: photoURL)
+        }
+
+        return record
+    }
+
+    public mutating func updateFrom(ckRecord: CKRecord, decryptor: FieldEncryptor?) throws {
+        let width = (ckRecord["width"] as? Int) ?? Int((ckRecord["width"] as? Int64) ?? 0)
+        let height = (ckRecord["height"] as? Int) ?? Int((ckRecord["height"] as? Int64) ?? 0)
+        let sortOrder = (ckRecord["sortOrder"] as? Int) ?? Int((ckRecord["sortOrder"] as? Int64) ?? 0)
+
+        self = SightingPhoto(
+            id: ckRecord.recordID.recordName,
+            sightingId: ckRecord["sightingId"] as? String ?? "",
+            filename: ckRecord["filename"] as? String ?? "",
+            thumbnailFilename: ckRecord["thumbnailFilename"] as? String ?? "",
+            width: width,
+            height: height,
+            capturedAt: ckRecord["capturedAt"] as? Date,
+            latitude: ckRecord["latitude"] as? Double,
+            longitude: ckRecord["longitude"] as? Double,
+            sortOrder: sortOrder,
+            createdAt: ckRecord["createdAt"] as? Date ?? Date()
         )
     }
 }

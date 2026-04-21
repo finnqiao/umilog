@@ -1,6 +1,7 @@
 import SwiftUI
 import UmiDesignSystem
 import UmiDB
+import UmiLocationKit
 
 /// A floating callout card that appears when tapping a dive site marker on the map.
 /// Shows site preview with thumbnail, name, depth and action buttons.
@@ -59,6 +60,26 @@ struct SiteCalloutCard: View {
 
             // Action buttons
             HStack(spacing: 10) {
+                // Quick navigate button
+                Button {
+                    SiteNavigationService.navigate(to: site)
+                    Haptics.soft()
+                } label: {
+                    Image(systemName: "location.fill")
+                        .font(.system(size: 16, weight: .semibold))
+                        .foregroundStyle(Color.foam)
+                        .frame(width: 44, height: 44)
+                        .background(
+                            RoundedRectangle(cornerRadius: 10, style: .continuous)
+                                .fill(Color.trench)
+                        )
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 10, style: .continuous)
+                                .stroke(Color.ocean.opacity(0.4), lineWidth: 1)
+                        )
+                }
+                .accessibilityLabel("Open \(site.name) in Maps")
+
                 // View Details button (secondary)
                 Button(action: onViewDetails) {
                     Text("View Details")

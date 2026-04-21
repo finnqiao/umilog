@@ -11,6 +11,8 @@ public final class DatabaseChangeObserver: TransactionObserver {
     private let observedTables: Set<String> = [
         DiveLog.databaseTableName,
         WildlifeSighting.databaseTableName,
+        SightingPhoto.databaseTableName,
+        Certification.databaseTableName,
         UserSiteState.databaseTableName,
         Trip.databaseTableName,
         TripSite.databaseTableName

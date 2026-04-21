@@ -3,6 +3,7 @@ import UmiDB
 import UmiDesignSystem
 import UmiCoreKit
 import FeatureLiveLog
+import UmiLocationKit
 import os
 
 /// Content view for Inspect mode in the unified bottom surface.
@@ -28,6 +29,7 @@ struct InspectContent: View {
     @State private var showingConditionReport = false
     @State private var conditionSummary: SiteConditionSummary?
     @State private var mediaURL: URL?
+    @State private var entryModes: [String] = []
 
     // MARK: - Init
 
@@ -106,6 +108,9 @@ struct InspectContent: View {
                     siteName: site.name,
                     onDismiss: { showingConditionReport = false }
                 )
+            }
+            .task(id: site.id) {
+                await loadEntryModes(for: site.id)
             }
             .alert("Wishlist Error", isPresented: Binding(
                 get: { wishlistError != nil },
@@ -254,7 +259,28 @@ struct InspectContent: View {
     // MARK: - Actions Row
 
     private func actionsRow(site: DiveSite) -> some View {
-        HStack(spacing: 12) {
+        ScrollView(.horizontal, showsIndicators: false) {
+            HStack(spacing: 12) {
+                ActionButton(
+                    icon: "location.fill",
+                    title: "Navigate",
+                    isActive: false,
+                    isPrimary: false
+                ) {
+                    SiteNavigationService.navigate(to: site, entryModes: entryModes)
+                    Haptics.soft()
+                }
+
+                ActionButton(
+                    icon: "doc.on.doc",
+                    title: "Copy GPS",
+                    isActive: false,
+                    isPrimary: false
+                ) {
+                    _ = SiteNavigationService.copyCoordinates(of: site)
+                    Haptics.success()
+                }
+
             // Save button
             ActionButton(
                 icon: isWishlist ? "star.fill" : "star",
@@ -295,6 +321,7 @@ struct InspectContent: View {
             ) {
                 showingLogWizard = true
             }
+        }
         }
     }
 
@@ -405,6 +432,20 @@ struct InspectContent: View {
                 isUpdatingWishlist = false
                 wishlistError = "Couldn't update wishlist: \(error.localizedDescription)"
                 Log.map.error("Wishlist error for site \(targetId): \(error.localizedDescription)")
+            }
+        }
+    }
+
+    private func loadEntryModes(for siteId: String) async {
+        let repository = SiteFacetRepository(database: AppDatabase.shared)
+        do {
+            let fetched = try repository.fetchEntryModes(siteId: siteId)
+            await MainActor.run {
+                entryModes = fetched
+            }
+        } catch {
+            await MainActor.run {
+                entryModes = []
             }
         }
     }

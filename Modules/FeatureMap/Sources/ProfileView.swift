@@ -17,6 +17,10 @@ public struct ProfileView: View {
     @State private var showingBackfill = false
     @State private var showingWatchConnect = false
     @State private var showingDeleteConfirmation = false
+    @State private var showingCertificationForm = false
+    @State private var showingCertificationDeleteConfirmation = false
+    @State private var editingCertification: Certification?
+    @State private var certificationPendingDelete: Certification?
     @State private var isDeleting = false
     @StateObject private var watchManager = WatchConnectivityManager.shared
 
@@ -25,38 +29,18 @@ public struct ProfileView: View {
     public var body: some View {
         ScrollView {
             VStack(spacing: 20) {
-                // Certification header - improved contrast for AA compliance
-                VStack(spacing: 8) {
-                    Text("Certification")
-                        .font(.subheadline)
-                        .fontWeight(.medium)
-                        .foregroundStyle(.white)
-                        .frame(maxWidth: .infinity, alignment: .leading)
-
-                    Text("Advanced Open Water")
-                        .font(.title2)
-                        .fontWeight(.bold)
-                        .foregroundStyle(.white)
-                        .frame(maxWidth: .infinity, alignment: .leading)
-
-                    Text("Diving since 3/15/2022")
-                        .font(.subheadline)
-                        .fontWeight(.medium)
-                        .foregroundStyle(.white)
-                        .frame(maxWidth: .infinity, alignment: .leading)
+                CertificationsSectionView(
+                    certifications: viewModel.certifications
+                ) {
+                    editingCertification = nil
+                    showingCertificationForm = true
+                } onEdit: { certification in
+                    editingCertification = certification
+                    showingCertificationForm = true
+                } onDelete: { certification in
+                    certificationPendingDelete = certification
+                    showingCertificationDeleteConfirmation = true
                 }
-                .padding(20)
-                .frame(maxWidth: .infinity)
-                .background(
-                    ZStack {
-                        LinearGradient(colors: [.oceanBlue, .diveTeal], startPoint: .topLeading, endPoint: .bottomTrailing)
-                        // Dark overlay for improved text contrast (AA compliance)
-                        Color.black.opacity(0.15)
-                    }
-                )
-                .cornerRadius(16)
-                .shadow(color: .black.opacity(0.1), radius: 4, y: 2)
-                .padding(.horizontal, 16)
                 
                 // Stats tiles
                 LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 16) {
@@ -230,11 +214,37 @@ public struct ProfileView: View {
         .sheet(isPresented: $showingImport) {
             ImportFlowView()
         }
+        .sheet(isPresented: $showingCertificationForm, onDismiss: {
+            editingCertification = nil
+        }) {
+            CertificationFormView(
+                existing: editingCertification,
+                defaultPrimary: viewModel.certifications.isEmpty
+            ) { certification in
+                viewModel.saveCertification(certification)
+            }
+        }
         .sheet(isPresented: $showingBackfill) {
             BackfillView()
         }
         .sheet(isPresented: $showingWatchConnect) {
             WatchConnectView()
+        }
+        .confirmationDialog(
+            "Delete Certification?",
+            isPresented: $showingCertificationDeleteConfirmation,
+            titleVisibility: .visible
+        ) {
+            Button("Delete", role: .destructive) {
+                guard let certificationPendingDelete else { return }
+                viewModel.deleteCertification(certificationPendingDelete)
+                self.certificationPendingDelete = nil
+            }
+            Button("Cancel", role: .cancel) {
+                certificationPendingDelete = nil
+            }
+        } message: {
+            Text("This removes the certification record and any stored card photos.")
         }
         .onAppear {
             watchManager.activate()
@@ -280,6 +290,10 @@ public struct ProfileView: View {
             do {
                 // Delete user data from database
                 try AppDatabase.shared.deleteAllUserData()
+
+                // Delete user-generated photo files
+                CertificationCardStorageService.shared.clearAllImages()
+                SightingPhotoStorageService.shared.clearAllPhotos()
 
                 // Clear image cache
                 await ImageCacheService.shared.clearCache()
@@ -418,13 +432,16 @@ class ProfileViewModel: ObservableObject {
     @Published var speciesCount: Int = 0
     @Published var totalBottomTime: String = "0h 0m"
     @Published var isLockEnabled: Bool = false
+    @Published var certifications: [Certification] = []
 
     private let diveRepository = DiveRepository(database: AppDatabase.shared)
+    private let certificationsRepository = CertificationsRepository(database: AppDatabase.shared)
     private let database = AppDatabase.shared
 
     init() {
         loadStats()
         loadLockState()
+        loadCertifications()
     }
 
     private func loadLockState() {
@@ -464,6 +481,49 @@ class ProfileViewModel: ObservableObject {
             } catch {
                 // Use zero/default values on error
                 Log.diveLog.error("Error loading dive stats: \(error.localizedDescription)")
+            }
+        }
+    }
+
+    func loadCertifications() {
+        Task {
+            do {
+                let fetched = try certificationsRepository.fetchAll()
+                await MainActor.run {
+                    self.certifications = fetched
+                }
+            } catch {
+                Log.app.error("Error loading certifications: \(error.localizedDescription)")
+            }
+        }
+    }
+
+    func saveCertification(_ certification: Certification) {
+        Task {
+            do {
+                try certificationsRepository.upsert(certification)
+                await MainActor.run {
+                    self.loadCertifications()
+                }
+            } catch {
+                Log.app.error("Error saving certification: \(error.localizedDescription)")
+            }
+        }
+    }
+
+    func deleteCertification(_ certification: Certification) {
+        Task {
+            do {
+                let deleted = try certificationsRepository.delete(id: certification.id)
+                if let deleted {
+                    CertificationCardStorageService.shared.deleteImage(relativePath: deleted.cardImageFront)
+                    CertificationCardStorageService.shared.deleteImage(relativePath: deleted.cardImageBack)
+                }
+                await MainActor.run {
+                    self.loadCertifications()
+                }
+            } catch {
+                Log.app.error("Error deleting certification: \(error.localizedDescription)")
             }
         }
     }

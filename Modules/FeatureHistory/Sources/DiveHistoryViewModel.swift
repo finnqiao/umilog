@@ -165,7 +165,12 @@ public class DiveHistoryViewModel: ObservableObject {
     public func deleteDive(_ dive: DiveLog) {
         Task {
             do {
+                let photos = try database.sightingPhotoRepository.fetchByDive(dive.id)
                 try database.diveRepository.delete(id: dive.id)
+                for photo in photos {
+                    SightingPhotoStorageService.shared.deleteFile(relativePath: photo.filename)
+                    SightingPhotoStorageService.shared.deleteFile(relativePath: photo.thumbnailFilename)
+                }
                 await loadData()
             } catch {
                 Log.diveLog.error("Error deleting dive: \(error.localizedDescription)")

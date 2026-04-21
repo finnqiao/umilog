@@ -50,6 +50,8 @@ public final class CloudSyncService: ObservableObject {
             // Subscribe to changes
             try await engine.subscribeToChanges(recordType: "DiveLog")
             try await engine.subscribeToChanges(recordType: "WildlifeSighting")
+            try await engine.subscribeToChanges(recordType: "SightingPhoto")
+            try await engine.subscribeToChanges(recordType: "Certification")
             try await engine.subscribeToChanges(recordType: "UserSiteState")
 
             logger.info("CloudKit sync initialized")
