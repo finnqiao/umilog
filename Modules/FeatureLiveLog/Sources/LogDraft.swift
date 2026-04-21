@@ -23,6 +23,16 @@ public struct DraftSightingPhotoInput: Identifiable, Codable, Hashable {
     }
 }
 
+public struct DraftAISightingMetadata: Codable, Hashable {
+    public let confidence: Double
+    public let suggestionsJson: String?
+
+    public init(confidence: Double, suggestionsJson: String? = nil) {
+        self.confidence = confidence
+        self.suggestionsJson = suggestionsJson
+    }
+}
+
 /// In-memory draft used by the logging wizard
 public struct LogDraft: Identifiable, Codable {
     public let id: String
@@ -39,10 +49,12 @@ public struct LogDraft: Identifiable, Codable {
     public var endPressureBar: Int?
     public var temperatureC: Double?
     public var visibilityM: Double?
+    public var selectedGearIds: Set<String>
     
     // Step 3: Wildlife & Notes
     public var selectedSpecies: Set<String> // species IDs
     public var speciesPhotos: [String: [DraftSightingPhotoInput]]
+    public var aiMetadataBySpecies: [String: DraftAISightingMetadata]
     public var notes: String
     
     public init(id: String = UUID().uuidString,
@@ -55,8 +67,10 @@ public struct LogDraft: Identifiable, Codable {
                 endPressureBar: Int? = nil,
                 temperatureC: Double? = nil,
                 visibilityM: Double? = nil,
+                selectedGearIds: Set<String> = [],
                 selectedSpecies: Set<String> = [],
                 speciesPhotos: [String: [DraftSightingPhotoInput]] = [:],
+                aiMetadataBySpecies: [String: DraftAISightingMetadata] = [:],
                 notes: String = "") {
         self.id = id
         self.site = site
@@ -68,8 +82,10 @@ public struct LogDraft: Identifiable, Codable {
         self.endPressureBar = endPressureBar
         self.temperatureC = temperatureC
         self.visibilityM = visibilityM
+        self.selectedGearIds = selectedGearIds
         self.selectedSpecies = selectedSpecies
         self.speciesPhotos = speciesPhotos
+        self.aiMetadataBySpecies = aiMetadataBySpecies
         self.notes = notes
     }
 }

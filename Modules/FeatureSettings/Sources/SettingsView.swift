@@ -120,6 +120,26 @@ public struct SettingsView: View {
             }
 
             Section {
+                NavigationLink {
+                    DiveComputerSyncView()
+                } label: {
+                    Label("Dive Computer", systemImage: "dot.radiowaves.left.and.right")
+                }
+            } header: {
+                Text("Integrations")
+            }
+
+            Section {
+                NavigationLink {
+                    GearListView()
+                } label: {
+                    Label("My Gear", systemImage: "wrench.and.screwdriver")
+                }
+            } header: {
+                Text("Equipment")
+            }
+
+            Section {
                 HStack {
                     Text("Version")
                     Spacer()

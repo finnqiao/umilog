@@ -8,6 +8,8 @@ public struct WildlifeSighting: Codable, Identifiable {
     public let speciesId: String
     public let count: Int
     public let notes: String?
+    public let aiConfidence: Double?
+    public let aiSuggestionsJson: String?
     public let createdAt: Date
     
     public init(
@@ -16,6 +18,8 @@ public struct WildlifeSighting: Codable, Identifiable {
         speciesId: String,
         count: Int = 1,
         notes: String? = nil,
+        aiConfidence: Double? = nil,
+        aiSuggestionsJson: String? = nil,
         createdAt: Date = Date()
     ) {
         self.id = id
@@ -23,6 +27,8 @@ public struct WildlifeSighting: Codable, Identifiable {
         self.speciesId = speciesId
         self.count = count
         self.notes = notes
+        self.aiConfidence = aiConfidence
+        self.aiSuggestionsJson = aiSuggestionsJson
         self.createdAt = createdAt
     }
 }
@@ -37,6 +43,8 @@ extension WildlifeSighting: FetchableRecord, PersistableRecord {
         static let speciesId = Column(CodingKeys.speciesId)
         static let count = Column(CodingKeys.count)
         static let notes = Column(CodingKeys.notes)
+        static let aiConfidence = Column(CodingKeys.aiConfidence)
+        static let aiSuggestionsJson = Column(CodingKeys.aiSuggestionsJson)
         static let createdAt = Column(CodingKeys.createdAt)
     }
 }

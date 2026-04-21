@@ -6,6 +6,30 @@ import UmiLocationKit
 import UmiCoreKit
 import os
 
+private struct AISuggestion: Identifiable, Hashable, Codable {
+    let id: String
+    let speciesId: String
+    let commonName: String
+    let scientificName: String
+    let confidence: Double
+    let siteBoosted: Bool
+
+    init(
+        speciesId: String,
+        commonName: String,
+        scientificName: String,
+        confidence: Double,
+        siteBoosted: Bool
+    ) {
+        self.id = speciesId
+        self.speciesId = speciesId
+        self.commonName = commonName
+        self.scientificName = scientificName
+        self.confidence = confidence
+        self.siteBoosted = siteBoosted
+    }
+}
+
 /// Coordinates the 4-step logging wizard. For P1 we wire Step 1 & 2.
 public struct LiveLogWizardView: View {
     @Environment(\.dismiss) private var dismiss
@@ -247,12 +271,18 @@ struct StepWildlifeNotes: View {
     @State private var search: String = ""
     @State private var results: [WildlifeSpecies] = []
     @State private var speciesNames: [String: String] = [:]
+    @State private var availableGear: [GearItem] = []
     @State private var showingPhotoPicker = false
     @State private var pickerItem: PhotosPickerItem?
     @State private var targetSpeciesForImport: String?
     @State private var showingCamera = false
     @State private var targetSpeciesForCamera: String?
+    @State private var isAnalyzingPhoto = false
+    @State private var aiSuggestions: [AISuggestion] = []
+    @State private var aiMessage: String?
     private let speciesRepo = SpeciesRepository(database: AppDatabase.shared)
+    private let gearRepo = GearRepository(database: AppDatabase.shared)
+    private let classifier = SpeciesClassifier()
 
     private var selectedSpeciesIds: [String] {
         draft.selectedSpecies.sorted { lhs, rhs in
@@ -265,6 +295,41 @@ struct StepWildlifeNotes: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             Text("Wildlife & Notes").font(.headline)
+
+            if !availableGear.isEmpty {
+                VStack(alignment: .leading, spacing: 8) {
+                    HStack {
+                        Text("Equipment Used")
+                            .font(.subheadline.weight(.semibold))
+                        Spacer()
+                        Button("Select All") {
+                            draft.selectedGearIds = Set(availableGear.map(\.id))
+                        }
+                        .font(.caption)
+                        Button("Clear") {
+                            draft.selectedGearIds.removeAll()
+                        }
+                        .font(.caption)
+                    }
+
+                    LazyVGrid(columns: [GridItem(.adaptive(minimum: 150), spacing: 8)], spacing: 8) {
+                        ForEach(availableGear) { item in
+                            GearSelectableChip(
+                                title: item.name,
+                                icon: item.category.systemImage,
+                                selected: draft.selectedGearIds.contains(item.id)
+                            ) {
+                                if draft.selectedGearIds.contains(item.id) {
+                                    draft.selectedGearIds.remove(item.id)
+                                } else {
+                                    draft.selectedGearIds.insert(item.id)
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
             TextField("Search species…", text: $search)
                 .textFieldStyle(.roundedBorder)
                 .onChange(of: search) { Task { await loadResults() } }
@@ -276,6 +341,7 @@ struct StepWildlifeNotes: View {
                             if draft.selectedSpecies.contains(sp.id) {
                                 draft.selectedSpecies.remove(sp.id)
                                 draft.speciesPhotos.removeValue(forKey: sp.id)
+                                draft.aiMetadataBySpecies.removeValue(forKey: sp.id)
                             } else {
                                 draft.selectedSpecies.insert(sp.id)
                             }
@@ -311,6 +377,54 @@ struct StepWildlifeNotes: View {
                 }
             }
 
+            if isAnalyzingPhoto {
+                HStack(spacing: 8) {
+                    ProgressView()
+                    Text("Analyzing latest photo...")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+            }
+
+            if !aiSuggestions.isEmpty {
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("AI Suggestions")
+                        .font(.subheadline.weight(.semibold))
+
+                    ForEach(aiSuggestions.prefix(3)) { suggestion in
+                        HStack(alignment: .top) {
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text(suggestion.commonName)
+                                    .font(.subheadline.weight(.semibold))
+                                Text(suggestion.scientificName)
+                                    .font(.caption)
+                                    .foregroundStyle(.secondary)
+                                Text("\(Int(suggestion.confidence * 100))% confidence")
+                                    .font(.caption2)
+                                    .foregroundStyle(.secondary)
+                                if suggestion.siteBoosted {
+                                    Text("Likely at this site")
+                                        .font(.caption2.weight(.semibold))
+                                        .foregroundStyle(.green)
+                                }
+                            }
+                            Spacer()
+                            Button("Select") {
+                                applySuggestion(suggestion)
+                            }
+                            .buttonStyle(.bordered)
+                        }
+                        .padding(10)
+                        .background(Color.gray.opacity(0.08))
+                        .cornerRadius(10)
+                    }
+                }
+            } else if let aiMessage {
+                Text(aiMessage)
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+
             Text("Notes").font(.caption).foregroundStyle(.secondary)
             TextEditor(text: $draft.notes)
                 .frame(minHeight: 120)
@@ -321,10 +435,12 @@ struct StepWildlifeNotes: View {
         .task {
             await loadResults()
             await loadSpeciesNames(for: Array(draft.selectedSpecies))
+            await loadGear()
         }
         .onChange(of: draft.selectedSpecies) { _, newValue in
             let allowed = Set(newValue)
             draft.speciesPhotos = draft.speciesPhotos.filter { allowed.contains($0.key) }
+            draft.aiMetadataBySpecies = draft.aiMetadataBySpecies.filter { allowed.contains($0.key) }
             Task { await loadSpeciesNames(for: Array(newValue)) }
         }
         .photosPicker(isPresented: $showingPhotoPicker, selection: $pickerItem, matching: .images)
@@ -333,6 +449,7 @@ struct StepWildlifeNotes: View {
             Task {
                 guard let data = try? await newItem?.loadTransferable(type: Data.self) else { return }
                 addLibraryPhoto(data: data, to: speciesId)
+                await classifyPhoto(data: data)
             }
         }
         .sheet(isPresented: $showingCamera) {
@@ -341,6 +458,9 @@ struct StepWildlifeNotes: View {
                 onImagePicked: { image in
                     guard let speciesId = targetSpeciesForCamera else { return }
                     addCameraPhoto(image: image, to: speciesId)
+                    if let data = image.jpegData(compressionQuality: 0.9) {
+                        Task { await classifyPhoto(data: data) }
+                    }
                 }
             )
         }
@@ -370,6 +490,22 @@ struct StepWildlifeNotes: View {
         }
     }
 
+    private func loadGear() async {
+        do {
+            let activeGear = try gearRepo.fetchActive()
+            await MainActor.run {
+                availableGear = activeGear
+                if draft.selectedGearIds.isEmpty {
+                    draft.selectedGearIds = Set(activeGear.map(\.id))
+                } else {
+                    draft.selectedGearIds = draft.selectedGearIds.intersection(Set(activeGear.map(\.id)))
+                }
+            }
+        } catch {
+            Log.diveLog.debug("Failed to load gear: \(error.localizedDescription)")
+        }
+    }
+
     private func addLibraryPhoto(data: Data, to speciesId: String) {
         var photos = draft.speciesPhotos[speciesId] ?? []
         guard photos.count < 10 else { return }
@@ -383,6 +519,104 @@ struct StepWildlifeNotes: View {
             )
         )
         draft.speciesPhotos[speciesId] = photos
+    }
+
+    private func classifyPhoto(data: Data) async {
+        guard let image = UIImage(data: data) else { return }
+
+        await MainActor.run {
+            isAnalyzingPhoto = true
+            aiMessage = nil
+        }
+
+        do {
+            let predictions = try await classifier.classify(image: image, maxResults: 8)
+            let suggestions = try mapPredictionsToSpecies(predictions)
+            await MainActor.run {
+                aiSuggestions = Array(suggestions.prefix(3))
+                if aiSuggestions.isEmpty {
+                    aiMessage = "No confident marine species suggestions. Try manual search."
+                }
+                isAnalyzingPhoto = false
+            }
+        } catch {
+            await MainActor.run {
+                aiSuggestions = []
+                aiMessage = "AI identification unavailable right now."
+                isAnalyzingPhoto = false
+            }
+        }
+    }
+
+    private func mapPredictionsToSpecies(_ predictions: [SpeciesClassification]) throws -> [AISuggestion] {
+        let siteSpeciesIds: Set<String> = {
+            guard let siteId = draft.site?.id,
+                  let siteSpecies = try? speciesRepo.fetchForSite(siteId) else {
+                return []
+            }
+            return Set(siteSpecies.map(\.id))
+        }()
+
+        var seen: Set<String> = []
+        var suggestions: [AISuggestion] = []
+
+        for prediction in predictions {
+            guard let species = try resolveSpecies(from: prediction) else { continue }
+            guard !seen.contains(species.id) else { continue }
+            seen.insert(species.id)
+
+            let siteBoosted = siteSpeciesIds.contains(species.id)
+            let adjustedConfidence = min(1.0, prediction.confidence * (siteBoosted ? 1.2 : 1.0))
+            suggestions.append(
+                AISuggestion(
+                    speciesId: species.id,
+                    commonName: species.name,
+                    scientificName: species.scientificName,
+                    confidence: adjustedConfidence,
+                    siteBoosted: siteBoosted
+                )
+            )
+        }
+
+        return suggestions.sorted { $0.confidence > $1.confidence }
+    }
+
+    private func resolveSpecies(from prediction: SpeciesClassification) throws -> WildlifeSpecies? {
+        let normalized = prediction.normalizedLabel
+        let condensed = normalized.replacingOccurrences(of: "  ", with: " ")
+        if condensed.isEmpty { return nil }
+
+        if let exact = try AppDatabase.shared.read({ db in
+            try WildlifeSpecies
+                .filter(sql: "LOWER(scientificName) = ?", arguments: [condensed])
+                .fetchOne(db)
+        }) {
+            return exact
+        }
+
+        if let exactCommon = try AppDatabase.shared.read({ db in
+            try WildlifeSpecies
+                .filter(sql: "LOWER(name) = ?", arguments: [condensed])
+                .fetchOne(db)
+        }) {
+            return exactCommon
+        }
+
+        let query = condensed.split(separator: " ").prefix(3).joined(separator: " ")
+        let candidates = try speciesRepo.search(query)
+        return candidates.first
+    }
+
+    private func applySuggestion(_ suggestion: AISuggestion) {
+        draft.selectedSpecies.insert(suggestion.speciesId)
+        let suggestionsJson = (try? String(data: JSONEncoder().encode(aiSuggestions), encoding: .utf8))
+        draft.aiMetadataBySpecies[suggestion.speciesId] = DraftAISightingMetadata(
+            confidence: suggestion.confidence,
+            suggestionsJson: suggestionsJson
+        )
+        Task {
+            await loadSpeciesNames(for: [suggestion.speciesId])
+        }
     }
 
     private func addCameraPhoto(image: UIImage, to speciesId: String) {
@@ -422,6 +656,33 @@ struct SelectableChip: View {
         .accessibilityValue(selected ? "Selected" : "Not selected")
         .accessibilityHint("Double tap to \(selected ? "deselect" : "select") this species")
         .accessibilityAddTraits(selected ? .isSelected : [])
+    }
+}
+
+private struct GearSelectableChip: View {
+    let title: String
+    let icon: String
+    let selected: Bool
+    var action: () -> Void
+
+    var body: some View {
+        Button(action: action) {
+            HStack(spacing: 8) {
+                Image(systemName: selected ? "checkmark.circle.fill" : "circle")
+                    .foregroundStyle(selected ? Color.oceanBlue : .secondary)
+                Image(systemName: icon)
+                    .foregroundStyle(.secondary)
+                Text(title)
+                    .font(.caption)
+                    .lineLimit(1)
+                Spacer(minLength: 0)
+            }
+            .padding(.vertical, 8)
+            .padding(.horizontal, 10)
+            .background(selected ? Color.oceanBlue.opacity(0.12) : Color.gray.opacity(0.12))
+            .cornerRadius(10)
+        }
+        .buttonStyle(.plain)
     }
 }
 
@@ -494,6 +755,7 @@ struct StepReviewSave: View {
     @Binding var saveSuccess: Bool
     let onSaved: () -> Void
     @State private var speciesNames: [String: String] = [:]
+    @State private var gearNames: [String: String] = [:]
     
     var body: some View {
         VStack(spacing: 16) {
@@ -559,6 +821,20 @@ struct StepReviewSave: View {
                     }
                     .frame(maxWidth: .infinity, alignment: .leading)
                 }
+
+                if !draft.selectedGearIds.isEmpty {
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text("Gear Used").font(.subheadline)
+                        WrapList(items: Array(draft.selectedGearIds)) { id in
+                            Text(gearNames[id] ?? id)
+                                .font(.caption)
+                                .padding(6)
+                                .background(Color.teal.opacity(0.18))
+                                .cornerRadius(8)
+                        }
+                    }
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                }
                 
                 if !draft.notes.isEmpty {
                     VStack(alignment: .leading, spacing: 8) {
@@ -570,6 +846,7 @@ struct StepReviewSave: View {
         }
         .task {
             await loadSpeciesNames()
+            await loadGearNames()
         }
     }
     
@@ -583,6 +860,19 @@ struct StepReviewSave: View {
             speciesNames = Dictionary(uniqueKeysWithValues: species.map { ($0.id, $0.name) })
         } catch {
             Log.wildlife.debug("Failed to load species names: \(error.localizedDescription)")
+        }
+    }
+
+    private func loadGearNames() async {
+        do {
+            let ids = Array(draft.selectedGearIds)
+            guard !ids.isEmpty else { return }
+            let items = try AppDatabase.shared.read { db in
+                try GearItem.fetchAll(db, keys: ids)
+            }
+            gearNames = Dictionary(uniqueKeysWithValues: items.map { ($0.id, $0.name) })
+        } catch {
+            Log.diveLog.debug("Failed to load gear names: \(error.localizedDescription)")
         }
     }
     
@@ -653,7 +943,13 @@ enum WizardSaver {
                 try dive.insert(db)
 
                 for speciesId in draft.selectedSpecies.sorted() {
-                    let sighting = WildlifeSighting(diveId: dive.id, speciesId: speciesId)
+                    let aiMetadata = draft.aiMetadataBySpecies[speciesId]
+                    let sighting = WildlifeSighting(
+                        diveId: dive.id,
+                        speciesId: speciesId,
+                        aiConfidence: aiMetadata?.confidence,
+                        aiSuggestionsJson: aiMetadata?.suggestionsJson
+                    )
                     try sighting.insert(db)
 
                     let photoInputs = Array((draft.speciesPhotos[speciesId] ?? []).prefix(10))
@@ -679,6 +975,26 @@ enum WizardSaver {
                         )
                         try record.insert(db)
                     }
+                }
+
+                // Save selected gear links and refresh dive counts per gear item.
+                let uniqueGearIds = Array(Set(draft.selectedGearIds))
+                for gearId in uniqueGearIds {
+                    guard try GearItem.fetchOne(db, key: gearId) != nil else { continue }
+                    try DiveGear(diveId: dive.id, gearId: gearId).insert(db)
+                }
+                for gearId in uniqueGearIds {
+                    try db.execute(
+                        sql: """
+                        UPDATE gear_items
+                        SET totalDiveCount = (
+                            SELECT COUNT(*) FROM dive_gear WHERE gearId = ?
+                        ),
+                        updatedAt = ?
+                        WHERE id = ?
+                        """,
+                        arguments: [gearId, Date(), gearId]
+                    )
                 }
 
                 // Update site visited count + wishlist

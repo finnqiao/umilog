@@ -34,7 +34,9 @@
 	<key>CFBundleVersion</key>
 	<string>$(CURRENT_PROJECT_VERSION)</string>
 	<key>NSBluetoothAlwaysUsageDescription</key>
-	<string>Connect your dive computer to sync dive data automatically.</string>
+	<string>UmiLog uses Bluetooth to scan and sync supported dive computers.</string>
+	<key>NSBluetoothPeripheralUsageDescription</key>
+	<string>UmiLog uses Bluetooth to scan and sync supported dive computers.</string>
 	<key>NSCameraUsageDescription</key>
 	<string>Take photos of marine life to attach to wildlife sightings.</string>
 	<key>NSFaceIDUsageDescription</key>
