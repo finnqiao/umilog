@@ -96,6 +96,7 @@ private struct CompactSiteCard: View {
         case .cave: return "mountain.2.fill"
         case .shore: return "beach.umbrella.fill"
         case .drift: return "wind"
+        case .other: return "mappin.fill"
         }
     }
 }
