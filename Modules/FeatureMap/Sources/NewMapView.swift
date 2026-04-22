@@ -33,6 +33,20 @@ struct NativeMapView: UIViewRepresentable {
         tileOverlay.canReplaceMapContent = true
         mapView.addOverlay(tileOverlay, level: .aboveLabels)
 
+        // Blue ocean tint: non-interactive UIView over the tile layer shifts the grey
+        // CartoDB tiles toward deep ocean blue without changing the tile provider.
+        let tintView = UIView()
+        tintView.backgroundColor = UIColor(red: 0.0, green: 0.12, blue: 0.50, alpha: 0.20)
+        tintView.isUserInteractionEnabled = false
+        tintView.translatesAutoresizingMaskIntoConstraints = false
+        mapView.addSubview(tintView)
+        NSLayoutConstraint.activate([
+            tintView.leadingAnchor.constraint(equalTo: mapView.leadingAnchor),
+            tintView.trailingAnchor.constraint(equalTo: mapView.trailingAnchor),
+            tintView.topAnchor.constraint(equalTo: mapView.topAnchor),
+            tintView.bottomAnchor.constraint(equalTo: mapView.bottomAnchor)
+        ])
+
         // Register custom annotation views
         mapView.register(SiteAnnotationView.self, forAnnotationViewWithReuseIdentifier: SiteAnnotationView.reuseIdentifier)
         mapView.register(ClusterAnnotationView.self, forAnnotationViewWithReuseIdentifier: MKMapViewDefaultClusterAnnotationViewReuseIdentifier)
@@ -725,7 +739,7 @@ public struct NewMapView: View {
 
     // Coming Soon toast state
     @State private var showingComingSoonToast = false
-    @State private var showingCoachMarks: Bool = MapCoachMarksView.shouldShow
+    @State private var showingCoachMarks: Bool = !ProcessInfo.processInfo.arguments.contains("-SkipOnboarding") && MapCoachMarksView.shouldShow
     @State private var comingSoonFeature = ""
     
     public init(appearance: MapAppearance = .default) {

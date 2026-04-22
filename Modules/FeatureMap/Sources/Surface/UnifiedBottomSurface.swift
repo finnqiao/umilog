@@ -352,7 +352,7 @@ struct UnifiedBottomSurface: View {
         ZStack {
             // Base fill: deep ocean navy, opaque. No translucency so the map never
             // bleeds through and the sheet reads as one solid surface.
-            Color(red: 0.05, green: 0.13, blue: 0.28)  // ≈ #0D2147 deep ocean navy
+            Color(red: 0.05, green: 0.14, blue: 0.34)  // ≈ #0D2357 richer ocean navy
 
             LinearGradient(
                 colors: [Color.white.opacity(0.08), Color.clear],
