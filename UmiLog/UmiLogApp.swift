@@ -317,16 +317,22 @@ private extension ContentView {
                     NewMapView()
                 case .history:
                     NavigationStack { DiveHistoryView() }
-                        .padding(.trailing, AppConstants.Layout.verticalTabBarWidth)
+                        .safeAreaInset(edge: .trailing, spacing: 0) {
+                            Color.clear.frame(width: AppConstants.Layout.verticalTabBarWidth)
+                        }
                 case .log:
                     // Should not be reachable — VerticalTabBar fires onLogTap instead.
                     NewMapView()
                 case .wildlife:
                     NavigationStack { WildlifeView() }
-                        .padding(.trailing, AppConstants.Layout.verticalTabBarWidth)
+                        .safeAreaInset(edge: .trailing, spacing: 0) {
+                            Color.clear.frame(width: AppConstants.Layout.verticalTabBarWidth)
+                        }
                 case .profile:
                     NavigationStack { ProfileView() }
-                        .padding(.trailing, AppConstants.Layout.verticalTabBarWidth)
+                        .safeAreaInset(edge: .trailing, spacing: 0) {
+                            Color.clear.frame(width: AppConstants.Layout.verticalTabBarWidth)
+                        }
                 }
             }
 

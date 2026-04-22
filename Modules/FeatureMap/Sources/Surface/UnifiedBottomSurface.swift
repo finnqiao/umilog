@@ -109,13 +109,10 @@ struct UnifiedBottomSurface: View {
     var body: some View {
         GeometryReader { geometry in
             let containerHeight = geometry.size.height
-
-            guard containerHeight > 10 else { return AnyView(Color.clear) }
-
-            // The full container height is available for the sheet. The native
-            // tab bar already insets this geometry, so the sheet bottom sits
-            // flush against the tab bar top automatically.
-            let effectiveHeight = containerHeight
+            let isReady = containerHeight > 10
+            // Use a minimum of 1 to avoid division-by-zero in detent calculations
+            // on the first layout pass; the view is hidden via opacity until ready.
+            let effectiveHeight = isReady ? containerHeight : 1
 
             let allowedDetents = SurfaceDetent.allowed(for: mode)
             let baseContentHeight: CGFloat = detent == .hidden ? 0 : detent.height(in: effectiveHeight)
@@ -140,35 +137,36 @@ struct UnifiedBottomSurface: View {
             let progressDenominator = max(maxContentHeight - minContentHeight, 1)
             let dragProgress = max(0, min(1, (currentContentHeight - minContentHeight) / progressDenominator))
 
-            return AnyView(
-                VStack(spacing: 0) {
-                    Spacer(minLength: 0)
+            VStack(spacing: 0) {
+                Spacer(minLength: 0)
 
-                    // Outer dock container: one background, one shadow, one clip.
-                    surfaceContent(
-                        containerHeight: effectiveHeight,
-                        dragProgress: dragProgress
+                // Outer dock container: one background, one shadow, one clip.
+                surfaceContent(
+                    containerHeight: effectiveHeight,
+                    dragProgress: dragProgress
+                )
+                .frame(height: currentContentHeight)
+                .clipped()
+                .background(dockBackground)
+                .clipShape(
+                    UnevenRoundedRectangle(
+                        topLeadingRadius: 28,
+                        bottomLeadingRadius: 0,
+                        bottomTrailingRadius: 0,
+                        topTrailingRadius: 28,
+                        style: .continuous
                     )
-                    .frame(height: currentContentHeight)
-                    .clipped()
-                    .background(dockBackground)
-                    .clipShape(
-                        UnevenRoundedRectangle(
-                            topLeadingRadius: 28,
-                            bottomLeadingRadius: 0,
-                            bottomTrailingRadius: 0,
-                            topTrailingRadius: 28,
-                            style: .continuous
-                        )
-                    )
-                    .shadow(color: Color.black.opacity(0.32), radius: 24, x: 0, y: -8)
-                    .simultaneousGesture(
-                        dragGesture(containerHeight: effectiveHeight, allowedDetents: allowedDetents)
-                    )
-                }
-                .animation(surfaceAnimation, value: detent)
-                .animation(surfaceAnimation, value: mode)
-            )
+                )
+                .shadow(color: Color.black.opacity(0.32), radius: 24, x: 0, y: -8)
+                .simultaneousGesture(
+                    dragGesture(containerHeight: effectiveHeight, allowedDetents: allowedDetents)
+                )
+            }
+            // Keep view type consistent across all frames so SwiftUI can animate
+            // between states without the spring getting stuck at opacity 0.
+            .opacity(isReady ? 1 : 0)
+            .animation(surfaceAnimation, value: detent)
+            .animation(surfaceAnimation, value: mode)
         }
     }
 
