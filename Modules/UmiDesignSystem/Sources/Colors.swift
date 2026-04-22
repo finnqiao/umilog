@@ -2,18 +2,18 @@ import SwiftUI
 
 public extension Color {
     // MARK: - Core Underwater Palette (Ocean Blue Theme)
-    static let abyss = Color(hex: "0A2342")       // Deep ocean blue (was nearly black)
-    static let midnight = Color(hex: "0D3B66")    // Rich midnight blue
-    static let trench = Color(hex: "1A4068")      // Medium ocean depth
-    static let ocean = Color(hex: "1E5688")       // Ocean blue
-    static let lagoon = Color(hex: "2D7FBF")
+    static let abyss = Color(hex: "060E26")       // Abyssal zone — deep indigo-black
+    static let midnight = Color(hex: "092040")    // Midnight deep blue
+    static let trench = Color(hex: "0D2F5A")      // Trench blue (card backgrounds)
+    static let ocean = Color(hex: "124B87")       // Ocean depth blue
+    static let lagoon = Color(hex: "1878D4")      // Primary accent — bright ocean blue
     static let reef = Color(hex: "5EEAD4")
     static let amber = Color(hex: "F59E0B")
     static let danger = Color(hex: "EF4444")
     static let foam = Color(hex: "E6ECF4")
-    static let mist = Color(hex: "95A3B8")
+    static let mist = Color(hex: "7FA4C8")        // Bluer secondary text
     static let kelp = Color(hex: "1B3353")
-    static let glass = Color(.sRGB, red: 8.0/255.0, green: 13.0/255.0, blue: 25.0/255.0, opacity: 0.62)
+    static let glass = Color(.sRGB, red: 6.0/255.0, green: 14.0/255.0, blue: 36.0/255.0, opacity: 0.72)
 
     // MARK: - Core Underwater Palette (Light)
     static let sand = Color(hex: "F3F8FF")
@@ -38,7 +38,7 @@ public extension Color {
     static let landBase = Color(hex: "141816")       // Land mass fill
 
     // MARK: - Resy-Style Pin States
-    static let pinDefault = Color(hex: "35C2E0")     // Cool cyan - undiscovered
+    static let pinDefault = Color(hex: "4DC8FF")     // Bright ocean-cyan - undiscovered
     static let pinVisited = Color(hex: "2FD7B8")     // Green-teal - logged dives
     static let pinFavorite = Color(hex: "F2C14E")    // Gold - wishlist/saved
 

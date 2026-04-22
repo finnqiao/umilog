@@ -108,63 +108,79 @@ struct ExploreContent: View {
 
     // MARK: - Peek Layout
 
-    /// Peek layout per plan §3e: title + count, single pull hint, Filters button.
-    /// Legend and teaching copy moved to the one-time coachmark (plan §3c).
+    /// Drinco-style peek: hero title + sort pill + pull hint.
     private var peekLayout: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            HStack(alignment: .top, spacing: 12) {
-                VStack(alignment: .leading, spacing: 4) {
-                    Text(peekTitle)
-                        .font(.headline)
-                        .foregroundStyle(Color.foam)
+        VStack(alignment: .leading, spacing: 12) {
+            // Hero title row
+            HStack(alignment: .center, spacing: 10) {
+                Image(systemName: "water.waves")
+                    .font(.system(size: 17, weight: .semibold))
+                    .foregroundStyle(Color.lagoon)
 
-                    Text(peekSummaryText)
-                        .font(.subheadline)
-                        .foregroundStyle(Color.mist.opacity(0.88))
-                }
+                Text(peekHeroTitle)
+                    .font(.title3.weight(.bold))
+                    .foregroundStyle(Color.foam)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.85)
 
                 Spacer()
 
                 filterEntryButton
             }
 
-            HStack(spacing: 6) {
+            // Sort pill — only shown when there is content to sort
+            if hasSitesOrDestinations {
+                Button { /* TODO: sort options sheet */ } label: {
+                    HStack(spacing: 5) {
+                        Text("Most Nearby")
+                            .font(.subheadline.weight(.medium))
+                            .foregroundStyle(Color.lagoon)
+                        Image(systemName: "chevron.down")
+                            .font(.system(size: 10, weight: .bold))
+                            .foregroundStyle(Color.lagoon)
+                    }
+                    .padding(.horizontal, 14)
+                    .padding(.vertical, 7)
+                    .background(Color.lagoon.opacity(0.12))
+                    .clipShape(Capsule())
+                    .overlay(Capsule().stroke(Color.lagoon.opacity(0.30), lineWidth: 1))
+                }
+                .buttonStyle(.plain)
+            }
+
+            // Pull hint
+            HStack(spacing: 5) {
                 Image(systemName: "chevron.up")
-                    .font(.system(size: 11, weight: .bold))
-                    .foregroundStyle(Color.lagoon.opacity(0.90))
-                Text("Pull up to browse and filter")
+                    .font(.system(size: 10, weight: .bold))
+                    .foregroundStyle(Color.lagoon.opacity(0.80))
+                Text("Pull up to explore all sites")
                     .font(.caption)
-                    .foregroundStyle(Color.mist.opacity(0.82))
+                    .foregroundStyle(Color.mist.opacity(0.75))
             }
         }
         .padding(.horizontal, 20)
-        .padding(.top, 6)
-        .padding(.bottom, 14)
+        .padding(.top, 8)
+        .padding(.bottom, 16)
         .frame(maxHeight: .infinity, alignment: .top)
     }
 
-    private var peekTitle: String {
-        "Explore the map"
-    }
-
-    /// Count language standardized per plan §3f: always "in this map area"
-    /// (viewport semantics), never "in view" or "nearby".
-    private var peekSummaryText: String {
+    private var peekHeroTitle: String {
         switch zoomLevel {
         case .world:
-            let count = visibleDestinations.count
-            return count > 0
-                ? "\(count) destination\(count == 1 ? "" : "s") in this map area"
-                : "\(sites.count) dive site\(sites.count == 1 ? "" : "s") in this map area"
+            return visibleDestinations.isEmpty ? "Discover Dive Sites" : "Dive Destinations Worldwide"
         case .regional:
-            if !visibleAreas.isEmpty {
-                let count = visibleAreas.count
-                return "\(count) area\(count == 1 ? "" : "s") and \(sites.count) site\(sites.count == 1 ? "" : "s") in this map area"
+            if let regionId = context.hierarchyLevel.regionId {
+                return "Sites in \(regionId)"
             }
-            return "\(sites.count) site\(sites.count == 1 ? "" : "s") in this map area"
+            return "Dive Sites in This Region"
         case .local:
-            return "\(sites.count) site\(sites.count == 1 ? "" : "s") in this map area"
+            let count = sites.count
+            return count > 0 ? "\(count) Site\(count == 1 ? "" : "s") in This Area" : "No Sites Here Yet"
         }
+    }
+
+    private var hasSitesOrDestinations: Bool {
+        !sites.isEmpty || !visibleDestinations.isEmpty || !visibleAreas.isEmpty
     }
 
     // MARK: - Browse Layout
@@ -325,7 +341,7 @@ struct ExploreContent: View {
     }
 
     private var expandedSearchPlaceholder: String {
-        "Search places, sites, or species"
+        "Search sites, species, or regions"
     }
 
     // MARK: - Peek Carousel (zoom-aware)
@@ -615,11 +631,11 @@ struct ExploreContent: View {
                 .font(.system(size: 32))
                 .foregroundStyle(Color.mist.opacity(0.5))
 
-            Text("No sites found")
+            Text("No Dive Sites Found")
                 .font(.headline)
                 .foregroundStyle(Color.foam)
 
-            Text("Clear filters or zoom out to reveal more dive sites.")
+            Text("Try clearing your filters or zooming out to discover more underwater adventures.")
                 .font(.subheadline)
                 .foregroundStyle(Color.mist)
                 .multilineTextAlignment(.center)
@@ -628,7 +644,7 @@ struct ExploreContent: View {
                 Button(action: onClearFilters) {
                     HStack(spacing: 8) {
                         Image(systemName: "xmark.circle")
-                        Text("Reset All Filters")
+                        Text("Clear All Filters")
                     }
                     .font(.subheadline.weight(.semibold))
                     .foregroundStyle(Color.foam)

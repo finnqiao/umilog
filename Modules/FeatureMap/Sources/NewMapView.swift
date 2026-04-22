@@ -24,9 +24,11 @@ struct NativeMapView: UIViewRepresentable {
 
         // Dark ocean style
         mapView.overrideUserInterfaceStyle = .dark
+        // Deep ocean navy shows during tile load gaps and at extreme zoom
+        mapView.backgroundColor = UIColor(red: 0.06, green: 0.09, blue: 0.25, alpha: 1.0)
 
-        // Dark underwater theme via tile overlay (CartoDB Dark Matter - no API key required)
-        let darkTileURL = "https://basemaps.cartocdn.com/dark_all/{z}/{x}/{y}@2x.png"
+        // Dark underwater theme via tile overlay (CartoDB Dark Matter no-labels — no API key required)
+        let darkTileURL = "https://basemaps.cartocdn.com/dark_nolabels/{z}/{x}/{y}@2x.png"
         let tileOverlay = MKTileOverlay(urlTemplate: darkTileURL)
         tileOverlay.canReplaceMapContent = true
         mapView.addOverlay(tileOverlay, level: .aboveLabels)
@@ -196,7 +198,7 @@ class SiteAnnotation: NSObject, MKAnnotation {
 class SiteAnnotationView: MKAnnotationView {
     static let reuseIdentifier = "SiteAnnotation"
 
-    private let oceanMarkerColor = UIColor(red: 0.34, green: 0.60, blue: 0.96, alpha: 1.0)
+    private let oceanMarkerColor = UIColor(red: 0.30, green: 0.78, blue: 1.00, alpha: 1.0)  // #4DC8FF bright ocean-cyan
 
     override init(annotation: MKAnnotation?, reuseIdentifier: String?) {
         super.init(annotation: annotation, reuseIdentifier: reuseIdentifier)
@@ -2307,7 +2309,7 @@ public struct NewMapView: View {
     }
 
     private var searchCapsuleTitle: String {
-        "Search sites, species, places"
+        "Search dive sites, species, places"
     }
 
     /// Per plan §3d: the viewport count does not live in the search capsule.

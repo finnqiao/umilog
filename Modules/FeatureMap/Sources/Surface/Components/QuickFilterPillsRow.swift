@@ -19,7 +19,7 @@ struct QuickFilterPillsRow: View {
         ScrollView(.horizontal, showsIndicators: false) {
             HStack(spacing: 8) {
                 // Lens pills
-                lensPill(title: "All", lens: nil)
+                lensPill(title: "All Sites", lens: nil)
                 ForEach(FilterLens.allCases, id: \.self) { lens in
                     lensPill(title: lens.displayName, lens: lens)
                 }
@@ -46,7 +46,7 @@ struct QuickFilterPillsRow: View {
         let isSelected = filterLens == lens
 
         return Button {
-            withAnimation(.spring(response: 0.25, dampingFraction: 0.8)) {
+            withAnimation(.spring(response: 0.30, dampingFraction: 0.58)) {
                 filterLens = lens
             }
             Haptics.soft()
@@ -61,10 +61,12 @@ struct QuickFilterPillsRow: View {
                     .fontWeight(isSelected ? .semibold : .regular)
             }
             .foregroundStyle(isSelected ? Color.foam : Color.mist)
-            .padding(.horizontal, 10)
-            .padding(.vertical, 6)
-            .background(isSelected ? Color.lagoon : Color.trench)
+            .font(.caption.weight(isSelected ? .semibold : .medium))
+            .padding(.horizontal, 12)
+            .padding(.vertical, 7)
+            .background(isSelected ? Color.lagoon : Color.ocean.opacity(0.25))
             .clipShape(Capsule())
+            .overlay(isSelected ? nil : Capsule().stroke(Color.lagoon.opacity(0.20), lineWidth: 1))
         }
         .buttonStyle(.plain)
         .accessibilityLabel("\(title) filter")
@@ -77,7 +79,7 @@ struct QuickFilterPillsRow: View {
         let isSelected = difficulties.contains(difficulty)
 
         return Button {
-            withAnimation(.spring(response: 0.25, dampingFraction: 0.8)) {
+            withAnimation(.spring(response: 0.30, dampingFraction: 0.58)) {
                 if isSelected {
                     difficulties.remove(difficulty)
                 } else {
@@ -93,14 +95,14 @@ struct QuickFilterPillsRow: View {
                         .fontWeight(.bold)
                 }
                 Text(difficulty.rawValue)
-                    .font(.caption)
-                    .fontWeight(isSelected ? .semibold : .regular)
+                    .font(.caption.weight(isSelected ? .semibold : .medium))
             }
             .foregroundStyle(isSelected ? Color.foam : Color.mist)
-            .padding(.horizontal, 10)
-            .padding(.vertical, 6)
-            .background(isSelected ? difficultyColor(difficulty) : Color.trench)
+            .padding(.horizontal, 12)
+            .padding(.vertical, 7)
+            .background(isSelected ? difficultyColor(difficulty) : Color.ocean.opacity(0.25))
             .clipShape(Capsule())
+            .overlay(isSelected ? nil : Capsule().stroke(Color.lagoon.opacity(0.20), lineWidth: 1))
         }
         .buttonStyle(.plain)
         .accessibilityLabel("\(difficulty.rawValue) difficulty filter")

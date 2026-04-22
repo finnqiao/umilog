@@ -12,11 +12,11 @@ enum FilterLens: String, Equatable, Hashable, Codable, CaseIterable {
     var displayName: String {
         switch self {
         case .saved:
-            return "Saved"
+            return "Wishlist"
         case .logged:
-            return "Logged"
+            return "My Dives"
         case .planned:
-            return "Planned"
+            return "Planning"
         case .trip:
             return "Trip"
         }

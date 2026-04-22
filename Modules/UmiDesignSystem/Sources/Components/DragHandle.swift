@@ -10,7 +10,7 @@ public struct DragHandle: View {
     private let color: Color
 
     public init(
-        width: CGFloat = 36,
+        width: CGFloat = 40,
         height: CGFloat = 5,
         color: Color = .mist
     ) {
@@ -21,7 +21,7 @@ public struct DragHandle: View {
 
     public var body: some View {
         Capsule()
-            .fill(color.opacity(0.5))
+            .fill(color.opacity(0.65))
             .frame(width: width, height: height)
             .padding(.top, 6)
             .padding(.bottom, 8)

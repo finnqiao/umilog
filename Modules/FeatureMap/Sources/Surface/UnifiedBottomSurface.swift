@@ -110,7 +110,7 @@ struct UnifiedBottomSurface: View {
         GeometryReader { geometry in
             let containerHeight = geometry.size.height
 
-            guard containerHeight > 0 else { return AnyView(Color.clear) }
+            guard containerHeight > 10 else { return AnyView(Color.clear) }
 
             // The full container height is available for the sheet. The native
             // tab bar already insets this geometry, so the sheet bottom sits
@@ -175,7 +175,7 @@ struct UnifiedBottomSurface: View {
     // MARK: - Animation
 
     private var surfaceAnimation: Animation? {
-        reduceMotion ? nil : .spring(response: 0.35, dampingFraction: 0.85)
+        reduceMotion ? nil : .spring(response: 0.42, dampingFraction: 0.62)
     }
 
     // MARK: - Surface Content
@@ -317,7 +317,7 @@ struct UnifiedBottomSurface: View {
     }
 
     private var contentAnimation: Animation? {
-        reduceMotion ? nil : .spring(response: 0.35, dampingFraction: 0.85)
+        reduceMotion ? nil : .spring(response: 0.42, dampingFraction: 0.62)
     }
 
     // MARK: - Drag Handle
@@ -334,7 +334,7 @@ struct UnifiedBottomSurface: View {
                 if reduceMotion {
                     detent = allowed[nextIndex]
                 } else {
-                    withAnimation(.spring(response: 0.35, dampingFraction: 0.85)) {
+                    withAnimation(.spring(response: 0.42, dampingFraction: 0.62)) {
                         detent = allowed[nextIndex]
                     }
                 }
@@ -350,9 +350,9 @@ struct UnifiedBottomSurface: View {
     /// No glass, no blur — one material for the whole component.
     private var dockBackground: some View {
         ZStack {
-            // Base fill: deep navy, opaque. No translucency so the map never
+            // Base fill: deep ocean navy, opaque. No translucency so the map never
             // bleeds through and the sheet reads as one solid surface.
-            Color(red: 0.07, green: 0.17, blue: 0.29)  // ≈ #122B4A
+            Color(red: 0.05, green: 0.13, blue: 0.28)  // ≈ #0D2147 deep ocean navy
 
             LinearGradient(
                 colors: [Color.white.opacity(0.08), Color.clear],
@@ -380,7 +380,7 @@ struct UnifiedBottomSurface: View {
             )
             .strokeBorder(
                 LinearGradient(
-                    colors: [Color.lagoon.opacity(0.45), Color.lagoon.opacity(0.04)],
+                    colors: [Color.lagoon.opacity(0.65), Color.lagoon.opacity(0.06)],
                     startPoint: .top,
                     endPoint: .init(x: 0.5, y: 0.2)
                 ),
@@ -411,7 +411,7 @@ struct UnifiedBottomSurface: View {
                             dragTranslation = 0
                             onDismissInspect()
                         } else {
-                            withAnimation(.spring(response: 0.35, dampingFraction: 0.85)) {
+                            withAnimation(.spring(response: 0.42, dampingFraction: 0.62)) {
                                 dragTranslation = 0
                                 onDismissInspect()
                             }
@@ -432,7 +432,7 @@ struct UnifiedBottomSurface: View {
                     dragTranslation = 0
                     detent = newDetent
                 } else {
-                    withAnimation(.spring(response: 0.35, dampingFraction: 0.85)) {
+                    withAnimation(.spring(response: 0.42, dampingFraction: 0.62)) {
                         dragTranslation = 0
                         detent = newDetent
                     }

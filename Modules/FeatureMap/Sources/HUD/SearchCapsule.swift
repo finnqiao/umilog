@@ -10,7 +10,9 @@ struct SearchCapsule: View {
     var onLocateMeTap: () -> Void
 
     var body: some View {
-        Button(action: onTap) {
+        Button {
+            onTap()
+        } label: {
             HStack(spacing: 10) {
                 Image(systemName: "magnifyingglass")
                     .font(.system(size: 15, weight: .medium))
@@ -54,15 +56,23 @@ struct SearchCapsule: View {
                     .fill(Color.glass)
                     .overlay(
                         Capsule()
-                            .stroke(Color.foam.opacity(0.12), lineWidth: 1)
+                            .stroke(Color.foam.opacity(0.15), lineWidth: 1)
                     )
             )
             .shadow(color: Color.black.opacity(0.2), radius: 8, y: 4)
         }
-        .buttonStyle(.plain)
+        .buttonStyle(SearchCapsuleButtonStyle())
         .contentShape(Capsule())
         .accessibilityLabel(title)
-        .accessibilityHint("Opens search for places, dive sites, and species")
+        .accessibilityHint("Search dive sites, species, places")
+    }
+}
+
+private struct SearchCapsuleButtonStyle: ButtonStyle {
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label
+            .scaleEffect(configuration.isPressed ? 0.97 : 1.0)
+            .animation(.spring(response: 0.3, dampingFraction: 0.55), value: configuration.isPressed)
     }
 }
 
@@ -72,14 +82,14 @@ struct SearchCapsule: View {
             .ignoresSafeArea()
         VStack {
             SearchCapsule(
-                title: "Search places, sites, or species",
+                title: "Search dive sites, species, places",
                 subtitle: "Aegean Sea · 72 sites in this map area",
                 onTap: {},
                 onLocateMeTap: {}
             )
                 .padding(.horizontal, 16)
             SearchCapsule(
-                title: "Search places, sites, or species",
+                title: "Search dive sites, species, places",
                 subtitle: "Coral Triangle · 12 destinations in view",
                 onTap: {},
                 onLocateMeTap: {}
