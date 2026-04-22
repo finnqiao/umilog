@@ -131,19 +131,19 @@ struct ExploreContent: View {
             // Sort pill — only shown when there is content to sort
             if hasSitesOrDestinations {
                 Button { /* TODO: sort options sheet */ } label: {
-                    HStack(spacing: 5) {
+                    HStack(spacing: 6) {
                         Text("Most Nearby")
-                            .font(.subheadline.weight(.medium))
-                            .foregroundStyle(Color.lagoon)
+                            .font(.subheadline.weight(.semibold))
+                            .foregroundStyle(Color.foam)
                         Image(systemName: "chevron.down")
-                            .font(.system(size: 10, weight: .bold))
-                            .foregroundStyle(Color.lagoon)
+                            .font(.system(size: 11, weight: .bold))
+                            .foregroundStyle(Color.foam.opacity(0.70))
                     }
-                    .padding(.horizontal, 14)
-                    .padding(.vertical, 7)
-                    .background(Color.lagoon.opacity(0.12))
+                    .padding(.horizontal, 16)
+                    .padding(.vertical, 8)
+                    .background(Color.lagoon.opacity(0.22))
                     .clipShape(Capsule())
-                    .overlay(Capsule().stroke(Color.lagoon.opacity(0.30), lineWidth: 1))
+                    .overlay(Capsule().stroke(Color.lagoon.opacity(0.50), lineWidth: 1))
                 }
                 .buttonStyle(.plain)
             }

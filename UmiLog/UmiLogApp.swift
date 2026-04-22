@@ -453,12 +453,12 @@ struct VerticalTabBar: View {
         .padding(.horizontal, 4)
         .background(
             RoundedRectangle(cornerRadius: 26, style: .continuous)
-                .fill(.ultraThinMaterial)
+                .fill(Color.trench.opacity(0.92))
                 .overlay(
                     RoundedRectangle(cornerRadius: 26, style: .continuous)
                         .strokeBorder(
                             LinearGradient(
-                                colors: [Color.lagoon.opacity(0.30), Color.lagoon.opacity(0.06)],
+                                colors: [Color.lagoon.opacity(0.55), Color.lagoon.opacity(0.12)],
                                 startPoint: .top,
                                 endPoint: .bottom
                             ),
@@ -466,7 +466,7 @@ struct VerticalTabBar: View {
                         )
                 )
         )
-        .shadow(color: Color.black.opacity(0.20), radius: 14, x: -4, y: 8)
+        .shadow(color: Color.black.opacity(0.35), radius: 14, x: -4, y: 8)
         .accessibilityElement(children: .contain)
         .accessibilityLabel("Navigation")
     }
@@ -483,7 +483,7 @@ struct VerticalTabBar: View {
                     .frame(width: 3, height: 20)
                 Image(systemName: item.icon)
                     .font(.system(size: 18, weight: .medium))
-                    .foregroundStyle(isSelected ? Color.lagoon : Color.mist)
+                    .foregroundStyle(isSelected ? Color.lagoon : Color.foam.opacity(0.55))
                     .frame(maxWidth: .infinity)
                     .frame(height: 44)
             }

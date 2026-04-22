@@ -53,13 +53,13 @@ struct SearchCapsule: View {
             .padding(.vertical, 8)
             .background(
                 Capsule()
-                    .fill(Color.glass)
+                    .fill(Color.trench.opacity(0.88))
                     .overlay(
                         Capsule()
-                            .stroke(Color.foam.opacity(0.15), lineWidth: 1)
+                            .stroke(Color.lagoon.opacity(0.35), lineWidth: 1)
                     )
             )
-            .shadow(color: Color.black.opacity(0.2), radius: 8, y: 4)
+            .shadow(color: Color.black.opacity(0.35), radius: 10, y: 5)
         }
         .buttonStyle(SearchCapsuleButtonStyle())
         .contentShape(Capsule())
