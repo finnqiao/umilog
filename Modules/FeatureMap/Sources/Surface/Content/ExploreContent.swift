@@ -1,4 +1,5 @@
 import SwiftUI
+import UmiCoreKit
 import UmiDB
 import UmiDesignSystem
 
@@ -63,20 +64,19 @@ struct ExploreContent: View {
         // morphs smoothly — no snap-to-detent content swaps, no ghosting. The
         // active layer (highest opacity) owns hit testing.
         ZStack(alignment: .top) {
-            peekLayout
-                .opacity(peekOpacity)
-                .allowsHitTesting(peekOpacity > 0.5)
+            expandedLayout
+                .opacity(expandedOpacity)
+                .allowsHitTesting(expandedOpacity > 0.5)
 
             browseLayout
                 .opacity(browseOpacity)
                 .allowsHitTesting(browseOpacity > 0.5)
 
-            expandedLayout
-                .opacity(expandedOpacity)
-                .allowsHitTesting(expandedOpacity > 0.5)
+            peekLayout
+                .opacity(peekOpacity)
+                .allowsHitTesting(peekOpacity > 0.5)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
-        .animation(.easeInOut(duration: 0.18), value: dragProgress)
     }
 
     // MARK: - Layer Opacity Curves
@@ -158,7 +158,8 @@ struct ExploreContent: View {
                     .foregroundStyle(Color.mist.opacity(0.75))
             }
         }
-        .padding(.horizontal, 20)
+        .padding(.leading, 20)
+        .padding(.trailing, 72)  // 20 base + 52 tab bar width to clear FAB
         .padding(.top, 8)
         .padding(.bottom, 16)
         .frame(maxHeight: .infinity, alignment: .top)
@@ -191,7 +192,8 @@ struct ExploreContent: View {
     private var browseLayout: some View {
         VStack(alignment: .leading, spacing: 0) {
             browseHeaderRow
-                .padding(.horizontal, 20)
+                .padding(.leading, 20)
+                .padding(.trailing, 72)  // 20 base + 52 tab bar width to clear FAB
                 .padding(.top, 4)
 
             peekCarousel
@@ -414,7 +416,7 @@ struct ExploreContent: View {
     }
 
     private var hasActiveFilters: Bool {
-        filterLens != nil || !filterDifficulties.isEmpty
+        !filterDifficulties.isEmpty
     }
 
     private var shouldShowRegionDetail: Bool {
@@ -459,11 +461,7 @@ struct ExploreContent: View {
     }
 
     private var activeFilterCount: Int {
-        var count = filterDifficulties.count
-        if filterLens != nil {
-            count += 1
-        }
-        return count
+        filterDifficulties.count
     }
 
     // MARK: - Zoom-Aware List
@@ -493,7 +491,11 @@ struct ExploreContent: View {
     private var destinationList: some View {
         if visibleDestinations.isEmpty {
             if hasActiveFilters {
-                filteredEmptyState
+                if filterLens == .logged && filterDifficulties.isEmpty {
+                    loggedLensEmptyState
+                } else {
+                    filteredEmptyState
+                }
             } else {
                 emptyState
             }
@@ -519,7 +521,11 @@ struct ExploreContent: View {
     private var areaList: some View {
         if visibleAreas.isEmpty && sites.isEmpty {
             if hasActiveFilters {
-                filteredEmptyState
+                if filterLens == .logged && filterDifficulties.isEmpty {
+                    loggedLensEmptyState
+                } else {
+                    filteredEmptyState
+                }
             } else {
                 sparseViewport
             }
@@ -558,7 +564,11 @@ struct ExploreContent: View {
     private var siteList: some View {
         if sites.isEmpty {
             if hasActiveFilters {
-                filteredEmptyState
+                if filterLens == .logged && filterDifficulties.isEmpty {
+                    loggedLensEmptyState
+                } else {
+                    filteredEmptyState
+                }
             } else {
                 sparseViewport
             }
@@ -668,6 +678,39 @@ struct ExploreContent: View {
         .frame(maxWidth: .infinity)
         .padding(.top, 32)
         .padding(.horizontal, 24)
+    }
+
+    private var loggedLensEmptyState: some View {
+        VStack(spacing: 16) {
+            Image(systemName: "book.closed")
+                .font(.system(size: 36))
+                .foregroundStyle(Color.mist.opacity(0.5))
+
+            Text("No dives logged yet")
+                .font(.headline)
+                .foregroundStyle(Color.foam)
+
+            Text("Log your first dive and it will appear here.")
+                .font(.subheadline)
+                .foregroundStyle(Color.mist)
+                .multilineTextAlignment(.center)
+
+            Button {
+                NotificationCenter.default.post(name: .showLogLauncher, object: nil)
+            } label: {
+                Label("Log a Dive", systemImage: "plus.circle")
+                    .font(.subheadline.weight(.semibold))
+                    .foregroundStyle(Color.foam)
+                    .padding(.horizontal, 20)
+                    .padding(.vertical, 10)
+                    .background(Color.lagoon)
+                    .clipShape(Capsule())
+            }
+            .buttonStyle(.plain)
+        }
+        .frame(maxWidth: .infinity)
+        .padding(.horizontal, 32)
+        .padding(.top, 24)
     }
 }
 

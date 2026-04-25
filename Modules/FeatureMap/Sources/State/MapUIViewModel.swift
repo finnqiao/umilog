@@ -148,12 +148,8 @@ class MapUIViewModel: ObservableObject {
         // Load filters
         exploreFilters = persistence.loadExploreFilters()
 
-        // Load filter lens and apply to initial mode if present
-        if let lens = persistence.loadFilterLens() {
-            var ctx = ExploreContext()
-            ctx.filterLens = lens
-            mode = .explore(ctx)
-        }
+        // filterLens is session-only; clear any previously persisted value
+        persistence.clearFilterLens()
     }
 
     private func setupNotificationObservers() {
@@ -186,16 +182,7 @@ class MapUIViewModel: ObservableObject {
     }
 
     private func handleSideEffects(for action: MapUIAction) {
-        let persistence = MapStatePersistence.shared
-
         switch action {
-        // Persist filter lens changes
-        case .applyFilterLens(let lens):
-            persistence.saveFilterLens(lens)
-
-        case .clearFilterLens:
-            persistence.clearFilterLens()
-
         // Proximity prompt handling
         case .showProximityPrompt(let site):
             proximityPrompt = ProximityPromptState(site: site)
