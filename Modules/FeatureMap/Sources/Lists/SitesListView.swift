@@ -87,6 +87,10 @@ struct SiteRow: View {
 
     var body: some View {
         HStack(spacing: 12) {
+            RoundedRectangle(cornerRadius: 2)
+                .fill(isHighlighted ? Color.lagoon : Color.clear)
+                .frame(width: 4, height: 48)
+
             Circle()
                 .fill(site.visitedCount > 0 ? Color.oceanBlue : (site.wishlist ? Color.yellow : Color.gray.opacity(0.3)))
                 .frame(width: 8, height: 8)
@@ -105,21 +109,29 @@ struct SiteRow: View {
 
                 HStack(spacing: 6) {
                     QuickFactChip(text: site.difficulty.rawValue)
+                    QuickFactChip(text: site.type.rawValue.capitalized)
                     QuickFactChip(text: "Max \(Int(site.maxDepth))m")
-                    QuickFactChip(text: "\(Int(site.averageTemp))°C")
                 }
-                .accessibilityLabel("\(site.difficulty.rawValue) difficulty, maximum depth \(Int(site.maxDepth)) meters, average temperature \(Int(site.averageTemp)) degrees")
+                .accessibilityLabel("\(site.difficulty.rawValue) difficulty, \(site.type.rawValue) site, maximum depth \(Int(site.maxDepth)) meters")
             }
 
             Spacer()
+
+            Image(systemName: "chevron.right")
+                .font(.caption)
+                .foregroundStyle(Color.mist.opacity(0.72))
         }
         .padding(.horizontal, 16)
         .padding(.vertical, 12)
         .background(
             RoundedRectangle(cornerRadius: 12)
-                .fill(Color.oceanBlue.opacity(isHighlighted ? 0.12 : 0.0))
+                .fill(Color.oceanBlue.opacity(isHighlighted ? 0.14 : 0.0))
         )
-        .scaleEffect(isHighlighted ? 1.03 : 1.0)
+        .overlay(
+            RoundedRectangle(cornerRadius: 12)
+                .stroke(isHighlighted ? Color.oceanBlue.opacity(0.35) : Color.clear, lineWidth: 1)
+        )
+        .scaleEffect(isHighlighted ? 1.01 : 1.0)
         .shadow(color: isHighlighted ? Color.oceanBlue.opacity(0.25) : .clear, radius: 8, y: 4)
         .animation(.spring(response: 0.3, dampingFraction: 0.75), value: isHighlighted)
         .accessibilityElement(children: .combine)

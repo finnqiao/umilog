@@ -13,6 +13,7 @@ import UIKit
 struct NativeMapView: UIViewRepresentable {
     let sites: [DiveSite]
     @Binding var region: MKCoordinateRegion
+    let selectedSiteId: String?
     var onSelect: (String) -> Void
     var onRegionChange: (MKCoordinateRegion) -> Void
     var onClusterTap: (CLLocationCoordinate2D, Int) -> Void
@@ -21,6 +22,13 @@ struct NativeMapView: UIViewRepresentable {
         let mapView = MKMapView()
         mapView.delegate = context.coordinator
         mapView.setRegion(region, animated: false)
+        mapView.clipsToBounds = true
+        mapView.layoutMargins = UIEdgeInsets(
+            top: 60,
+            left: 0,
+            bottom: 0,
+            right: AppConstants.Layout.verticalTabBarWidth + 24
+        )
 
         // Dark ocean style
         mapView.overrideUserInterfaceStyle = .dark
@@ -57,9 +65,20 @@ struct NativeMapView: UIViewRepresentable {
     }
 
     func updateUIView(_ mapView: MKMapView, context: Context) {
+        mapView.clipsToBounds = true
+        mapView.layoutMargins = UIEdgeInsets(
+            top: 60,
+            left: 0,
+            bottom: 0,
+            right: AppConstants.Layout.verticalTabBarWidth + 24
+        )
+
         if shouldUpdateRegion(current: mapView.region, target: region) {
             mapView.setRegion(region, animated: true)
         }
+
+        let selectionChanged = context.coordinator.lastSelectedSiteId != selectedSiteId
+        context.coordinator.lastSelectedSiteId = selectedSiteId
 
         // Update annotations and sync region only when the binding changes materially.
         let existingIds = Set(mapView.annotations.compactMap { ($0 as? SiteAnnotation)?.siteId })
@@ -68,13 +87,14 @@ struct NativeMapView: UIViewRepresentable {
         // Remove old
         let toRemove = mapView.annotations.filter {
             guard let site = $0 as? SiteAnnotation else { return false }
-            return !newIds.contains(site.siteId)
+            return selectionChanged || !newIds.contains(site.siteId)
         }
         mapView.removeAnnotations(toRemove)
 
         // Add new
-        let toAdd = sites.filter { !existingIds.contains($0.id) }
-        let newAnnotations = toAdd.map { SiteAnnotation(site: $0) }
+        let remainingIds = selectionChanged ? Set<String>() : existingIds
+        let toAdd = sites.filter { !remainingIds.contains($0.id) }
+        let newAnnotations = toAdd.map { SiteAnnotation(site: $0, isSelected: selectedSiteId == $0.id) }
         mapView.addAnnotations(newAnnotations)
     }
 
@@ -94,6 +114,7 @@ struct NativeMapView: UIViewRepresentable {
 
     class Coordinator: NSObject, MKMapViewDelegate {
         var parent: NativeMapView
+        var lastSelectedSiteId: String?
 
         init(_ parent: NativeMapView) {
             self.parent = parent
@@ -194,14 +215,16 @@ class SiteAnnotation: NSObject, MKAnnotation {
     let difficulty: DiveSite.Difficulty
     let isLogged: Bool
     let isSaved: Bool
+    let isSelected: Bool
 
-    init(site: DiveSite) {
+    init(site: DiveSite, isSelected: Bool = false) {
         self.siteId = site.id
         self.siteName = site.name
         self.coordinate = CLLocationCoordinate2D(latitude: site.latitude, longitude: site.longitude)
         self.difficulty = site.difficulty
         self.isLogged = site.visitedCount > 0
         self.isSaved = site.wishlist
+        self.isSelected = isSelected
     }
 
     var title: String? { siteName }
@@ -281,11 +304,18 @@ class SiteAnnotationView: MKAnnotationView {
     }
 
     /// Configure a single-site marker plus status ring for logged/saved state.
-    func configure(difficulty _: DiveSite.Difficulty, isLogged: Bool, isSaved: Bool) {
-        pinView.backgroundColor = oceanMarkerColor
+    func configure(difficulty _: DiveSite.Difficulty, isLogged: Bool, isSaved: Bool, isSelected: Bool) {
+        pinView.backgroundColor = isSelected
+            ? UIColor(red: 1.0, green: 0.80, blue: 0.20, alpha: 1.0)
+            : oceanMarkerColor
+        pinView.transform = isSelected ? CGAffineTransform(scaleX: 1.22, y: 1.22) : .identity
+        centerDot.transform = isSelected ? CGAffineTransform(scaleX: 1.15, y: 1.15) : .identity
 
         // Status ring
-        if isLogged {
+        if isSelected {
+            statusRing.isHidden = false
+            statusRing.layer.borderColor = UIColor.white.cgColor
+        } else if isLogged {
             statusRing.isHidden = false
             statusRing.layer.borderColor = UIColor(red: 0.18, green: 0.84, blue: 0.72, alpha: 1.0).cgColor // #2FD7B8
         } else if isSaved {
@@ -301,7 +331,12 @@ class SiteAnnotationView: MKAnnotationView {
         if let siteAnnotation = annotation as? SiteAnnotation {
             accessibilityLabel = "Dive site: \(siteAnnotation.siteName)"
             accessibilityHint = "Double tap to view site details"
-            configure(difficulty: siteAnnotation.difficulty, isLogged: siteAnnotation.isLogged, isSaved: siteAnnotation.isSaved)
+            configure(
+                difficulty: siteAnnotation.difficulty,
+                isLogged: siteAnnotation.isLogged,
+                isSaved: siteAnnotation.isSaved,
+                isSelected: siteAnnotation.isSelected
+            )
         }
     }
 }
@@ -661,6 +696,9 @@ public struct NewMapView: View {
     private static let safeModeMapKitAnnotationLimit = AppConstants.LaunchStability.mapKitSafeModeAnnotationLimit
 
     private let appearance: MapAppearance
+    var onInspectionChanged: ((Bool) -> Void)?
+    var onSelectedSiteChanged: ((DiveSite?) -> Void)?
+    var onSurfaceVisibleHeightChanged: ((CGFloat) -> Void)?
     @StateObject private var viewModel = MapViewModel()
     @StateObject private var uiViewModel = MapUIViewModel()
     @StateObject private var featuredService = FeaturedDestinationService.shared
@@ -742,8 +780,16 @@ public struct NewMapView: View {
     @State private var showingCoachMarks: Bool = !ProcessInfo.processInfo.arguments.contains("-SkipOnboarding") && MapCoachMarksView.shouldShow
     @State private var comingSoonFeature = ""
     
-    public init(appearance: MapAppearance = .default) {
+    public init(
+        appearance: MapAppearance = .default,
+        onInspectionChanged: ((Bool) -> Void)? = nil,
+        onSelectedSiteChanged: ((DiveSite?) -> Void)? = nil,
+        onSurfaceVisibleHeightChanged: ((CGFloat) -> Void)? = nil
+    ) {
         self.appearance = appearance
+        self.onInspectionChanged = onInspectionChanged
+        self.onSelectedSiteChanged = onSelectedSiteChanged
+        self.onSurfaceVisibleHeightChanged = onSurfaceVisibleHeightChanged
     }
     
     private var primaryColor: Color { scope == .discover ? .reef : .lagoon }
@@ -1011,7 +1057,7 @@ public struct NewMapView: View {
     }
 
     private var mapKitRenderableSites: [DiveSite] {
-        cappedSites(annotationSites, limit: effectiveMapKitAnnotationLimit)
+        includeSelectedSiteIfNeeded(in: cappedSites(annotationSites, limit: effectiveMapKitAnnotationLimit))
     }
 
     private var mapLibreAnnotations: [DiveMapAnnotation] {
@@ -1109,7 +1155,7 @@ public struct NewMapView: View {
             && followMap
             && annotationSites.count < 100
             && viewModel.sites.count <= effectiveAllSitesAnnotationThreshold
-        let base = shouldExpandToAllSites ? viewModel.sites : annotationSites
+        let base = includeSelectedSiteIfNeeded(in: shouldExpandToAllSites ? viewModel.sites : annotationSites)
         return base.map { site in
             let kind: DiveMapAnnotation.Kind = site.type == .wreck ? .wreck : .site
             let status: DiveMapAnnotation.Status = site.visitedCount > 0 ? .logged : (site.wishlist ? .saved : .baseline)
@@ -1127,6 +1173,13 @@ public struct NewMapView: View {
                 isSelected: selectedId == site.id
             )
         }
+    }
+
+    private func includeSelectedSiteIfNeeded(in sites: [DiveSite]) -> [DiveSite] {
+        guard let selectedSite, !sites.contains(where: { $0.id == selectedSite.id }) else {
+            return sites
+        }
+        return [selectedSite] + sites
     }
     
     private var shopAnnotations: [DiveMapAnnotation] {
@@ -1338,6 +1391,7 @@ public struct NewMapView: View {
                     focusMap(on: unifiedFilteredSites)
                 }
                 .onChange(of: selectedSite) {
+                    onSelectedSiteChanged?(selectedSite)
                     if let selectedSite { focusMap(on: [selectedSite]) }
                 }
                 .onChange(of: locationService.authorizationStatus) { _, status in
@@ -1400,6 +1454,8 @@ public struct NewMapView: View {
                         showCallout = false
                         calloutSite = nil
                     }
+
+                    onInspectionChanged?(newMode.hidesNavigationRail)
                 }
         )
 
@@ -1440,6 +1496,11 @@ public struct NewMapView: View {
                     // Refresh visible sites immediately so pins render for the
                     // current viewport without waiting for the featured check.
                     await viewModel.refreshVisibleSites(in: mapRegion)
+
+                    if UITestConfig.isUITesting {
+                        applyUITestConfigurationIfNeeded()
+                        return
+                    }
 
                     try? await Task.sleep(nanoseconds: 50_000_000)
 
@@ -1608,7 +1669,9 @@ public struct NewMapView: View {
                         dismissCallout()
                     }
                 )
-                .padding(.horizontal, 24)
+                .accessibilityIdentifier("diveMap.sitePreview")
+                .padding(.leading, 16)
+                .padding(.trailing, 16 + AppConstants.Layout.verticalTabBarWidth)
                 .position(x: geometry.size.width / 2, y: centerY)
             }
             .transition(.opacity.combined(with: .scale(scale: 0.95)))
@@ -1710,6 +1773,7 @@ public struct NewMapView: View {
             filteredSites: unifiedFilteredSites,
             allSites: viewModel.sites,
             isLoading: viewModel.loading,
+            selectedSiteId: selectedSite?.id,
             regionDetail: currentRegionDetail,
             zoomLevel: uiViewModel.zoomLevel,
             visibleDestinations: visibleDestinations,
@@ -1718,6 +1782,7 @@ public struct NewMapView: View {
             nearestRegion: nearestRegion,
             dataViewModel: viewModel,
             onSiteTap: { site in
+                selectedSite = site
                 uiViewModel.send(.openSiteInspection(site.id))
                 surfaceDetent = .medium
                 focusMap(on: [site], singleSpan: 2.5)
@@ -1742,10 +1807,15 @@ public struct NewMapView: View {
                     to: nil, from: nil, for: nil
                 )
 
-                // Animate transition to inspect mode
+                selectedSite = site
+                calloutSite = site
+                calloutMediaURL = nil
+                showCallout = true
+
+                // Return to map context and keep the compact preview visible.
                 withAnimation(.spring(response: 0.35, dampingFraction: 0.85)) {
-                    uiViewModel.send(.closeSearch(selectedSite: site.id))
-                    surfaceDetent = .medium
+                    uiViewModel.send(.closeSearch(selectedSite: nil))
+                    surfaceDetent = .peek
                 }
 
                 // Focus map after brief delay for smoother animation
@@ -1928,6 +1998,9 @@ public struct NewMapView: View {
             },
             onCloseCluster: {
                 closeClusterExpand()
+            },
+            onVisibleHeightChange: { height in
+                onSurfaceVisibleHeightChanged?(height)
             }
         )
     }
@@ -2015,6 +2088,7 @@ public struct NewMapView: View {
                 }
             }
         }
+        .clipped()
         // Swipe up gesture to reveal bottom sheet when hidden (only if hidden is an allowed state)
         .gesture(
             DragGesture(minimumDistance: 50)
@@ -2036,6 +2110,7 @@ public struct NewMapView: View {
         NativeMapView(
             sites: mapKitRenderableSites,
             region: $mapRegion,
+            selectedSiteId: selectedSite?.id,
             onSelect: { siteId in
                 // Wrap in DispatchQueue.main.async to avoid SwiftUI state mutation during view update
                 DispatchQueue.main.async {
@@ -2047,6 +2122,7 @@ public struct NewMapView: View {
 
                         // Show callout card
                         withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) {
+                            selectedSite = site
                             calloutSite = site
                             showCallout = true
                             surfaceDetent = .peek
@@ -2151,6 +2227,7 @@ public struct NewMapView: View {
 
                         // Show callout card instead of immediately opening inspection
                         withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) {
+                            selectedSite = site
                             calloutSite = site
                             showCallout = true
                             surfaceDetent = .peek  // Ensure bottom sheet is minimal
@@ -2232,49 +2309,56 @@ public struct NewMapView: View {
     }
 
     private var overlayControls: some View {
-        // Removed the GeometryReader + .frame(width:height:) that used to wrap
-        // this ZStack. The full-screen frame was creating an invisible touch-
-        // blocking layer that intercepted ALL gestures, preventing the bottom
-        // sheet from receiving drags or taps. The surfaceHeight it computed was
-        // unused. Without the GeometryReader, touches in areas without
-        // interactive content (the Spacer below the search capsule) pass
-        // through to the layers beneath in the parent ZStack.
-        ZStack(alignment: .topLeading) {
-            topOverlay
+        // The map view owns the unsafe top/bottom areas, so read the safe area
+        // here and place controls below it while leaving the map itself full-bleed.
+        GeometryReader { geometry in
+            let topInset = max(geometry.safeAreaInsets.top, windowSafeAreaInsets.top)
+
+            ZStack(alignment: .topLeading) {
+                topOverlay(topInset: topInset)
 
 #if DEBUG
-            if showDebugHUD {
-                debugHUD
-                    .padding(.leading, 16)
-                    .padding(.top, 16)
-                    .allowsHitTesting(true)
-            }
+                if showDebugHUD {
+                    debugHUD
+                        .padding(.leading, 16)
+                        .padding(.top, topInset + 16)
+                        .allowsHitTesting(true)
+                }
 #endif
 
-            if showingLocationDeniedBanner {
-                VStack {
-                    LocationDeniedBanner(
-                        onOpenSettings: {
-                            if let url = URL(string: UIApplication.openSettingsURLString) {
-                                UIApplication.shared.open(url)
+                if showingLocationDeniedBanner {
+                    VStack {
+                        LocationDeniedBanner(
+                            onOpenSettings: {
+                                if let url = URL(string: UIApplication.openSettingsURLString) {
+                                    UIApplication.shared.open(url)
+                                }
+                            },
+                            onDismiss: {
+                                showingLocationDeniedBanner = false
                             }
-                        },
-                        onDismiss: {
-                            showingLocationDeniedBanner = false
-                        }
-                    )
-                    .padding(.horizontal, 16)
-                    .padding(.top, 56)
-                    Spacer()
+                        )
+                        .padding(.horizontal, 16)
+                        .padding(.top, topInset + 56)
+                        Spacer()
+                    }
+                    .transition(.move(edge: .top).combined(with: .opacity))
                 }
-                .transition(.move(edge: .top).combined(with: .opacity))
             }
         }
     }
 
     // MARK: - HUD Overlay
 
-    private var topOverlay: some View {
+    private var windowSafeAreaInsets: UIEdgeInsets {
+        UIApplication.shared.connectedScenes
+            .compactMap { $0 as? UIWindowScene }
+            .flatMap(\.windows)
+            .first { $0.isKeyWindow }?
+            .safeAreaInsets ?? .zero
+    }
+
+    private func topOverlay(topInset: CGFloat) -> some View {
         VStack(spacing: 10) {
             // Search capsule at top (primary navigation)
             SearchCapsule(
@@ -2291,7 +2375,7 @@ public struct NewMapView: View {
             )
             .padding(.leading, 16)
             .padding(.trailing, 16)
-            .padding(.top, 4)
+            .padding(.top, topInset + 4)
             // Yield search ownership to the sheet when it's expanded.
             // The expanded explore layout shows its own inline search row.
             // Medium is a transitional 0.75 so the handoff to expanded feels
@@ -2614,6 +2698,68 @@ public struct NewMapView: View {
             // No site - start log at current GPS location
             NotificationCenter.default.post(name: .startLiveLogRequested, object: nil)
         }
+    }
+
+    private func applyUITestConfigurationIfNeeded() {
+        guard UITestConfig.value(for: "-UITest_Mode") == nil ||
+                UITestConfig.value(for: "-UITest_Mode") == "diveMap" else {
+            return
+        }
+
+        if UITestConfig.value(for: "-UITest_MapRegion") == "rajaAmpat" {
+            beginProgrammaticCameraChange()
+            let center = CLLocationCoordinate2D(latitude: -0.5, longitude: 130.8)
+            mapRegion = MKCoordinateRegion(
+                center: center,
+                span: MKCoordinateSpan(latitudeDelta: zoomToSpan(10), longitudeDelta: zoomToSpan(10))
+            )
+            followMap = true
+            surfaceDetent = .peek
+        }
+
+        guard let requestedSite = UITestConfig.value(for: "-UITest_SelectSite"),
+              let site = resolveUITestSite(requestedSite) else {
+            return
+        }
+
+        selectedSite = site
+        surfaceDetent = .peek
+        focusMap(on: [site], singleSpan: 2.5)
+
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.75) {
+            selectedSite = site
+            calloutSite = site
+            calloutMediaURL = nil
+            showCallout = true
+            surfaceDetent = .peek
+        }
+    }
+
+    private func resolveUITestSite(_ requestedSite: String) -> DiveSite? {
+        if let exact = viewModel.sites.first(where: { $0.id == requestedSite }) {
+            return exact
+        }
+
+        let normalizedRequest = normalizedUITestKey(requestedSite)
+        if let normalizedMatch = viewModel.sites.first(where: { site in
+            normalizedUITestKey(site.id) == normalizedRequest ||
+            normalizedUITestKey(site.name) == normalizedRequest ||
+            normalizedUITestKey(site.name).contains(normalizedRequest)
+        }) {
+            return normalizedMatch
+        }
+
+        return viewModel.sites.first { site in
+            normalizedUITestKey(site.region).contains("rajaampat") ||
+            normalizedUITestKey(site.location).contains("rajaampat")
+        } ?? viewModel.sites.first
+    }
+
+    private func normalizedUITestKey(_ value: String) -> String {
+        value
+            .lowercased()
+            .components(separatedBy: CharacterSet.alphanumerics.inverted)
+            .joined()
     }
 
     /// Surface interval since last logged dive (for safety indicator on FAB).

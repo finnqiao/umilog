@@ -14,18 +14,16 @@ struct SiteCalloutCard: View {
 
     var body: some View {
         VStack(spacing: 12) {
-            // Header with thumbnail, info, and close button
+            // Header: thumbnail + info + navigate icon + close button
             HStack(spacing: 12) {
-                // Site thumbnail
                 AsyncSiteImage(
                     siteId: site.id,
                     siteType: site.type,
                     imageURL: mediaURL,
-                    size: 56,
+                    size: 52,
                     cornerRadius: 10
                 )
 
-                // Site info
                 VStack(alignment: .leading, spacing: 4) {
                     Text(site.name)
                         .font(.subheadline)
@@ -40,54 +38,64 @@ struct SiteCalloutCard: View {
                             .font(.caption)
                     }
                     .foregroundStyle(Color.mist)
+
+                    HStack(spacing: 6) {
+                        Text(site.type.rawValue)
+                            .font(.caption2.weight(.semibold))
+                            .foregroundStyle(Color.foam)
+                            .lineLimit(1)
+                            .padding(.horizontal, 6)
+                            .padding(.vertical, 2)
+                            .background(Color.ocean.opacity(0.5))
+                            .clipShape(Capsule())
+
+                        Circle()
+                            .fill(calloutDifficultyColor(site.difficulty))
+                            .frame(width: 5, height: 5)
+
+                        Text(site.difficulty.rawValue)
+                            .font(.caption)
+                            .foregroundStyle(Color.mist)
+                            .lineLimit(1)
+                            .fixedSize(horizontal: true, vertical: false)
+                    }
                 }
 
                 Spacer()
 
-                // Close button
-                Button(action: onDismiss) {
-                    Image(systemName: "xmark")
-                        .font(.system(size: 12, weight: .medium))
-                        .foregroundStyle(Color.mist)
-                        .frame(width: 28, height: 28)
-                        .background(
-                            Circle()
-                                .fill(Color.kelp.opacity(0.5))
-                        )
-                }
-                .accessibilityLabel("Close")
-            }
-
-            // Action buttons
-            HStack(spacing: 10) {
-                // Quick navigate button
+                // Navigate icon — inline with header to free up action row space
                 Button {
                     SiteNavigationService.navigate(to: site)
                     Haptics.soft()
                 } label: {
                     Image(systemName: "location.fill")
-                        .font(.system(size: 16, weight: .semibold))
-                        .foregroundStyle(Color.foam)
-                        .frame(width: 44, height: 44)
-                        .background(
-                            RoundedRectangle(cornerRadius: 10, style: .continuous)
-                                .fill(Color.trench)
-                        )
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 10, style: .continuous)
-                                .stroke(Color.ocean.opacity(0.4), lineWidth: 1)
-                        )
+                        .font(.system(size: 14, weight: .semibold))
+                        .foregroundStyle(Color.lagoon)
+                        .frame(width: 32, height: 32)
+                        .background(Circle().fill(Color.lagoon.opacity(0.15)))
                 }
                 .accessibilityLabel("Open \(site.name) in Maps")
 
-                // View Details button (secondary)
+                Button(action: onDismiss) {
+                    Image(systemName: "xmark")
+                        .font(.system(size: 11, weight: .medium))
+                        .foregroundStyle(Color.mist)
+                        .frame(width: 28, height: 28)
+                        .background(Circle().fill(Color.kelp.opacity(0.5)))
+                }
+                .accessibilityLabel("Close")
+                .accessibilityIdentifier("diveMap.sitePreview.close")
+            }
+
+            // Two equal-width action buttons
+            HStack(spacing: 8) {
                 Button(action: onViewDetails) {
                     Text("View Details")
                         .font(.subheadline)
                         .fontWeight(.medium)
                         .foregroundStyle(Color.foam)
                         .frame(maxWidth: .infinity)
-                        .padding(.vertical, 10)
+                        .padding(.vertical, 11)
                         .background(
                             RoundedRectangle(cornerRadius: 10, style: .continuous)
                                 .fill(Color.trench)
@@ -98,25 +106,26 @@ struct SiteCalloutCard: View {
                         )
                 }
                 .accessibilityLabel("View details for \(site.name)")
+                .accessibilityIdentifier("diveMap.sitePreview.viewDetails")
 
-                // Log Dive button (primary)
                 Button(action: onLogDive) {
                     HStack(spacing: 6) {
                         Image(systemName: "waveform.path.ecg")
-                            .font(.system(size: 14, weight: .semibold))
-                        Text("Log Dive Here")
+                            .font(.system(size: 13, weight: .semibold))
+                        Text("Log Dive")
                             .font(.subheadline)
                             .fontWeight(.semibold)
                     }
                     .foregroundStyle(Color.abyss)
                     .frame(maxWidth: .infinity)
-                    .padding(.vertical, 10)
+                    .padding(.vertical, 11)
                     .background(
                         RoundedRectangle(cornerRadius: 10, style: .continuous)
                             .fill(Color.reef)
                     )
                 }
                 .accessibilityLabel("Start logging dive at \(site.name)")
+                .accessibilityIdentifier("diveMap.sitePreview.logDive")
             }
         }
         .padding(16)
@@ -129,6 +138,16 @@ struct SiteCalloutCard: View {
                 )
         )
         .shadow(color: Color.black.opacity(0.25), radius: 12, y: 6)
+        .accessibilityElement(children: .contain)
+        .accessibilityIdentifier("diveMap.sitePreview")
+    }
+
+    private func calloutDifficultyColor(_ difficulty: DiveSite.Difficulty) -> Color {
+        switch difficulty {
+        case .beginner: return .difficultyBeginner
+        case .intermediate: return .difficultyIntermediate
+        case .advanced: return .difficultyAdvanced
+        }
     }
 
     private var depthText: String {

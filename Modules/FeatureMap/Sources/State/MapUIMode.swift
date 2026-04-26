@@ -28,6 +28,16 @@ enum MapUIMode: Equatable {
         return false
     }
 
+    /// Whether the navigation rail should be hidden in this mode.
+    var hidesNavigationRail: Bool {
+        switch self {
+        case .inspectSite, .search, .filter, .clusterExpand, .nearMe:
+            return true
+        case .explore, .plan:
+            return false
+        }
+    }
+
     /// Extract the explore context if in explore mode.
     var exploreContext: ExploreContext? {
         if case .explore(let ctx) = self { return ctx }

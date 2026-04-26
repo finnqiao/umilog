@@ -25,6 +25,9 @@ struct UnifiedBottomSurface: View {
     /// Loading state from data view model.
     let isLoading: Bool
 
+    /// Site currently selected on the map.
+    var selectedSiteId: String?
+
     /// Optional enriched region detail for the current hierarchy.
     let regionDetail: UmiDB.Region?
 
@@ -78,6 +81,8 @@ struct UnifiedBottomSurface: View {
     var onClusterZoomIn: (() -> Void)?
     var onCloseCluster: (() -> Void)?
 
+    var onVisibleHeightChange: (CGFloat) -> Void = { _ in }
+
     // MARK: - State
 
     @State private var dragTranslation: CGFloat = 0
@@ -110,6 +115,7 @@ struct UnifiedBottomSurface: View {
         GeometryReader { geometry in
             let containerHeight = geometry.size.height
             let isReady = containerHeight > 10
+            let bottomSafeInset = geometry.safeAreaInsets.bottom
             // Use a minimum of 1 to avoid division-by-zero in detent calculations
             // on the first layout pass; the view is hidden via opacity until ready.
             let effectiveHeight = isReady ? containerHeight : 1
@@ -131,6 +137,7 @@ struct UnifiedBottomSurface: View {
             let currentContentHeight = detent == .hidden
                 ? 0
                 : max(minContentHeight, min(maxContentHeight, rawContentHeight))
+            let totalSurfaceHeight = detent == .hidden ? 0 : currentContentHeight + bottomSafeInset
 
             // Normalised drag progress: 0 at the smallest allowed detent,
             // 1 at the largest. Used by content views to morph smoothly.
@@ -141,12 +148,21 @@ struct UnifiedBottomSurface: View {
                 Spacer(minLength: 0)
 
                 // Outer dock container: one background, one shadow, one clip.
-                surfaceContent(
-                    containerHeight: effectiveHeight,
-                    dragProgress: dragProgress
-                )
-                .frame(height: currentContentHeight)
-                .clipped()
+                VStack(spacing: 0) {
+                    surfaceContent(
+                        containerHeight: effectiveHeight,
+                        dragProgress: dragProgress
+                    )
+                    .accessibilityIdentifier("diveMap.bottomSheet")
+                    .frame(height: currentContentHeight)
+                    .clipped()
+
+                    if detent != .hidden && bottomSafeInset > 0 {
+                        Color.clear
+                            .frame(height: bottomSafeInset)
+                    }
+                }
+                .frame(height: totalSurfaceHeight)
                 .background(dockBackground)
                 .clipShape(
                     UnevenRoundedRectangle(
@@ -167,7 +183,14 @@ struct UnifiedBottomSurface: View {
             .opacity(isReady ? 1 : 0)
             .animation(surfaceAnimation, value: detent)
             .animation(surfaceAnimation, value: mode)
+            .onAppear {
+                onVisibleHeightChange(totalSurfaceHeight)
+            }
+            .onChange(of: totalSurfaceHeight) { _, newHeight in
+                onVisibleHeightChange(newHeight)
+            }
         }
+        .ignoresSafeArea(.container, edges: .bottom)
     }
 
     // MARK: - Animation
@@ -199,6 +222,7 @@ struct UnifiedBottomSurface: View {
                     dragProgress: dragProgress,
                     sites: filteredSites,
                     loading: isLoading,
+                    selectedSiteId: selectedSiteId,
                     regionDetail: regionDetail,
                     zoomLevel: zoomLevel,
                     filterLens: $filterLens,
@@ -340,6 +364,7 @@ struct UnifiedBottomSurface: View {
             .accessibilityLabel("Resize handle")
             .accessibilityHint("Tap to cycle or drag to resize the panel")
             .accessibilityAddTraits(.isButton)
+            .accessibilityIdentifier("diveMap.bottomSheet.handle")
     }
 
     // MARK: - Background

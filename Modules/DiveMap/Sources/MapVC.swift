@@ -293,6 +293,8 @@ public final class MapVC: UIViewController, MLNMapViewDelegate, UIGestureRecogni
         map.backgroundColor = fallbackBackground.backgroundColor
         map.isOpaque = true
         map.layer.isOpaque = true
+        map.clipsToBounds = true
+        map.contentInset = UIEdgeInsets(top: 60, left: 0, bottom: 0, right: 76)
         map.logoView.isHidden = true
         map.attributionButton.isHidden = true
         map.automaticallyAdjustsContentInset = false

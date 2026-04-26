@@ -75,8 +75,14 @@ public struct QuickLogView: View {
                 }
 
                 ToolbarItem(placement: .principal) {
-                    Text("Quick Log")
-                        .font(.headline)
+                    VStack(spacing: 1) {
+                        Text("Log a Dive")
+                            .font(.headline)
+                        Text(toolbarSubtitle)
+                            .font(.caption2)
+                            .foregroundStyle(.secondary)
+                            .lineLimit(1)
+                    }
                 }
 
                 ToolbarItem(placement: .keyboard) {
@@ -150,6 +156,13 @@ public struct QuickLogView: View {
                 dismiss()
             }
         }
+    }
+
+    private var toolbarSubtitle: String {
+        if let site = viewModel.selectedSite {
+            return "\(site.name) · \(site.region)"
+        }
+        return "No site selected - add it later"
     }
 }
 

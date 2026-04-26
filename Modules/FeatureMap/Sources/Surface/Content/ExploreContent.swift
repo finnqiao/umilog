@@ -20,6 +20,7 @@ struct ExploreContent: View {
     var dragProgress: CGFloat = 0
     let sites: [DiveSite]
     let loading: Bool
+    let selectedSiteId: String?
     let regionDetail: UmiDB.Region?
     let zoomLevel: MapZoomLevel
 
@@ -54,27 +55,32 @@ struct ExploreContent: View {
     // MARK: - State
 
     @State private var flashId: String?
-    @State private var selectedSiteId: String?
 
     // MARK: - Body
 
     var body: some View {
-        // Layered cross-fade: all three layouts coexist, opacity-driven by the
-        // continuous drag progress. As the user drags the sheet, the content
-        // morphs smoothly — no snap-to-detent content swaps, no ghosting. The
-        // active layer (highest opacity) owns hit testing.
-        ZStack(alignment: .top) {
-            expandedLayout
-                .opacity(expandedOpacity)
-                .allowsHitTesting(expandedOpacity > 0.5)
+        Group {
+            if shouldShowRestingPeek {
+                peekLayout
+            } else {
+                // Layered cross-fade: all three layouts coexist, opacity-driven by the
+                // continuous drag progress. As the user drags the sheet, the content
+                // morphs smoothly — no snap-to-detent content swaps, no ghosting. The
+                // active layer (highest opacity) owns hit testing.
+                ZStack(alignment: .top) {
+                    expandedLayout
+                        .opacity(expandedOpacity)
+                        .allowsHitTesting(expandedOpacity > 0.5)
 
-            browseLayout
-                .opacity(browseOpacity)
-                .allowsHitTesting(browseOpacity > 0.5)
+                    browseLayout
+                        .opacity(browseOpacity)
+                        .allowsHitTesting(browseOpacity > 0.5)
 
-            peekLayout
-                .opacity(peekOpacity)
-                .allowsHitTesting(peekOpacity > 0.5)
+                    peekLayout
+                        .opacity(peekOpacity)
+                        .allowsHitTesting(peekOpacity > 0.5)
+                }
+            }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
     }
@@ -106,9 +112,13 @@ struct ExploreContent: View {
         return t * t * (3 - 2 * t)
     }
 
+    private var shouldShowRestingPeek: Bool {
+        detent == .peek && dragProgress <= 0.04
+    }
+
     // MARK: - Peek Layout
 
-    /// Drinco-style peek: hero title + sort pill + pull hint.
+    /// Peek: hero title + sort pill + first nearby site preview (or hint when no sites).
     private var peekLayout: some View {
         VStack(alignment: .leading, spacing: 12) {
             // Hero title row
@@ -125,44 +135,118 @@ struct ExploreContent: View {
 
                 Spacer()
 
+                Image(systemName: "chevron.up")
+                    .font(.system(size: 10, weight: .bold))
+                    .foregroundStyle(Color.lagoon.opacity(0.75))
+
                 filterEntryButton
             }
 
-            // Sort pill — only shown when there is content to sort
-            if hasSitesOrDestinations {
-                Button { /* TODO: sort options sheet */ } label: {
-                    HStack(spacing: 6) {
-                        Text("Most Nearby")
-                            .font(.subheadline.weight(.semibold))
+            // First nearby site preview — gives immediate value at peek height.
+            // Falls back to pull-up hint when no local sites are visible.
+            if let first = sites.first {
+                Button {
+                    onSiteTap(first)
+                    Haptics.soft()
+                } label: {
+                    HStack(spacing: 8) {
+                        Circle()
+                            .fill(peekDifficultyColor(first.difficulty))
+                            .frame(width: 6, height: 6)
+                        Text(first.name)
+                            .font(.subheadline.weight(.medium))
                             .foregroundStyle(Color.foam)
-                        Image(systemName: "chevron.down")
-                            .font(.system(size: 11, weight: .bold))
-                            .foregroundStyle(Color.foam.opacity(0.70))
+                            .lineLimit(1)
+                        Spacer()
+                        Text("\(Int(first.maxDepth))m · \(first.type.rawValue)")
+                            .font(.caption)
+                            .foregroundStyle(Color.mist)
+                        Image(systemName: "chevron.right")
+                            .font(.system(size: 10, weight: .semibold))
+                            .foregroundStyle(Color.mist.opacity(0.5))
                     }
-                    .padding(.horizontal, 16)
-                    .padding(.vertical, 8)
-                    .background(Color.lagoon.opacity(0.22))
-                    .clipShape(Capsule())
-                    .overlay(Capsule().stroke(Color.lagoon.opacity(0.50), lineWidth: 1))
+                    .padding(.horizontal, 12)
+                    .padding(.vertical, 10)
+                    .background(Color.kelp.opacity(0.4))
+                    .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
                 }
                 .buttonStyle(.plain)
-            }
-
-            // Pull hint
-            HStack(spacing: 5) {
-                Image(systemName: "chevron.up")
-                    .font(.system(size: 10, weight: .bold))
-                    .foregroundStyle(Color.lagoon.opacity(0.80))
-                Text("Pull up to explore all sites")
-                    .font(.caption)
-                    .foregroundStyle(Color.mist.opacity(0.75))
+            } else {
+                Button {
+                    onExpandSearch()
+                    Haptics.soft()
+                } label: {
+                    HStack(spacing: 8) {
+                        Image(systemName: loading ? "hourglass" : "chevron.up")
+                            .font(.system(size: 11, weight: .bold))
+                            .foregroundStyle(Color.lagoon.opacity(0.85))
+                        Text(loading ? "Loading dive sites..." : "Pull up to explore all sites")
+                            .font(.caption.weight(.medium))
+                            .foregroundStyle(Color.mist.opacity(0.85))
+                        Spacer()
+                    }
+                    .padding(.horizontal, 12)
+                    .padding(.vertical, 10)
+                    .background(Color.kelp.opacity(0.34))
+                    .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
+                }
+                .buttonStyle(.plain)
             }
         }
         .padding(.leading, 20)
         .padding(.trailing, 72)  // 20 base + 52 tab bar width to clear FAB
         .padding(.top, 8)
         .padding(.bottom, 16)
-        .frame(maxHeight: .infinity, alignment: .top)
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+    }
+
+    private var hasBrowseContent: Bool {
+        !sites.isEmpty || !visibleDestinations.isEmpty || !visibleAreas.isEmpty
+    }
+
+    private var compactBrowseFallback: some View {
+        Button {
+            onExpandSearch()
+            Haptics.soft()
+        } label: {
+            HStack(spacing: 10) {
+                Image(systemName: loading ? "hourglass" : "water.waves")
+                    .font(.system(size: 16, weight: .semibold))
+                    .foregroundStyle(Color.lagoon)
+
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(loading ? "Loading dive sites" : "Explore dive sites")
+                        .font(.subheadline.weight(.semibold))
+                        .foregroundStyle(Color.foam)
+
+                    Text(loading ? "The map is filling in nearby sites." : "Drag up or search to find sites.")
+                        .font(.caption)
+                        .foregroundStyle(Color.mist.opacity(0.78))
+                        .lineLimit(1)
+                }
+
+                Spacer()
+
+                if !loading {
+                    Image(systemName: "chevron.up")
+                        .font(.system(size: 10, weight: .bold))
+                        .foregroundStyle(Color.mist.opacity(0.65))
+                }
+            }
+            .padding(.horizontal, 12)
+            .padding(.vertical, 12)
+            .background(Color.kelp.opacity(0.34))
+            .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+        }
+        .buttonStyle(.plain)
+    }
+
+    private func peekDifficultyColor(_ difficulty: DiveSite.Difficulty) -> Color {
+        switch difficulty {
+        case .beginner: return .difficultyBeginner
+        case .intermediate: return .difficultyIntermediate
+        case .advanced: return .difficultyAdvanced
+        }
     }
 
     private var peekHeroTitle: String {
@@ -180,15 +264,9 @@ struct ExploreContent: View {
         }
     }
 
-    private var hasSitesOrDestinations: Bool {
-        !sites.isEmpty || !visibleDestinations.isEmpty || !visibleAreas.isEmpty
-    }
-
     // MARK: - Browse Layout
 
-    /// Compact card-first state: just the title row + carousel directly below.
-    /// No subtitle, no reset button, no lens chip — those live in peek or the
-    /// filter modal respectively.
+    /// Medium-height state: title row + carousel + first few site rows to fill the sheet.
     private var browseLayout: some View {
         VStack(alignment: .leading, spacing: 0) {
             browseHeaderRow
@@ -196,9 +274,38 @@ struct ExploreContent: View {
                 .padding(.trailing, 72)  // 20 base + 52 tab bar width to clear FAB
                 .padding(.top, 4)
 
-            peekCarousel
-                .padding(.top, 12)
-                .padding(.bottom, 16)
+            if hasBrowseContent {
+                peekCarousel
+                    .padding(.top, 12)
+
+                // Fill remaining medium-detent space with the first few site rows.
+                // Without these the carousel (~110pt) leaves 150-200pt of dead space.
+                if !sites.isEmpty {
+                    Divider()
+                        .opacity(0.15)
+                        .padding(.horizontal, 16)
+                        .padding(.top, 10)
+
+                    VStack(spacing: 0) {
+                        ForEach(Array(sites.prefix(4).enumerated()), id: \.element.id) { index, site in
+                            SiteRow(site: site, isHighlighted: selectedSiteId == site.id)
+                                .onTapGesture {
+                                    onSiteTap(site)
+                                }
+                            if index < min(sites.count, 4) - 1 {
+                                Divider()
+                                    .padding(.leading, 36)
+                                    .opacity(0.12)
+                            }
+                        }
+                    }
+                    .padding(.bottom, 8)
+                }
+            } else {
+                compactBrowseFallback
+                    .padding(.horizontal, 16)
+                    .padding(.top, 12)
+            }
         }
         .frame(maxHeight: .infinity, alignment: .top)
     }
@@ -546,7 +653,7 @@ struct ExploreContent: View {
                                 Haptics.soft()
                                 onSiteTap(site)
                             } label: {
-                                ExploreSiteRow(site: site, isHighlighted: flashId == site.id)
+                                ExploreSiteRow(site: site, isHighlighted: selectedSiteId == site.id || flashId == site.id)
                             }
                             .buttonStyle(SiteRowButtonStyle())
                         }
@@ -580,7 +687,7 @@ struct ExploreContent: View {
                             Haptics.soft()
                             onSiteTap(site)
                         } label: {
-                            ExploreSiteRow(site: site, isHighlighted: flashId == site.id)
+                            ExploreSiteRow(site: site, isHighlighted: selectedSiteId == site.id || flashId == site.id)
                         }
                         .buttonStyle(SiteRowButtonStyle())
                         .id(site.id)
@@ -765,6 +872,10 @@ private struct ExploreSiteRow: View {
 
     var body: some View {
         HStack(spacing: 12) {
+            RoundedRectangle(cornerRadius: 2)
+                .fill(isHighlighted ? Color.lagoon : Color.clear)
+                .frame(width: 4, height: 48)
+
             // Status indicator
             Circle()
                 .fill(statusColor)
@@ -786,10 +897,10 @@ private struct ExploreSiteRow: View {
                 // Quick facts chips
                 HStack(spacing: 6) {
                     ExploreQuickFactChip(text: site.difficulty.rawValue)
+                    ExploreQuickFactChip(text: site.type.rawValue.capitalized)
                     ExploreQuickFactChip(text: "Max \(Int(site.maxDepth))m")
-                    ExploreQuickFactChip(text: "\(Int(site.averageTemp))°C")
                 }
-                .accessibilityLabel("\(site.difficulty.rawValue) difficulty, maximum depth \(Int(site.maxDepth)) meters, average temperature \(Int(site.averageTemp)) degrees")
+                .accessibilityLabel("\(site.difficulty.rawValue) difficulty, \(site.type.rawValue) site, maximum depth \(Int(site.maxDepth)) meters")
             }
 
             Spacer()
@@ -810,15 +921,19 @@ private struct ExploreSiteRow: View {
 
             Image(systemName: "chevron.right")
                 .font(.caption)
-                .foregroundStyle(Color.mist.opacity(0.5))
+                .foregroundStyle(Color.mist.opacity(0.72))
         }
         .padding(.horizontal, 16)
         .padding(.vertical, 12)
         .background(
             RoundedRectangle(cornerRadius: 12)
-                .fill(isHighlighted ? Color.trench : Color.clear)
+                .fill(isHighlighted ? Color.lagoon.opacity(0.14) : Color.clear)
         )
-        .scaleEffect(isHighlighted ? 1.03 : 1.0)
+        .overlay(
+            RoundedRectangle(cornerRadius: 12)
+                .stroke(isHighlighted ? Color.lagoon.opacity(0.35) : Color.clear, lineWidth: 1)
+        )
+        .scaleEffect(isHighlighted ? 1.01 : 1.0)
         .shadow(color: isHighlighted ? Color.lagoon.opacity(0.25) : .clear, radius: 8, y: 4)
         .animation(.spring(response: 0.3, dampingFraction: 0.75), value: isHighlighted)
         .accessibilityElement(children: .combine)

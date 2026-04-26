@@ -82,7 +82,7 @@ public struct LiveLogWizardView: View {
                 .padding(.horizontal)
             }
             .padding()
-            .navigationTitle("Log New Dive")
+            .navigationTitle("Log a Dive")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .topBarLeading) {
@@ -90,8 +90,25 @@ public struct LiveLogWizardView: View {
                         .accessibilityLabel("Close")
                         .accessibilityHint("Dismiss dive logging wizard")
                 }
+                ToolbarItem(placement: .principal) {
+                    VStack(spacing: 1) {
+                        Text("Log a Dive")
+                            .font(.headline)
+                        Text(toolbarSubtitle)
+                            .font(.caption2)
+                            .foregroundStyle(.secondary)
+                            .lineLimit(1)
+                    }
+                }
             }
         }
+    }
+
+    private var toolbarSubtitle: String {
+        if let site = draft.site {
+            return "\(site.name) · \(site.region)"
+        }
+        return "No site selected - add it later"
     }
     
     private func canProceed(for step: Int) -> Bool {

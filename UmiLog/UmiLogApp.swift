@@ -1,4 +1,4 @@
-import Foundation
+ import Foundation
 import SwiftUI
 import UIKit
 import FeatureMap
@@ -23,6 +23,9 @@ struct UmiLogApp: App {
     init() {
         // Hide the native tab bar globally — replaced by custom VerticalTabBar.
         UITabBar.appearance().isHidden = true
+        if UITestConfig.shouldDisableAnimations {
+            UIView.setAnimationsEnabled(false)
+        }
     }
     
     var body: some Scene {
@@ -59,6 +62,10 @@ struct ContentView: View {
     @State private var showingQuickLog = false
     @State private var showingLogLauncher = false
     @State private var pendingLiveLogSite: DiveSite?
+    @State private var pendingQuickLogSite: DiveSite?
+    @State private var activeMapSite: DiveSite?
+    @State private var mapSurfaceVisibleHeight: CGFloat = 0
+    @State private var isMapInspecting = false
 
     var body: some View {
         ZStack {
@@ -112,20 +119,22 @@ struct ContentView: View {
                 .wateryTransition()
         }
         .sheet(isPresented: $showingQuickLog) {
-            QuickLogView()
+            QuickLogView(suggestedSite: pendingQuickLogSite)
                 .wateryTransition()
         }
         .sheet(isPresented: $showingLogLauncher) {
             LogLauncherView(
+                selectedSite: activeMapSite,
                 startQuickLog: {
                     showingLogLauncher = false
+                    pendingQuickLogSite = activeMapSite
                     DispatchQueue.main.asyncAfter(deadline: .now() + 0.25) {
                         showingQuickLog = true
                     }
                 },
                 startLiveLog: {
                     showingLogLauncher = false
-                    pendingLiveLogSite = nil
+                    pendingLiveLogSite = activeMapSite
                     DispatchQueue.main.asyncAfter(deadline: .now() + 0.25) {
                         showingWizard = true
                     }
@@ -157,6 +166,11 @@ struct ContentView: View {
         .onChange(of: showingWizard) { _, isPresented in
             if !isPresented {
                 pendingLiveLogSite = nil
+            }
+        }
+        .onChange(of: showingQuickLog) { _, isPresented in
+            if !isPresented {
+                pendingQuickLogSite = nil
             }
         }
         .onOpenURL { url in
@@ -310,11 +324,22 @@ private extension ContentView {
 
     @ViewBuilder var tabs: some View {
         ZStack(alignment: .trailing) {
+            // The animated underwater theme sits behind all tabs. The map owns
+            // its own dark visual surface, including safe areas, so keep the
+            // shell opaque and prevent bright theme bands from leaking through.
+            Color.abyss
+                .ignoresSafeArea()
+
             // Tab content — map extends under the glass bar; other tabs are inset.
             Group {
                 switch selectedTab.wrappedValue {
                 case .map:
-                    NewMapView()
+                    NewMapView(
+                        onInspectionChanged: { isMapInspecting = $0 },
+                        onSelectedSiteChanged: { activeMapSite = $0 },
+                        onSurfaceVisibleHeightChanged: { mapSurfaceVisibleHeight = $0 }
+                    )
+                    .ignoresSafeArea(.container, edges: [.top, .bottom])
                 case .history:
                     NavigationStack { DiveHistoryView() }
                         .safeAreaInset(edge: .trailing, spacing: 0) {
@@ -337,9 +362,15 @@ private extension ContentView {
             }
 
             // Floating vertical Liquid Glass tab bar on the trailing edge.
-            VerticalTabBar(selection: selectedTab, onLogTap: {
-                showingLogLauncher = true
-            })
+            VerticalTabBar(
+                selection: selectedTab,
+                isInspecting: isMapInspecting,
+                sheetVisibleHeight: selectedTab.wrappedValue == .map ? mapSurfaceVisibleHeight : 0,
+                hasSelectedSite: activeMapSite != nil,
+                onLogTap: {
+                    showingLogLauncher = true
+                }
+            )
         }
         .safeAreaInset(edge: .top, spacing: 0) {
             if !networkMonitor.isConnected {
@@ -351,6 +382,7 @@ private extension ContentView {
 }
 
 struct LogLauncherView: View {
+    let selectedSite: DiveSite?
     let startQuickLog: () -> Void
     let startLiveLog: () -> Void
     let onClose: () -> Void
@@ -359,6 +391,24 @@ struct LogLauncherView: View {
     var body: some View {
         NavigationStack {
             List {
+                Section {
+                    HStack(spacing: 10) {
+                        Image(systemName: selectedSite == nil ? "mappin" : "mappin.circle.fill")
+                            .foregroundStyle(Color.oceanBlue)
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text(selectedSite?.name ?? "No site selected")
+                                .font(.subheadline.weight(.semibold))
+                                .foregroundStyle(.primary)
+                            Text(selectedSite?.location ?? "Add it later")
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                                .lineLimit(1)
+                        }
+                        Spacer()
+                    }
+                    .accessibilityLabel(selectedSite.map { "Selected site: \($0.name), \($0.location)" } ?? "No site selected, add it later")
+                }
+
                 Section("Choose how to log") {
                     Button(action: handleQuickLog) {
                         Label("Quick Log", systemImage: "bolt.fill")
@@ -421,9 +471,13 @@ enum Tab: String, Hashable {
 /// bar rather than a halo to keep the weight low on a narrow pill.
 struct VerticalTabBar: View {
     @Binding var selection: Tab
+    var isInspecting: Bool = false
+    var sheetVisibleHeight: CGFloat = 0
+    var hasSelectedSite: Bool = false
     var onLogTap: () -> Void
 
     private let barWidth: CGFloat = AppConstants.Layout.verticalTabBarWidth
+    private let sheetBaseOffset: CGFloat = 190
 
     private struct TabItem {
         let tab: Tab
@@ -438,15 +492,30 @@ struct VerticalTabBar: View {
     ]
 
     var body: some View {
-        VStack {
-            Spacer()
-            VStack(spacing: 12) {
-                navigationPill
-                logButton
+        GeometryReader { geometry in
+            VStack {
+                Spacer()
+                VStack(spacing: 12) {
+                    navigationPill
+                        .opacity(shouldDimPill ? 0.85 : 1)
+                    logButton
+                        .opacity(isInspecting ? 0 : 1)
+                        .animation(.easeInOut(duration: 0.2), value: isInspecting)
+                }
+                Spacer()
             }
-            Spacer()
+            .padding(.bottom, bottomOffset(safeAreaBottom: geometry.safeAreaInsets.bottom))
+            .animation(.spring(response: 0.28, dampingFraction: 0.85), value: sheetVisibleHeight)
         }
         .frame(width: barWidth)
+    }
+
+    private var shouldDimPill: Bool {
+        !hasSelectedSite && sheetVisibleHeight <= sheetBaseOffset
+    }
+
+    private func bottomOffset(safeAreaBottom: CGFloat) -> CGFloat {
+        max(0, sheetVisibleHeight - safeAreaBottom - sheetBaseOffset)
     }
 
     private var navigationPill: some View {
@@ -472,9 +541,10 @@ struct VerticalTabBar: View {
                         )
                 )
         )
-        .shadow(color: Color.black.opacity(0.35), radius: 14, x: -4, y: 8)
+        .shadow(color: Color.black.opacity(0.48), radius: 18, x: -5, y: 10)
         .accessibilityElement(children: .contain)
         .accessibilityLabel("Navigation")
+        .accessibilityIdentifier("diveMap.rightModeSelector")
     }
 
     private func tabButton(_ item: TabItem) -> some View {
@@ -498,6 +568,17 @@ struct VerticalTabBar: View {
         .buttonStyle(.plain)
         .accessibilityLabel(item.tab.rawValue.capitalized)
         .accessibilityAddTraits(isSelected ? .isSelected : [])
+        .accessibilityIdentifier(modeIdentifier(for: item.tab))
+    }
+
+    private func modeIdentifier(for tab: Tab) -> String {
+        switch tab {
+        case .map: return "diveMap.mode.map"
+        case .history: return "diveMap.mode.history"
+        case .wildlife: return "diveMap.mode.species"
+        case .profile: return "diveMap.mode.profile"
+        case .log: return "diveMap.mode.log"
+        }
     }
 
     private var logButton: some View {
@@ -505,8 +586,8 @@ struct VerticalTabBar: View {
             onLogTap()
             Haptics.tap()
         } label: {
-            Image(systemName: "plus")
-                .font(.system(size: 20, weight: .bold))
+            Image(systemName: "book.closed.fill")
+                .font(.system(size: 18, weight: .bold))
                 .foregroundStyle(Color.foam)
                 .frame(width: 44, height: 44)
                 .background(
@@ -528,6 +609,7 @@ struct VerticalTabBar: View {
         }
         .buttonStyle(.plain)
         .accessibilityLabel("Log a dive")
+        .accessibilityIdentifier("diveMap.addButton")
     }
 }
 

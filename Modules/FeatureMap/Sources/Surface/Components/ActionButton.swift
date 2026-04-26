@@ -9,9 +9,15 @@ struct ActionButton: View {
     var isActive: Bool = false
     var isPrimary: Bool = false
     var isLoading: Bool = false
+    var accessibilityIdentifier: String?
     var action: () -> Void
 
     var body: some View {
+        baseButton
+            .applyAccessibilityIdentifier(accessibilityIdentifier)
+    }
+
+    private var baseButton: some View {
         Button(action: action) {
             HStack(spacing: 6) {
                 if isLoading {
@@ -76,6 +82,17 @@ struct ActionButton: View {
 
     private var borderWidth: CGFloat {
         1
+    }
+}
+
+private extension View {
+    @ViewBuilder
+    func applyAccessibilityIdentifier(_ identifier: String?) -> some View {
+        if let identifier {
+            accessibilityIdentifier(identifier)
+        } else {
+            self
+        }
     }
 }
 

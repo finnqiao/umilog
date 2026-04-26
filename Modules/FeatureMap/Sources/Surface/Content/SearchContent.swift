@@ -921,30 +921,16 @@ private struct SearchSiteRow: View {
                 )
 
                 VStack(alignment: .leading, spacing: 4) {
-                    // Site name with area suffix
-                    Text("\(site.name) - \(areaName)")
+                    Text(site.name)
                         .font(.body)
                         .fontWeight(.medium)
                         .foregroundStyle(Color.foam)
                         .lineLimit(1)
 
-                    HStack(spacing: 12) {
-                        // Depth info
-                        HStack(spacing: 2) {
-                            Image(systemName: "arrow.down")
-                                .font(.caption2)
-                            Text(depthText)
-                                .font(.caption)
-                        }
+                    Text(metadataText)
+                        .font(.caption)
                         .foregroundStyle(Color.mist)
-
-                        // Distance from user
-                        if let distance = formattedDistance {
-                            Text(distance)
-                                .font(.caption)
-                                .foregroundStyle(Color.mist)
-                        }
-                    }
+                        .lineLimit(1)
                 }
 
                 Spacer()
@@ -958,7 +944,7 @@ private struct SearchSiteRow: View {
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
-        .accessibilityLabel("\(site.name), \(areaName), depth \(depthText)")
+        .accessibilityLabel("\(site.name), \(metadataText)")
         .accessibilityHint("Double tap to view site details")
         .contextMenu {
             Button {
@@ -982,11 +968,6 @@ private struct SearchSiteRow: View {
         }
     }
 
-    private var areaName: String {
-        let components = site.location.split(separator: ",").map { $0.trimmingCharacters(in: .whitespaces) }
-        return components.first ?? site.location
-    }
-
     private var depthText: String {
         if site.averageDepth > 0 && site.maxDepth > 0 && site.averageDepth != site.maxDepth {
             return "\(Int(site.averageDepth))-\(Int(site.maxDepth))m"
@@ -995,6 +976,14 @@ private struct SearchSiteRow: View {
         } else {
             return "--m"
         }
+    }
+
+    private var metadataText: String {
+        var parts = [site.location, depthText, site.type.rawValue.capitalized]
+        if let distance = formattedDistance {
+            parts.append(distance)
+        }
+        return parts.joined(separator: " · ")
     }
 
     private var formattedDistance: String? {

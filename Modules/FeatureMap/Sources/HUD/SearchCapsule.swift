@@ -47,6 +47,7 @@ struct SearchCapsule: View {
                         )
                 }
                 .buttonStyle(.plain)
+                .accessibilityIdentifier("diveMap.locationButton")
             }
             .padding(.leading, 14)
             .padding(.trailing, 6)
@@ -65,6 +66,7 @@ struct SearchCapsule: View {
         .contentShape(Capsule())
         .accessibilityLabel(title)
         .accessibilityHint("Search dive sites, species, places")
+        .accessibilityIdentifier("diveMap.searchBar")
     }
 }
 

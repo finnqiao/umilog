@@ -92,6 +92,24 @@ struct InspectContent: View {
                                 .padding(.horizontal, 16)
                                 .padding(.bottom, 12)
                         }
+
+                        if !entryModes.isEmpty {
+                            ScrollView(.horizontal, showsIndicators: false) {
+                                HStack(spacing: 8) {
+                                    ForEach(entryModes, id: \.self) { mode in
+                                        Label(mode, systemImage: entryModeIcon(mode))
+                                            .font(.caption.weight(.medium))
+                                            .foregroundStyle(Color.mist)
+                                            .padding(.horizontal, 10)
+                                            .padding(.vertical, 6)
+                                            .background(Color.kelp.opacity(0.4))
+                                            .clipShape(Capsule())
+                                    }
+                                }
+                                .padding(.horizontal, 16)
+                            }
+                            .padding(.bottom, 12)
+                        }
                     }
                 }
 
@@ -99,6 +117,8 @@ struct InspectContent: View {
                     expandedContent(site: site)
                 }
             }
+            .accessibilityElement(children: .contain)
+            .accessibilityIdentifier("diveMap.siteDetails")
             .sheet(isPresented: $showingLogWizard) {
                 LiveLogWizardView(initialSite: site)
             }
@@ -128,47 +148,51 @@ struct InspectContent: View {
     // MARK: - Hero Image
 
     private func heroImage(for site: DiveSite) -> some View {
-        let imageHeight: CGFloat = detent == .medium ? 100 : 140
+        let imageHeight: CGFloat = detent == .medium ? 120 : 160
 
-        return ZStack(alignment: .bottomLeading) {
-            // Use AsyncSiteImage to load actual site photo
-            AsyncSiteImage(
-                site: site,
-                mediaURL: mediaURL,
-                size: imageHeight,
-                cornerRadius: 12
-            )
-            .frame(maxWidth: .infinity)
-            .frame(height: imageHeight)
-            .clipShape(RoundedRectangle(cornerRadius: 12))
-            .overlay(
-                RoundedRectangle(cornerRadius: 12)
-                    .strokeBorder(Color.ocean.opacity(0.3), lineWidth: 1)
-            )
+        return GeometryReader { geo in
+            ZStack(alignment: .bottomLeading) {
+                // Render at full container width so the image fills the banner.
+                // AsyncSiteImage is always square; we clip to landscape height externally.
+                AsyncSiteImage(
+                    site: site,
+                    mediaURL: mediaURL,
+                    size: geo.size.width,
+                    cornerRadius: 0
+                )
+                .frame(width: geo.size.width, height: imageHeight)
+                .clipped()
 
-            // Site type badge
-            Text(site.type.rawValue)
-                .font(.caption2)
-                .fontWeight(.semibold)
-                .foregroundStyle(Color.foam)
-                .padding(.horizontal, 8)
-                .padding(.vertical, 4)
-                .background(Color.abyss.opacity(0.7))
-                .clipShape(Capsule())
-                .padding(10)
+                // Site type badge
+                Text(site.type.rawValue)
+                    .font(.caption2)
+                    .fontWeight(.semibold)
+                    .foregroundStyle(Color.foam)
+                    .padding(.horizontal, 8)
+                    .padding(.vertical, 4)
+                    .background(Color.abyss.opacity(0.7))
+                    .clipShape(Capsule())
+                    .padding(10)
 
-            // Condition badge (bottom-right)
-            if let summary = conditionSummary {
-                VStack {
-                    Spacer()
-                    HStack {
+                // Condition badge (bottom-right)
+                if let summary = conditionSummary {
+                    VStack {
                         Spacer()
-                        SiteConditionBadge(summary: summary)
+                        HStack {
+                            Spacer()
+                            SiteConditionBadge(summary: summary)
+                        }
                     }
+                    .padding(10)
                 }
-                .padding(10)
             }
         }
+        .frame(height: imageHeight)
+        .clipShape(RoundedRectangle(cornerRadius: 12))
+        .overlay(
+            RoundedRectangle(cornerRadius: 12)
+                .strokeBorder(Color.ocean.opacity(0.3), lineWidth: 1)
+        )
         .task(id: site.id) {
             await loadMedia(for: site.id)
             await loadConditions(for: site.id)
@@ -237,17 +261,6 @@ struct InspectContent: View {
                 Text(site.location)
                     .font(.subheadline)
                     .foregroundStyle(Color.mist)
-
-                // Quick stats at medium/expanded
-                if detent != .peek {
-                    HStack(spacing: 12) {
-                        Label(site.difficulty.rawValue, systemImage: "gauge.medium")
-                        Label("\(Int(site.maxDepth))m", systemImage: "arrow.down")
-                        Label("\(Int(site.averageTemp))°C", systemImage: "thermometer.medium")
-                    }
-                    .font(.caption)
-                    .foregroundStyle(Color.mist)
-                }
             }
 
             Spacer()
@@ -259,69 +272,80 @@ struct InspectContent: View {
     // MARK: - Actions Row
 
     private func actionsRow(site: DiveSite) -> some View {
-        ScrollView(.horizontal, showsIndicators: false) {
-            HStack(spacing: 12) {
-                ActionButton(
-                    icon: "location.fill",
-                    title: "Navigate",
-                    isActive: false,
-                    isPrimary: false
-                ) {
-                    SiteNavigationService.navigate(to: site, entryModes: entryModes)
-                    Haptics.soft()
+        HStack(spacing: 0) {
+            // Secondary actions scroll horizontally
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: 12) {
+                    ActionButton(
+                        icon: "location.fill",
+                        title: "Navigate",
+                        isActive: false,
+                        isPrimary: false,
+                        accessibilityIdentifier: "diveMap.siteDetails.navigate"
+                    ) {
+                        SiteNavigationService.navigate(to: site, entryModes: entryModes)
+                        Haptics.soft()
+                    }
+
+                    ActionButton(
+                        icon: "doc.on.doc",
+                        title: "Copy GPS",
+                        isActive: false,
+                        isPrimary: false,
+                        accessibilityIdentifier: "diveMap.siteDetails.copyCoordinates"
+                    ) {
+                        _ = SiteNavigationService.copyCoordinates(of: site)
+                        Haptics.success()
+                    }
+
+                    ActionButton(
+                        icon: isWishlist ? "star.fill" : "star",
+                        title: isWishlist ? "Saved" : "Save",
+                        isActive: isWishlist,
+                        isPrimary: false,
+                        isLoading: isUpdatingWishlist
+                    ) {
+                        toggleWishlist(site: site)
+                    }
+
+                    ActionButton(
+                        icon: "calendar.badge.plus",
+                        title: "Plan",
+                        isActive: false,
+                        isPrimary: false
+                    ) {
+                        onOpenPlan(site.id)
+                    }
+
+                    ActionButton(
+                        icon: "cloud.sun",
+                        title: "Report",
+                        isActive: false,
+                        isPrimary: false
+                    ) {
+                        showingConditionReport = true
+                    }
                 }
-
-                ActionButton(
-                    icon: "doc.on.doc",
-                    title: "Copy GPS",
-                    isActive: false,
-                    isPrimary: false
-                ) {
-                    _ = SiteNavigationService.copyCoordinates(of: site)
-                    Haptics.success()
-                }
-
-            // Save button
-            ActionButton(
-                icon: isWishlist ? "star.fill" : "star",
-                title: isWishlist ? "Saved" : "Save",
-                isActive: isWishlist,
-                isPrimary: false,
-                isLoading: isUpdatingWishlist
-            ) {
-                toggleWishlist(site: site)
+                .padding(.leading, 16)
+                .padding(.trailing, 8)
             }
 
-            // Plan button
-            ActionButton(
-                icon: "calendar.badge.plus",
-                title: "Plan",
-                isActive: false,
-                isPrimary: false
-            ) {
-                onOpenPlan(site.id)
-            }
+            // Log button pinned at trailing edge — always visible
+            Rectangle()
+                .fill(Color.ocean.opacity(0.2))
+                .frame(width: 1, height: 36)
 
-            // Report conditions button
-            ActionButton(
-                icon: "cloud.sun",
-                title: "Report",
-                isActive: false,
-                isPrimary: false
-            ) {
-                showingConditionReport = true
-            }
-
-            // Log button (primary)
             ActionButton(
                 icon: "waveform",
                 title: "Log",
                 isActive: false,
-                isPrimary: true
+                isPrimary: true,
+                accessibilityIdentifier: "diveMap.siteDetails.log"
             ) {
                 showingLogWizard = true
             }
-        }
+            .padding(.leading, 8)
+            .padding(.trailing, 16)
         }
     }
 
@@ -433,6 +457,15 @@ struct InspectContent: View {
                 wishlistError = "Couldn't update wishlist: \(error.localizedDescription)"
                 Log.map.error("Wishlist error for site \(targetId): \(error.localizedDescription)")
             }
+        }
+    }
+
+    private func entryModeIcon(_ mode: String) -> String {
+        switch mode.lowercased() {
+        case "boat": return "ferry"
+        case "shore": return "figure.walk"
+        case "liveaboard": return "sailboat"
+        default: return "water.waves"
         }
     }
 

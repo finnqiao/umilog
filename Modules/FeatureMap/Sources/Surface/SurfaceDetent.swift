@@ -24,9 +24,8 @@ enum SurfaceDetent: Equatable, CaseIterable {
         case .hidden:
             return 0
         case .peek:
-            // Taller introductory drawer: stronger handle, viewport summary,
-            // legend, and a short "what to do next" cue.
-            return 176
+            // Content-driven peek: handle + title row + compact site preview.
+            return 156
         case .medium:
             // Cards-first browse state. Content budget: handle (24) + top pad (4) +
             // header (~22) + gap (12) + carousel (~110) + bottom (16) ≈ 188pt.
