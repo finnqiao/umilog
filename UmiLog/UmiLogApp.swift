@@ -342,22 +342,13 @@ private extension ContentView {
                     .ignoresSafeArea(.container, edges: [.top, .bottom])
                 case .history:
                     NavigationStack { DiveHistoryView() }
-                        .safeAreaInset(edge: .trailing, spacing: 0) {
-                            Color.clear.frame(width: AppConstants.Layout.verticalTabBarWidth)
-                        }
                 case .log:
                     // Should not be reachable — VerticalTabBar fires onLogTap instead.
                     NewMapView()
                 case .wildlife:
                     NavigationStack { WildlifeView() }
-                        .safeAreaInset(edge: .trailing, spacing: 0) {
-                            Color.clear.frame(width: AppConstants.Layout.verticalTabBarWidth)
-                        }
                 case .profile:
                     NavigationStack { ProfileView() }
-                        .safeAreaInset(edge: .trailing, spacing: 0) {
-                            Color.clear.frame(width: AppConstants.Layout.verticalTabBarWidth)
-                        }
                 }
             }
 
@@ -499,13 +490,14 @@ struct VerticalTabBar: View {
                     navigationPill
                         .opacity(shouldDimPill ? 0.85 : 1)
                     logButton
-                        .opacity(isInspecting ? 0 : 1)
-                        .animation(.easeInOut(duration: 0.2), value: isInspecting)
                 }
+                .opacity(isInspecting ? 0 : 1)
+                .allowsHitTesting(!isInspecting)
                 Spacer()
             }
             .padding(.bottom, bottomOffset(safeAreaBottom: geometry.safeAreaInsets.bottom))
             .animation(.spring(response: 0.28, dampingFraction: 0.85), value: sheetVisibleHeight)
+            .animation(.easeInOut(duration: 0.2), value: isInspecting)
         }
         .frame(width: barWidth)
     }
@@ -528,12 +520,16 @@ struct VerticalTabBar: View {
         .padding(.horizontal, 4)
         .background(
             RoundedRectangle(cornerRadius: 26, style: .continuous)
-                .fill(Color.trench.opacity(0.92))
+                .fill(.ultraThinMaterial)
+                .overlay(
+                    RoundedRectangle(cornerRadius: 26, style: .continuous)
+                        .fill(Color.trench.opacity(0.34))
+                )
                 .overlay(
                     RoundedRectangle(cornerRadius: 26, style: .continuous)
                         .strokeBorder(
                             LinearGradient(
-                                colors: [Color.lagoon.opacity(0.55), Color.lagoon.opacity(0.12)],
+                                colors: [Color.lagoon.opacity(0.42), Color.foam.opacity(0.10)],
                                 startPoint: .top,
                                 endPoint: .bottom
                             ),
@@ -541,7 +537,7 @@ struct VerticalTabBar: View {
                         )
                 )
         )
-        .shadow(color: Color.black.opacity(0.48), radius: 18, x: -5, y: 10)
+        .shadow(color: Color.black.opacity(0.28), radius: 18, x: -4, y: 8)
         .accessibilityElement(children: .contain)
         .accessibilityLabel("Navigation")
         .accessibilityIdentifier("diveMap.rightModeSelector")

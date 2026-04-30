@@ -26,11 +26,15 @@ struct AreaCard: View {
                         .font(.body)
                         .fontWeight(.medium)
                         .foregroundStyle(Color.foam)
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.82)
 
                     if let regionName = area.regionName {
                         Text(regionName)
                             .font(.caption)
                             .foregroundStyle(Color.mist)
+                            .lineLimit(1)
+                            .minimumScaleFactor(0.82)
                     }
                 }
 
@@ -81,6 +85,7 @@ struct AreaChipCard: View {
                     .font(.subheadline)
                     .fontWeight(.medium)
                     .foregroundStyle(Color.foam)
+                    .lineLimit(1)
 
                 Text("\u{00B7} \(area.siteCount)")
                     .font(.caption)

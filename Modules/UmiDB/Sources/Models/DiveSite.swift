@@ -34,6 +34,10 @@ public struct DiveSite: Codable, Identifiable, Hashable {
     public let accessLevel: String
     public let wreckVerified: Bool
     public let destinationSlug: String?
+    public let userQuotes: [String]     // v14: diver quotes from enrichment
+    public let bestSeason: String?      // v14: e.g. "April–October"
+    public let requiredCert: String?    // v14: e.g. "Advanced", "Divemaster"
+    public let collections: [String]    // v14: e.g. ["big-animals", "wreck-capitals"]
 
     /// Computed property for MapKit compatibility
     public var coordinate: CLLocationCoordinate2D {
@@ -69,7 +73,11 @@ public struct DiveSite: Codable, Identifiable, Hashable {
         popularityScore: Double = 0,
         accessLevel: String = "unknown",
         wreckVerified: Bool = false,
-        destinationSlug: String? = nil
+        destinationSlug: String? = nil,
+        userQuotes: [String] = [],
+        bestSeason: String? = nil,
+        requiredCert: String? = nil,
+        collections: [String] = []
     ) {
         self.id = id
         self.name = name
@@ -100,6 +108,10 @@ public struct DiveSite: Codable, Identifiable, Hashable {
         self.accessLevel = accessLevel
         self.wreckVerified = wreckVerified
         self.destinationSlug = destinationSlug
+        self.userQuotes = userQuotes
+        self.bestSeason = bestSeason
+        self.requiredCert = requiredCert
+        self.collections = collections
     }
     
     public enum Difficulty: String, Codable, CaseIterable {
@@ -154,6 +166,10 @@ extension DiveSite: FetchableRecord, PersistableRecord {
         static let accessLevel = Column(CodingKeys.accessLevel)
         static let wreckVerified = Column(CodingKeys.wreckVerified)
         static let destinationSlug = Column(CodingKeys.destinationSlug)
+        static let userQuotes = Column(CodingKeys.userQuotes)
+        static let bestSeason = Column(CodingKeys.bestSeason)
+        static let requiredCert = Column(CodingKeys.requiredCert)
+        static let collections = Column(CodingKeys.collections)
     }
 
     enum CodingKeys: String, CodingKey {
@@ -171,6 +187,10 @@ extension DiveSite: FetchableRecord, PersistableRecord {
         case accessLevel = "access_level"
         case wreckVerified = "wreck_verified"
         case destinationSlug = "destination_slug"
+        case userQuotes = "user_quotes"
+        case bestSeason = "best_season"
+        case requiredCert = "required_cert"
+        case collections
     }
 }
 

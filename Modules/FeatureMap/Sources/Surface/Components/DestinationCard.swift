@@ -26,21 +26,25 @@ struct DestinationCard: View {
                         .font(.body)
                         .fontWeight(.semibold)
                         .foregroundStyle(Color.foam)
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.82)
 
                     Text(region.countryName)
                         .font(.caption)
                         .foregroundStyle(Color.mist)
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.82)
                 }
 
                 Spacer()
 
                 // Site count badge
                 VStack(alignment: .trailing, spacing: 2) {
-                    Text("\(region.siteCount)")
+                    Text(region.siteCount > 0 ? "\(region.siteCount)" : "-")
                         .font(.headline)
                         .fontWeight(.bold)
                         .foregroundStyle(Color.lagoon)
-                    Text("sites")
+                    Text(region.siteCount > 0 ? "sites" : "explore")
                         .font(.caption2)
                         .foregroundStyle(Color.mist)
                 }
@@ -79,10 +83,12 @@ struct DestinationChipCard: View {
                     .font(.subheadline)
                     .fontWeight(.medium)
                     .foregroundStyle(Color.foam)
+                    .lineLimit(1)
 
-                Text("\u{00B7} \(region.siteCount)")
+                Text(region.siteCount > 0 ? "\u{00B7} \(region.siteCount)" : "\u{00B7} Explore")
                     .font(.caption)
                     .foregroundStyle(Color.mist)
+                    .lineLimit(1)
             }
             .padding(.horizontal, 14)
             .padding(.vertical, 10)

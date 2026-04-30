@@ -22,6 +22,8 @@ struct SearchCapsule: View {
                     Text(title)
                         .font(.subheadline.weight(.semibold))
                         .foregroundStyle(Color.foam)
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.82)
 
                     if let subtitle, !subtitle.isEmpty {
                         Text(subtitle)

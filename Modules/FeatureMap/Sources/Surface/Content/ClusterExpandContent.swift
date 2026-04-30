@@ -56,7 +56,7 @@ struct ClusterExpandContent: View {
                 Text("Site Stack")
                     .font(.headline)
                     .foregroundStyle(Color.foam)
-                Text("\(context.siteCount) sites in this area")
+                Text("\(displaySiteCount) \(displaySiteCount == 1 ? "site" : "sites") in this stack")
                     .font(.caption)
                     .foregroundStyle(Color.mist)
             }
@@ -80,10 +80,10 @@ struct ClusterExpandContent: View {
         HStack(spacing: 12) {
             // Site count badge
             VStack(alignment: .leading, spacing: 2) {
-                Text("\(context.siteCount)")
+                Text("\(displaySiteCount)")
                     .font(.system(size: 32, weight: .bold))
                     .foregroundStyle(Color.pinDefault)
-                Text("dive sites")
+                Text(displaySiteCount == 1 ? "dive site" : "dive sites")
                     .font(.caption)
                     .foregroundStyle(Color.mist)
             }
@@ -105,6 +105,7 @@ struct ClusterExpandContent: View {
                 .background(Capsule().fill(Color.pinDefault))
             }
             .accessibilityLabel("Zoom in to see individual sites")
+            .accessibilityIdentifier("diveMap.cluster.zoomInButton")
         }
         .padding(.vertical, 8)
     }
@@ -113,30 +114,34 @@ struct ClusterExpandContent: View {
 
     /// Sites sorted by distance from cluster center.
     private var nearbySites: [DiveSite] {
-        sites
-            .filter { site in
-                let distance = CLLocation(latitude: site.latitude, longitude: site.longitude)
-                    .distance(from: CLLocation(
-                        latitude: context.clusterCenter.latitude,
-                        longitude: context.clusterCenter.longitude
-                    ))
-                // Include sites within ~50km of cluster center
-                return distance < 50000
-            }
+        Array(clusterSites.prefix(20))
+    }
+
+    private var displaySiteCount: Int {
+        max(context.siteCount, context.memberSiteIds.count)
+    }
+
+    private var clusterSites: [DiveSite] {
+        if !context.memberSiteIds.isEmpty {
+            let byId = Dictionary(uniqueKeysWithValues: sites.map { ($0.id, $0) })
+            return context.memberSiteIds.compactMap { byId[$0] }
+        }
+
+        guard context.siteCount > 0 else { return [] }
+        let clusterLocation = CLLocation(
+            latitude: context.clusterCenter.latitude,
+            longitude: context.clusterCenter.longitude
+        )
+
+        return sites
             .sorted { site1, site2 in
                 let d1 = CLLocation(latitude: site1.latitude, longitude: site1.longitude)
-                    .distance(from: CLLocation(
-                        latitude: context.clusterCenter.latitude,
-                        longitude: context.clusterCenter.longitude
-                    ))
+                    .distance(from: clusterLocation)
                 let d2 = CLLocation(latitude: site2.latitude, longitude: site2.longitude)
-                    .distance(from: CLLocation(
-                        latitude: context.clusterCenter.latitude,
-                        longitude: context.clusterCenter.longitude
-                    ))
+                    .distance(from: clusterLocation)
                 return d1 < d2
             }
-            .prefix(20) // Limit to 20 nearest sites
+            .prefix(context.siteCount)
             .map { $0 }
     }
 }

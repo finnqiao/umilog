@@ -50,6 +50,7 @@ struct ExploreContent: View {
     var onAddSite: () -> Void = {}
     var onRegionTap: (RegionSummary) -> Void = { _ in }
     var onAreaTap: (AreaSummary) -> Void = { _ in }
+    var onOpenSearch: () -> Void = {}
     var onExpandSearch: () -> Void = {}
 
     // MARK: - State
@@ -116,6 +117,29 @@ struct ExploreContent: View {
         detent == .peek && dragProgress <= 0.04
     }
 
+    private var shouldShowPeekSitePreview: Bool {
+        zoomLevel == .local && !sites.isEmpty
+    }
+
+    private var shouldShowBrowseSiteRows: Bool {
+        zoomLevel == .local && !sites.isEmpty
+    }
+
+    private var peekFallbackText: String {
+        if loading {
+            return "Loading dive sites..."
+        }
+
+        switch zoomLevel {
+        case .world:
+            return visibleDestinations.isEmpty ? "Browse dive destinations" : "Browse destinations"
+        case .regional:
+            return visibleAreas.isEmpty ? "Browse dive sites" : "Browse dive areas"
+        case .local:
+            return "Search nearby dive sites"
+        }
+    }
+
     // MARK: - Peek Layout
 
     /// Peek: hero title + sort pill + first nearby site preview (or hint when no sites).
@@ -123,6 +147,10 @@ struct ExploreContent: View {
         VStack(alignment: .leading, spacing: 12) {
             // Hero title row
             HStack(alignment: .center, spacing: 10) {
+                if shouldShowBackButton {
+                    sheetBackButton
+                }
+
                 Image(systemName: "water.waves")
                     .font(.system(size: 17, weight: .semibold))
                     .foregroundStyle(Color.lagoon)
@@ -142,9 +170,9 @@ struct ExploreContent: View {
                 filterEntryButton
             }
 
-            // First nearby site preview — gives immediate value at peek height.
-            // Falls back to pull-up hint when no local sites are visible.
-            if let first = sites.first {
+            // First nearby site preview is only useful once the map is local.
+            // At world/regional zoom it reads like a random recommendation.
+            if shouldShowPeekSitePreview, let first = sites.first {
                 Button {
                     onSiteTap(first)
                     Haptics.soft()
@@ -180,7 +208,7 @@ struct ExploreContent: View {
                         Image(systemName: loading ? "hourglass" : "chevron.up")
                             .font(.system(size: 11, weight: .bold))
                             .foregroundStyle(Color.lagoon.opacity(0.85))
-                        Text(loading ? "Loading dive sites..." : "Pull up to explore all sites")
+                        Text(peekFallbackText)
                             .font(.caption.weight(.medium))
                             .foregroundStyle(Color.mist.opacity(0.85))
                         Spacer()
@@ -194,14 +222,21 @@ struct ExploreContent: View {
             }
         }
         .padding(.leading, 20)
-        .padding(.trailing, 72)  // 20 base + 52 tab bar width to clear FAB
+        .padding(.trailing, 20)
         .padding(.top, 8)
         .padding(.bottom, 16)
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
     }
 
     private var hasBrowseContent: Bool {
-        !sites.isEmpty || !visibleDestinations.isEmpty || !visibleAreas.isEmpty
+        switch zoomLevel {
+        case .world:
+            return !visibleDestinations.isEmpty
+        case .regional:
+            return !visibleAreas.isEmpty || !sites.isEmpty
+        case .local:
+            return !sites.isEmpty
+        }
     }
 
     private var compactBrowseFallback: some View {
@@ -260,7 +295,7 @@ struct ExploreContent: View {
             return "Dive Sites in This Region"
         case .local:
             let count = sites.count
-            return count > 0 ? "\(count) Site\(count == 1 ? "" : "s") in This Area" : "No Sites Here Yet"
+            return count > 0 ? "\(count) Site\(count == 1 ? "" : "s") Nearby" : "No Sites Here"
         }
     }
 
@@ -271,7 +306,7 @@ struct ExploreContent: View {
         VStack(alignment: .leading, spacing: 0) {
             browseHeaderRow
                 .padding(.leading, 20)
-                .padding(.trailing, 72)  // 20 base + 52 tab bar width to clear FAB
+                .padding(.trailing, 20)
                 .padding(.top, 4)
 
             if hasBrowseContent {
@@ -280,7 +315,7 @@ struct ExploreContent: View {
 
                 // Fill remaining medium-detent space with the first few site rows.
                 // Without these the carousel (~110pt) leaves 150-200pt of dead space.
-                if !sites.isEmpty {
+                if shouldShowBrowseSiteRows {
                     Divider()
                         .opacity(0.15)
                         .padding(.horizontal, 16)
@@ -314,14 +349,41 @@ struct ExploreContent: View {
 
     private var browseHeaderRow: some View {
         HStack(spacing: 8) {
+            if shouldShowBackButton {
+                sheetBackButton
+            }
+
             dynamicTitle
                 .font(.subheadline.weight(.semibold))
                 .foregroundStyle(Color.foam)
+                .lineLimit(1)
+                .minimumScaleFactor(0.82)
 
             Spacer()
 
             filterEntryButton
         }
+    }
+
+    private var shouldShowBackButton: Bool {
+        !context.hierarchyLevel.isWorld
+    }
+
+    private var sheetBackButton: some View {
+        Button {
+            Haptics.soft()
+            onNavigateUp()
+        } label: {
+            Image(systemName: "chevron.left")
+                .font(.system(size: 14, weight: .semibold))
+                .foregroundStyle(Color.lagoon)
+                .frame(width: 30, height: 30)
+                .background(Color.trench.opacity(0.72))
+                .clipShape(Circle())
+                .contentShape(Circle())
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel("Back")
     }
 
     // MARK: - Expanded Layout
@@ -390,7 +452,13 @@ struct ExploreContent: View {
 
         switch zoomLevel {
         case .world:
-            return "\(visibleDestinations.count) destinations worldwide"
+            if !visibleDestinations.isEmpty {
+                return "\(visibleDestinations.count) destination\(visibleDestinations.count == 1 ? "" : "s") in view"
+            }
+            if !popularRegions.isEmpty {
+                return "\(popularRegions.count) popular destination\(popularRegions.count == 1 ? "" : "s")"
+            }
+            return nil
         case .regional:
             if let regionId = context.hierarchyLevel.regionId {
                 return "\(count) site\(count == 1 ? "" : "s") in \(regionId)"
@@ -411,7 +479,7 @@ struct ExploreContent: View {
             // Search tap target — opens search mode.
             Button {
                 Haptics.soft()
-                onExpandSearch()
+                onOpenSearch()
             } label: {
                 HStack(spacing: 8) {
                     Image(systemName: "magnifyingglass")
@@ -471,8 +539,6 @@ struct ExploreContent: View {
                     }
                     .padding(.horizontal, 16)
                 }
-            } else if !sites.isEmpty {
-                HorizontalSiteCarousel(sites: sites, onSiteTap: onSiteTap, onSeeAll: onExpandSearch)
             }
         case .regional:
             if !visibleAreas.isEmpty {

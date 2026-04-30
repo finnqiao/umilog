@@ -34,7 +34,7 @@ enum SurfaceDetent: Equatable, CaseIterable {
         case .expanded:
             // Take almost the full usable height, leaving 44pt for the status-bar
             // area. No native tab bar to account for — the vertical sidebar is on
-            // the trailing edge and the sheet width is already inset by the caller.
+            // the trailing edge and floats above the sheet.
             return containerHeight - 44
         }
     }
@@ -61,7 +61,7 @@ enum SurfaceDetent: Equatable, CaseIterable {
     static func defaultDetent(for mode: MapUIMode) -> SurfaceDetent {
         switch mode {
         case .explore:
-            return .peek
+            return .medium
         case .inspectSite:
             return .medium
         case .filter, .search:

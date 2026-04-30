@@ -264,88 +264,89 @@ struct InspectContent: View {
             }
 
             Spacer()
+
+            Button(action: onDismiss) {
+                Image(systemName: "chevron.left")
+                    .font(.system(size: 14, weight: .semibold))
+                    .foregroundStyle(Color.lagoon)
+                    .frame(width: 36, height: 36)
+                    .background(Color.trench.opacity(0.72))
+                    .clipShape(Circle())
+                    .contentShape(Circle())
+            }
+            .buttonStyle(.plain)
+            .accessibilityLabel("Back")
+            .accessibilityIdentifier("diveMap.siteDetails.back")
         }
-        .accessibilityAddTraits(.allowsDirectInteraction)
         .accessibilityHint("Swipe down to dismiss")
     }
 
     // MARK: - Actions Row
 
     private func actionsRow(site: DiveSite) -> some View {
-        HStack(spacing: 0) {
-            // Secondary actions scroll horizontally
-            ScrollView(.horizontal, showsIndicators: false) {
-                HStack(spacing: 12) {
-                    ActionButton(
-                        icon: "location.fill",
-                        title: "Navigate",
-                        isActive: false,
-                        isPrimary: false,
-                        accessibilityIdentifier: "diveMap.siteDetails.navigate"
-                    ) {
-                        SiteNavigationService.navigate(to: site, entryModes: entryModes)
-                        Haptics.soft()
-                    }
-
-                    ActionButton(
-                        icon: "doc.on.doc",
-                        title: "Copy GPS",
-                        isActive: false,
-                        isPrimary: false,
-                        accessibilityIdentifier: "diveMap.siteDetails.copyCoordinates"
-                    ) {
-                        _ = SiteNavigationService.copyCoordinates(of: site)
-                        Haptics.success()
-                    }
-
-                    ActionButton(
-                        icon: isWishlist ? "star.fill" : "star",
-                        title: isWishlist ? "Saved" : "Save",
-                        isActive: isWishlist,
-                        isPrimary: false,
-                        isLoading: isUpdatingWishlist
-                    ) {
-                        toggleWishlist(site: site)
-                    }
-
-                    ActionButton(
-                        icon: "calendar.badge.plus",
-                        title: "Plan",
-                        isActive: false,
-                        isPrimary: false
-                    ) {
-                        onOpenPlan(site.id)
-                    }
-
-                    ActionButton(
-                        icon: "cloud.sun",
-                        title: "Report",
-                        isActive: false,
-                        isPrimary: false
-                    ) {
-                        showingConditionReport = true
-                    }
+        ScrollView(.horizontal, showsIndicators: false) {
+            HStack(spacing: 10) {
+                ActionButton(
+                    icon: "location.fill",
+                    title: "Navigate",
+                    isActive: false,
+                    isPrimary: false,
+                    accessibilityIdentifier: "diveMap.siteDetails.navigate"
+                ) {
+                    SiteNavigationService.navigate(to: site, entryModes: entryModes)
+                    Haptics.soft()
                 }
-                .padding(.leading, 16)
-                .padding(.trailing, 8)
-            }
 
-            // Log button pinned at trailing edge — always visible
-            Rectangle()
-                .fill(Color.ocean.opacity(0.2))
-                .frame(width: 1, height: 36)
+                ActionButton(
+                    icon: "doc.on.doc",
+                    title: "Copy GPS",
+                    isActive: false,
+                    isPrimary: false,
+                    accessibilityIdentifier: "diveMap.siteDetails.copyCoordinates"
+                ) {
+                    _ = SiteNavigationService.copyCoordinates(of: site)
+                    Haptics.success()
+                }
 
-            ActionButton(
-                icon: "waveform",
-                title: "Log",
-                isActive: false,
-                isPrimary: true,
-                accessibilityIdentifier: "diveMap.siteDetails.log"
-            ) {
-                showingLogWizard = true
+                ActionButton(
+                    icon: "waveform",
+                    title: "Log",
+                    isActive: false,
+                    isPrimary: true,
+                    accessibilityIdentifier: "diveMap.siteDetails.log"
+                ) {
+                    showingLogWizard = true
+                }
+
+                ActionButton(
+                    icon: isWishlist ? "star.fill" : "star",
+                    title: isWishlist ? "Saved" : "Save",
+                    isActive: isWishlist,
+                    isPrimary: false,
+                    isLoading: isUpdatingWishlist
+                ) {
+                    toggleWishlist(site: site)
+                }
+
+                ActionButton(
+                    icon: "calendar.badge.plus",
+                    title: "Plan",
+                    isActive: false,
+                    isPrimary: false
+                ) {
+                    onOpenPlan(site.id)
+                }
+
+                ActionButton(
+                    icon: "cloud.sun",
+                    title: "Report",
+                    isActive: false,
+                    isPrimary: false
+                ) {
+                    showingConditionReport = true
+                }
             }
-            .padding(.leading, 8)
-            .padding(.trailing, 16)
+            .padding(.horizontal, 16)
         }
     }
 

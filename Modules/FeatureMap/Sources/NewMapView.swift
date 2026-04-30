@@ -16,7 +16,7 @@ struct NativeMapView: UIViewRepresentable {
     let selectedSiteId: String?
     var onSelect: (String) -> Void
     var onRegionChange: (MKCoordinateRegion) -> Void
-    var onClusterTap: (CLLocationCoordinate2D, Int) -> Void
+    var onClusterTap: (CLLocationCoordinate2D, Int, [String]) -> Void
 
     func makeUIView(context: Context) -> MKMapView {
         let mapView = MKMapView()
@@ -27,7 +27,7 @@ struct NativeMapView: UIViewRepresentable {
             top: 60,
             left: 0,
             bottom: 0,
-            right: AppConstants.Layout.verticalTabBarWidth + 24
+            right: 0
         )
 
         // Dark ocean style
@@ -65,12 +65,13 @@ struct NativeMapView: UIViewRepresentable {
     }
 
     func updateUIView(_ mapView: MKMapView, context: Context) {
+        context.coordinator.parent = self
         mapView.clipsToBounds = true
         mapView.layoutMargins = UIEdgeInsets(
             top: 60,
             left: 0,
             bottom: 0,
-            right: AppConstants.Layout.verticalTabBarWidth + 24
+            right: 0
         )
 
         if shouldUpdateRegion(current: mapView.region, target: region) {
@@ -153,38 +154,9 @@ struct NativeMapView: UIViewRepresentable {
 
         func mapView(_ mapView: MKMapView, didSelect annotation: MKAnnotation) {
             if let cluster = annotation as? MKClusterAnnotation {
-                parent.onClusterTap(cluster.coordinate, cluster.memberAnnotations.count)
-
-                // Zoom into cluster - calculate bounding rect of member annotations
-                var minLat = Double.greatestFiniteMagnitude
-                var maxLat = -Double.greatestFiniteMagnitude
-                var minLon = Double.greatestFiniteMagnitude
-                var maxLon = -Double.greatestFiniteMagnitude
-
-                for member in cluster.memberAnnotations {
-                    minLat = min(minLat, member.coordinate.latitude)
-                    maxLat = max(maxLat, member.coordinate.latitude)
-                    minLon = min(minLon, member.coordinate.longitude)
-                    maxLon = max(maxLon, member.coordinate.longitude)
-                }
-
-                // Add padding and ensure minimum zoom
-                let latPadding = max((maxLat - minLat) * 0.3, 0.01)
-                let lonPadding = max((maxLon - minLon) * 0.3, 0.01)
-
-                let region = MKCoordinateRegion(
-                    center: CLLocationCoordinate2D(
-                        latitude: (minLat + maxLat) / 2,
-                        longitude: (minLon + maxLon) / 2
-                    ),
-                    span: MKCoordinateSpan(
-                        latitudeDelta: (maxLat - minLat) + latPadding,
-                        longitudeDelta: (maxLon - minLon) + lonPadding
-                    )
-                )
-
+                let memberSiteIds = cluster.memberAnnotations.compactMap { ($0 as? SiteAnnotation)?.siteId }
+                parent.onClusterTap(cluster.coordinate, cluster.memberAnnotations.count, memberSiteIds)
                 mapView.deselectAnnotation(annotation, animated: false)
-                mapView.setRegion(region, animated: true)
                 return
             }
 
@@ -702,10 +674,10 @@ public struct NewMapView: View {
     @StateObject private var viewModel = MapViewModel()
     @StateObject private var uiViewModel = MapUIViewModel()
     @StateObject private var featuredService = FeaturedDestinationService.shared
-    // Start with world view to avoid flashing a hardcoded location
+    // Start with a global dive map instead of flashing a hardcoded destination.
     @State private var mapRegion = MKCoordinateRegion(
-        center: CLLocationCoordinate2D(latitude: -0.5, longitude: 130.5),
-        span: MKCoordinateSpan(latitudeDelta: 10, longitudeDelta: 10)
+        center: CLLocationCoordinate2D(latitude: 0.0, longitude: 120.0),
+        span: MKCoordinateSpan(latitudeDelta: 120, longitudeDelta: 180)
     )
     @State private var isMapInitialized = false
     @State private var didReportMapInteractive = false
@@ -717,6 +689,7 @@ public struct NewMapView: View {
     @State private var surfaceDetent: SurfaceDetent = .peek
     @State private var lastNonModalDetent: SurfaceDetent = .peek
     @State private var isProgrammaticCameraChange = false
+    @State private var programmaticCameraSequence: Int = 0
     @State private var cameraUpdateToken: Int = 0
     @State private var showFeaturedCard = false
 
@@ -724,6 +697,8 @@ public struct NewMapView: View {
     @State private var showCallout = false
     @State private var calloutSite: DiveSite?
     @State private var calloutMediaURL: URL?
+    @State private var calloutReturnSurface: SiteInspectionReturnSurface?
+    @State private var clusterZoomActionCount: Int = 0
 #if DEBUG
     @State private var showDebugHUD = false
 #endif
@@ -772,6 +747,8 @@ public struct NewMapView: View {
     // Semantic zoom data
     @State private var visibleDestinations: [RegionSummary] = []
     @State private var visibleAreas: [AreaSummary] = []
+    @State private var recentRegions: [RegionSummary] = []
+    @State private var popularRegions: [RegionSummary] = []
     @State private var nearestArea: AreaSummary?
     @State private var nearestRegion: RegionSummary?
 
@@ -805,8 +782,11 @@ public struct NewMapView: View {
         }
     }
 
+    private var viewportSites: [DiveSite] {
+        viewModel.hasViewportResult ? viewModel.visibleSites : viewModel.sites
+    }
+
     private var baseSitesForCounts: [DiveSite] {
-        let viewportSites = viewModel.visibleSites.isEmpty ? viewModel.sites : viewModel.visibleSites
         let lens: FilterLens? = scope == .discover ? uiViewModel.exploreContext?.filterLens : mySitesFilterLens
         return viewModel.applyFilters(
             to: viewportSites,
@@ -819,7 +799,6 @@ public struct NewMapView: View {
     /// Sites filtered using the new unified state types from MapUIViewModel.
     /// Used by UnifiedBottomSurface and will eventually replace baseSitesForCounts.
     private var unifiedFilteredSites: [DiveSite] {
-        let viewportSites = viewModel.visibleSites.isEmpty ? viewModel.sites : viewModel.visibleSites
         return viewModel.applyFilters(
             to: viewportSites,
             filters: uiViewModel.exploreFilters,
@@ -1060,6 +1039,15 @@ public struct NewMapView: View {
         includeSelectedSiteIfNeeded(in: cappedSites(annotationSites, limit: effectiveMapKitAnnotationLimit))
     }
 
+    private var siteAnnotationSourceSites: [DiveSite] {
+        // If visible set is tiny at world scale, fall back to all sites so clusters are visible.
+        let shouldExpandToAllSites = scope == .discover
+            && followMap
+            && annotationSites.count < 100
+            && viewModel.sites.count <= effectiveAllSitesAnnotationThreshold
+        return includeSelectedSiteIfNeeded(in: shouldExpandToAllSites ? viewModel.sites : annotationSites)
+    }
+
     private var mapLibreAnnotations: [DiveMapAnnotation] {
         let latSpan: Double = {
             if let v = lastViewport { return v.maxLatitude - v.minLatitude }
@@ -1150,13 +1138,7 @@ public struct NewMapView: View {
 
     private var siteAnnotations: [DiveMapAnnotation] {
         let selectedId = selectedSite?.id
-        // If visible set is tiny at world scale, fall back to all sites so clusters are visible
-        let shouldExpandToAllSites = scope == .discover
-            && followMap
-            && annotationSites.count < 100
-            && viewModel.sites.count <= effectiveAllSitesAnnotationThreshold
-        let base = includeSelectedSiteIfNeeded(in: shouldExpandToAllSites ? viewModel.sites : annotationSites)
-        return base.map { site in
+        return siteAnnotationSourceSites.map { site in
             let kind: DiveMapAnnotation.Kind = site.type == .wreck ? .wreck : .site
             let status: DiveMapAnnotation.Status = site.visitedCount > 0 ? .logged : (site.wishlist ? .saved : .baseline)
             let difficulty = DiveMapAnnotation.Difficulty(rawValue: site.difficulty.rawValue) ?? .other
@@ -1297,6 +1279,29 @@ public struct NewMapView: View {
         lastFittedRegion = mapRegion
     }
 
+    private func centerMapOnSiteWithoutZoomingOut(_ site: DiveSite, maxSpan: Double = 2.5) {
+        centerMapOnCoordinateWithoutZoomingOut(
+            CLLocationCoordinate2D(latitude: site.latitude, longitude: site.longitude),
+            maxSpan: maxSpan
+        )
+    }
+
+    private func centerMapOnCoordinateWithoutZoomingOut(
+        _ coordinate: CLLocationCoordinate2D,
+        maxSpan: Double = 2.5
+    ) {
+        let current = currentViewportRegion()
+        let latitudeDelta = min(max(current.span.latitudeDelta, 0.02), maxSpan)
+        let longitudeDelta = min(max(current.span.longitudeDelta, 0.02), maxSpan)
+
+        beginProgrammaticCameraChange()
+        mapRegion = MKCoordinateRegion(
+            center: coordinate,
+            span: MKCoordinateSpan(latitudeDelta: latitudeDelta, longitudeDelta: longitudeDelta)
+        )
+        lastFittedRegion = mapRegion
+    }
+
     /// Focus map on geographic bounds with padding
     private func focusMap(onBounds bounds: GeographyRepository.Bounds) {
         beginProgrammaticCameraChange()
@@ -1339,9 +1344,12 @@ public struct NewMapView: View {
 #endif
 
     private func beginProgrammaticCameraChange() {
+        programmaticCameraSequence &+= 1
+        let sequence = programmaticCameraSequence
         isProgrammaticCameraChange = true
         cameraUpdateToken &+= 1
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1.2) {
+            guard sequence == programmaticCameraSequence else { return }
             isProgrammaticCameraChange = false
         }
     }
@@ -1352,7 +1360,7 @@ public struct NewMapView: View {
         // Inverse of zoomToSpan: span = 360 / 2^(zoom-1)  →  zoom = 1 + log2(360 / span)
         let baseZoom = 1.0 + log2(360.0 / normalizedLatitude)
         let approxZoom = max(1.5, min(14.0, baseZoom))
-        let zoomLevel = lastViewport?.zoomLevel ?? approxZoom
+        let zoomLevel = isProgrammaticCameraChange ? approxZoom : (lastViewport?.zoomLevel ?? approxZoom)
         return DiveMapCamera(center: mapRegion.center, zoomLevel: zoomLevel)
     }
     
@@ -1392,7 +1400,6 @@ public struct NewMapView: View {
                 }
                 .onChange(of: selectedSite) {
                     onSelectedSiteChanged?(selectedSite)
-                    if let selectedSite { focusMap(on: [selectedSite]) }
                 }
                 .onChange(of: locationService.authorizationStatus) { _, status in
                     switch status {
@@ -1429,6 +1436,7 @@ public struct NewMapView: View {
                     if !isModalMode(uiViewModel.mode) {
                         lastNonModalDetent = newDetent
                     }
+                    onInspectionChanged?(uiViewModel.mode.hidesNavigationRail)
                 }
                 .onChange(of: uiViewModel.mode) { oldMode, newMode in
                     let wasModal = isModalMode(oldMode)
@@ -1453,6 +1461,7 @@ public struct NewMapView: View {
                     if newMode.isInspecting && showCallout {
                         showCallout = false
                         calloutSite = nil
+                        calloutReturnSurface = nil
                     }
 
                     onInspectionChanged?(newMode.hidesNavigationRail)
@@ -1478,15 +1487,13 @@ public struct NewMapView: View {
                         }
                     }
 
-                    // Show map immediately at last position or a popular dive destination —
+                    // Show map immediately at last position or a global overview —
                     // don't wait for loadSites() to avoid a long grey-screen loading delay.
                     if let lastState = viewModel.loadLastMapState() {
                         focusMap(onCoordinates: [lastState.center], singleSpan: zoomToSpan(lastState.zoom))
                     } else {
-                        // First launch: center on Coral Triangle (Raja Ampat) — high site density,
-                        // beautiful region, tiles load fast at this zoom level.
-                        let defaultCenter = CLLocationCoordinate2D(latitude: -0.5, longitude: 130.5)
-                        focusMap(onCoordinates: [defaultCenter], singleSpan: zoomToSpan(6.5))
+                        let defaultCenter = CLLocationCoordinate2D(latitude: 0.0, longitude: 120.0)
+                        focusMap(onCoordinates: [defaultCenter], singleSpan: zoomToSpan(2.5))
                     }
                     isMapInitialized = true
 
@@ -1496,6 +1503,8 @@ public struct NewMapView: View {
                     // Refresh visible sites immediately so pins render for the
                     // current viewport without waiting for the featured check.
                     await viewModel.refreshVisibleSites(in: mapRegion)
+                    refreshSemanticZoomData(bounds: MapBounds(region: mapRegion))
+                    refreshFallbackRegionData()
 
                     if UITestConfig.isUITesting {
                         applyUITestConfigurationIfNeeded()
@@ -1504,25 +1513,7 @@ public struct NewMapView: View {
 
                     try? await Task.sleep(nanoseconds: 50_000_000)
 
-                    let sitesToCenter = await MainActor.run { viewModel.sites }
-                    if !sitesToCenter.isEmpty {
-                        if let featured = featuredService.checkAndSelectFeatured() {
-                            try? await Task.sleep(nanoseconds: 300_000_000)
-
-                            isProgrammaticCameraChange = true
-                            withAnimation(.easeInOut(duration: 1.5)) {
-                                focusMap(onCoordinates: [featured.coordinate], singleSpan: zoomToSpan(featured.zoomLevel))
-                            }
-
-                            try? await Task.sleep(nanoseconds: 2_000_000_000)
-                            await MainActor.run {
-                                showFeaturedCard = true
-                                isProgrammaticCameraChange = false
-                            }
-                        } else {
-                            await applyInitialMapPosition()
-                        }
-                    }
+                    await applyInitialMapPosition()
                 }
                 .onAppear {
                     launchSafeModeEnabled = UserDefaults.standard.bool(forKey: AppConstants.UserDefaultsKeys.launchSafeModeEnabled)
@@ -1586,6 +1577,7 @@ public struct NewMapView: View {
             comingSoonToastOverlay
                 .allowsHitTesting(showingComingSoonToast)  // Fix UX-003: Disable hit test when hidden
             overlayControls  // Fix UX-003: Render HUD controls LAST so search button is clickable
+            uiTestDebugOverlay
 
             if showingCoachMarks {
                 MapCoachMarksView(isShowing: $showingCoachMarks)
@@ -1650,29 +1642,49 @@ public struct NewMapView: View {
                 let surfaceHeight = surfaceDetent.height(in: geometry.size.height)
                 let topInset = geometry.safeAreaInsets.top
                 let availableHeight = geometry.size.height - surfaceHeight - topInset
-                // Position callout in the center of the visible map area
                 let centerY = topInset + (availableHeight / 2)
+                let leadingInset: CGFloat = 16
+                let trailingInset: CGFloat = uiViewModel.mode.hidesNavigationRail
+                    ? 16
+                    : AppConstants.Layout.verticalTabBarWidth + 32
+                let cardWidth = max(0, geometry.size.width - leadingInset - trailingInset)
+                let centerX = leadingInset + (cardWidth / 2)
 
-                SiteCalloutCard(
-                    site: site,
-                    mediaURL: calloutMediaURL,
-                    onViewDetails: {
-                        dismissCallout()
-                        uiViewModel.send(.openSiteInspection(site.id))
-                        surfaceDetent = .medium
-                    },
-                    onLogDive: {
-                        dismissCallout()
-                        startLiveLog(at: site)
-                    },
-                    onDismiss: {
-                        dismissCallout()
-                    }
-                )
-                .accessibilityIdentifier("diveMap.sitePreview")
-                .padding(.leading, 16)
-                .padding(.trailing, 16 + AppConstants.Layout.verticalTabBarWidth)
-                .position(x: geometry.size.width / 2, y: centerY)
+                ZStack {
+                    Color.clear
+                        .contentShape(Rectangle())
+                        .onTapGesture {
+                            dismissCallout()
+                        }
+
+                    SiteCalloutCard(
+                        site: site,
+                        mediaURL: calloutMediaURL,
+                        onViewDetails: {
+                            let returnSurface = calloutReturnSurface
+                            dismissCallout()
+                            if let returnSurface {
+                                uiViewModel.send(.openSiteInspectionWithReturnSurface(
+                                    siteId: site.id,
+                                    returnSurface: returnSurface
+                                ))
+                            } else {
+                                uiViewModel.send(.openSiteInspection(site.id))
+                            }
+                            surfaceDetent = .medium
+                        },
+                        onLogDive: {
+                            dismissCallout()
+                            startLiveLog(at: site)
+                        },
+                        onDismiss: {
+                            dismissCallout()
+                        }
+                    )
+                    .accessibilityIdentifier("diveMap.sitePreview")
+                    .frame(maxWidth: cardWidth)
+                    .position(x: centerX, y: centerY)
+                }
             }
             .transition(.opacity.combined(with: .scale(scale: 0.95)))
             .animation(.spring(response: 0.4, dampingFraction: 0.8), value: showCallout)
@@ -1700,10 +1712,15 @@ public struct NewMapView: View {
     }
 
     private func dismissCallout() {
+        let dismissedSiteId = calloutSite?.id
         withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) {
             showCallout = false
             calloutSite = nil
             calloutMediaURL = nil
+            calloutReturnSurface = nil
+            if selectedSite?.id == dismissedSiteId {
+                selectedSite = nil
+            }
         }
     }
 
@@ -1750,7 +1767,6 @@ public struct NewMapView: View {
                         }
                     )
                     .padding(.horizontal, 16)
-                    .padding(.trailing, AppConstants.Layout.verticalTabBarWidth)
                     // Position above the bottom sheet + home indicator + margin.
                     .padding(.bottom, surfaceDetent.height(in: geometry.size.height - bottomInset) + bottomInset + 12)
                 }
@@ -1778,27 +1794,47 @@ public struct NewMapView: View {
             zoomLevel: uiViewModel.zoomLevel,
             visibleDestinations: visibleDestinations,
             visibleAreas: visibleAreas,
+            recentRegions: recentRegions,
+            popularRegions: popularRegions,
             nearestArea: nearestArea,
             nearestRegion: nearestRegion,
             dataViewModel: viewModel,
             onSiteTap: { site in
                 selectedSite = site
+                calloutReturnSurface = nil
                 uiViewModel.send(.openSiteInspection(site.id))
                 surfaceDetent = .medium
-                focusMap(on: [site], singleSpan: 2.5)
+                centerMapOnSiteWithoutZoomingOut(site)
                 Haptics.soft()
             },
             onDismissInspect: {
+                let shouldRetryClusterRestore: Bool
+                if case .inspectSite(let context) = uiViewModel.mode,
+                   case .clusterExpand = context.returnSurface {
+                    shouldRetryClusterRestore = true
+                } else {
+                    shouldRetryClusterRestore = false
+                }
+
+                selectedSite = nil
                 uiViewModel.send(.closeSiteInspection)
-                surfaceDetent = .peek
+
+                // In rare transition-guard races, the first close can be dropped.
+                // Retry once for cluster-origin inspections so close reliably
+                // returns to the Site Stack surface.
+                if shouldRetryClusterRestore {
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                        if uiViewModel.mode.isInspecting {
+                            uiViewModel.send(.closeSiteInspection)
+                        }
+                    }
+                }
             },
             onApplyFilters: {
                 uiViewModel.send(.closeFilter(apply: true))
-                surfaceDetent = .peek
             },
             onCancelFilters: {
                 uiViewModel.send(.closeFilter(apply: false))
-                surfaceDetent = .peek
             },
             onSearchSelect: { site in
                 // Dismiss keyboard first
@@ -1807,20 +1843,27 @@ public struct NewMapView: View {
                     to: nil, from: nil, for: nil
                 )
 
+                let returnSurface: SiteInspectionReturnSurface?
+                if case .search(let searchContext) = uiViewModel.mode {
+                    returnSurface = .search(searchContext)
+                } else {
+                    returnSurface = nil
+                }
+
                 selectedSite = site
                 calloutSite = site
                 calloutMediaURL = nil
+                calloutReturnSurface = returnSurface
                 showCallout = true
 
                 // Return to map context and keep the compact preview visible.
                 withAnimation(.spring(response: 0.35, dampingFraction: 0.85)) {
                     uiViewModel.send(.closeSearch(selectedSite: nil))
-                    surfaceDetent = .peek
                 }
 
                 // Focus map after brief delay for smoother animation
                 DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-                    focusMap(on: [site], singleSpan: 2.5)
+                    centerMapOnSiteWithoutZoomingOut(site)
                 }
 
                 Haptics.soft()
@@ -1836,7 +1879,6 @@ public struct NewMapView: View {
                 withAnimation(.spring(response: 0.35, dampingFraction: 0.85)) {
                     uiViewModel.send(.drillDownToCountry(country.id))
                     uiViewModel.send(.closeSearch(selectedSite: nil))
-                    surfaceDetent = .medium
                 }
 
                 // Auto-zoom to country bounds
@@ -1859,7 +1901,6 @@ public struct NewMapView: View {
                 withAnimation(.spring(response: 0.35, dampingFraction: 0.85)) {
                     uiViewModel.send(.drillDownToRegion(regionName))
                     uiViewModel.send(.closeSearch(selectedSite: nil))
-                    surfaceDetent = .medium
                 }
 
                 // Auto-zoom to region sites
@@ -1885,7 +1926,6 @@ public struct NewMapView: View {
                 withAnimation(.spring(response: 0.35, dampingFraction: 0.85)) {
                     uiViewModel.send(.drillDownToArea(areaName, region: regionName))
                     uiViewModel.send(.closeSearch(selectedSite: nil))
-                    surfaceDetent = .medium
                 }
 
                 // Auto-zoom to area sites
@@ -1911,7 +1951,6 @@ public struct NewMapView: View {
                 withAnimation(.spring(response: 0.35, dampingFraction: 0.85)) {
                     uiViewModel.send(.showSpeciesSites(species.id))
                     uiViewModel.send(.closeSearch(selectedSite: nil))
-                    surfaceDetent = .medium
                 }
 
                 // Auto-zoom to sites with this species
@@ -1934,8 +1973,22 @@ public struct NewMapView: View {
                 uiViewModel.send(.openSearch)
                 surfaceDetent = .expanded
             },
+            onCloseSearch: {
+                UIApplication.shared.sendAction(
+                    #selector(UIResponder.resignFirstResponder),
+                    to: nil, from: nil, for: nil
+                )
+                uiViewModel.send(.closeSearch(selectedSite: nil))
+            },
             onNavigateUp: {
-                uiViewModel.send(.navigateUp)
+                if uiViewModel.canNavigateBack {
+                    uiViewModel.navigateBack()
+                    if case .search = uiViewModel.mode {
+                        surfaceDetent = .expanded
+                    }
+                } else {
+                    uiViewModel.send(.navigateUp)
+                }
             },
             onResetToWorld: {
                 uiViewModel.send(.resetToWorld)
@@ -1982,18 +2035,20 @@ public struct NewMapView: View {
                 Haptics.soft()
             },
             onClusterZoomIn: {
-                // Zoom into cluster area
+                clusterZoomActionCount += 1
                 if let context = uiViewModel.mode.clusterContext {
                     withAnimation(.easeInOut(duration: 0.3)) {
-                        isProgrammaticCameraChange = true
+                        beginProgrammaticCameraChange()
                         let currentSpan = mapRegion.span
+                        let expansionSpan = context.expansionZoomLevel.map { zoomToSpan($0) }
                         let zoomedSpan = MKCoordinateSpan(
-                            latitudeDelta: max(currentSpan.latitudeDelta / 3.0, 0.01),
-                            longitudeDelta: max(currentSpan.longitudeDelta / 3.0, 0.01)
+                            latitudeDelta: max(min(expansionSpan ?? currentSpan.latitudeDelta / 3.0, currentSpan.latitudeDelta / 3.0), 0.01),
+                            longitudeDelta: max(min(expansionSpan ?? currentSpan.longitudeDelta / 3.0, currentSpan.longitudeDelta / 3.0), 0.01)
                         )
                         mapRegion = MKCoordinateRegion(center: context.clusterCenter, span: zoomedSpan)
                     }
-                    closeClusterExpand()
+                    viewModel.scheduleRefreshVisibleSites(in: mapRegion)
+                    refreshSemanticZoomData(bounds: MapBounds(region: mapRegion))
                 }
             },
             onCloseCluster: {
@@ -2106,6 +2161,44 @@ public struct NewMapView: View {
         )
     }
 
+    @ViewBuilder
+    private var uiTestDebugOverlay: some View {
+        if UITestConfig.isUITesting {
+            VStack(alignment: .leading, spacing: 1) {
+                Text(String(format: "%.6f", mapRegion.span.latitudeDelta))
+                    .accessibilityIdentifier("diveMap.debug.latDelta")
+                Text(String(format: "%.6f", mapRegion.span.longitudeDelta))
+                    .accessibilityIdentifier("diveMap.debug.lonDelta")
+                Text(uiViewModel.mode.stableId)
+                    .accessibilityIdentifier("diveMap.debug.mode")
+                Text(surfaceDetentDebugName)
+                    .accessibilityIdentifier("diveMap.debug.detent")
+                Text(showCallout ? "1" : "0")
+                    .accessibilityIdentifier("diveMap.debug.calloutVisible")
+                Text("\(clusterZoomActionCount)")
+                    .accessibilityIdentifier("diveMap.debug.clusterZoomActions")
+            }
+            .font(.system(size: 1))
+            .foregroundStyle(Color.clear)
+            .padding(.top, 1)
+            .padding(.leading, 1)
+            .allowsHitTesting(false)
+        }
+    }
+
+    private var surfaceDetentDebugName: String {
+        switch surfaceDetent {
+        case .hidden:
+            return "hidden"
+        case .peek:
+            return "peek"
+        case .medium:
+            return "medium"
+        case .expanded:
+            return "expanded"
+        }
+    }
+
     private var nativeMapKitView: some View {
         NativeMapView(
             sites: mapKitRenderableSites,
@@ -2115,6 +2208,12 @@ public struct NewMapView: View {
                 // Wrap in DispatchQueue.main.async to avoid SwiftUI state mutation during view update
                 DispatchQueue.main.async {
                     if let site = viewModel.sites.first(where: { $0.id == siteId }) {
+                        if showCallout, calloutSite?.id == site.id {
+                            dismissCallout()
+                            Haptics.soft()
+                            return
+                        }
+
                         // Close any existing inspection first (mutual exclusivity)
                         if uiViewModel.mode.isInspecting {
                             uiViewModel.send(.closeSiteInspection)
@@ -2124,6 +2223,7 @@ public struct NewMapView: View {
                         withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) {
                             selectedSite = site
                             calloutSite = site
+                            calloutReturnSurface = nil
                             showCallout = true
                             surfaceDetent = .peek
                         }
@@ -2158,7 +2258,9 @@ public struct NewMapView: View {
                         maxLongitude: newRegion.center.longitude + newRegion.span.longitudeDelta / 2
                     )
                     viewModel.scheduleRefreshVisibleSites(bounds: bounds)
-                    viewModel.saveMapState(center: newRegion.center, zoom: 10)  // Approximate zoom
+                    if !isProgrammaticCameraChange {
+                        viewModel.saveMapState(center: newRegion.center, zoom: 10)  // Approximate zoom
+                    }
 
                     // Update semantic zoom level
                     uiViewModel.updateZoomLevel(latitudeDelta: newRegion.span.latitudeDelta)
@@ -2174,8 +2276,8 @@ public struct NewMapView: View {
                     )
                 }
             },
-            onClusterTap: { clusterCenter, count in
-                handleClusterTap(center: clusterCenter, count: count)
+            onClusterTap: { clusterCenter, count, memberSiteIds in
+                handleClusterTap(center: clusterCenter, count: count, memberSiteIds: memberSiteIds)
             }
         )
         .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -2220,6 +2322,12 @@ public struct NewMapView: View {
                 // Wrap in DispatchQueue.main.async to avoid SwiftUI state mutation during view update
                 DispatchQueue.main.async {
                     if let site = viewModel.sites.first(where: { $0.id == identifier }) {
+                        if showCallout, calloutSite?.id == site.id {
+                            dismissCallout()
+                            Haptics.soft()
+                            return
+                        }
+
                         // Close any existing inspection first (mutual exclusivity)
                         if uiViewModel.mode.isInspecting {
                             uiViewModel.send(.closeSiteInspection)
@@ -2229,10 +2337,11 @@ public struct NewMapView: View {
                         withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) {
                             selectedSite = site
                             calloutSite = site
+                            calloutReturnSurface = nil
                             showCallout = true
                             surfaceDetent = .peek  // Ensure bottom sheet is minimal
                         }
-                        focusMap(on: [site], singleSpan: 2.5)
+                        centerMapOnSiteWithoutZoomingOut(site)
                         Haptics.soft()
                         return
                     }
@@ -2265,18 +2374,6 @@ public struct NewMapView: View {
                             featuredService.completeFeaturedExperience()
                         }
 
-                        // Dismiss inspection if site scrolls offscreen
-                        if let siteId = uiViewModel.inspectedSiteId,
-                           let site = viewModel.sites.first(where: { $0.id == siteId }) {
-                            let isVisible = viewport.minLatitude <= site.latitude &&
-                                            site.latitude <= viewport.maxLatitude &&
-                                            viewport.minLongitude <= site.longitude &&
-                                            site.longitude <= viewport.maxLongitude
-                            if !isVisible {
-                                uiViewModel.send(.closeSiteInspection)
-                                surfaceDetent = .peek
-                            }
-                        }
                     }
                     viewModel.scheduleRefreshVisibleSites(bounds: bounds)
 
@@ -2285,7 +2382,9 @@ public struct NewMapView: View {
                         latitude: (viewport.minLatitude + viewport.maxLatitude) / 2,
                         longitude: (viewport.minLongitude + viewport.maxLongitude) / 2
                     )
-                    viewModel.saveMapState(center: center, zoom: diveMapCamera.zoomLevel)
+                    if !isProgrammaticCameraChange {
+                        viewModel.saveMapState(center: center, zoom: diveMapCamera.zoomLevel)
+                    }
                 }
             },
             onLoadFailure: {
@@ -2297,10 +2396,9 @@ public struct NewMapView: View {
                     }
                 }
             },
-            onClusterTap: { clusterCenter, count in
-                // Resy-style cluster expand - show site stack
+            onClusterTap: { selection in
                 DispatchQueue.main.async {
-                    handleClusterTap(center: clusterCenter, count: count)
+                    handleClusterTap(selection)
                 }
             }
         )
@@ -2309,41 +2407,36 @@ public struct NewMapView: View {
     }
 
     private var overlayControls: some View {
-        // The map view owns the unsafe top/bottom areas, so read the safe area
-        // here and place controls below it while leaving the map itself full-bleed.
-        GeometryReader { geometry in
-            let topInset = max(geometry.safeAreaInsets.top, windowSafeAreaInsets.top)
+        let topInset = windowSafeAreaInsets.top
 
-            ZStack(alignment: .topLeading) {
-                topOverlay(topInset: topInset)
-
+        return ZStack(alignment: .topLeading) {
+            topOverlay(topInset: topInset)
 #if DEBUG
-                if showDebugHUD {
-                    debugHUD
-                        .padding(.leading, 16)
-                        .padding(.top, topInset + 16)
-                        .allowsHitTesting(true)
-                }
+            if showDebugHUD {
+                debugHUD
+                    .padding(.leading, 16)
+                    .padding(.top, topInset + 16)
+                    .allowsHitTesting(true)
+            }
 #endif
 
-                if showingLocationDeniedBanner {
-                    VStack {
-                        LocationDeniedBanner(
-                            onOpenSettings: {
-                                if let url = URL(string: UIApplication.openSettingsURLString) {
-                                    UIApplication.shared.open(url)
-                                }
-                            },
-                            onDismiss: {
-                                showingLocationDeniedBanner = false
+            if showingLocationDeniedBanner {
+                VStack {
+                    LocationDeniedBanner(
+                        onOpenSettings: {
+                            if let url = URL(string: UIApplication.openSettingsURLString) {
+                                UIApplication.shared.open(url)
                             }
-                        )
-                        .padding(.horizontal, 16)
-                        .padding(.top, topInset + 56)
-                        Spacer()
-                    }
-                    .transition(.move(edge: .top).combined(with: .opacity))
+                        },
+                        onDismiss: {
+                            showingLocationDeniedBanner = false
+                        }
+                    )
+                    .padding(.horizontal, 16)
+                    .padding(.top, topInset + 56)
+                    Spacer()
                 }
+                .transition(.move(edge: .top).combined(with: .opacity))
             }
         }
     }
@@ -2587,6 +2680,23 @@ public struct NewMapView: View {
         }
     }
 
+    /// Load database-backed fallback browse data for sparse world/search states.
+    /// Static curated regions intentionally have no counts, so this keeps the
+    /// empty-state cards aligned with the seeded database.
+    private func refreshFallbackRegionData() {
+        Task.detached(priority: .utility) {
+            let geoRepo = GeographyRepository(database: AppDatabase.shared)
+            let recentIds = MapStatePersistence.shared.loadRecentRegions()
+            let recent = (try? geoRepo.fetchRegionSummaries(ids: recentIds)) ?? []
+            let popular = (try? geoRepo.fetchPopularRegions(limit: 10)) ?? []
+
+            await MainActor.run {
+                recentRegions = recent
+                popularRegions = popular
+            }
+        }
+    }
+
     private var bottomGlow: some View {
         // Simplified - removed decorative circle that caused visual noise
         LinearGradient(
@@ -2724,15 +2834,94 @@ public struct NewMapView: View {
 
         selectedSite = site
         surfaceDetent = .peek
-        focusMap(on: [site], singleSpan: 2.5)
+        centerMapOnSiteWithoutZoomingOut(site)
+        let forcePreview = UITestConfig.value(for: "-UITest_ForcePreview") == "YES"
+        applyUITestPreviewState(for: site, forceVisibleDuringStartup: forcePreview)
+
+        if UITestConfig.value(for: "-UITest_OpenCluster") == "YES" ||
+            UITestConfig.value(for: "-UITest_OpenClusterInspect") == "YES" {
+            openUITestCluster(anchoredAt: site)
+        }
+
+        if UITestConfig.value(for: "-UITest_OpenClusterInspect") == "YES" {
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
+                uiViewModel.send(.openSiteInspection(site.id))
+                surfaceDetent = .medium
+                showCallout = false
+                calloutSite = nil
+                calloutMediaURL = nil
+                calloutReturnSurface = nil
+            }
+            return
+        }
+
+        if forcePreview {
+            return
+        }
 
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.75) {
             selectedSite = site
             calloutSite = site
             calloutMediaURL = nil
+            calloutReturnSurface = nil
             showCallout = true
             surfaceDetent = .peek
         }
+    }
+
+    private func applyUITestPreviewState(for site: DiveSite, forceVisibleDuringStartup: Bool) {
+        selectedSite = site
+        calloutSite = site
+        calloutMediaURL = nil
+        calloutReturnSurface = nil
+        showCallout = true
+        surfaceDetent = .peek
+
+        // Re-apply callout state briefly after initial layout settles so
+        // deterministic UITests can rely on a visible preview.
+        let delays: [TimeInterval] = [0.25, 0.8, 1.4, 2.5, 4.0, 6.0, 8.0]
+        for delay in delays {
+            DispatchQueue.main.asyncAfter(deadline: .now() + delay) {
+                if !forceVisibleDuringStartup, uiViewModel.mode.isInspecting {
+                    return
+                }
+                selectedSite = site
+                calloutSite = site
+                calloutMediaURL = nil
+                calloutReturnSurface = nil
+                showCallout = true
+                surfaceDetent = .peek
+            }
+        }
+    }
+
+    private func openUITestCluster(anchoredAt site: DiveSite) {
+        let clusterCenter = CLLocationCoordinate2D(latitude: site.latitude, longitude: site.longitude)
+        let nearbySiteIds = nearestUITestSiteIDs(around: clusterCenter, maxCount: 5)
+        let context = ClusterExpandContext(
+            clusterCenter: clusterCenter,
+            siteCount: max(nearbySiteIds.count, 1),
+            memberSiteIds: nearbySiteIds,
+            returnContext: uiViewModel.mode.exploreContext ?? ExploreContext()
+        )
+        uiViewModel.send(.openClusterExpand(context))
+        surfaceDetent = .peek
+        showCallout = false
+        calloutSite = nil
+        calloutMediaURL = nil
+        calloutReturnSurface = nil
+    }
+
+    private func nearestUITestSiteIDs(around center: CLLocationCoordinate2D, maxCount: Int) -> [String] {
+        let clusterLocation = CLLocation(latitude: center.latitude, longitude: center.longitude)
+        let nearest = viewModel.sites
+            .sorted { lhs, rhs in
+                let lhsDistance = CLLocation(latitude: lhs.latitude, longitude: lhs.longitude).distance(from: clusterLocation)
+                let rhsDistance = CLLocation(latitude: rhs.latitude, longitude: rhs.longitude).distance(from: clusterLocation)
+                return lhsDistance < rhsDistance
+            }
+            .prefix(maxCount)
+        return nearest.map(\.id)
     }
 
     private func resolveUITestSite(_ requestedSite: String) -> DiveSite? {
@@ -2784,16 +2973,42 @@ public struct NewMapView: View {
     }
 
     /// Handles cluster tap for Resy-style site stack display.
-    private func handleClusterTap(center: CLLocationCoordinate2D, count: Int) {
+    private func handleClusterTap(_ selection: DiveMapClusterSelection) {
+        handleClusterTap(
+            center: selection.center,
+            count: selection.count,
+            memberSiteIds: selection.memberSiteIds,
+            expansionZoomLevel: selection.expansionZoomLevel
+        )
+    }
+
+    private func handleClusterTap(center: CLLocationCoordinate2D, count: Int, memberSiteIds: [String]? = nil) {
+        handleClusterTap(center: center, count: count, memberSiteIds: memberSiteIds, expansionZoomLevel: nil)
+    }
+
+    private func handleClusterTap(
+        center: CLLocationCoordinate2D,
+        count: Int,
+        memberSiteIds: [String]? = nil,
+        expansionZoomLevel: Double?
+    ) {
         // Dismiss any existing callout
         if showCallout {
             dismissCallout()
         }
 
+        let resolvedMemberSiteIds = normalizedClusterMemberSiteIds(
+            center: center,
+            count: count,
+            explicitIds: memberSiteIds
+        )
+
         // Switch to cluster expand mode
         let context = ClusterExpandContext(
             clusterCenter: center,
             siteCount: count,
+            memberSiteIds: resolvedMemberSiteIds,
+            expansionZoomLevel: expansionZoomLevel,
             returnContext: uiViewModel.exploreContext ?? ExploreContext()
         )
 
@@ -2803,6 +3018,30 @@ public struct NewMapView: View {
         }
 
         Haptics.soft()
+    }
+
+    private func normalizedClusterMemberSiteIds(
+        center: CLLocationCoordinate2D,
+        count: Int,
+        explicitIds: [String]?
+    ) -> [String] {
+        let ids = explicitIds?.filter { !$0.isEmpty } ?? []
+        if !ids.isEmpty {
+            return count > 0 ? Array(ids.prefix(count)) : ids
+        }
+
+        guard count > 0 else { return [] }
+        let clusterLocation = CLLocation(latitude: center.latitude, longitude: center.longitude)
+        return siteAnnotationSourceSites
+            .sorted { lhs, rhs in
+                let lhsDistance = CLLocation(latitude: lhs.latitude, longitude: lhs.longitude)
+                    .distance(from: clusterLocation)
+                let rhsDistance = CLLocation(latitude: rhs.latitude, longitude: rhs.longitude)
+                    .distance(from: clusterLocation)
+                return lhsDistance < rhsDistance
+            }
+            .prefix(count)
+            .map(\.id)
     }
 
     /// Closes cluster expand mode and returns to explore.
@@ -2977,7 +3216,7 @@ private struct MapBackgroundOverlay: View {
         Haptics.soft()
         selectedSite = site
         withAnimation(.easeInOut(duration: 0.3)) {
-            focusMap(on: [site], singleSpan: 2.5)
+            centerMapOnSiteWithoutZoomingOut(site)
             surfaceDetent = .medium
         }
     }
@@ -2999,48 +3238,51 @@ private struct MapBackgroundOverlay: View {
 
     // MARK: - Smart Initial Camera (US-1, US-2)
 
+    private func authorizedLaunchLocationCoordinate() -> CLLocationCoordinate2D? {
+        guard locationService.authorizationStatus == .authorizedWhenInUse ||
+              locationService.authorizationStatus == .authorizedAlways else {
+            return nil
+        }
+        return locationService.currentLocation?.coordinate
+    }
+
     @MainActor
     private func applyInitialMapPosition() async {
         defer { isMapInitialized = true }
 
-        // 0. US-2: Check for persisted map state (returning user)
-        if let lastState = viewModel.loadLastMapState() {
+        let launchSelection = LaunchSelectionResolver.resolve(
+            savedCamera: viewModel.loadLastMapState(),
+            authorizedLocation: authorizedLaunchLocationCoordinate()
+        ) {
+            featuredService.checkAndSelectFeatured()
+        }
+
+        switch launchSelection.source {
+        case .savedCamera:
+            guard let savedCamera = launchSelection.savedCamera else { return }
             withAnimation(.easeInOut(duration: 0.5)) {
-                focusMap(onCoordinates: [lastState.center], singleSpan: zoomToSpan(lastState.zoom))
+                focusMap(onCoordinates: [savedCamera.center], singleSpan: zoomToSpan(savedCamera.zoom))
             }
-            return
-        }
-
-        // 1. Check for saved sites (most recent visited or wishlist)
-        let savedSites = viewModel.sites.filter { $0.wishlist || $0.visitedCount > 0 }
-        if let mostRecent = savedSites.first {
+        case .authorizedLocation:
+            guard let locationCoordinate = launchSelection.authorizedLocation else { return }
             withAnimation(.easeInOut(duration: 0.5)) {
-                focusMap(
-                    onCoordinates: [CLLocationCoordinate2D(latitude: mostRecent.latitude, longitude: mostRecent.longitude)],
-                    singleSpan: 4.0
-                )
+                focusMap(onCoordinates: [locationCoordinate], singleSpan: 6.0)
             }
-            return
-        }
+        case .featuredTopSite:
+            guard let featured = launchSelection.featuredDestination else { return }
+            try? await Task.sleep(nanoseconds: 300_000_000)
+            withAnimation(.easeInOut(duration: 1.0)) {
+                focusMap(onCoordinates: [featured.coordinate], singleSpan: zoomToSpan(featured.zoomLevel))
+            }
 
-        // 2. Check location permission and current location
-        if locationService.authorizationStatus == .authorizedWhenInUse ||
-           locationService.authorizationStatus == .authorizedAlways,
-           let location = locationService.currentLocation {
+            try? await Task.sleep(nanoseconds: 1_000_000_000)
+            showFeaturedCard = true
+        case .globalFallback:
+            // Last resort: global dive map. Avoid landing in an arbitrary region
+            // when we do not have user context.
             withAnimation(.easeInOut(duration: 0.5)) {
-                focusMap(onCoordinates: [location.coordinate], singleSpan: 6.0)
+                focusMap(onCoordinates: [CLLocationCoordinate2D(latitude: 0.0, longitude: 120.0)], singleSpan: zoomToSpan(2.5))
             }
-            return
-        }
-
-        // 3. Default to a populated region to avoid a blank world view.
-        if applyDefaultRegionSelection() {
-            return
-        }
-
-        // 4. Last resort: Phuket, Thailand - a beautiful diving destination
-        withAnimation(.easeInOut(duration: 0.5)) {
-            focusMap(onCoordinates: [CLLocationCoordinate2D(latitude: 8.0, longitude: 98.3)], singleSpan: 7.0)
         }
     }
 
@@ -3069,6 +3311,9 @@ private struct MapBackgroundOverlay: View {
     }
 
     private func resolveRegionKey(for region: RegionSummary) -> String? {
+        if viewModel.sites.contains(where: { $0.regionId == region.id }) {
+            return region.id
+        }
         if viewModel.sites.contains(where: { $0.region == region.name }) {
             return region.name
         }
@@ -3123,9 +3368,8 @@ private struct MapBackgroundOverlay: View {
     }
 
     private var savedSitesList: [DiveSite] {
-        let base = viewModel.visibleSites.isEmpty ? viewModel.sites : viewModel.visibleSites
         return viewModel.applyFilters(
-            to: base,
+            to: viewportSites,
             filters: uiViewModel.exploreFilters,
             lens: mySitesFilterLens,
             hierarchy: uiViewModel.currentHierarchyLevel
@@ -3133,7 +3377,6 @@ private struct MapBackgroundOverlay: View {
     }
     
     private var discoverSitesList: [DiveSite] {
-        let viewportSites = viewModel.visibleSites.isEmpty ? viewModel.sites : viewModel.visibleSites
         let base: [DiveSite]
         // Use new hierarchy helpers
         if let areaId = currentAreaId {

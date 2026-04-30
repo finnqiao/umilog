@@ -70,6 +70,33 @@ public struct DiveMapAnnotation: Identifiable {
     }
 }
 
+public struct DiveMapClusterSelection: Equatable {
+    public let center: CLLocationCoordinate2D
+    public let count: Int
+    public let memberSiteIds: [String]
+    public let expansionZoomLevel: Double?
+
+    public init(
+        center: CLLocationCoordinate2D,
+        count: Int,
+        memberSiteIds: [String] = [],
+        expansionZoomLevel: Double? = nil
+    ) {
+        self.center = center
+        self.count = count
+        self.memberSiteIds = memberSiteIds
+        self.expansionZoomLevel = expansionZoomLevel
+    }
+
+    public static func == (lhs: DiveMapClusterSelection, rhs: DiveMapClusterSelection) -> Bool {
+        lhs.center.latitude == rhs.center.latitude &&
+        lhs.center.longitude == rhs.center.longitude &&
+        lhs.count == rhs.count &&
+        lhs.memberSiteIds == rhs.memberSiteIds &&
+        lhs.expansionZoomLevel == rhs.expansionZoomLevel
+    }
+}
+
 extension DiveMapAnnotation: Equatable {
     public static func == (lhs: DiveMapAnnotation, rhs: DiveMapAnnotation) -> Bool {
         lhs.id == rhs.id &&
@@ -184,8 +211,8 @@ public final class MapVC: UIViewController, MLNMapViewDelegate, UIGestureRecogni
     public var onSelectAnnotation: ((String) -> Void)?
     public var onRegionChange: ((DiveMapViewport) -> Void)?
     public var onLoadFailure: (() -> Void)?
-    /// Called when a cluster is tapped. Passes the cluster center and count for site stack display.
-    public var onClusterTap: ((CLLocationCoordinate2D, Int) -> Void)?
+    /// Called when a cluster is tapped. Passes real cluster metadata for site stack display.
+    public var onClusterTap: ((DiveMapClusterSelection) -> Void)?
     private var lastSetCamera: DiveMapCamera?
     public var initialCamera: DiveMapCamera? {
         didSet {
@@ -494,7 +521,8 @@ public final class MapVC: UIViewController, MLNMapViewDelegate, UIGestureRecogni
             "site-layer-expert",
             "site-layer-default",
             "site-selected",
-            "site-cluster"
+            "site-cluster",
+            "site-cluster-count"
         ]
         let features = map.visibleFeatures(at: point, styleLayerIdentifiers: identifiers)
 
@@ -505,16 +533,17 @@ public final class MapVC: UIViewController, MLNMapViewDelegate, UIGestureRecogni
             logger.log("cluster_tapped count=\(count, privacy: .public)")
             UIAccessibility.post(notification: .announcement, argument: "\(count) sites in this cluster")
 
-            // Notify parent for site stack display (Resy-style)
             let clusterCenter = map.convert(point, toCoordinateFrom: map)
             if let onClusterTap {
+                let payload = makeClusterSelection(
+                    feature: feature,
+                    fallbackCenter: clusterCenter,
+                    fallbackCount: count
+                )
                 DispatchQueue.main.async {
-                    onClusterTap(clusterCenter, count)
+                    onClusterTap(payload)
                 }
             }
-
-            // Also zoom in for better exploration
-            zoomIntoCluster(at: point)
             return
         }
 
@@ -828,37 +857,28 @@ public final class MapVC: UIViewController, MLNMapViewDelegate, UIGestureRecogni
         )
     }
 
-    private func zoomIntoCluster(at point: CGPoint) {
-        let coordinate = map.convert(point, toCoordinateFrom: map)
-
-        // Adaptive zoom: jump more at low zoom, less at high zoom for smooth drilling
-        let currentZoom = map.zoomLevel
-        let zoomIncrement: Double
-        if currentZoom < 5 {
-            zoomIncrement = 3.0  // Big jump at world/continent level
-        } else if currentZoom < 8 {
-            zoomIncrement = 2.5  // Medium jump at country level
-        } else {
-            zoomIncrement = 2.0  // Smaller jump at regional level
+    private func makeClusterSelection(
+        feature: MLNFeature,
+        fallbackCenter: CLLocationCoordinate2D,
+        fallbackCount: Int
+    ) -> DiveMapClusterSelection {
+        guard let cluster = feature as? MLNPointFeatureCluster else {
+            return DiveMapClusterSelection(center: fallbackCenter, count: fallbackCount)
         }
 
-        let targetZoom = min(currentZoom + zoomIncrement, MapTheme.Clustering.maxClusterZoom + 1)
+        let limit = UInt(max(fallbackCount, 0))
+        let leaves = siteSource?.leaves(of: cluster, offset: 0, limit: limit) ?? []
+        let ids = leaves.compactMap { leaf -> String? in
+            leaf.attribute(forKey: "id") as? String
+        }
+        let expansionZoom = siteSource?.zoomLevel(forExpanding: cluster)
 
-        let mlnCamera = MLNMapCamera(
-            lookingAtCenter: coordinate,
-            altitude: altitudeForZoom(targetZoom),
-            pitch: map.camera.pitch,
-            heading: map.camera.heading
+        return DiveMapClusterSelection(
+            center: cluster.coordinate,
+            count: Int(cluster.clusterPointCount),
+            memberSiteIds: ids,
+            expansionZoomLevel: expansionZoom
         )
-
-        // Smooth animation with spring feel
-        map.fly(to: mlnCamera, withDuration: 0.4, completionHandler: nil)
-
-        // Haptic feedback for cluster expansion
-        if MapTheme.Animation.enableHaptics {
-            let generator = UIImpactFeedbackGenerator(style: MapTheme.Animation.clusterHapticStyle)
-            generator.impactOccurred()
-        }
     }
 
     private func updateAnnotationsIfReady() {

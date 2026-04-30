@@ -33,10 +33,12 @@ struct ActionButton: View {
                 Text(title)
                     .font(.subheadline)
                     .fontWeight(.medium)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.85)
             }
             .foregroundStyle(foregroundColor)
-            .frame(maxWidth: .infinity)
             .padding(.vertical, 12)
+            .padding(.horizontal, 14)
             .background(backgroundColor)
             .clipShape(RoundedRectangle(cornerRadius: 12))
             .overlay {

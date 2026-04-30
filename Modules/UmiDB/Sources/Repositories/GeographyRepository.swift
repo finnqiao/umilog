@@ -566,4 +566,38 @@ public final class GeographyRepository {
         let results = try fetchRegionSummaries(ids: [id])
         return results.first
     }
+
+    // MARK: - Region Groups
+
+    public func fetchRegionGroups() throws -> [RegionGroup] {
+        try dbQueue.read { db in
+            try RegionGroup.order(RegionGroup.Columns.sortOrder).fetchAll(db)
+        }
+    }
+
+    public func fetchRegionGroup(id: String) throws -> RegionGroup? {
+        try dbQueue.read { db in
+            try RegionGroup.fetchOne(db, key: id)
+        }
+    }
+
+    public func fetchRegions(groupId: String) throws -> [Region] {
+        try dbQueue.read { db in
+            try Region.filter(Region.Columns.groupId == groupId).fetchAll(db)
+        }
+    }
+
+    public func createRegionGroups(_ groups: [RegionGroup]) throws {
+        try dbQueue.write { db in
+            for group in groups {
+                try group.insert(db)
+            }
+        }
+    }
+
+    public func countRegionGroups() throws -> Int {
+        try dbQueue.read { db in
+            try RegionGroup.fetchCount(db)
+        }
+    }
 }

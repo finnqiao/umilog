@@ -48,6 +48,11 @@ enum MapUIAction: Equatable {
     /// Open full inspection view for a site.
     case openSiteInspection(String)
 
+    /// Open full inspection view for a site with an explicit return surface.
+    /// Used when inspection is launched from a preview that originated in a
+    /// non-explore modal surface (for example search browse/results).
+    case openSiteInspectionWithReturnSurface(siteId: String, returnSurface: SiteInspectionReturnSurface)
+
     /// Close site inspection and return to explore.
     case closeSiteInspection
 

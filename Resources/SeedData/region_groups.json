@@ -1,0 +1,174 @@
+{
+  "region_groups": [
+    {
+      "id": "coral-triangle",
+      "name": "Coral Triangle",
+      "tagline": "The Amazon of the Seas",
+      "description": "",
+      "latitude": null,
+      "longitude": null,
+      "cover_image_url": null,
+      "sort_order": 1
+    },
+    {
+      "id": "philippines",
+      "name": "Philippines",
+      "tagline": "8,000 islands, infinite dive sites",
+      "description": "",
+      "latitude": null,
+      "longitude": null,
+      "cover_image_url": null,
+      "sort_order": 2
+    },
+    {
+      "id": "malaysia-borneo",
+      "name": "Malaysia, Brunei & Borneo",
+      "tagline": "Sipadan — one of the world's finest",
+      "description": "",
+      "latitude": null,
+      "longitude": null,
+      "cover_image_url": null,
+      "sort_order": 3
+    },
+    {
+      "id": "southeast-asia-mainland",
+      "name": "Thailand, Myanmar, Cambodia & Vietnam",
+      "tagline": "Richelieu Rock to the Gulf islands",
+      "description": "",
+      "latitude": null,
+      "longitude": null,
+      "cover_image_url": null,
+      "sort_order": 4
+    },
+    {
+      "id": "micronesia",
+      "name": "Micronesia",
+      "tagline": "Blue Corner, Truk Lagoon and Yap mantas",
+      "description": "",
+      "latitude": null,
+      "longitude": null,
+      "cover_image_url": null,
+      "sort_order": 5
+    },
+    {
+      "id": "red-sea",
+      "name": "Red Sea",
+      "tagline": "Walls, wrecks, and warm desert light",
+      "description": "",
+      "latitude": null,
+      "longitude": null,
+      "cover_image_url": null,
+      "sort_order": 6
+    },
+    {
+      "id": "maldives-indian-ocean",
+      "name": "Maldives & Indian Ocean",
+      "tagline": "Mantas, whale sharks, and turquoise atolls",
+      "description": "",
+      "latitude": null,
+      "longitude": null,
+      "cover_image_url": null,
+      "sort_order": 7
+    },
+    {
+      "id": "east-africa-arabia",
+      "name": "East Africa & Arabia",
+      "tagline": "Whale sharks, dugongs, and untouched reefs",
+      "description": "",
+      "latitude": null,
+      "longitude": null,
+      "cover_image_url": null,
+      "sort_order": 8
+    },
+    {
+      "id": "australia-new-zealand",
+      "name": "Australia & New Zealand",
+      "tagline": "Great Barrier Reef to kelp forests",
+      "description": "",
+      "latitude": null,
+      "longitude": null,
+      "cover_image_url": null,
+      "sort_order": 9
+    },
+    {
+      "id": "pacific-islands",
+      "name": "Pacific Islands",
+      "tagline": "Remote paradise reefs and big ocean encounters",
+      "description": "",
+      "latitude": null,
+      "longitude": null,
+      "cover_image_url": null,
+      "sort_order": 10
+    },
+    {
+      "id": "caribbean-atlantic",
+      "name": "Caribbean & Atlantic",
+      "tagline": "Wrecks, walls, and warm tropical reefs",
+      "description": "",
+      "latitude": null,
+      "longitude": null,
+      "cover_image_url": null,
+      "sort_order": 11
+    },
+    {
+      "id": "mediterranean-europe",
+      "name": "Mediterranean & Atlantic Europe",
+      "tagline": "Posidonia meadows, wrecks, and ancient history",
+      "description": "",
+      "latitude": null,
+      "longitude": null,
+      "cover_image_url": null,
+      "sort_order": 12
+    },
+    {
+      "id": "central-america-mexico-pacific",
+      "name": "Central America & Mexico Pacific",
+      "tagline": "Whale sharks, hammerheads, and pristine Pacific reefs",
+      "description": "",
+      "latitude": null,
+      "longitude": null,
+      "cover_image_url": null,
+      "sort_order": 13
+    },
+    {
+      "id": "south-america",
+      "name": "South America",
+      "tagline": "Fernando de Noronha, cold kelp forests, and Amazon coral",
+      "description": "",
+      "latitude": null,
+      "longitude": null,
+      "cover_image_url": null,
+      "sort_order": 14
+    },
+    {
+      "id": "cold-water-north-atlantic",
+      "name": "North Atlantic & Cold Water",
+      "tagline": "Icebergs, kelp forests, and incredible sea life density",
+      "description": "",
+      "latitude": null,
+      "longitude": null,
+      "cover_image_url": null,
+      "sort_order": 15
+    },
+    {
+      "id": "japan-east-asia",
+      "name": "Japan & East Asia",
+      "tagline": "Hammerheads, nudibranchs, and WWII wrecks",
+      "description": "",
+      "latitude": null,
+      "longitude": null,
+      "cover_image_url": null,
+      "sort_order": 16
+    },
+    {
+      "id": "south-africa-south-atlantic",
+      "name": "South Africa & South Atlantic",
+      "tagline": "Sardine run, great whites, and cape fur seals",
+      "description": "",
+      "latitude": null,
+      "longitude": null,
+      "cover_image_url": null,
+      "sort_order": 17
+    }
+  ]
+}

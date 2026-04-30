@@ -1,4 +1,5 @@
 import XCTest
+import CoreLocation
 @testable import FeatureMap
 @testable import UmiDB
 
@@ -289,6 +290,12 @@ final class MapUIReducerTests: XCTestCase {
         }
         XCTAssertEqual(ctx.siteId, "site-456")
         XCTAssertEqual(ctx.returnContext.hierarchyLevel, .world)
+        XCTAssertEqual(ctx.returnSearchContext?.query, "reef")
+        guard case .some(.search(let returnSurfaceContext)) = ctx.returnSurface else {
+            XCTFail("Expected search return surface")
+            return
+        }
+        XCTAssertEqual(returnSurfaceContext.query, "reef")
     }
 
     func testCloseSearchWithoutSelection() {
@@ -335,10 +342,10 @@ final class MapUIReducerTests: XCTestCase {
         XCTAssertEqual(ctx.siteId, "site-123")
     }
 
-    func testInvalidTransition_FilterToInspect() {
+    func testFilterToInspectStoresReturnSurface() {
         let state = MapUIMode.filter(FilterContext(
             exploreFilters: defaultFilters,
-            returnContext: ExploreContext()
+            returnContext: ExploreContext(hierarchyLevel: .country("ID"))
         ))
         let result = MapUIReducer.reduce(
             state: state,
@@ -346,11 +353,15 @@ final class MapUIReducerTests: XCTestCase {
             currentFilters: defaultFilters
         )
 
-        // Should remain unchanged - can't inspect from filter mode
-        guard case .filter = result else {
-            XCTFail("Expected filter mode unchanged")
+        guard case .inspectSite(let inspection) = result else {
+            XCTFail("Expected inspect mode")
             return
         }
+        guard case .some(.filter(let filterSurface)) = inspection.returnSurface else {
+            XCTFail("Expected filter return surface")
+            return
+        }
+        XCTAssertEqual(filterSurface.returnContext.hierarchyLevel, .country("ID"))
     }
 
     // MARK: - Preview Tests
@@ -419,5 +430,186 @@ final class MapUIReducerTests: XCTestCase {
             return
         }
         XCTAssertNil(ctx.previewingSite)
+    }
+
+    func testClusterSiteInspectionCloseReturnsToSiteStack() {
+        let exploreCtx = ExploreContext(hierarchyLevel: .region(countryId: "ID", regionId: "coral-triangle"))
+        let clusterCtx = ClusterExpandContext(
+            clusterCenter: CLLocationCoordinate2D(latitude: -0.5, longitude: 130.5),
+            siteCount: 3,
+            memberSiteIds: ["site-a", "site-b", "site-c"],
+            expansionZoomLevel: 9,
+            returnContext: exploreCtx
+        )
+        let clusterState = MapUIReducer.reduce(
+            state: .explore(exploreCtx),
+            action: .openClusterExpand(clusterCtx),
+            currentFilters: defaultFilters
+        )
+        let inspectState = MapUIReducer.reduce(
+            state: clusterState,
+            action: .openSiteInspection("site-b"),
+            currentFilters: defaultFilters
+        )
+        let result = MapUIReducer.reduce(
+            state: inspectState,
+            action: .closeSiteInspection,
+            currentFilters: defaultFilters
+        )
+
+        guard case .clusterExpand(let returnedCluster) = result else {
+            XCTFail("Expected to return to cluster expand")
+            return
+        }
+        XCTAssertEqual(returnedCluster.memberSiteIds, ["site-a", "site-b", "site-c"])
+        XCTAssertEqual(returnedCluster.returnContext.hierarchyLevel, exploreCtx.hierarchyLevel)
+    }
+
+    func testFilterCancelReturnsToPreviousExploreContext() {
+        let exploreCtx = ExploreContext(
+            hierarchyLevel: .country("ID"),
+            filterLens: .saved,
+            speciesFilter: "manta-ray"
+        )
+        let filterState = MapUIReducer.reduce(
+            state: .explore(exploreCtx),
+            action: .openFilter,
+            currentFilters: defaultFilters
+        )
+        let result = MapUIReducer.reduce(
+            state: filterState,
+            action: .closeFilter(apply: false),
+            currentFilters: defaultFilters
+        )
+
+        guard case .explore(let returnedContext) = result else {
+            XCTFail("Expected explore mode")
+            return
+        }
+        XCTAssertEqual(returnedContext, exploreCtx)
+    }
+
+    func testSearchCloseReturnsToPreviousExploreContext() {
+        let exploreCtx = ExploreContext(
+            hierarchyLevel: .area(regionId: "coral-triangle", areaId: "raja-ampat"),
+            filterLens: .logged
+        )
+        let searchState = MapUIReducer.reduce(
+            state: .explore(exploreCtx),
+            action: .openSearch,
+            currentFilters: defaultFilters
+        )
+        let result = MapUIReducer.reduce(
+            state: searchState,
+            action: .closeSearch(selectedSite: nil),
+            currentFilters: defaultFilters
+        )
+
+        guard case .explore(let returnedContext) = result else {
+            XCTFail("Expected explore mode")
+            return
+        }
+        XCTAssertEqual(returnedContext, exploreCtx)
+    }
+
+    func testSearchInspectCloseReturnsToSearchSurface() {
+        let exploreCtx = ExploreContext(hierarchyLevel: .region(countryId: "ID", regionId: "coral-triangle"))
+        let searchCtx = SearchContext(query: "indo", returnContext: exploreCtx)
+        let inspectState = MapUIReducer.reduce(
+            state: .search(searchCtx),
+            action: .openSiteInspection("site-42"),
+            currentFilters: defaultFilters
+        )
+        let result = MapUIReducer.reduce(
+            state: inspectState,
+            action: .closeSiteInspection,
+            currentFilters: defaultFilters
+        )
+
+        guard case .search(let returnedSearchContext) = result else {
+            XCTFail("Expected to return to search")
+            return
+        }
+        XCTAssertEqual(returnedSearchContext, searchCtx)
+    }
+
+    func testFilterInspectCloseReturnsToFilterSurface() {
+        let exploreCtx = ExploreContext(hierarchyLevel: .country("ID"), filterLens: .saved)
+        let filterCtx = FilterContext(exploreFilters: defaultFilters, returnContext: exploreCtx)
+        let inspectState = MapUIReducer.reduce(
+            state: .filter(filterCtx),
+            action: .openSiteInspection("site-42"),
+            currentFilters: defaultFilters
+        )
+        let result = MapUIReducer.reduce(
+            state: inspectState,
+            action: .closeSiteInspection,
+            currentFilters: defaultFilters
+        )
+
+        guard case .filter(let returnedFilterContext) = result else {
+            XCTFail("Expected to return to filter")
+            return
+        }
+        XCTAssertEqual(returnedFilterContext.returnContext, exploreCtx)
+        XCTAssertEqual(returnedFilterContext.exploreFilters, defaultFilters)
+    }
+
+    func testNearMeInspectCloseReturnsToNearMeSurface() {
+        let nearMeCtx = NearMeContext(
+            latitude: -0.5,
+            longitude: 130.5,
+            returnContext: ExploreContext(hierarchyLevel: .world)
+        )
+        let inspectState = MapUIReducer.reduce(
+            state: .nearMe(nearMeCtx),
+            action: .openSiteInspection("site-42"),
+            currentFilters: defaultFilters
+        )
+        let result = MapUIReducer.reduce(
+            state: inspectState,
+            action: .closeSiteInspection,
+            currentFilters: defaultFilters
+        )
+
+        guard case .nearMe(let returnedNearMeContext) = result else {
+            XCTFail("Expected to return to near me")
+            return
+        }
+        XCTAssertEqual(returnedNearMeContext, nearMeCtx)
+    }
+
+    func testOpenSiteInspectionWithReturnSurfaceFromExploreReturnsToSearchOnClose() {
+        let exploreCtx = ExploreContext(hierarchyLevel: .world)
+        let searchCtx = SearchContext(query: "indonesia", returnContext: exploreCtx)
+        let inspectState = MapUIReducer.reduce(
+            state: .explore(exploreCtx),
+            action: .openSiteInspectionWithReturnSurface(
+                siteId: "site-777",
+                returnSurface: .search(searchCtx)
+            ),
+            currentFilters: defaultFilters
+        )
+
+        guard case .inspectSite(let inspectionContext) = inspectState else {
+            XCTFail("Expected inspect mode")
+            return
+        }
+        guard case .some(.search(let storedSearchContext)) = inspectionContext.returnSurface else {
+            XCTFail("Expected stored search return surface")
+            return
+        }
+        XCTAssertEqual(storedSearchContext, searchCtx)
+
+        let result = MapUIReducer.reduce(
+            state: inspectState,
+            action: .closeSiteInspection,
+            currentFilters: defaultFilters
+        )
+        guard case .search(let returnedSearchContext) = result else {
+            XCTFail("Expected to return to search")
+            return
+        }
+        XCTAssertEqual(returnedSearchContext, searchCtx)
     }
 }

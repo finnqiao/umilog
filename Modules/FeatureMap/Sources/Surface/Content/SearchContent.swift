@@ -39,7 +39,7 @@ struct SearchContent: View {
     @State private var plannedSites: [DiveSite] = []
     @State private var nearbySites: [DiveSite] = []
     @State private var recentSites: [RecentlyViewedSite] = []
-    @State private var popularRegions: [RegionSummary] = RegionSummary.popular
+    @State private var popularRegions: [RegionSummary] = []
 
     // Browse filters
     @State private var activeCategory: SearchCategory? = nil
@@ -287,13 +287,14 @@ struct SearchContent: View {
             let logged = (try? siteRepository.fetchVisited()) ?? []
             let planned = (try? siteRepository.fetchPlanned()) ?? []
             let recent = MapStatePersistence.shared.loadRecentSites()
+            let popular = (try? geographyRepository.fetchPopularRegions(limit: 8)) ?? []
 
             DispatchQueue.main.async {
                 savedSites = saved
                 loggedSites = logged
                 plannedSites = planned
                 recentSites = recent
-                popularRegions = RegionSummary.popular
+                popularRegions = popular.isEmpty ? RegionSummary.popular : popular
             }
         }
         loadNearbySites()
@@ -404,8 +405,11 @@ struct SearchContent: View {
     }
 
     private func handleRegionTap(_ region: RegionSummary) {
-        let regionSites = sites.filter { $0.region == region.name }
-        onSelectRegion?(region.name, regionSites)
+        let regionSites = sites.filter {
+            $0.regionId == region.id || $0.region == region.name || $0.region == region.id
+        }
+        let regionKey = regionSites.contains { $0.regionId == region.id } ? region.id : region.name
+        onSelectRegion?(regionKey, regionSites)
     }
 
     private func clearAllFilters() {
@@ -460,6 +464,19 @@ struct SearchContent: View {
 
     private var searchField: some View {
         HStack(spacing: 10) {
+            Button {
+                isSearchFocused = false
+                onDismiss()
+            } label: {
+                Image(systemName: "chevron.left")
+                    .font(.system(size: 16, weight: .semibold))
+                    .foregroundStyle(Color.lagoon)
+                    .frame(width: 30, height: 30)
+                    .contentShape(Rectangle())
+            }
+            .buttonStyle(.plain)
+            .accessibilityLabel("Back to map")
+
             Image(systemName: "magnifyingglass")
                 .font(.system(size: 16))
                 .foregroundStyle(Color.mist)

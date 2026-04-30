@@ -74,6 +74,7 @@ class MapViewModel: ObservableObject {
     @Published var regions: [Region] = []
     @Published var loading: Bool = false
     @Published var visibleSites: [DiveSite] = []
+    @Published private(set) var hasViewportResult: Bool = false
     @Published private(set) var totalSiteCount: Int = 0
     @Published private(set) var isUsingSampledDataset: Bool = false
 
@@ -262,7 +263,15 @@ class MapViewModel: ObservableObject {
         let zoom = defaults.double(forKey: Self.lastZoomKey)
         // Validate reasonable values
         guard lat >= -90 && lat <= 90 && lon >= -180 && lon <= 180 && zoom > 0 else { return nil }
+        if isLegacyHardcodedDefault(latitude: lat, longitude: lon) {
+            clearMapState()
+            return nil
+        }
         return (CLLocationCoordinate2D(latitude: lat, longitude: lon), zoom)
+    }
+
+    private func isLegacyHardcodedDefault(latitude: Double, longitude: Double) -> Bool {
+        abs(latitude - (-0.5)) < 0.05 && abs(longitude - 130.5) < 0.05
     }
 
     /// Clear saved map state (useful for testing or reset)
@@ -352,6 +361,7 @@ class MapViewModel: ObservableObject {
             shops = payload.shops
             regions = payload.regions
             visibleSites = payload.sites
+            hasViewportResult = false
             totalSiteCount = payload.totalSiteCount
             isUsingSampledDataset = payload.isSampled
             fallbackSites = payload.fallbackSites
@@ -370,6 +380,7 @@ class MapViewModel: ObservableObject {
             shops = []
             regions = []
             visibleSites = []
+            hasViewportResult = false
             totalSiteCount = 0
             isUsingSampledDataset = false
             fallbackSites = []
@@ -414,17 +425,16 @@ class MapViewModel: ObservableObject {
         }.value
         switch queryResult {
         case .success(let boxSites):
-            let sitesToShow = boxSites.isEmpty ? fallbackSites : boxSites
-
             // Only update if the result is actually different to avoid unnecessary re-renders
-            if sitesToShow.count != self.visibleSites.count || !sitesToShow.elementsEqual(self.visibleSites, by: { $0.id == $1.id }) {
-                self.visibleSites = sitesToShow
+            if boxSites.count != self.visibleSites.count || !boxSites.elementsEqual(self.visibleSites, by: { $0.id == $1.id }) {
+                self.visibleSites = boxSites
             }
+            self.hasViewportResult = true
 
             recordViewportQuery(duration: Date().timeIntervalSince(queryStartedAt), fetchedCount: boxSites.count)
 
             // Prefetch images for visible sites (fire-and-forget)
-            await prefetchImagesForSites(sitesToShow)
+            await prefetchImagesForSites(boxSites)
         case .failure(let error):
             Log.map.debug("Failed to fetch box sites: \(error.localizedDescription)")
             consecutiveViewportFailures += 1
@@ -440,6 +450,7 @@ class MapViewModel: ObservableObject {
             if !self.fallbackSites.isEmpty && self.visibleSites.count != self.fallbackSites.count {
                 self.visibleSites = self.fallbackSites
             }
+            self.hasViewportResult = false
         }
     }
 

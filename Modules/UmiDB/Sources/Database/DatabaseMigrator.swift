@@ -716,6 +716,75 @@ public enum DatabaseMigrator {
             }
         }
 
+        // MARK: - v14: Canonical Expansion — Region Groups + New Site Fields
+        migrator.registerMigration("v14_canonical_expansion") { db in
+            // New site fields
+            try db.alter(table: "sites") { t in
+                t.add(column: "user_quotes", .text).notNull().defaults(to: "[]")
+                t.add(column: "best_season", .text)
+                t.add(column: "required_cert", .text)
+                t.add(column: "collections", .text).notNull().defaults(to: "[]")
+            }
+
+            // Region groups table
+            try db.create(table: "region_groups") { t in
+                t.column("id", .text).primaryKey()
+                t.column("name", .text).notNull()
+                t.column("tagline", .text)
+                t.column("description", .text)
+                t.column("latitude", .double)
+                t.column("longitude", .double)
+                t.column("cover_image_url", .text)
+                t.column("sort_order", .integer).notNull().defaults(to: 0)
+            }
+
+            // Add group_id to regions
+            try db.alter(table: "regions") { t in
+                t.add(column: "group_id", .text).references("region_groups", onDelete: .setNull)
+            }
+            try db.create(index: "idx_regions_group", on: "regions", columns: ["group_id"])
+
+            // Rebuild FTS5 to include collections
+            try db.execute(sql: "DROP TRIGGER IF EXISTS sites_fts_insert")
+            try db.execute(sql: "DROP TRIGGER IF EXISTS sites_fts_update")
+            try db.execute(sql: "DROP TRIGGER IF EXISTS sites_fts_delete")
+            try db.execute(sql: "DROP TABLE IF EXISTS sites_fts")
+            try db.create(virtualTable: "sites_fts", using: FTS5()) { t in
+                t.column("name")
+                t.column("aliases")
+                t.column("region")
+                t.column("location")
+                t.column("tags")
+                t.column("description")
+                t.column("collections")
+            }
+            try db.execute(sql: """
+                INSERT INTO sites_fts(rowid, name, aliases, region, location, tags, description, collections)
+                SELECT rowid, name, aliases, region, location, tags,
+                       COALESCE(description, ''), '[]' FROM sites
+            """)
+            try db.execute(sql: """
+                CREATE TRIGGER IF NOT EXISTS sites_fts_insert AFTER INSERT ON sites BEGIN
+                    INSERT INTO sites_fts(rowid, name, aliases, region, location, tags, description, collections)
+                    VALUES (NEW.rowid, NEW.name, NEW.aliases, NEW.region, NEW.location, NEW.tags,
+                            NEW.description, NEW.collections);
+                END
+            """)
+            try db.execute(sql: """
+                CREATE TRIGGER IF NOT EXISTS sites_fts_update AFTER UPDATE ON sites BEGIN
+                    DELETE FROM sites_fts WHERE rowid = OLD.rowid;
+                    INSERT INTO sites_fts(rowid, name, aliases, region, location, tags, description, collections)
+                    VALUES (NEW.rowid, NEW.name, NEW.aliases, NEW.region, NEW.location, NEW.tags,
+                            NEW.description, NEW.collections);
+                END
+            """)
+            try db.execute(sql: """
+                CREATE TRIGGER IF NOT EXISTS sites_fts_delete AFTER DELETE ON sites BEGIN
+                    DELETE FROM sites_fts WHERE rowid = OLD.rowid;
+                END
+            """)
+        }
+
         // Run migrations
         try migrator.migrate(writer)
     }

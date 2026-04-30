@@ -9,7 +9,27 @@ public enum DatabaseSeeder {
     private static let seedRefreshLastStepKey = "app.umilog.seedRefresh.lastStep"
     private static let seedRefreshLastErrorKey = "app.umilog.seedRefresh.lastError"
     private static let seedRefreshLastRunAtKey = "app.umilog.seedRefresh.lastRunAt"
-    public static let seedDataVersion = "2026-04-15-curated-core-v1"
+    public static let seedDataVersion = "2026-04-27-curated-core-v2"
+
+    public struct SeedAuditSummary: Equatable {
+        public let expectedCuratedSiteCount: Int
+        public let expectedIndonesiaSiteCount: Int
+        public let actualCuratedSiteCount: Int
+        public let actualIndonesiaSiteCount: Int
+        public let missingCuratedSiteCount: Int
+        public let legacySeedSiteCount: Int
+        public let countryLinkIssueCount: Int
+        public let regionLinkIssueCount: Int
+        public let generatedParityMismatchCount: Int
+
+        public var needsCuratedRefresh: Bool {
+            missingCuratedSiteCount > 0 ||
+                actualIndonesiaSiteCount < expectedIndonesiaSiteCount ||
+                countryLinkIssueCount > 0 ||
+                regionLinkIssueCount > 0 ||
+                generatedParityMismatchCount > 0
+        }
+    }
     
     // MARK: - Main Seeding Entry Point
 
@@ -24,7 +44,13 @@ public enum DatabaseSeeder {
         }
 
         if siteCount > 0 {
-            Self.logger.log("✅ Database pre-seeded with \\(siteCount, privacy: .public) sites - skipping JSON seeding")
+            let audit = try auditCuratedSeedData(database: db)
+            if audit.needsCuratedRefresh {
+                Self.logger.log("⚠️ Critical seed audit failed (curated=\(audit.actualCuratedSiteCount, privacy: .public)/\(audit.expectedCuratedSiteCount, privacy: .public), Indonesia=\(audit.actualIndonesiaSiteCount, privacy: .public)/\(audit.expectedIndonesiaSiteCount, privacy: .public)); refreshing curated core")
+                _ = try reconcileCuratedSeedDataIfNeeded(database: db, force: true)
+                return
+            }
+            Self.logger.log("✅ Database pre-seeded with \(siteCount, privacy: .public) sites - skipping JSON seeding")
             return
         }
 
@@ -186,8 +212,14 @@ public enum DatabaseSeeder {
 
         // Fast path: Database is pre-seeded and at current version
         if siteCount > 0 && currentVersion == seedDataVersion {
-            Self.logger.log("✅ Database at current version (\\(seedDataVersion, privacy: .public)) - skipping refresh")
-            return
+            let audit = try auditCuratedSeedData(database: db)
+            if audit.needsCuratedRefresh {
+                Self.logger.log("⚠️ Database version current but curated audit failed; refreshing")
+                _ = try reconcileCuratedSeedDataIfNeeded(database: db, force: true)
+            } else {
+                Self.logger.log("✅ Database at current version (\(seedDataVersion, privacy: .public)) - skipping refresh")
+                return
+            }
         }
 
         // Fast path: Pre-bundled database on first launch (version not set yet)
@@ -198,6 +230,11 @@ public enum DatabaseSeeder {
 
             // Pre-bundled DB has sites, species, AND links
             if speciesCount > 0 && linksCount > 0 {
+                let audit = try auditCuratedSeedData(database: db)
+                if audit.needsCuratedRefresh {
+                    Self.logger.log("⚠️ Pre-bundled database has stale curated core; refreshing before version stamp")
+                    _ = try reconcileCuratedSeedDataIfNeeded(database: db, force: true)
+                }
                 Self.logger.log("✅ Pre-bundled database detected on first launch - setting version")
                 defaults.set(seedDataVersion, forKey: seedDataVersionKey)
                 return
@@ -209,23 +246,177 @@ public enum DatabaseSeeder {
         try ensureEnrichedSeedData()
     }
 
+    public static func auditCuratedSeedData(database db: AppDatabase = .shared) throws -> SeedAuditSummary {
+        guard let (_, siteSeedFile) = loadPreferredSiteSeedFile() else {
+            return SeedAuditSummary(
+                expectedCuratedSiteCount: 0,
+                expectedIndonesiaSiteCount: 0,
+                actualCuratedSiteCount: 0,
+                actualIndonesiaSiteCount: 0,
+                missingCuratedSiteCount: 0,
+                legacySeedSiteCount: 0,
+                countryLinkIssueCount: 0,
+                regionLinkIssueCount: 0,
+                generatedParityMismatchCount: 0
+            )
+        }
+
+        let curatedIds = siteSeedFile.sites.map(\.id)
+        let indonesiaIds = siteSeedFile.sites
+            .filter { $0.country_id == "ID" || $0.country == "Indonesia" }
+            .map(\.id)
+
+        return try db.read { database in
+            let actualCurated = try countSites(database, ids: curatedIds)
+            let actualIndonesia = try countSites(database, ids: indonesiaIds)
+            let legacyCount = try Int.fetchOne(
+                database,
+                sql: "SELECT COUNT(*) FROM sites WHERE id NOT LIKE 'curated_%'"
+            ) ?? 0
+            let curatedSites = try fetchSites(database, ids: curatedIds)
+            let curatedById = Dictionary(uniqueKeysWithValues: curatedSites.map { ($0.id, $0) })
+            let countryIds = Set(try String.fetchAll(database, sql: "SELECT id FROM countries"))
+            let regionIds = Set(try String.fetchAll(database, sql: "SELECT id FROM regions"))
+            let seedById = Dictionary(uniqueKeysWithValues: siteSeedFile.sites.map { ($0.id, $0) })
+
+            var countryLinkIssues = 0
+            var regionLinkIssues = 0
+            var parityMismatches = 0
+
+            for (siteId, seedSite) in seedById {
+                guard let actualSite = curatedById[siteId] else { continue }
+
+                if let expectedCountryId = normalizedSeedIdentifier(seedSite.country_id) {
+                    let actualCountryId = normalizedSeedIdentifier(actualSite.countryId)
+                    let isCountryValid = countryIds.contains(expectedCountryId)
+                    if actualCountryId != expectedCountryId || !isCountryValid {
+                        countryLinkIssues += 1
+                    }
+                } else if let actualCountryId = normalizedSeedIdentifier(actualSite.countryId),
+                          !countryIds.contains(actualCountryId) {
+                    countryLinkIssues += 1
+                }
+
+                if let expectedRegionId = normalizedSeedIdentifier(seedSite.region_id) {
+                    let actualRegionId = normalizedSeedIdentifier(actualSite.regionId)
+                    let isRegionValid = regionIds.contains(expectedRegionId)
+                    if actualRegionId != expectedRegionId || !isRegionValid {
+                        regionLinkIssues += 1
+                    }
+                } else if let actualRegionId = normalizedSeedIdentifier(actualSite.regionId),
+                          !regionIds.contains(actualRegionId) {
+                    regionLinkIssues += 1
+                }
+
+                if !hasGeneratedParity(expected: seedSite, actual: actualSite) {
+                    parityMismatches += 1
+                }
+            }
+
+            return SeedAuditSummary(
+                expectedCuratedSiteCount: curatedIds.count,
+                expectedIndonesiaSiteCount: indonesiaIds.count,
+                actualCuratedSiteCount: actualCurated,
+                actualIndonesiaSiteCount: actualIndonesia,
+                missingCuratedSiteCount: max(curatedIds.count - actualCurated, 0),
+                legacySeedSiteCount: legacyCount,
+                countryLinkIssueCount: countryLinkIssues,
+                regionLinkIssueCount: regionLinkIssues,
+                generatedParityMismatchCount: parityMismatches
+            )
+        }
+    }
+
+    private static func countSites(_ db: Database, ids: [String]) throws -> Int {
+        guard !ids.isEmpty else { return 0 }
+        let placeholders = ids.map { _ in "?" }.joined(separator: ",")
+        return try Int.fetchOne(
+            db,
+            sql: "SELECT COUNT(*) FROM sites WHERE id IN (\(placeholders))",
+            arguments: StatementArguments(ids)
+        ) ?? 0
+    }
+
+    private static func fetchSites(_ db: Database, ids: [String]) throws -> [DiveSite] {
+        guard !ids.isEmpty else { return [] }
+        let placeholders = ids.map { _ in "?" }.joined(separator: ",")
+        return try DiveSite.fetchAll(
+            db,
+            sql: "SELECT * FROM sites WHERE id IN (\(placeholders))",
+            arguments: StatementArguments(ids)
+        )
+    }
+
+    private static func normalizedSeedIdentifier(_ value: String?) -> String? {
+        guard let trimmed = value?.trimmingCharacters(in: .whitespacesAndNewlines), !trimmed.isEmpty else {
+            return nil
+        }
+        return trimmed
+    }
+
+    private static func hasGeneratedParity(expected: EnrichedSiteSeedData, actual: DiveSite) -> Bool {
+        if normalizedSeedIdentifier(expected.name) != normalizedSeedIdentifier(actual.name) {
+            return false
+        }
+        if normalizedSeedIdentifier(expected.region) != normalizedSeedIdentifier(actual.region) {
+            return false
+        }
+        if let expectedCountryId = normalizedSeedIdentifier(expected.country_id),
+           normalizedSeedIdentifier(actual.countryId) != expectedCountryId {
+            return false
+        }
+        if let expectedRegionId = normalizedSeedIdentifier(expected.region_id),
+           normalizedSeedIdentifier(actual.regionId) != expectedRegionId {
+            return false
+        }
+        if let expectedAreaId = normalizedSeedIdentifier(expected.area_id),
+           normalizedSeedIdentifier(actual.areaId) != expectedAreaId {
+            return false
+        }
+        if abs(expected.latitude - actual.latitude) > 0.00001 {
+            return false
+        }
+        if abs(expected.longitude - actual.longitude) > 0.00001 {
+            return false
+        }
+        return true
+    }
+
+    @discardableResult
+    public static func reconcileCuratedSeedDataIfNeeded(
+        database db: AppDatabase = .shared,
+        force: Bool = false
+    ) throws -> SeedAuditSummary {
+        let audit = try auditCuratedSeedData(database: db)
+        guard force || audit.needsCuratedRefresh else {
+            return audit
+        }
+
+        try seedGeographicHierarchy(database: db)
+        try refreshSitesCatalog(database: db)
+        try refreshSiteSearchIndex(database: db)
+
+        return try auditCuratedSeedData(database: db)
+    }
+
     /// Check if database needs seeding or refresh (for UI progress indication)
     public static func needsSeedingOrRefresh() -> Bool {
         let defaults = UserDefaults.standard
         let currentVersion = defaults.string(forKey: seedDataVersionKey)
 
-        // If version mismatch, needs refresh
         if currentVersion != seedDataVersion {
             return true
         }
 
-        // If no sites, needs seeding
         do {
             let db = AppDatabase.shared
             let siteCount = try db.read { db in
                 try Int.fetchOne(db, sql: "SELECT COUNT(*) FROM sites") ?? 0
             }
-            return siteCount == 0
+            if siteCount == 0 {
+                return true
+            }
+            return (try? auditCuratedSeedData(database: db).needsCuratedRefresh) ?? true
         } catch {
             return true
         }
@@ -245,10 +436,9 @@ public enum DatabaseSeeder {
 
     // MARK: - v5: Geographic Hierarchy Seeding
 
-    private static func seedGeographicHierarchy() throws {
+    private static func seedGeographicHierarchy(database db: AppDatabase = .shared) throws {
         Self.logger.log("  🌍 Loading geographic hierarchy...")
 
-        let db = AppDatabase.shared
         let geoRepo = GeographyRepository(database: db)
         let regionEnrichments = loadRegionEnrichments()
 
@@ -316,7 +506,7 @@ public enum DatabaseSeeder {
     }
 
     private static var refreshPipelineVersion: String {
-        "\(seedDataVersion)-refresh-v2"
+        "\(seedDataVersion)-refresh-v3"
     }
 
     private static func refreshSeedData() throws {
@@ -502,12 +692,11 @@ public enum DatabaseSeeder {
         }
     }
 
-    private static func refreshSitesCatalog() throws {
+    private static func refreshSitesCatalog(database db: AppDatabase = .shared) throws {
         guard let (_, siteSeedFile) = loadPreferredSiteSeedFile() else {
             return
         }
 
-        let db = AppDatabase.shared
         try db.write { db in
             let existingSites = try DiveSite.fetchAll(db)
             var existingById: [String: DiveSite] = [:]
@@ -515,17 +704,22 @@ public enum DatabaseSeeder {
             for site in existingSites {
                 existingById[site.id] = site
             }
+            let curatedBaseIdMapping = loadCuratedBaseSiteIdMapping()
+            var legacyStateByCuratedId: [String: DiveSite] = [:]
+            for (legacyId, curatedId) in curatedBaseIdMapping {
+                guard let legacy = existingById[legacyId] else { continue }
+                legacyStateByCuratedId[curatedId] = legacy
+            }
 
             for siteData in siteSeedFile.sites {
                 let updated = convertEnrichedSiteToModel(siteData)
-                if let existing = existingById[updated.id] {
-                    let merged = mergeExistingSite(existing, updated: updated)
-                    try merged.save(db)
-                    try replaceSiteAliases(for: merged, in: db)
-                } else {
-                    try updated.insert(db)
-                    try replaceSiteAliases(for: updated, in: db)
-                }
+                let merged = mergeUserState(
+                    into: updated,
+                    existing: existingById[updated.id],
+                    legacy: legacyStateByCuratedId[updated.id]
+                )
+                try merged.save(db)
+                try replaceSiteAliases(for: merged, in: db)
             }
         }
     }
@@ -578,11 +772,9 @@ public enum DatabaseSeeder {
         }
     }
 
-    private static func refreshSiteSearchIndex() throws {
+    private static func refreshSiteSearchIndex(database db: AppDatabase = .shared) throws {
         // v9 migration adds incremental FTS triggers, so full rebuild is no longer needed
         // for normal operations. Only rebuild if FTS is out of sync (legacy upgrade path).
-        let db = AppDatabase.shared
-
         let sitesCount = try db.read { db in
             try Int.fetchOne(db, sql: "SELECT COUNT(*) FROM sites") ?? 0
         }
@@ -1026,6 +1218,52 @@ public enum DatabaseSeeder {
             accessLevel: updated.accessLevel == "unknown" ? existing.accessLevel : updated.accessLevel,
             wreckVerified: updated.wreckVerified || existing.wreckVerified,
             destinationSlug: updated.destinationSlug ?? existing.destinationSlug
+        )
+    }
+
+    private static func mergeUserState(
+        into updated: DiveSite,
+        existing: DiveSite?,
+        legacy: DiveSite?
+    ) -> DiveSite {
+        let stateSources = [existing, legacy].compactMap { $0 }
+        guard !stateSources.isEmpty else { return updated }
+
+        let wishlist = updated.wishlist || stateSources.contains { $0.wishlist }
+        let isPlanned = updated.isPlanned || stateSources.contains { $0.isPlanned }
+        let visitedCount = max(updated.visitedCount, stateSources.map(\.visitedCount).max() ?? 0)
+        let fallbackDescription = existing?.description ?? legacy?.description
+
+        return DiveSite(
+            id: updated.id,
+            name: updated.name,
+            location: updated.location,
+            latitude: updated.latitude,
+            longitude: updated.longitude,
+            region: updated.region,
+            averageDepth: updated.averageDepth,
+            maxDepth: updated.maxDepth,
+            averageTemp: updated.averageTemp,
+            averageVisibility: updated.averageVisibility,
+            difficulty: updated.difficulty,
+            type: updated.type,
+            description: preferredDescription(primary: updated.description, fallback: fallbackDescription),
+            wishlist: wishlist,
+            isPlanned: isPlanned,
+            visitedCount: visitedCount,
+            tags: updated.tags,
+            createdAt: existing?.createdAt ?? legacy?.createdAt ?? updated.createdAt,
+            countryId: updated.countryId ?? existing?.countryId ?? legacy?.countryId,
+            regionId: updated.regionId ?? existing?.regionId ?? legacy?.regionId,
+            areaId: updated.areaId ?? existing?.areaId ?? legacy?.areaId,
+            wikidataId: updated.wikidataId ?? existing?.wikidataId ?? legacy?.wikidataId,
+            osmId: updated.osmId ?? existing?.osmId ?? legacy?.osmId,
+            aliases: updated.aliases.isEmpty ? (existing?.aliases ?? legacy?.aliases ?? []) : updated.aliases,
+            curationScore: updated.curationScore,
+            popularityScore: updated.popularityScore,
+            accessLevel: updated.accessLevel,
+            wreckVerified: updated.wreckVerified,
+            destinationSlug: updated.destinationSlug ?? existing?.destinationSlug ?? legacy?.destinationSlug
         )
     }
 

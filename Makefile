@@ -261,3 +261,25 @@ clean-seed-db:
 build-with-seed-db: seed-db-generate
 	xcodegen generate
 	@echo "Ready to build with pre-seeded database"
+
+# ── Canonical pipeline ────────────────────────────────────────────────────────
+.PHONY: canonical-geocode canonical-enrich canonical-enrich-incremental
+.PHONY: canonical-core-build canonical-pipeline-full
+
+canonical-geocode:
+	python3 scripts/enrich_geocode.py
+
+canonical-enrich:
+	python3 scripts/enrich_descriptions.py
+
+canonical-enrich-incremental:
+	python3 scripts/enrich_descriptions.py --incremental
+
+canonical-core-build:
+	python3 scripts/build_canonical_core.py
+
+canonical-core-build-dev:
+	python3 scripts/build_canonical_core.py --use-region-center
+
+canonical-pipeline-full: canonical-geocode canonical-enrich canonical-core-build seed-db-generate
+	@echo "Canonical pipeline complete."

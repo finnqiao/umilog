@@ -40,6 +40,12 @@ struct UnifiedBottomSurface: View {
     /// Visible areas at regional zoom.
     var visibleAreas: [AreaSummary] = []
 
+    /// Recently viewed regions used when the current viewport is sparse.
+    var recentRegions: [RegionSummary] = []
+
+    /// Database-backed popular regions used when the current viewport is sparse.
+    var popularRegions: [RegionSummary] = []
+
     /// Nearest area for sparse viewport prompt.
     var nearestArea: AreaSummary?
 
@@ -61,6 +67,7 @@ struct UnifiedBottomSurface: View {
     var onSearchSelectSpecies: ((WildlifeSpecies) -> Void)?
     var onOpenFilter: () -> Void
     var onOpenSearch: () -> Void
+    var onCloseSearch: () -> Void
     var onNavigateUp: () -> Void
     var onResetToWorld: () -> Void
     var onDrillDown: (String) -> Void
@@ -230,6 +237,9 @@ struct UnifiedBottomSurface: View {
                     entryMode: $entryMode,
                     visibleDestinations: visibleDestinations,
                     visibleAreas: visibleAreas,
+                    savedSites: allSites.filter { $0.wishlist || $0.visitedCount > 0 },
+                    recentRegions: recentRegions,
+                    popularRegions: popularRegions,
                     nearestArea: nearestArea,
                     nearestRegion: nearestRegion,
                     onSiteTap: onSiteTap,
@@ -250,6 +260,7 @@ struct UnifiedBottomSurface: View {
                     onAreaTap: { area in
                         onAreaTap?(area)
                     },
+                    onOpenSearch: onOpenSearch,
                     onExpandSearch: {
                         onExpandSearch?()
                     }
@@ -284,7 +295,7 @@ struct UnifiedBottomSurface: View {
                     onSelectRegion: onSearchSelectRegion,
                     onSelectArea: onSearchSelectArea,
                     onSelectSpecies: onSearchSelectSpecies,
-                    onDismiss: { }
+                    onDismiss: onCloseSearch
                 )
                 .transition(contentTransition)
 

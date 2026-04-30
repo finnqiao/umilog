@@ -119,6 +119,8 @@ targets:
         buildPhase: resources
       - path: Resources/SeedData/site_species.json
         buildPhase: resources
+      - path: Resources/SeedDB/umilog_seed.db
+        buildPhase: resources
       # REMOVED: sites_wikidata.json (10MB) - redundant, optimized tiles used instead
       - path: Resources/SeedData/optimized/tiles/manifest.json
         buildPhase: resources

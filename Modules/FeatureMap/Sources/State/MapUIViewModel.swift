@@ -55,21 +55,23 @@ class MapUIViewModel: ObservableObject {
     /// Dispatch an action to update state.
     func send(_ action: MapUIAction) {
         // Guard against concurrent transitions during animations
-        guard !isTransitioning else { return }
+        guard !isTransitioning || canBypassTransitionGuard(action) else { return }
+
+        let previousMode = mode
 
         // Apply reducer
         let newMode = MapUIReducer.reduce(
-            state: mode,
+            state: previousMode,
             action: action,
             currentFilters: exploreFilters
         )
 
         // Only update if changed (prevents unnecessary view updates)
-        if newMode != mode {
-            // Push current mode to history for back navigation
-            // (only for major mode changes, not sub-state updates within the same mode)
-            if newMode.stableId != mode.stableId {
-                pushHistory(mode)
+        if newMode != previousMode {
+            if shouldRecordHistory(for: action, from: previousMode, to: newMode) {
+                pushHistory(previousMode)
+            } else {
+                reconcileHistoryAfterClose(to: newMode)
             }
 
             isTransitioning = true
@@ -103,6 +105,23 @@ class MapUIViewModel: ObservableObject {
         modeHistory.append(mode)
         if modeHistory.count > maxHistoryDepth {
             modeHistory.removeFirst()
+        }
+    }
+
+    private func shouldRecordHistory(for action: MapUIAction, from oldMode: MapUIMode, to newMode: MapUIMode) -> Bool {
+        guard newMode.stableId != oldMode.stableId else { return false }
+
+        switch action {
+        case .closeSearch, .closeFilter, .closeSiteInspection, .closePlan, .closeClusterExpand, .deactivateNearMe:
+            return false
+        default:
+            return true
+        }
+    }
+
+    private func reconcileHistoryAfterClose(to newMode: MapUIMode) {
+        if modeHistory.last == newMode {
+            modeHistory.removeLast()
         }
     }
 
@@ -217,6 +236,20 @@ class MapUIViewModel: ObservableObject {
 
         default:
             break
+        }
+    }
+
+    private func canBypassTransitionGuard(_ action: MapUIAction) -> Bool {
+        switch action {
+        case .closeSearch,
+                .closeFilter,
+                .closeSiteInspection,
+                .closePlan,
+                .closeClusterExpand,
+                .deactivateNearMe:
+            return true
+        default:
+            return false
         }
     }
 }

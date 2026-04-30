@@ -84,7 +84,11 @@ def create_schema(conn: sqlite3.Connection):
             popularity_score REAL NOT NULL DEFAULT 0,
             access_level TEXT NOT NULL DEFAULT 'unknown',
             wreck_verified INTEGER NOT NULL DEFAULT 0,
-            destination_slug TEXT
+            destination_slug TEXT,
+            user_quotes TEXT NOT NULL DEFAULT '[]',
+            best_season TEXT,
+            required_cert TEXT,
+            collections TEXT NOT NULL DEFAULT '[]'
         )
     """)
 
@@ -287,7 +291,21 @@ def create_schema(conn: sqlite3.Connection):
     """)
     cursor.execute("CREATE INDEX idx_countries_continent ON countries(continent)")
 
-    # v5: Regions table (with v8 additions)
+    # v14: Region groups table
+    cursor.execute("""
+        CREATE TABLE region_groups (
+            id TEXT PRIMARY KEY,
+            name TEXT NOT NULL,
+            tagline TEXT,
+            description TEXT,
+            latitude REAL,
+            longitude REAL,
+            cover_image_url TEXT,
+            sort_order INTEGER NOT NULL DEFAULT 0
+        )
+    """)
+
+    # v5: Regions table (with v8 + v14 additions)
     cursor.execute("""
         CREATE TABLE regions (
             id TEXT PRIMARY KEY,
@@ -297,10 +315,12 @@ def create_schema(conn: sqlite3.Connection):
             longitude REAL,
             wikidata_id TEXT,
             tagline TEXT,
-            description TEXT
+            description TEXT,
+            group_id TEXT REFERENCES region_groups(id) ON DELETE SET NULL
         )
     """)
     cursor.execute("CREATE INDEX idx_regions_country ON regions(country_id)")
+    cursor.execute("CREATE INDEX idx_regions_group ON regions(group_id)")
 
     # v5: Areas table
     cursor.execute("""
@@ -434,7 +454,7 @@ def create_schema(conn: sqlite3.Connection):
     # FTS5 tables (content-less for manual population)
     cursor.execute("""
         CREATE VIRTUAL TABLE sites_fts USING fts5(
-            name, aliases, region, location, tags, description,
+            name, aliases, region, location, tags, description, collections,
             content='', contentless_delete=1
         )
     """)
@@ -449,15 +469,15 @@ def create_schema(conn: sqlite3.Connection):
     # v9: FTS5 incremental triggers for sites
     cursor.execute("""
         CREATE TRIGGER sites_fts_insert AFTER INSERT ON sites BEGIN
-            INSERT INTO sites_fts(rowid, name, aliases, region, location, tags, description)
-            VALUES (NEW.rowid, NEW.name, NEW.aliases, NEW.region, NEW.location, NEW.tags, NEW.description);
+            INSERT INTO sites_fts(rowid, name, aliases, region, location, tags, description, collections)
+            VALUES (NEW.rowid, NEW.name, NEW.aliases, NEW.region, NEW.location, NEW.tags, NEW.description, NEW.collections);
         END
     """)
     cursor.execute("""
         CREATE TRIGGER sites_fts_update AFTER UPDATE ON sites BEGIN
             DELETE FROM sites_fts WHERE rowid = OLD.rowid;
-            INSERT INTO sites_fts(rowid, name, aliases, region, location, tags, description)
-            VALUES (NEW.rowid, NEW.name, NEW.aliases, NEW.region, NEW.location, NEW.tags, NEW.description);
+            INSERT INTO sites_fts(rowid, name, aliases, region, location, tags, description, collections)
+            VALUES (NEW.rowid, NEW.name, NEW.aliases, NEW.region, NEW.location, NEW.tags, NEW.description, NEW.collections);
         END
     """)
     cursor.execute("""
@@ -496,7 +516,8 @@ def create_schema(conn: sqlite3.Connection):
         "v7_sync_trips_user_states",
         "v8_region_descriptions",
         "v9_fts5_incremental_triggers",
-        "v10_curated_site_metadata"
+        "v10_curated_site_metadata",
+        "v14_canonical_expansion"
     ]
     cursor.executemany(
         "INSERT INTO grdb_migrations (identifier) VALUES (?)",
@@ -524,8 +545,29 @@ def seed_countries(conn: sqlite3.Connection):
     log(f"  Inserted {len(countries)} countries")
 
 
+def seed_region_groups(conn: sqlite3.Connection):
+    """Seed region_groups table from region_groups.json."""
+    data = load_json("region_groups")
+    if not data:
+        log("  region_groups.json not found — skipping region groups")
+        return
+    groups = data.get("region_groups", [])
+    cursor = conn.cursor()
+    rows = [(
+        g["id"], g["name"], g.get("tagline"), g.get("description"),
+        g.get("latitude"), g.get("longitude"), g.get("cover_image_url"),
+        g.get("sort_order", 0)
+    ) for g in groups]
+    cursor.executemany(
+        "INSERT INTO region_groups (id, name, tagline, description, latitude, longitude, cover_image_url, sort_order) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+        rows
+    )
+    conn.commit()
+    log(f"  Inserted {len(rows)} region groups")
+
+
 def seed_regions(conn: sqlite3.Connection):
-    """Seed regions table with enrichment data."""
+    """Seed regions table from regions.json (canonical format with group_id)."""
     data = load_json("regions")
     enriched_data = load_json("regions_enriched")
 
@@ -538,23 +580,29 @@ def seed_regions(conn: sqlite3.Connection):
         for r in enriched_data.get("regions", []):
             enrichments[r["id"]] = r
 
+    # Determine which country_ids exist in the countries table
     cursor = conn.cursor()
+    cursor.execute("SELECT id FROM countries")
+    valid_country_ids = {row[0] for row in cursor.fetchall()}
+
     rows = []
     for r in regions:
         enrich = enrichments.get(r["id"], {})
+        cid = r.get("country_id")
         rows.append((
             r["id"],
             r["name"],
-            r.get("country_id"),
+            cid if cid in valid_country_ids else None,
             r.get("latitude"),
             r.get("longitude"),
             r.get("wikidata_id"),
-            enrich.get("tagline"),
-            enrich.get("description")
+            r.get("tagline") or enrich.get("tagline"),
+            r.get("description") or enrich.get("description"),
+            r.get("group_id"),
         ))
 
     cursor.executemany(
-        "INSERT INTO regions (id, name, country_id, latitude, longitude, wikidata_id, tagline, description) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+        "INSERT INTO regions (id, name, country_id, latitude, longitude, wikidata_id, tagline, description, group_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
         rows
     )
     conn.commit()
@@ -562,7 +610,7 @@ def seed_regions(conn: sqlite3.Connection):
 
 
 def seed_areas(conn: sqlite3.Connection):
-    """Seed areas table."""
+    """Seed areas table, skipping rows with unknown region_ids or country_ids."""
     data = load_json("areas")
     if not data:
         return
@@ -570,12 +618,31 @@ def seed_areas(conn: sqlite3.Connection):
     areas = data.get("areas", [])
     cursor = conn.cursor()
 
-    cursor.executemany(
-        "INSERT INTO areas (id, name, region_id, country_id, latitude, longitude, wikidata_id) VALUES (?, ?, ?, ?, ?, ?, ?)",
-        [(a["id"], a["name"], a.get("region_id"), a.get("country_id"), a.get("latitude"), a.get("longitude"), a.get("wikidata_id")) for a in areas]
-    )
+    cursor.execute("SELECT id FROM regions")
+    valid_region_ids = {row[0] for row in cursor.fetchall()}
+    cursor.execute("SELECT id FROM countries")
+    valid_country_ids = {row[0] for row in cursor.fetchall()}
+
+    rows = []
+    for a in areas:
+        rid = a.get("region_id")
+        cid = a.get("country_id")
+        if rid and rid not in valid_region_ids:
+            continue  # skip stale reference
+        rows.append((
+            a["id"], a["name"],
+            rid if rid in valid_region_ids else None,
+            cid if cid in valid_country_ids else None,
+            a.get("latitude"), a.get("longitude"), a.get("wikidata_id")
+        ))
+
+    if rows:
+        cursor.executemany(
+            "INSERT INTO areas (id, name, region_id, country_id, latitude, longitude, wikidata_id) VALUES (?, ?, ?, ?, ?, ?, ?)",
+            rows
+        )
     conn.commit()
-    log(f"  Inserted {len(areas)} areas")
+    log(f"  Inserted {len(rows)} areas (skipped {len(areas) - len(rows)} stale)")
 
 
 def normalize_alias(value: str) -> str:
@@ -699,7 +766,11 @@ def seed_sites(conn: sqlite3.Connection):
             s.get("popularity_score", 0),
             s.get("access_level", "unknown"),
             1 if s.get("wreck_verified", False) else 0,
-            s.get("destination_slug")
+            s.get("destination_slug"),
+            json.dumps(s.get("user_quotes") or []),
+            s.get("best_season"),
+            s.get("required_cert"),
+            json.dumps(s.get("collections") or []),
         ))
 
         for alias in aliases:
@@ -712,8 +783,9 @@ def seed_sites(conn: sqlite3.Connection):
            averageDepth, maxDepth, averageTemp, averageVisibility, difficulty, type,
            description, wishlist, visitedCount, createdAt, tags, country_id, region_id,
            area_id, wikidata_id, osm_id, isPlanned, aliases, curation_score,
-           popularity_score, access_level, wreck_verified, destination_slug)
-           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+           popularity_score, access_level, wreck_verified, destination_slug,
+           user_quotes, best_season, required_cert, collections)
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
         rows
     )
     if alias_rows:
@@ -1115,8 +1187,8 @@ def build_fts_indexes(conn: sqlite3.Connection):
         log(f"  Rebuilding sites FTS ({sites_fts_count} vs {sites_count} rows)")
         cursor.execute("DELETE FROM sites_fts")
         cursor.execute("""
-            INSERT INTO sites_fts(rowid, name, aliases, region, location, tags, description)
-            SELECT rowid, name, aliases, region, location, tags, description FROM sites
+            INSERT INTO sites_fts(rowid, name, aliases, region, location, tags, description, collections)
+            SELECT rowid, name, aliases, region, location, tags, description, COALESCE(collections,'[]') FROM sites
         """)
 
     # FTS for species
@@ -1173,6 +1245,7 @@ def main():
         # Seed data in dependency order
         log("Seeding geographic hierarchy...")
         seed_countries(conn)
+        seed_region_groups(conn)
         seed_regions(conn)
         seed_areas(conn)
 

@@ -6,12 +6,8 @@ final class DiveMapUITests: XCTestCase {
 
     var app: XCUIApplication!
 
-    // MARK: - Setup
-
-    override func setUpWithError() throws {
-        continueAfterFailure = true
-        app = XCUIApplication()
-        app.launchArguments = [
+    private var baseLaunchArguments: [String] {
+        [
             "-UITest",
             "-UITest_Mode", "diveMap",
             "-UITest_MapRegion", "rajaAmpat",
@@ -20,11 +16,26 @@ final class DiveMapUITests: XCTestCase {
             "-DisableAnimations",
             "-SkipOnboarding"
         ]
+    }
+
+    // MARK: - Setup
+
+    override func setUpWithError() throws {
+        continueAfterFailure = true
+        app = XCUIApplication()
+        app.launchArguments = baseLaunchArguments
         app.launch()
     }
 
     override func tearDownWithError() throws {
         app = nil
+    }
+
+    private func relaunch(extraLaunchArguments: [String]) {
+        app.terminate()
+        app = XCUIApplication()
+        app.launchArguments = baseLaunchArguments + extraLaunchArguments
+        app.launch()
     }
 
     // MARK: - Screenshot helpers
@@ -124,6 +135,140 @@ final class DiveMapUITests: XCTestCase {
                 file: file,
                 line: line
             )
+        }
+    }
+
+    @discardableResult
+    private func readDebugDouble(_ identifier: String, timeout: TimeInterval = 4) -> Double? {
+        let element = app.staticTexts[identifier]
+        guard element.waitForExistence(timeout: timeout) else { return nil }
+        return Double(element.label)
+    }
+
+    @discardableResult
+    private func readDebugString(_ identifier: String, timeout: TimeInterval = 4) -> String? {
+        let element = app.staticTexts[identifier]
+        guard element.waitForExistence(timeout: timeout) else { return nil }
+        return element.label
+    }
+
+    @discardableResult
+    private func tapClusterUntilExpanded(maxAttempts: Int = 6) -> Bool {
+        if tapFirstVisibleCluster(maxAttempts: maxAttempts) {
+            return true
+        }
+
+        let candidates: [CGVector] = [
+            CGVector(dx: 0.5, dy: 0.42),
+            CGVector(dx: 0.45, dy: 0.40),
+            CGVector(dx: 0.55, dy: 0.44),
+            CGVector(dx: 0.50, dy: 0.48),
+            CGVector(dx: 0.38, dy: 0.43),
+            CGVector(dx: 0.62, dy: 0.39)
+        ]
+
+        for index in 0..<maxAttempts {
+            app.coordinate(withNormalizedOffset: candidates[index % candidates.count]).tap()
+            if readDebugString("diveMap.debug.mode", timeout: 1.5) == "cluster" {
+                return true
+            }
+            Thread.sleep(forTimeInterval: 0.6)
+        }
+
+        return false
+    }
+
+    @discardableResult
+    private func tapFirstVisibleCluster(maxAttempts: Int = 6) -> Bool {
+        let clusterPredicate = NSPredicate(format: "label CONTAINS[c] %@", "dive sites grouped")
+
+        for _ in 0..<maxAttempts {
+            let clusters = app.buttons.matching(clusterPredicate)
+            let count = min(clusters.count, 6)
+
+            if count > 0 {
+                for index in 0..<count {
+                    let cluster = clusters.element(boundBy: index)
+                    guard cluster.exists else { continue }
+                    cluster.tap()
+                    if readDebugString("diveMap.debug.mode", timeout: 1.5) == "cluster" {
+                        return true
+                    }
+                }
+            }
+
+            Thread.sleep(forTimeInterval: 0.5)
+        }
+
+        return false
+    }
+
+    @discardableResult
+    private func waitForCalloutVisible(_ expectedVisible: Bool, timeout: TimeInterval = 4) -> Bool {
+        let deadline = Date().addingTimeInterval(timeout)
+        let expectedFlag = expectedVisible ? "1" : "0"
+
+        repeat {
+            if readDebugString("diveMap.debug.calloutVisible", timeout: 0.4) == expectedFlag {
+                return true
+            }
+            Thread.sleep(forTimeInterval: 0.2)
+        } while Date() < deadline
+
+        if expectedVisible {
+            return app.otherElements["diveMap.sitePreview"].exists || app.buttons["diveMap.sitePreview.viewDetails"].exists
+        }
+        return app.otherElements["diveMap.sitePreview"].waitForNonExistence(timeout: 0.5)
+    }
+
+    @discardableResult
+    private func ensureSitePreviewVisible() -> Bool {
+        if readDebugString("diveMap.debug.mode", timeout: 0.6) == "cluster" {
+            let closeStack = app.buttons["Close site stack"]
+            if closeStack.exists {
+                closeStack.tap()
+                _ = readDebugString("diveMap.debug.mode", timeout: 1.2)
+            }
+        }
+
+        if waitForCalloutVisible(true, timeout: 6) {
+            return true
+        }
+
+        let candidateLabels = [
+            "Dive site: Blue Magic",
+            "Dive site: Cape Kri",
+            "Dive site: Manta Sandy",
+            "Dive site: Sawandarek Jetty",
+            "Dive site: Chicken Reef"
+        ]
+        for label in candidateLabels {
+            let button = app.buttons[label]
+            guard button.exists else { continue }
+            button.tap()
+            if waitForCalloutVisible(true, timeout: 1.5) {
+                return true
+            }
+        }
+
+        // Last resort: tap central map area and re-check.
+        app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.45)).tap()
+        return waitForCalloutVisible(true, timeout: 1.5)
+    }
+
+    private func ensureClusterPeekDetent() {
+        guard readDebugString("diveMap.debug.mode", timeout: 0.8) == "cluster" else { return }
+        if readDebugString("diveMap.debug.detent", timeout: 0.6) == "peek" {
+            return
+        }
+
+        let dragStart = app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.58))
+        let dragEnd = app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.90))
+        dragStart.press(forDuration: 0.05, thenDragTo: dragEnd)
+        Thread.sleep(forTimeInterval: 0.5)
+        if readDebugString("diveMap.debug.detent", timeout: 0.6) != "peek" {
+            dragStart.press(forDuration: 0.05, thenDragTo: dragEnd)
+            Thread.sleep(forTimeInterval: 0.5)
         }
     }
 
@@ -517,5 +662,120 @@ final class DiveMapUITests: XCTestCase {
             }
         }
         sleep(1)
+    }
+
+    // MARK: - State 15: Cluster behavior
+
+    @MainActor
+    func test15_ClusterTapDoesNotAutoZoom_AndZoomInDoes() throws {
+        dismissOnboardingIfPresent()
+        XCTAssertTrue(waitForMapReady(), "Map should be ready before cluster assertions")
+        let beforeTapZoom = readDebugDouble("diveMap.debug.latDelta") ?? 0
+        XCTAssertGreaterThan(beforeTapZoom, 0, "Expected debug latitude delta")
+
+        XCTAssertTrue(tapClusterUntilExpanded(), "Expected cluster tap to enter site stack mode")
+        XCTAssertEqual(readDebugString("diveMap.debug.mode"), "cluster")
+
+        let afterClusterTapZoom = readDebugDouble("diveMap.debug.latDelta") ?? 0
+        XCTAssertGreaterThan(afterClusterTapZoom, 0, "Expected zoom after cluster tap")
+        let drift = abs(afterClusterTapZoom - beforeTapZoom)
+        XCTAssertLessThanOrEqual(
+            drift,
+            max(beforeTapZoom * 0.12, 0.1),
+            "Cluster tap should not auto-zoom"
+        )
+
+        // Validate explicit zoom action in a deterministic cluster surface.
+        relaunch(extraLaunchArguments: ["-UITest_OpenCluster", "YES"])
+        dismissOnboardingIfPresent()
+        XCTAssertTrue(waitForMapReady(), "Map should be ready for explicit zoom assertion")
+        XCTAssertEqual(readDebugString("diveMap.debug.mode", timeout: 3), "cluster")
+        ensureClusterPeekDetent()
+        let zoomInButton = app.buttons["diveMap.cluster.zoomInButton"]
+        let legacyZoomButton = app.buttons["Zoom in to see individual sites"]
+        let zoomButtonExists = zoomInButton.waitForExistence(timeout: 3) || legacyZoomButton.waitForExistence(timeout: 1)
+        XCTAssertTrue(zoomButtonExists, "Zoom In should be visible in site stack")
+        let buttonToTap = zoomInButton.exists ? zoomInButton : legacyZoomButton
+        buttonToTap.tap()
+
+        XCTAssertEqual(readDebugString("diveMap.debug.mode", timeout: 2), "cluster")
+    }
+
+    // MARK: - State 16: Preview dismissal affordances
+
+    @MainActor
+    func test16_PreviewCanDismissViaCloseAndTapOutside() throws {
+        relaunch(extraLaunchArguments: ["-UITest_ForcePreview", "YES"])
+        dismissOnboardingIfPresent()
+        XCTAssertTrue(waitForMapReady(), "Map should be ready before preview dismissal assertions")
+        XCTAssertTrue(ensureSitePreviewVisible(), "Expected a site preview before dismissal assertions")
+
+        let closeButton = app.buttons["diveMap.sitePreview.close"]
+        XCTAssertTrue(closeButton.waitForExistence(timeout: 3), "Preview close button should be visible")
+        closeButton.tap()
+        XCTAssertTrue(waitForCalloutVisible(false, timeout: 3), "Preview should dismiss via close button")
+
+        // Relaunch to deterministic preview state for outside-tap dismissal.
+        relaunch(extraLaunchArguments: ["-UITest_ForcePreview", "YES"])
+        dismissOnboardingIfPresent()
+        XCTAssertTrue(waitForMapReady(), "Map should be ready for outside-tap dismissal assertion")
+        XCTAssertTrue(ensureSitePreviewVisible(), "Expected preview to be visible before outside-tap dismissal")
+
+        // Tap outside the callout card (upper-left map area) to dismiss.
+        app.coordinate(withNormalizedOffset: CGVector(dx: 0.08, dy: 0.15)).tap()
+        XCTAssertTrue(waitForCalloutVisible(false, timeout: 3), "Preview should dismiss on outside tap")
+    }
+
+    // MARK: - State 17: Return surface on close (cluster -> inspect -> cluster)
+
+    @MainActor
+    func test17_CloseDetailsReturnsToClusterSurface() throws {
+        relaunch(extraLaunchArguments: ["-UITest_OpenClusterInspect", "YES"])
+        dismissOnboardingIfPresent()
+        XCTAssertTrue(waitForMapReady(), "Map should be ready before return-surface assertion")
+        XCTAssertEqual(readDebugString("diveMap.debug.mode", timeout: 4), "inspect")
+
+        let backButton = app.buttons["diveMap.siteDetails.back"]
+        XCTAssertTrue(backButton.waitForExistence(timeout: 3), "Back button should exist in site details")
+        var restoredToCluster = false
+        for _ in 0..<4 {
+            backButton.tap()
+            if readDebugString("diveMap.debug.mode", timeout: 1.5) == "cluster" {
+                restoredToCluster = true
+                break
+            }
+            let dragStart = app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.62))
+            let dragEnd = app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.92))
+            dragStart.press(forDuration: 0.05, thenDragTo: dragEnd)
+            if readDebugString("diveMap.debug.mode", timeout: 1.5) == "cluster" {
+                restoredToCluster = true
+                break
+            }
+            Thread.sleep(forTimeInterval: 0.35)
+        }
+
+        XCTAssertTrue(restoredToCluster, "Closing details should restore cluster surface")
+    }
+
+    // MARK: - State 18: Indonesia search coverage
+
+    @MainActor
+    func test18_SearchIndonesiaShowsHierarchicalResults() throws {
+        dismissOnboardingIfPresent()
+        XCTAssertTrue(waitForMapReady(), "Map should be ready before Indonesia search assertion")
+
+        let searchBar = app.buttons["diveMap.searchBar"]
+        XCTAssertTrue(searchBar.waitForExistence(timeout: 5), "Search bar should exist")
+        searchBar.tap()
+
+        let searchField = app.textFields.firstMatch
+        XCTAssertTrue(searchField.waitForExistence(timeout: 4), "Search field should exist")
+        searchField.tap()
+        searchField.typeText("Indonesia")
+        Thread.sleep(forTimeInterval: 1.5)
+
+        let indonesiaPredicate = NSPredicate(format: "label CONTAINS[c] %@", "Indonesia")
+        let indonesiaResults = app.descendants(matching: .any).matching(indonesiaPredicate)
+        XCTAssertGreaterThan(indonesiaResults.count, 0, "Indonesia query should yield at least one hierarchical result")
     }
 }

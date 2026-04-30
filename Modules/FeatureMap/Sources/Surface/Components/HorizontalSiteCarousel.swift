@@ -46,6 +46,7 @@ struct HorizontalSiteCarousel: View {
             }
             .padding(.horizontal, 16)
         }
+        .frame(height: 110)
     }
 }
 

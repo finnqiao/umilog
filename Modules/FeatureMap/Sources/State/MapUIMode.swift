@@ -126,15 +126,27 @@ struct SiteInspectionContext: Equatable {
     /// Optional search context to return to when reopening search.
     let returnSearchContext: SearchContext?
 
+    /// Optional non-explore surface to restore when closing inspection.
+    let returnSurface: SiteInspectionReturnSurface?
+
     init(
         siteId: String,
         returnContext: ExploreContext,
-        returnSearchContext: SearchContext? = nil
+        returnSearchContext: SearchContext? = nil,
+        returnSurface: SiteInspectionReturnSurface? = nil
     ) {
         self.siteId = siteId
         self.returnContext = returnContext
         self.returnSearchContext = returnSearchContext
+        self.returnSurface = returnSurface
     }
+}
+
+enum SiteInspectionReturnSurface: Equatable {
+    case clusterExpand(ClusterExpandContext)
+    case search(SearchContext)
+    case filter(FilterContext)
+    case nearMe(NearMeContext)
 }
 
 // MARK: - Filter Context
@@ -209,25 +221,38 @@ struct ClusterExpandContext: Equatable {
     /// Number of sites in the cluster.
     let siteCount: Int
 
+    /// Site IDs captured from the tapped cluster at selection time.
+    /// Keeps the stack stable when the map zooms after the tap.
+    let memberSiteIds: [String]
+
+    /// MapLibre expansion zoom for the tapped cluster, when available.
+    let expansionZoomLevel: Double?
+
     /// The explore context to return to when closing.
     let returnContext: ExploreContext
 
     init(
         clusterCenter: CLLocationCoordinate2D,
         siteCount: Int,
+        memberSiteIds: [String] = [],
+        expansionZoomLevel: Double? = nil,
         returnContext: ExploreContext
     ) {
         self.clusterCenter = clusterCenter
         self.siteCount = siteCount
+        self.memberSiteIds = memberSiteIds
+        self.expansionZoomLevel = expansionZoomLevel
         self.returnContext = returnContext
     }
 
     // Custom Equatable since CLLocationCoordinate2D is not Equatable
     static func == (lhs: ClusterExpandContext, rhs: ClusterExpandContext) -> Bool {
         lhs.clusterCenter.latitude == rhs.clusterCenter.latitude &&
-        lhs.clusterCenter.longitude == rhs.clusterCenter.longitude &&
-        lhs.siteCount == rhs.siteCount &&
-        lhs.returnContext == rhs.returnContext
+            lhs.clusterCenter.longitude == rhs.clusterCenter.longitude &&
+            lhs.siteCount == rhs.siteCount &&
+            lhs.memberSiteIds == rhs.memberSiteIds &&
+            lhs.expansionZoomLevel == rhs.expansionZoomLevel &&
+            lhs.returnContext == rhs.returnContext
     }
 }
 

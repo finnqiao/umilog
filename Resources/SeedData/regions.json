@@ -1,145 +1,2398 @@
 {
   "regions": [
     {
-      "id": "africa",
-      "name": "Africa",
-      "latitude": -34.151489995577855,
-      "longitude": 18.511039441564012
+      "id": "raja-ampat",
+      "name": "Raja Ampat",
+      "country_id": "ID",
+      "country": "Indonesia",
+      "latitude": -0.5,
+      "longitude": 130.5,
+      "bounds": {
+        "min_lat": -2.5,
+        "max_lat": 1.0,
+        "min_lon": 129.5,
+        "max_lon": 132.0
+      },
+      "tagline": "Earth's richest marine biodiversity",
+      "description": "",
+      "best_season": "October–April",
+      "wikidata_id": null,
+      "group_id": "coral-triangle"
     },
     {
-      "id": "atlantic",
-      "name": "Atlantic",
-      "latitude": 56.014339645054655,
-      "longitude": -4.026886764451049
+      "id": "komodo-national-park",
+      "name": "Komodo National Park",
+      "country_id": "ID",
+      "country": "Indonesia",
+      "latitude": -8.55,
+      "longitude": 119.62,
+      "bounds": {
+        "min_lat": -8.78,
+        "max_lat": -8.3,
+        "min_lon": 119.3,
+        "max_lon": 119.9
+      },
+      "tagline": "Dragons above, mantas below",
+      "description": "",
+      "best_season": "April–November",
+      "wikidata_id": null,
+      "group_id": "coral-triangle"
     },
     {
-      "id": "australia",
-      "name": "Australia",
-      "latitude": -25.714064608151958,
-      "longitude": 132.9968016845147
+      "id": "bali-nusa-islands",
+      "name": "Bali & Nusa Islands",
+      "country_id": "ID",
+      "country": "Indonesia",
+      "latitude": -8.5,
+      "longitude": 115.2,
+      "bounds": {
+        "min_lat": -8.9,
+        "max_lat": -8.1,
+        "min_lon": 114.5,
+        "max_lon": 115.7
+      },
+      "tagline": "Wreck dives and manta magic",
+      "description": "",
+      "best_season": "April–October",
+      "wikidata_id": null,
+      "group_id": "coral-triangle"
     },
     {
-      "id": "caribbean",
-      "name": "Caribbean",
-      "latitude": 18.16594814666667,
-      "longitude": -72.22402592666667
+      "id": "lembeh-strait",
+      "name": "Lembeh Strait",
+      "country_id": "ID",
+      "country": "Indonesia",
+      "latitude": 1.47,
+      "longitude": 125.24,
+      "bounds": {
+        "min_lat": 1.3,
+        "max_lat": 1.7,
+        "min_lon": 125.1,
+        "max_lon": 125.4
+      },
+      "tagline": "Macro and muck diving capital of the world",
+      "description": "",
+      "best_season": "Year-round",
+      "wikidata_id": null,
+      "group_id": "coral-triangle"
     },
     {
-      "id": "caribbean-mexico",
-      "name": "Caribbean Mexico",
-      "country_id": "MX",
-      "latitude": 20.5,
-      "longitude": -87.4
+      "id": "bunaken-sulawesi",
+      "name": "Bunaken & Bangka, Sulawesi",
+      "country_id": "ID",
+      "country": "Indonesia",
+      "latitude": 1.6,
+      "longitude": 124.8,
+      "bounds": {
+        "min_lat": 1.3,
+        "max_lat": 2.0,
+        "min_lon": 124.5,
+        "max_lon": 125.2
+      },
+      "tagline": "World-class walls and reef biodiversity",
+      "description": "",
+      "best_season": "May–October",
+      "wikidata_id": null,
+      "group_id": "coral-triangle"
     },
     {
-      "id": "central-america",
-      "name": "Central America",
-      "latitude": 15.0,
-      "longitude": -86.0
+      "id": "alor-strait",
+      "name": "Alor Strait",
+      "country_id": "ID",
+      "country": "Indonesia",
+      "latitude": -8.27,
+      "longitude": 124.5,
+      "bounds": {
+        "min_lat": -8.6,
+        "max_lat": -7.9,
+        "min_lon": 124.0,
+        "max_lon": 125.0
+      },
+      "tagline": "Remote walls and volcanic reefs",
+      "description": "",
+      "best_season": "April–November",
+      "wikidata_id": null,
+      "group_id": "coral-triangle"
     },
     {
-      "id": "coral-triangle",
-      "name": "Coral Triangle",
-      "country_id": null,
-      "latitude": -2.0,
-      "longitude": 123.0
+      "id": "banda-sea",
+      "name": "Banda Sea",
+      "country_id": "ID",
+      "country": "Indonesia",
+      "latitude": -5.5,
+      "longitude": 128.0,
+      "bounds": {
+        "min_lat": -8.0,
+        "max_lat": -3.0,
+        "min_lon": 126.0,
+        "max_lon": 132.0
+      },
+      "tagline": "Remote liveaboard circuit of spice islands",
+      "description": "",
+      "best_season": "October–April",
+      "wikidata_id": null,
+      "group_id": "coral-triangle"
     },
     {
-      "id": "global",
-      "name": "Global",
-      "latitude": 0.0,
-      "longitude": 0.0
+      "id": "ambon",
+      "name": "Ambon",
+      "country_id": "ID",
+      "country": "Indonesia",
+      "latitude": -3.7,
+      "longitude": 128.2,
+      "bounds": {
+        "min_lat": -4.0,
+        "max_lat": -3.4,
+        "min_lon": 128.0,
+        "max_lon": 128.6
+      },
+      "tagline": "Bobtail squid and rare critters",
+      "description": "",
+      "best_season": "October–April",
+      "wikidata_id": null,
+      "group_id": "coral-triangle"
     },
     {
-      "id": "great-barrier-reef",
-      "name": "Great Barrier Reef",
-      "country_id": "AU",
-      "latitude": -18.3,
-      "longitude": 147.7
+      "id": "gili-islands-lombok",
+      "name": "Gili Islands & Lombok",
+      "country_id": "ID",
+      "country": "Indonesia",
+      "latitude": -8.35,
+      "longitude": 116.05,
+      "bounds": {
+        "min_lat": -8.6,
+        "max_lat": -8.1,
+        "min_lon": 115.7,
+        "max_lon": 116.5
+      },
+      "tagline": "Turtles, wrecks and volcano views",
+      "description": "",
+      "best_season": "May–October",
+      "wikidata_id": null,
+      "group_id": "coral-triangle"
     },
     {
-      "id": "indian-ocean",
-      "name": "Indian Ocean",
-      "latitude": 4.14473369174359,
-      "longitude": 73.55233738148718
+      "id": "derawan-sangalaki",
+      "name": "Derawan & Sangalaki, Borneo",
+      "country_id": "ID",
+      "country": "Indonesia",
+      "latitude": 2.28,
+      "longitude": 118.22,
+      "bounds": {
+        "min_lat": 1.8,
+        "max_lat": 2.8,
+        "min_lon": 117.7,
+        "max_lon": 119.0
+      },
+      "tagline": "Manta rays and jellyfish lakes",
+      "description": "",
+      "best_season": "April–November",
+      "wikidata_id": null,
+      "group_id": "coral-triangle"
     },
     {
-      "id": "japan",
-      "name": "Japan",
-      "latitude": 30.774094873684213,
-      "longitude": 130.74043377802633
+      "id": "wakatobi",
+      "name": "Wakatobi, Southeast Sulawesi",
+      "country_id": "ID",
+      "country": "Indonesia",
+      "latitude": -5.3,
+      "longitude": 123.7,
+      "bounds": {
+        "min_lat": -6.0,
+        "max_lat": -4.5,
+        "min_lon": 123.0,
+        "max_lon": 124.5
+      },
+      "tagline": "Pristine reefs and high-end eco-diving",
+      "description": "",
+      "best_season": "April–October",
+      "wikidata_id": null,
+      "group_id": "coral-triangle"
     },
     {
-      "id": "maldives",
-      "name": "Maldives",
-      "country_id": "MV",
-      "latitude": 3.2,
-      "longitude": 73.2
+      "id": "flores-sea-indonesia",
+      "name": "Flores Sea & Maumere",
+      "country_id": "ID",
+      "country": "Indonesia",
+      "latitude": -8.6,
+      "longitude": 122.2,
+      "bounds": {
+        "min_lat": -9.0,
+        "max_lat": -8.0,
+        "min_lon": 121.5,
+        "max_lon": 123.0
+      },
+      "tagline": "Quiet reefs and WWII wrecks off the tourist trail",
+      "description": "",
+      "best_season": "May–October",
+      "wikidata_id": null,
+      "group_id": "coral-triangle"
     },
     {
-      "id": "mediterranean",
-      "name": "Mediterranean",
-      "latitude": 40.72718070825352,
-      "longitude": 8.410409576338028
+      "id": "tubbataha-reefs",
+      "name": "Tubbataha Reefs",
+      "country_id": "PH",
+      "country": "Philippines",
+      "latitude": 8.9,
+      "longitude": 119.9,
+      "bounds": {
+        "min_lat": 8.5,
+        "max_lat": 9.5,
+        "min_lon": 119.5,
+        "max_lon": 120.3
+      },
+      "tagline": "UNESCO world heritage, sharks and pristine walls",
+      "description": "",
+      "best_season": "March–June",
+      "wikidata_id": null,
+      "group_id": "philippines"
     },
     {
-      "id": "pacific-islands",
-      "name": "Pacific Islands",
-      "latitude": -42.61094969164706,
-      "longitude": 172.51386159505884
+      "id": "anilao-batangas",
+      "name": "Anilao & Batangas",
+      "country_id": "PH",
+      "country": "Philippines",
+      "latitude": 13.7,
+      "longitude": 120.87,
+      "bounds": {
+        "min_lat": 13.4,
+        "max_lat": 14.0,
+        "min_lon": 120.5,
+        "max_lon": 121.2
+      },
+      "tagline": "Nudibranch capital and blackwater diving",
+      "description": "",
+      "best_season": "October–May",
+      "wikidata_id": null,
+      "group_id": "philippines"
+    },
+    {
+      "id": "malapascua",
+      "name": "Malapascua",
+      "country_id": "PH",
+      "country": "Philippines",
+      "latitude": 11.33,
+      "longitude": 124.12,
+      "bounds": {
+        "min_lat": 11.1,
+        "max_lat": 11.6,
+        "min_lon": 123.9,
+        "max_lon": 124.4
+      },
+      "tagline": "The only place to reliably dive thresher sharks",
+      "description": "",
+      "best_season": "October–May",
+      "wikidata_id": null,
+      "group_id": "philippines"
+    },
+    {
+      "id": "cebu-moalboal-mactan",
+      "name": "Cebu, Moalboal & Mactan",
+      "country_id": "PH",
+      "country": "Philippines",
+      "latitude": 9.95,
+      "longitude": 123.4,
+      "bounds": {
+        "min_lat": 9.5,
+        "max_lat": 10.5,
+        "min_lon": 123.0,
+        "max_lon": 124.0
+      },
+      "tagline": "The sardine run and tropical reefs",
+      "description": "",
+      "best_season": "Year-round",
+      "wikidata_id": null,
+      "group_id": "philippines"
+    },
+    {
+      "id": "bohol-panglao-balicasag",
+      "name": "Bohol, Panglao & Balicasag",
+      "country_id": "PH",
+      "country": "Philippines",
+      "latitude": 9.5,
+      "longitude": 123.77,
+      "bounds": {
+        "min_lat": 9.2,
+        "max_lat": 9.8,
+        "min_lon": 123.5,
+        "max_lon": 124.1
+      },
+      "tagline": "Wall dives, turtles and schools of jacks",
+      "description": "",
+      "best_season": "October–May",
+      "wikidata_id": null,
+      "group_id": "philippines"
+    },
+    {
+      "id": "puerto-galera",
+      "name": "Puerto Galera",
+      "country_id": "PH",
+      "country": "Philippines",
+      "latitude": 13.51,
+      "longitude": 120.95,
+      "bounds": {
+        "min_lat": 13.3,
+        "max_lat": 13.7,
+        "min_lon": 120.7,
+        "max_lon": 121.2
+      },
+      "tagline": "Easy access and world-class variety",
+      "description": "",
+      "best_season": "October–June",
+      "wikidata_id": null,
+      "group_id": "philippines"
+    },
+    {
+      "id": "coron-busuanga",
+      "name": "Coron & Busuanga",
+      "country_id": "PH",
+      "country": "Philippines",
+      "latitude": 12.0,
+      "longitude": 120.2,
+      "bounds": {
+        "min_lat": 11.7,
+        "max_lat": 12.4,
+        "min_lon": 119.7,
+        "max_lon": 120.6
+      },
+      "tagline": "WWII Japanese fleet wreck graveyard",
+      "description": "",
+      "best_season": "October–May",
+      "wikidata_id": null,
+      "group_id": "philippines"
+    },
+    {
+      "id": "dauin-apo-island",
+      "name": "Dauin & Apo Island",
+      "country_id": "PH",
+      "country": "Philippines",
+      "latitude": 9.1,
+      "longitude": 123.28,
+      "bounds": {
+        "min_lat": 8.9,
+        "max_lat": 9.4,
+        "min_lon": 123.0,
+        "max_lon": 123.6
+      },
+      "tagline": "Marine sanctuary turtles and muck critters",
+      "description": "",
+      "best_season": "October–June",
+      "wikidata_id": null,
+      "group_id": "philippines"
+    },
+    {
+      "id": "tubbataha-cagayancillo",
+      "name": "Tubbataha Extensions & Cagayancillo",
+      "country_id": "PH",
+      "country": "Philippines",
+      "latitude": 8.9,
+      "longitude": 119.9,
+      "bounds": {
+        "min_lat": 8.5,
+        "max_lat": 9.5,
+        "min_lon": 119.5,
+        "max_lon": 120.5
+      },
+      "tagline": "Remote UNESCO reefs beyond Tubbataha",
+      "description": "",
+      "best_season": "March–June",
+      "wikidata_id": null,
+      "group_id": "philippines"
+    },
+    {
+      "id": "leyte-ormoc",
+      "name": "Leyte & Eastern Visayas",
+      "country_id": "PH",
+      "country": "Philippines",
+      "latitude": 11.0,
+      "longitude": 124.5,
+      "bounds": {
+        "min_lat": 10.0,
+        "max_lat": 12.0,
+        "min_lon": 124.0,
+        "max_lon": 125.5
+      },
+      "tagline": "Thresher sharks and Surigao Strait",
+      "description": "",
+      "best_season": "November–May",
+      "wikidata_id": null,
+      "group_id": "philippines"
+    },
+    {
+      "id": "sipadan-mabul-kapalai",
+      "name": "Sipadan, Mabul & Kapalai",
+      "country_id": "MY",
+      "country": "Malaysia",
+      "latitude": 4.115,
+      "longitude": 118.629,
+      "bounds": {
+        "min_lat": 3.8,
+        "max_lat": 4.4,
+        "min_lon": 118.3,
+        "max_lon": 119.0
+      },
+      "tagline": "Barracuda Point is consistently ranked the world's best dive site",
+      "description": "",
+      "best_season": "April–December",
+      "wikidata_id": null,
+      "group_id": "malaysia-borneo"
+    },
+    {
+      "id": "tioman-east-coast-malaysia",
+      "name": "Tioman & East Coast Malaysia",
+      "country_id": "MY",
+      "country": "Malaysia",
+      "latitude": 2.83,
+      "longitude": 104.15,
+      "bounds": {
+        "min_lat": 2.5,
+        "max_lat": 4.5,
+        "min_lon": 103.5,
+        "max_lon": 104.8
+      },
+      "tagline": "Warm clear water and abundant reef fish",
+      "description": "",
+      "best_season": "March–October",
+      "wikidata_id": null,
+      "group_id": "malaysia-borneo"
+    },
+    {
+      "id": "brunei-reefs-wrecks",
+      "name": "Brunei — Wrecks & Reefs",
+      "country_id": "BN",
+      "country": "Brunei",
+      "latitude": 5.0,
+      "longitude": 115.1,
+      "bounds": {
+        "min_lat": 4.5,
+        "max_lat": 5.5,
+        "min_lon": 114.5,
+        "max_lon": 115.7
+      },
+      "tagline": "Distinctive WWII wrecks in rich Borneo waters",
+      "description": "",
+      "best_season": "March–September",
+      "wikidata_id": null,
+      "group_id": "malaysia-borneo"
+    },
+    {
+      "id": "sabah-northern-borneo",
+      "name": "Sabah Northern Coast & Lankayan",
+      "country_id": "MY",
+      "country": "Malaysia",
+      "latitude": 6.6,
+      "longitude": 117.8,
+      "bounds": {
+        "min_lat": 6.0,
+        "max_lat": 7.5,
+        "min_lon": 116.5,
+        "max_lon": 119.0
+      },
+      "tagline": "Whale sharks, wrecks, and remote atolls",
+      "description": "",
+      "best_season": "April–October",
+      "wikidata_id": null,
+      "group_id": "malaysia-borneo"
+    },
+    {
+      "id": "sarawak-borneo",
+      "name": "Sarawak & Southern Borneo",
+      "country_id": "MY",
+      "country": "Malaysia",
+      "latitude": 2.5,
+      "longitude": 111.5,
+      "bounds": {
+        "min_lat": 1.5,
+        "max_lat": 4.0,
+        "min_lon": 109.0,
+        "max_lon": 114.0
+      },
+      "tagline": "Undiscovered Borneo reefs",
+      "description": "",
+      "best_season": "May–September",
+      "wikidata_id": null,
+      "group_id": "malaysia-borneo"
+    },
+    {
+      "id": "similan-surin-islands",
+      "name": "Similan & Surin Islands",
+      "country_id": "TH",
+      "country": "Thailand",
+      "latitude": 8.65,
+      "longitude": 97.64,
+      "bounds": {
+        "min_lat": 8.0,
+        "max_lat": 9.7,
+        "min_lon": 97.3,
+        "max_lon": 98.4
+      },
+      "tagline": "Richelieu Rock — Thailand's finest dive site",
+      "description": "",
+      "best_season": "November–April",
+      "wikidata_id": null,
+      "group_id": "southeast-asia-mainland"
+    },
+    {
+      "id": "thailand-gulf",
+      "name": "Gulf of Thailand",
+      "country_id": "TH",
+      "country": "Thailand",
+      "latitude": 10.0,
+      "longitude": 100.0,
+      "bounds": {
+        "min_lat": 9.0,
+        "max_lat": 11.5,
+        "min_lon": 99.5,
+        "max_lon": 100.8
+      },
+      "tagline": "Sail Rock and whale shark encounters",
+      "description": "",
+      "best_season": "Year-round (best June–September)",
+      "wikidata_id": null,
+      "group_id": "southeast-asia-mainland"
+    },
+    {
+      "id": "phuket-phi-phi-krabi",
+      "name": "Phuket, Phi Phi & Krabi",
+      "country_id": "TH",
+      "country": "Thailand",
+      "latitude": 7.78,
+      "longitude": 98.78,
+      "bounds": {
+        "min_lat": 7.2,
+        "max_lat": 8.5,
+        "min_lon": 98.3,
+        "max_lon": 99.3
+      },
+      "tagline": "King Cruiser wreck and anemone reefs",
+      "description": "",
+      "best_season": "November–April",
+      "wikidata_id": null,
+      "group_id": "southeast-asia-mainland"
+    },
+    {
+      "id": "myanmar-mergui",
+      "name": "Myanmar — Mergui Archipelago",
+      "country_id": "MM",
+      "country": "Myanmar",
+      "latitude": 10.5,
+      "longitude": 98.0,
+      "bounds": {
+        "min_lat": 9.5,
+        "max_lat": 13.5,
+        "min_lon": 97.5,
+        "max_lon": 99.0
+      },
+      "tagline": "Remote liveaboard wilderness",
+      "description": "",
+      "best_season": "November–April",
+      "wikidata_id": null,
+      "group_id": "southeast-asia-mainland"
+    },
+    {
+      "id": "cambodia-koh-rong",
+      "name": "Cambodia — Koh Rong",
+      "country_id": "KH",
+      "country": "Cambodia",
+      "latitude": 10.7,
+      "longitude": 103.3,
+      "bounds": {
+        "min_lat": 10.2,
+        "max_lat": 11.2,
+        "min_lon": 102.8,
+        "max_lon": 103.8
+      },
+      "tagline": "Undiscovered reefs and laid-back island diving",
+      "description": "",
+      "best_season": "November–May",
+      "wikidata_id": null,
+      "group_id": "southeast-asia-mainland"
+    },
+    {
+      "id": "vietnam-nha-trang-phu-quoc",
+      "name": "Vietnam — Nha Trang & Phu Quoc",
+      "country_id": "VN",
+      "country": "Vietnam",
+      "latitude": 12.24,
+      "longitude": 109.19,
+      "bounds": {
+        "min_lat": 9.5,
+        "max_lat": 13.5,
+        "min_lon": 103.5,
+        "max_lon": 110.5
+      },
+      "tagline": "Tropical reefs and coral gardens",
+      "description": "",
+      "best_season": "February–September",
+      "wikidata_id": null,
+      "group_id": "southeast-asia-mainland"
+    },
+    {
+      "id": "andaman-nicobar",
+      "name": "Andaman & Nicobar Islands, India",
+      "country_id": "IN",
+      "country": "India",
+      "latitude": 11.7,
+      "longitude": 92.7,
+      "bounds": {
+        "min_lat": 6.0,
+        "max_lat": 14.0,
+        "min_lon": 92.0,
+        "max_lon": 94.0
+      },
+      "tagline": "Pristine Indian Ocean reefs close to Thailand",
+      "description": "",
+      "best_season": "November–April",
+      "wikidata_id": null,
+      "group_id": "southeast-asia-mainland"
+    },
+    {
+      "id": "indonesia-east-java",
+      "name": "East Java & Madura",
+      "country_id": "ID",
+      "country": "Indonesia",
+      "latitude": -7.5,
+      "longitude": 113.5,
+      "bounds": {
+        "min_lat": -8.5,
+        "max_lat": -6.5,
+        "min_lon": 111.0,
+        "max_lon": 115.5
+      },
+      "tagline": "Blue fire volcano dives and Java Sea reefs",
+      "description": "",
+      "best_season": "April–November",
+      "wikidata_id": null,
+      "group_id": "southeast-asia-mainland"
     },
     {
       "id": "palau",
       "name": "Palau",
       "country_id": "PW",
-      "latitude": 7.3,
-      "longitude": 134.4
+      "country": "Palau",
+      "latitude": 7.51,
+      "longitude": 134.58,
+      "bounds": {
+        "min_lat": 6.9,
+        "max_lat": 8.2,
+        "min_lon": 134.0,
+        "max_lon": 135.2
+      },
+      "tagline": "Blue Corner — among the world's greatest dives",
+      "description": "",
+      "best_season": "October–May",
+      "wikidata_id": null,
+      "group_id": "micronesia"
     },
     {
-      "id": "philippines",
-      "name": "Philippines",
-      "country_id": "PH",
-      "latitude": 11.7,
-      "longitude": 122.9
+      "id": "chuuk-truk-lagoon",
+      "name": "Chuuk / Truk Lagoon",
+      "country_id": "FM",
+      "country": "Micronesia",
+      "latitude": 7.45,
+      "longitude": 151.85,
+      "bounds": {
+        "min_lat": 7.0,
+        "max_lat": 8.0,
+        "min_lon": 151.3,
+        "max_lon": 152.4
+      },
+      "tagline": "The wreck capital of the world",
+      "description": "",
+      "best_season": "Year-round",
+      "wikidata_id": null,
+      "group_id": "micronesia"
     },
     {
-      "id": "red-sea",
-      "name": "Red Sea",
-      "latitude": 29.157455588090908,
-      "longitude": 33.56690618172727
+      "id": "yap",
+      "name": "Yap",
+      "country_id": "FM",
+      "country": "Micronesia",
+      "latitude": 9.56,
+      "longitude": 138.13,
+      "bounds": {
+        "min_lat": 9.2,
+        "max_lat": 9.9,
+        "min_lon": 137.8,
+        "max_lon": 138.5
+      },
+      "tagline": "Manta rays and traditional culture",
+      "description": "",
+      "best_season": "December–April (mantas), June–August (whale sharks)",
+      "wikidata_id": null,
+      "group_id": "micronesia"
     },
     {
-      "id": "red-sea-egypt",
-      "name": "Red Sea Egypt",
+      "id": "guam-northern-marianas",
+      "name": "Guam & Northern Mariana Islands",
+      "country_id": "GU",
+      "country": "Guam",
+      "latitude": 13.44,
+      "longitude": 144.79,
+      "bounds": {
+        "min_lat": 13.0,
+        "max_lat": 15.2,
+        "min_lon": 144.5,
+        "max_lon": 145.8
+      },
+      "tagline": "Pacific WWII wrecks and blue holes",
+      "description": "",
+      "best_season": "Year-round",
+      "wikidata_id": null,
+      "group_id": "micronesia"
+    },
+    {
+      "id": "marshall-islands",
+      "name": "Marshall Islands",
+      "country_id": "MH",
+      "country": "Marshall Islands",
+      "latitude": 7.11,
+      "longitude": 171.18,
+      "bounds": {
+        "min_lat": 5.0,
+        "max_lat": 14.0,
+        "min_lon": 166.0,
+        "max_lon": 172.0
+      },
+      "tagline": "Bikini Atoll — nuclear test site turned dive destination",
+      "description": "",
+      "best_season": "October–May",
+      "wikidata_id": null,
+      "group_id": "micronesia"
+    },
+    {
+      "id": "pohnpei-kosrae",
+      "name": "Pohnpei & Kosrae, Micronesia",
+      "country_id": "FM",
+      "country": "Micronesia",
+      "latitude": 6.8,
+      "longitude": 158.2,
+      "bounds": {
+        "min_lat": 5.3,
+        "max_lat": 7.5,
+        "min_lon": 157.0,
+        "max_lon": 163.5
+      },
+      "tagline": "Pristine mangrove reefs and untouched Micronesia",
+      "description": "",
+      "best_season": "March–November",
+      "wikidata_id": null,
+      "group_id": "micronesia"
+    },
+    {
+      "id": "sharm-el-sheikh",
+      "name": "Sharm el-Sheikh & Sinai",
       "country_id": "EG",
-      "latitude": 27.8,
-      "longitude": 34.2
+      "country": "Egypt",
+      "latitude": 27.9,
+      "longitude": 34.33,
+      "bounds": {
+        "min_lat": 27.7,
+        "max_lat": 28.2,
+        "min_lon": 34.0,
+        "max_lon": 34.7
+      },
+      "tagline": "Classic Red Sea reef diving",
+      "description": "",
+      "best_season": "March–May, September–November",
+      "wikidata_id": null,
+      "group_id": "red-sea"
     },
     {
-      "id": "south-africa",
-      "name": "South Africa",
+      "id": "hurghada",
+      "name": "Hurghada & El Gouna",
+      "country_id": "EG",
+      "country": "Egypt",
+      "latitude": 27.25,
+      "longitude": 33.85,
+      "bounds": {
+        "min_lat": 26.8,
+        "max_lat": 27.6,
+        "min_lon": 33.5,
+        "max_lon": 34.2
+      },
+      "tagline": "Accessible reefs and dive training hub",
+      "description": "",
+      "best_season": "Year-round",
+      "wikidata_id": null,
+      "group_id": "red-sea"
+    },
+    {
+      "id": "dahab",
+      "name": "Dahab & Gulf of Aqaba",
+      "country_id": "EG",
+      "country": "Egypt",
+      "latitude": 28.5,
+      "longitude": 34.52,
+      "bounds": {
+        "min_lat": 28.3,
+        "max_lat": 29.0,
+        "min_lon": 34.3,
+        "max_lon": 34.8
+      },
+      "tagline": "The Blue Hole and world-class shore diving",
+      "description": "",
+      "best_season": "March–May, September–November",
+      "wikidata_id": null,
+      "group_id": "red-sea"
+    },
+    {
+      "id": "red-sea-liveaboard",
+      "name": "Red Sea Liveaboard Routes",
+      "country_id": "EG",
+      "country": "Egypt",
+      "latitude": 25.0,
+      "longitude": 35.5,
+      "bounds": {
+        "min_lat": 22.0,
+        "max_lat": 27.5,
+        "min_lon": 34.0,
+        "max_lon": 37.0
+      },
+      "tagline": "Remote reefs, hammerheads, and pristine walls",
+      "description": "",
+      "best_season": "June–September for south; year-round for north",
+      "wikidata_id": null,
+      "group_id": "red-sea"
+    },
+    {
+      "id": "aqaba-gulf",
+      "name": "Aqaba & Gulf of Aqaba (Jordan & Saudi)",
+      "country_id": "JO",
+      "country": "Jordan",
+      "latitude": 29.5,
+      "longitude": 35.0,
+      "bounds": {
+        "min_lat": 28.5,
+        "max_lat": 29.7,
+        "min_lon": 34.7,
+        "max_lon": 35.3
+      },
+      "tagline": "Compact but world-class reefs in Jordan's only sea",
+      "description": "",
+      "best_season": "March–November",
+      "wikidata_id": null,
+      "group_id": "red-sea"
+    },
+    {
+      "id": "sinai-north-red-sea",
+      "name": "Tiran & Northern Sinai",
+      "country_id": "EG",
+      "country": "Egypt",
+      "latitude": 28.0,
+      "longitude": 34.55,
+      "bounds": {
+        "min_lat": 27.8,
+        "max_lat": 28.3,
+        "min_lon": 34.3,
+        "max_lon": 34.8
+      },
+      "tagline": "Tiran Island straits and spectacular wall diving",
+      "description": "",
+      "best_season": "March–May, October–November",
+      "wikidata_id": null,
+      "group_id": "red-sea"
+    },
+    {
+      "id": "maldives-north-male-atoll",
+      "name": "North & South Malé Atoll",
+      "country_id": "MV",
+      "country": "Maldives",
+      "latitude": 4.2,
+      "longitude": 73.5,
+      "bounds": {
+        "min_lat": 3.5,
+        "max_lat": 4.5,
+        "min_lon": 73.0,
+        "max_lon": 74.0
+      },
+      "tagline": "Classic channel diving and manta points",
+      "description": "",
+      "best_season": "December–April",
+      "wikidata_id": null,
+      "group_id": "maldives-indian-ocean"
+    },
+    {
+      "id": "maldives-ari-atoll",
+      "name": "Ari Atoll",
+      "country_id": "MV",
+      "country": "Maldives",
+      "latitude": 3.9,
+      "longitude": 72.8,
+      "bounds": {
+        "min_lat": 3.3,
+        "max_lat": 4.5,
+        "min_lon": 72.4,
+        "max_lon": 73.2
+      },
+      "tagline": "Whale shark capital of the Maldives",
+      "description": "",
+      "best_season": "December–April",
+      "wikidata_id": null,
+      "group_id": "maldives-indian-ocean"
+    },
+    {
+      "id": "maldives-liveaboard",
+      "name": "Maldives Liveaboard (Outer Atolls)",
+      "country_id": "MV",
+      "country": "Maldives",
+      "latitude": 2.0,
+      "longitude": 73.0,
+      "bounds": {
+        "min_lat": 0.0,
+        "max_lat": 5.5,
+        "min_lon": 72.0,
+        "max_lon": 74.5
+      },
+      "tagline": "Remote atolls, pristine reefs, big pelagics",
+      "description": "",
+      "best_season": "Year-round (varies by atoll)",
+      "wikidata_id": null,
+      "group_id": "maldives-indian-ocean"
+    },
+    {
+      "id": "seychelles",
+      "name": "Seychelles",
+      "country_id": "SC",
+      "country": "Seychelles",
+      "latitude": -4.7,
+      "longitude": 55.5,
+      "bounds": {
+        "min_lat": -10.0,
+        "max_lat": -3.8,
+        "min_lon": 55.0,
+        "max_lon": 56.3
+      },
+      "tagline": "Granite reefs and whale shark aggregations",
+      "description": "",
+      "best_season": "October–May",
+      "wikidata_id": null,
+      "group_id": "maldives-indian-ocean"
+    },
+    {
+      "id": "mauritius-reunion",
+      "name": "Mauritius & Réunion",
+      "country_id": "MU",
+      "country": "Mauritius",
+      "latitude": -20.3,
+      "longitude": 57.6,
+      "bounds": {
+        "min_lat": -21.5,
+        "max_lat": -19.5,
+        "min_lon": 55.5,
+        "max_lon": 58.0
+      },
+      "tagline": "Dramatic seamounts and Indian Ocean pelagics",
+      "description": "",
+      "best_season": "October–April",
+      "wikidata_id": null,
+      "group_id": "maldives-indian-ocean"
+    },
+    {
+      "id": "sri-lanka",
+      "name": "Sri Lanka",
+      "country_id": "LK",
+      "country": "Sri Lanka",
+      "latitude": 7.5,
+      "longitude": 80.7,
+      "bounds": {
+        "min_lat": 5.9,
+        "max_lat": 9.8,
+        "min_lon": 79.5,
+        "max_lon": 82.0
+      },
+      "tagline": "Whale watching, ancient wrecks, and tropical reefs",
+      "description": "",
+      "best_season": "November–April (west); May–October (east)",
+      "wikidata_id": null,
+      "group_id": "maldives-indian-ocean"
+    },
+    {
+      "id": "lakshadweep-india",
+      "name": "Lakshadweep Islands, India",
+      "country_id": "IN",
+      "country": "India",
+      "latitude": 10.6,
+      "longitude": 72.6,
+      "bounds": {
+        "min_lat": 8.0,
+        "max_lat": 12.5,
+        "min_lon": 71.5,
+        "max_lon": 74.0
+      },
+      "tagline": "Remote Indian Ocean atolls with pristine coral",
+      "description": "",
+      "best_season": "November–April",
+      "wikidata_id": null,
+      "group_id": "maldives-indian-ocean"
+    },
+    {
+      "id": "mozambique-channel",
+      "name": "Mozambique & Tofo",
+      "country_id": "MZ",
+      "country": "Mozambique",
+      "latitude": -23.8,
+      "longitude": 35.5,
+      "bounds": {
+        "min_lat": -26.0,
+        "max_lat": -15.0,
+        "min_lon": 35.0,
+        "max_lon": 37.0
+      },
+      "tagline": "Whale sharks and mantas off Africa's east coast",
+      "description": "",
+      "best_season": "October–March",
+      "wikidata_id": null,
+      "group_id": "east-africa-arabia"
+    },
+    {
+      "id": "kenya-zanzibar",
+      "name": "Kenya, Tanzania & Zanzibar",
+      "country_id": "TZ",
+      "country": "Tanzania",
+      "latitude": -6.2,
+      "longitude": 39.7,
+      "bounds": {
+        "min_lat": -8.0,
+        "max_lat": -2.5,
+        "min_lon": 39.0,
+        "max_lon": 41.0
+      },
+      "tagline": "Pristine East African coral gardens",
+      "description": "",
+      "best_season": "July–September",
+      "wikidata_id": null,
+      "group_id": "east-africa-arabia"
+    },
+    {
+      "id": "oman-uae",
+      "name": "Oman & UAE",
+      "country_id": "OM",
+      "country": "Oman",
+      "latitude": 22.0,
+      "longitude": 59.0,
+      "bounds": {
+        "min_lat": 16.0,
+        "max_lat": 26.0,
+        "min_lon": 51.0,
+        "max_lon": 61.0
+      },
+      "tagline": "Arabia's hidden dive gems",
+      "description": "",
+      "best_season": "October–May",
+      "wikidata_id": null,
+      "group_id": "east-africa-arabia"
+    },
+    {
+      "id": "madagascar",
+      "name": "Madagascar",
+      "country_id": "MG",
+      "country": "Madagascar",
+      "latitude": -20.3,
+      "longitude": 44.3,
+      "bounds": {
+        "min_lat": -25.5,
+        "max_lat": -12.0,
+        "min_lon": 43.0,
+        "max_lon": 51.0
+      },
+      "tagline": "Humpback whales and untouched coral reefs",
+      "description": "",
+      "best_season": "October–March (north); July–September (south)",
+      "wikidata_id": null,
+      "group_id": "east-africa-arabia"
+    },
+    {
+      "id": "djibouti",
+      "name": "Djibouti & Gulf of Aden",
+      "country_id": "DJ",
+      "country": "Djibouti",
+      "latitude": 11.5,
+      "longitude": 43.1,
+      "bounds": {
+        "min_lat": 11.0,
+        "max_lat": 12.5,
+        "min_lon": 42.5,
+        "max_lon": 44.5
+      },
+      "tagline": "Whale sharks year-round and unique Red Sea meets",
+      "description": "",
+      "best_season": "October–February (whale sharks)",
+      "wikidata_id": null,
+      "group_id": "east-africa-arabia"
+    },
+    {
+      "id": "comoros-mayotte",
+      "name": "Comoros & Mayotte",
+      "country_id": "KM",
+      "country": "Comoros",
+      "latitude": -12.3,
+      "longitude": 44.3,
+      "bounds": {
+        "min_lat": -13.0,
+        "max_lat": -11.3,
+        "min_lon": 43.2,
+        "max_lon": 45.5
+      },
+      "tagline": "Coelacanth country — rare living fossil encounters",
+      "description": "",
+      "best_season": "April–November",
+      "wikidata_id": null,
+      "group_id": "east-africa-arabia"
+    },
+    {
+      "id": "great-barrier-reef",
+      "name": "Great Barrier Reef",
+      "country_id": "AU",
+      "country": "Australia",
+      "latitude": -18.0,
+      "longitude": 147.5,
+      "bounds": {
+        "min_lat": -24.5,
+        "max_lat": -10.5,
+        "min_lon": 144.0,
+        "max_lon": 154.0
+      },
+      "tagline": "World's largest coral reef system",
+      "description": "",
+      "best_season": "June–October",
+      "wikidata_id": null,
+      "group_id": "australia-new-zealand"
+    },
+    {
+      "id": "coral-sea-outer",
+      "name": "Coral Sea & Outer Reefs (Liveaboard)",
+      "country_id": "AU",
+      "country": "Australia",
+      "latitude": -16.0,
+      "longitude": 150.0,
+      "bounds": {
+        "min_lat": -22.0,
+        "max_lat": -10.0,
+        "min_lon": 147.0,
+        "max_lon": 157.0
+      },
+      "tagline": "Remote open ocean reefs with big animal encounters",
+      "description": "",
+      "best_season": "July–November",
+      "wikidata_id": null,
+      "group_id": "australia-new-zealand"
+    },
+    {
+      "id": "western-australia",
+      "name": "Western Australia & Ningaloo",
+      "country_id": "AU",
+      "country": "Australia",
+      "latitude": -22.5,
+      "longitude": 113.7,
+      "bounds": {
+        "min_lat": -28.0,
+        "max_lat": -21.0,
+        "min_lon": 112.0,
+        "max_lon": 115.0
+      },
+      "tagline": "Whale sharks and pristine remote reefs",
+      "description": "",
+      "best_season": "March–July (whale sharks)",
+      "wikidata_id": null,
+      "group_id": "australia-new-zealand"
+    },
+    {
+      "id": "new-zealand",
+      "name": "New Zealand",
+      "country_id": "NZ",
+      "country": "New Zealand",
+      "latitude": -36.9,
+      "longitude": 174.8,
+      "bounds": {
+        "min_lat": -46.5,
+        "max_lat": -34.0,
+        "min_lon": 166.0,
+        "max_lon": 178.5
+      },
+      "tagline": "Kelp forests, Poor Knights, and WWII wrecks",
+      "description": "",
+      "best_season": "December–April",
+      "wikidata_id": null,
+      "group_id": "australia-new-zealand"
+    },
+    {
+      "id": "lord-howe-norfolk",
+      "name": "Lord Howe & Norfolk Islands",
+      "country_id": "AU",
+      "country": "Australia",
+      "latitude": -31.5,
+      "longitude": 159.1,
+      "bounds": {
+        "min_lat": -32.0,
+        "max_lat": -28.5,
+        "min_lon": 158.5,
+        "max_lon": 167.0
+      },
+      "tagline": "UNESCO island with world's southernmost coral reef",
+      "description": "",
+      "best_season": "January–April",
+      "wikidata_id": null,
+      "group_id": "australia-new-zealand"
+    },
+    {
+      "id": "south-australia-victoria",
+      "name": "South Australia & Victoria",
+      "country_id": "AU",
+      "country": "Australia",
+      "latitude": -35.0,
+      "longitude": 138.0,
+      "bounds": {
+        "min_lat": -39.0,
+        "max_lat": -32.0,
+        "min_lon": 130.0,
+        "max_lon": 150.0
+      },
+      "tagline": "Weedy sea dragons, giant cuttlefish, and cold southern reefs",
+      "description": "",
+      "best_season": "October–April",
+      "wikidata_id": null,
+      "group_id": "australia-new-zealand"
+    },
+    {
+      "id": "vanuatu",
+      "name": "Vanuatu",
+      "country_id": "VU",
+      "country": "Vanuatu",
+      "latitude": -16.0,
+      "longitude": 168.3,
+      "bounds": {
+        "min_lat": -20.5,
+        "max_lat": -13.0,
+        "min_lon": 166.5,
+        "max_lon": 170.5
+      },
+      "tagline": "SS President Coolidge — world's most accessible large wreck",
+      "description": "",
+      "best_season": "May–October",
+      "wikidata_id": null,
+      "group_id": "australia-new-zealand"
+    },
+    {
+      "id": "fiji",
+      "name": "Fiji",
+      "country_id": "FJ",
+      "country": "Fiji",
+      "latitude": -17.7,
+      "longitude": 177.4,
+      "bounds": {
+        "min_lat": -20.0,
+        "max_lat": -15.0,
+        "min_lon": 177.0,
+        "max_lon": 180.0
+      },
+      "tagline": "Soft coral capital of the world",
+      "description": "",
+      "best_season": "April–October",
+      "wikidata_id": null,
+      "group_id": "pacific-islands"
+    },
+    {
+      "id": "solomon-islands",
+      "name": "Solomon Islands",
+      "country_id": "SB",
+      "country": "Solomon Islands",
+      "latitude": -9.0,
+      "longitude": 160.0,
+      "bounds": {
+        "min_lat": -12.0,
+        "max_lat": -6.0,
+        "min_lon": 155.0,
+        "max_lon": 167.0
+      },
+      "tagline": "WWII wrecks and untouched reefs",
+      "description": "",
+      "best_season": "April–November",
+      "wikidata_id": null,
+      "group_id": "pacific-islands"
+    },
+    {
+      "id": "french-polynesia",
+      "name": "French Polynesia (Tahiti & Fakarava)",
+      "country_id": "PF",
+      "country": "French Polynesia",
+      "latitude": -16.5,
+      "longitude": -151.0,
+      "bounds": {
+        "min_lat": -23.0,
+        "max_lat": -10.0,
+        "min_lon": -155.0,
+        "max_lon": -145.0
+      },
+      "tagline": "Shark walls and UNESCO atolls",
+      "description": "",
+      "best_season": "June–October",
+      "wikidata_id": null,
+      "group_id": "pacific-islands"
+    },
+    {
+      "id": "hawaii",
+      "name": "Hawaii",
+      "country_id": "US",
+      "country": "United States",
+      "latitude": 20.5,
+      "longitude": -157.0,
+      "bounds": {
+        "min_lat": 18.5,
+        "max_lat": 22.3,
+        "min_lon": -160.5,
+        "max_lon": -154.5
+      },
+      "tagline": "Lava tubes, manta rays, and endemic species",
+      "description": "",
+      "best_season": "April–October",
+      "wikidata_id": null,
+      "group_id": "pacific-islands"
+    },
+    {
+      "id": "papua-new-guinea",
+      "name": "Papua New Guinea",
+      "country_id": "PG",
+      "country": "Papua New Guinea",
+      "latitude": -6.3,
+      "longitude": 147.1,
+      "bounds": {
+        "min_lat": -12.0,
+        "max_lat": 0.0,
+        "min_lon": 140.0,
+        "max_lon": 157.0
+      },
+      "tagline": "WWII wrecks and untouched coral reefs",
+      "description": "",
+      "best_season": "April–November",
+      "wikidata_id": null,
+      "group_id": "pacific-islands"
+    },
+    {
+      "id": "tonga",
+      "name": "Tonga & Kingdom of Humpbacks",
+      "country_id": "TO",
+      "country": "Tonga",
+      "latitude": -21.2,
+      "longitude": -175.2,
+      "bounds": {
+        "min_lat": -23.5,
+        "max_lat": -15.5,
+        "min_lon": -177.0,
+        "max_lon": -173.5
+      },
+      "tagline": "Swim with humpback whales — world's best",
+      "description": "",
+      "best_season": "July–October (humpbacks)",
+      "wikidata_id": null,
+      "group_id": "pacific-islands"
+    },
+    {
+      "id": "niue",
+      "name": "Niue — Rock of Polynesia",
+      "country_id": "NU",
+      "country": "Niue",
+      "latitude": -19.0,
+      "longitude": -169.9,
+      "bounds": {
+        "min_lat": -19.2,
+        "max_lat": -18.8,
+        "min_lon": -170.1,
+        "max_lon": -169.7
+      },
+      "tagline": "Insanely clear visibility and sea snake encounters",
+      "description": "",
+      "best_season": "May–October",
+      "wikidata_id": null,
+      "group_id": "pacific-islands"
+    },
+    {
+      "id": "cook-islands-samoa",
+      "name": "Cook Islands & Samoa",
+      "country_id": "CK",
+      "country": "Cook Islands",
+      "latitude": -21.2,
+      "longitude": -159.8,
+      "bounds": {
+        "min_lat": -22.5,
+        "max_lat": -8.0,
+        "min_lon": -172.0,
+        "max_lon": -157.0
+      },
+      "tagline": "Pristine Polynesian reefs and turtles",
+      "description": "",
+      "best_season": "April–November",
+      "wikidata_id": null,
+      "group_id": "pacific-islands"
+    },
+    {
+      "id": "cayman-islands",
+      "name": "Cayman Islands",
+      "country_id": "KY",
+      "country": "Cayman Islands",
+      "latitude": 19.3,
+      "longitude": -81.4,
+      "bounds": {
+        "min_lat": 19.0,
+        "max_lat": 20.0,
+        "min_lon": -82.0,
+        "max_lon": -79.5
+      },
+      "tagline": "Walls, stingray city, and classic Caribbean",
+      "description": "",
+      "best_season": "Year-round",
+      "wikidata_id": null,
+      "group_id": "caribbean-atlantic"
+    },
+    {
+      "id": "belize",
+      "name": "Belize",
+      "country_id": "BZ",
+      "country": "Belize",
+      "latitude": 17.1,
+      "longitude": -87.8,
+      "bounds": {
+        "min_lat": 15.5,
+        "max_lat": 18.5,
+        "min_lon": -88.5,
+        "max_lon": -87.0
+      },
+      "tagline": "Blue Hole and barrier reef",
+      "description": "",
+      "best_season": "March–May, October–November",
+      "wikidata_id": null,
+      "group_id": "caribbean-atlantic"
+    },
+    {
+      "id": "honduras-bay-islands",
+      "name": "Honduras Bay Islands",
+      "country_id": "HN",
+      "country": "Honduras",
+      "latitude": 16.3,
+      "longitude": -86.5,
+      "bounds": {
+        "min_lat": 15.8,
+        "max_lat": 16.6,
+        "min_lon": -87.5,
+        "max_lon": -85.8
+      },
+      "tagline": "Whale sharks and affordable Caribbean diving",
+      "description": "",
+      "best_season": "March–September",
+      "wikidata_id": null,
+      "group_id": "caribbean-atlantic"
+    },
+    {
+      "id": "cuba-mexico-caribbean",
+      "name": "Cuba & Mexican Caribbean",
+      "country_id": "MX",
+      "country": "Mexico",
+      "latitude": 20.5,
+      "longitude": -87.0,
+      "bounds": {
+        "min_lat": 19.5,
+        "max_lat": 23.5,
+        "min_lon": -88.0,
+        "max_lon": -77.0
+      },
+      "tagline": "Cenotes, walls, and vibrant Caribbean reefs",
+      "description": "",
+      "best_season": "Year-round",
+      "wikidata_id": null,
+      "group_id": "caribbean-atlantic"
+    },
+    {
+      "id": "bahamas",
+      "name": "Bahamas",
+      "country_id": "BS",
+      "country": "Bahamas",
+      "latitude": 25.0,
+      "longitude": -77.5,
+      "bounds": {
+        "min_lat": 22.0,
+        "max_lat": 27.0,
+        "min_lon": -79.5,
+        "max_lon": -72.5
+      },
+      "tagline": "Tiger sharks, reef sharks, and crystal blue holes",
+      "description": "",
+      "best_season": "June–August",
+      "wikidata_id": null,
+      "group_id": "caribbean-atlantic"
+    },
+    {
+      "id": "turks-caicos-dominican",
+      "name": "Turks & Caicos, Dominican Republic & Puerto Rico",
+      "country_id": "TC",
+      "country": "Turks and Caicos",
+      "latitude": 21.8,
+      "longitude": -71.9,
+      "bounds": {
+        "min_lat": 19.5,
+        "max_lat": 23.0,
+        "min_lon": -73.0,
+        "max_lon": -68.0
+      },
+      "tagline": "Pristine walls and humpback whale encounters",
+      "description": "",
+      "best_season": "November–April",
+      "wikidata_id": null,
+      "group_id": "caribbean-atlantic"
+    },
+    {
+      "id": "bonaire",
+      "name": "Bonaire",
+      "country_id": "BQ",
+      "country": "Bonaire",
+      "latitude": 12.2,
+      "longitude": -68.3,
+      "bounds": {
+        "min_lat": 12.0,
+        "max_lat": 12.5,
+        "min_lon": -68.5,
+        "max_lon": -68.0
+      },
+      "tagline": "Shore diving paradise, buoyed reef system",
+      "description": "",
+      "best_season": "Year-round",
+      "wikidata_id": null,
+      "group_id": "caribbean-atlantic"
+    },
+    {
+      "id": "jamaica-barbados",
+      "name": "Jamaica, Barbados & Lesser Antilles",
+      "country_id": "JM",
+      "country": "Jamaica",
+      "latitude": 17.9,
+      "longitude": -76.8,
+      "bounds": {
+        "min_lat": 12.0,
+        "max_lat": 18.5,
+        "min_lon": -80.0,
+        "max_lon": -59.0
+      },
+      "tagline": "Coral-draped wrecks and drift dives in the eastern Caribbean",
+      "description": "",
+      "best_season": "November–April",
+      "wikidata_id": null,
+      "group_id": "caribbean-atlantic"
+    },
+    {
+      "id": "virgin-islands-usvi-bvi",
+      "name": "US & British Virgin Islands",
+      "country_id": "VI",
+      "country": "US Virgin Islands",
+      "latitude": 18.35,
+      "longitude": -64.9,
+      "bounds": {
+        "min_lat": 17.8,
+        "max_lat": 18.7,
+        "min_lon": -65.5,
+        "max_lon": -64.3
+      },
+      "tagline": "RMS Rhone — the Caribbean's most famous wreck",
+      "description": "",
+      "best_season": "November–June",
+      "wikidata_id": null,
+      "group_id": "caribbean-atlantic"
+    },
+    {
+      "id": "curacao-aruba",
+      "name": "Curaçao, Aruba & Dutch Caribbean",
+      "country_id": "CW",
+      "country": "Curaçao",
+      "latitude": 12.2,
+      "longitude": -68.9,
+      "bounds": {
+        "min_lat": 12.0,
+        "max_lat": 12.8,
+        "min_lon": -70.1,
+        "max_lon": -68.7
+      },
+      "tagline": "Wall diving and colorful Dutch island reefs",
+      "description": "",
+      "best_season": "Year-round",
+      "wikidata_id": null,
+      "group_id": "caribbean-atlantic"
+    },
+    {
+      "id": "florida-keys",
+      "name": "Florida Keys",
+      "country_id": "US",
+      "country": "United States",
+      "latitude": 24.8,
+      "longitude": -81.0,
+      "bounds": {
+        "min_lat": 24.4,
+        "max_lat": 25.5,
+        "min_lon": -82.0,
+        "max_lon": -80.0
+      },
+      "tagline": "Coral reefs, wrecks, and the only living barrier reef in the continental US",
+      "description": "",
+      "best_season": "Year-round (December–April ideal)",
+      "wikidata_id": null,
+      "group_id": "caribbean-atlantic"
+    },
+    {
+      "id": "malta-gozo",
+      "name": "Malta & Gozo",
+      "country_id": "MT",
+      "country": "Malta",
+      "latitude": 36.0,
+      "longitude": 14.3,
+      "bounds": {
+        "min_lat": 35.7,
+        "max_lat": 36.3,
+        "min_lon": 14.0,
+        "max_lon": 14.6
+      },
+      "tagline": "Mediterranean's dive capital with wrecks and caves",
+      "description": "",
+      "best_season": "April–October",
+      "wikidata_id": null,
+      "group_id": "mediterranean-europe"
+    },
+    {
+      "id": "croatia-adriatic",
+      "name": "Croatia & Adriatic",
+      "country_id": "HR",
+      "country": "Croatia",
+      "latitude": 43.5,
+      "longitude": 16.5,
+      "bounds": {
+        "min_lat": 42.0,
+        "max_lat": 45.5,
+        "min_lon": 13.5,
+        "max_lon": 19.0
+      },
+      "tagline": "Caves, wrecks, and adriatic blue",
+      "description": "",
+      "best_season": "May–October",
+      "wikidata_id": null,
+      "group_id": "mediterranean-europe"
+    },
+    {
+      "id": "canary-islands",
+      "name": "Canary Islands",
+      "country_id": "ES",
+      "country": "Spain",
+      "latitude": 28.3,
+      "longitude": -15.5,
+      "bounds": {
+        "min_lat": 27.5,
+        "max_lat": 29.5,
+        "min_lon": -18.2,
+        "max_lon": -13.3
+      },
+      "tagline": "Atlantic diving year-round, angel sharks, and rays",
+      "description": "",
+      "best_season": "Year-round",
+      "wikidata_id": null,
+      "group_id": "mediterranean-europe"
+    },
+    {
+      "id": "azores-madeira",
+      "name": "Azores & Madeira",
+      "country_id": "PT",
+      "country": "Portugal",
+      "latitude": 38.7,
+      "longitude": -27.2,
+      "bounds": {
+        "min_lat": 36.0,
+        "max_lat": 40.0,
+        "min_lon": -32.0,
+        "max_lon": -25.0
+      },
+      "tagline": "Pelagic encounters in the mid-Atlantic",
+      "description": "",
+      "best_season": "June–October",
+      "wikidata_id": null,
+      "group_id": "mediterranean-europe"
+    },
+    {
+      "id": "greece-aegean",
+      "name": "Greece & Aegean Islands",
+      "country_id": "GR",
+      "country": "Greece",
+      "latitude": 37.5,
+      "longitude": 24.5,
+      "bounds": {
+        "min_lat": 35.0,
+        "max_lat": 41.0,
+        "min_lon": 20.0,
+        "max_lon": 29.0
+      },
+      "tagline": "Ancient wrecks, caves, and the cradle of civilization",
+      "description": "",
+      "best_season": "May–October",
+      "wikidata_id": null,
+      "group_id": "mediterranean-europe"
+    },
+    {
+      "id": "spain-balearics",
+      "name": "Spain, Balearic Islands & Costa Brava",
+      "country_id": "ES",
+      "country": "Spain",
+      "latitude": 39.5,
+      "longitude": 2.5,
+      "bounds": {
+        "min_lat": 36.0,
+        "max_lat": 43.5,
+        "min_lon": -2.0,
+        "max_lon": 5.0
+      },
+      "tagline": "Posidonia meadows and marine reserves",
+      "description": "",
+      "best_season": "May–October",
+      "wikidata_id": null,
+      "group_id": "mediterranean-europe"
+    },
+    {
+      "id": "turkey-mediterranean",
+      "name": "Turkey — Aegean & Mediterranean",
+      "country_id": "TR",
+      "country": "Turkey",
+      "latitude": 37.0,
+      "longitude": 28.0,
+      "bounds": {
+        "min_lat": 36.0,
+        "max_lat": 38.5,
+        "min_lon": 26.5,
+        "max_lon": 36.5
+      },
+      "tagline": "Ancient wrecks and spectacular Aegean reefs",
+      "description": "",
+      "best_season": "May–November",
+      "wikidata_id": null,
+      "group_id": "mediterranean-europe"
+    },
+    {
+      "id": "italy-sicily",
+      "name": "Italy, Sicily & Sardinia",
+      "country_id": "IT",
+      "country": "Italy",
+      "latitude": 38.0,
+      "longitude": 14.5,
+      "bounds": {
+        "min_lat": 36.5,
+        "max_lat": 41.5,
+        "min_lon": 8.0,
+        "max_lon": 16.5
+      },
+      "tagline": "Wrecks, sea caves, and Mediterranean reefs",
+      "description": "",
+      "best_season": "June–October",
+      "wikidata_id": null,
+      "group_id": "mediterranean-europe"
+    },
+    {
+      "id": "galapagos",
+      "name": "Galápagos Islands",
+      "country_id": "EC",
+      "country": "Ecuador",
+      "latitude": -0.8,
+      "longitude": -90.9,
+      "bounds": {
+        "min_lat": -1.6,
+        "max_lat": 0.7,
+        "min_lon": -92.0,
+        "max_lon": -89.0
+      },
+      "tagline": "Darwin's paradise — hammerheads, whale sharks, and marine iguanas",
+      "description": "",
+      "best_season": "December–May",
+      "wikidata_id": null,
+      "group_id": "central-america-mexico-pacific"
+    },
+    {
+      "id": "cocos-island",
+      "name": "Cocos Island, Costa Rica",
+      "country_id": "CR",
+      "country": "Costa Rica",
+      "latitude": 5.5,
+      "longitude": -87.1,
+      "bounds": {
+        "min_lat": 5.3,
+        "max_lat": 5.7,
+        "min_lon": -87.4,
+        "max_lon": -86.9
+      },
+      "tagline": "Hammerhead aggregations and whale shark highway",
+      "description": "",
+      "best_season": "May–December",
+      "wikidata_id": null,
+      "group_id": "central-america-mexico-pacific"
+    },
+    {
+      "id": "sea-of-cortez",
+      "name": "Sea of Cortez & Baja California",
+      "country_id": "MX",
+      "country": "Mexico",
+      "latitude": 26.0,
+      "longitude": -110.5,
+      "bounds": {
+        "min_lat": 22.0,
+        "max_lat": 31.0,
+        "min_lon": -115.0,
+        "max_lon": -108.0
+      },
+      "tagline": "Whale sharks, sea lions, and the world's aquarium",
+      "description": "",
+      "best_season": "October–June",
+      "wikidata_id": null,
+      "group_id": "central-america-mexico-pacific"
+    },
+    {
+      "id": "socorro-revillagigedo",
+      "name": "Socorro (Revillagigedo Islands)",
+      "country_id": "MX",
+      "country": "Mexico",
+      "latitude": 18.8,
+      "longitude": -110.9,
+      "bounds": {
+        "min_lat": 17.0,
+        "max_lat": 21.0,
+        "min_lon": -112.0,
+        "max_lon": -109.0
+      },
+      "tagline": "Giant mantas and Pacific pelagic powerhouse",
+      "description": "",
+      "best_season": "November–May",
+      "wikidata_id": null,
+      "group_id": "central-america-mexico-pacific"
+    },
+    {
+      "id": "panama-colombia-pacific",
+      "name": "Panama Pacific & Colombia",
+      "country_id": "PA",
+      "country": "Panama",
+      "latitude": 7.5,
+      "longitude": -81.7,
+      "bounds": {
+        "min_lat": 1.0,
+        "max_lat": 9.5,
+        "min_lon": -84.0,
+        "max_lon": -75.0
+      },
+      "tagline": "Hammerheads, whale sharks, and pristine Pacific reefs",
+      "description": "",
+      "best_season": "July–October",
+      "wikidata_id": null,
+      "group_id": "central-america-mexico-pacific"
+    },
+    {
+      "id": "colombian-caribbean",
+      "name": "Colombian Caribbean — Rosario & San Andrés",
+      "country_id": "CO",
+      "country": "Colombia",
+      "latitude": 13.4,
+      "longitude": -81.7,
+      "bounds": {
+        "min_lat": 9.0,
+        "max_lat": 15.0,
+        "min_lon": -83.0,
+        "max_lon": -74.0
+      },
+      "tagline": "Pristine Caribbean reefs and UNESCO biosphere",
+      "description": "",
+      "best_season": "January–April, July–August",
+      "wikidata_id": null,
+      "group_id": "central-america-mexico-pacific"
+    },
+    {
+      "id": "ecuador-peru-pacific",
+      "name": "Ecuador & Peru Coast",
+      "country_id": "EC",
+      "country": "Ecuador",
+      "latitude": -2.5,
+      "longitude": -80.5,
+      "bounds": {
+        "min_lat": -12.0,
+        "max_lat": 2.0,
+        "min_lon": -82.0,
+        "max_lon": -77.0
+      },
+      "tagline": "Hammerheads, whale sharks, and Pacific diversity",
+      "description": "",
+      "best_season": "December–May",
+      "wikidata_id": null,
+      "group_id": "central-america-mexico-pacific"
+    },
+    {
+      "id": "costa-rica-caribbean",
+      "name": "Costa Rica Caribbean Coast",
+      "country_id": "CR",
+      "country": "Costa Rica",
+      "latitude": 10.2,
+      "longitude": -83.5,
+      "bounds": {
+        "min_lat": 9.5,
+        "max_lat": 11.0,
+        "min_lon": -84.0,
+        "max_lon": -82.5
+      },
+      "tagline": "Cahuita reef and Caribbean Costa Rica",
+      "description": "",
+      "best_season": "September–November, March–May",
+      "wikidata_id": null,
+      "group_id": "central-america-mexico-pacific"
+    },
+    {
+      "id": "mexico-gulf-veracruz",
+      "name": "Veracruz Reef System, Gulf of Mexico",
+      "country_id": "MX",
+      "country": "Mexico",
+      "latitude": 19.2,
+      "longitude": -95.8,
+      "bounds": {
+        "min_lat": 18.5,
+        "max_lat": 20.0,
+        "min_lon": -96.5,
+        "max_lon": -95.5
+      },
+      "tagline": "Gulf of Mexico reefs close to history",
+      "description": "",
+      "best_season": "March–August",
+      "wikidata_id": null,
+      "group_id": "central-america-mexico-pacific"
+    },
+    {
+      "id": "fernando-de-noronha",
+      "name": "Fernando de Noronha, Brazil",
+      "country_id": "BR",
+      "country": "Brazil",
+      "latitude": -3.85,
+      "longitude": -32.4,
+      "bounds": {
+        "min_lat": -4.0,
+        "max_lat": -3.7,
+        "min_lon": -32.6,
+        "max_lon": -32.2
+      },
+      "tagline": "Brazil's hidden paradise of spinner dolphins",
+      "description": "",
+      "best_season": "September–March",
+      "wikidata_id": null,
+      "group_id": "south-america"
+    },
+    {
+      "id": "patagonia-chile",
+      "name": "Patagonia & Chilean Fjords",
+      "country_id": "CL",
+      "country": "Chile",
+      "latitude": -45.0,
+      "longitude": -73.0,
+      "bounds": {
+        "min_lat": -55.0,
+        "max_lat": -40.0,
+        "min_lon": -76.0,
+        "max_lon": -67.0
+      },
+      "tagline": "Kelp forests, sea lions, and extreme cold-water adventure",
+      "description": "",
+      "best_season": "January–March",
+      "wikidata_id": null,
+      "group_id": "south-america"
+    },
+    {
+      "id": "colombia-venezuela-caribbean",
+      "name": "Colombia & Venezuela Caribbean",
+      "country_id": "CO",
+      "country": "Colombia",
+      "latitude": 11.0,
+      "longitude": -72.0,
+      "bounds": {
+        "min_lat": 10.0,
+        "max_lat": 12.5,
+        "min_lon": -75.0,
+        "max_lon": -60.0
+      },
+      "tagline": "Pristine Caribbean reefs from Tayrona to Morrocoy",
+      "description": "",
+      "best_season": "December–April",
+      "wikidata_id": null,
+      "group_id": "south-america"
+    },
+    {
+      "id": "brazil-northeast",
+      "name": "Northeast Brazil — Abrolhos & Recife",
+      "country_id": "BR",
+      "country": "Brazil",
+      "latitude": -9.0,
+      "longitude": -35.5,
+      "bounds": {
+        "min_lat": -20.0,
+        "max_lat": -5.0,
+        "min_lon": -39.5,
+        "max_lon": -32.0
+      },
+      "tagline": "Humpback whales, endemic fish, and unique Brazilian reefs",
+      "description": "",
+      "best_season": "July–November (humpbacks); Year-round (Recife)",
+      "wikidata_id": null,
+      "group_id": "south-america"
+    },
+    {
+      "id": "galapagos-mainland-ecuador",
+      "name": "Ecuador Mainland Coast",
+      "country_id": "EC",
+      "country": "Ecuador",
+      "latitude": -1.8,
+      "longitude": -80.7,
+      "bounds": {
+        "min_lat": -4.0,
+        "max_lat": 1.5,
+        "min_lon": -81.5,
+        "max_lon": -75.0
+      },
+      "tagline": "Humpback whales and mainland Pacific Ecuador",
+      "description": "",
+      "best_season": "December–May",
+      "wikidata_id": null,
+      "group_id": "south-america"
+    },
+    {
+      "id": "norway-lofoten",
+      "name": "Norway & Lofoten",
+      "country_id": "NO",
+      "country": "Norway",
+      "latitude": 68.0,
+      "longitude": 14.5,
+      "bounds": {
+        "min_lat": 62.0,
+        "max_lat": 71.0,
+        "min_lon": 5.0,
+        "max_lon": 30.0
+      },
+      "tagline": "Orcas, king crabs, and Arctic diving",
+      "description": "",
+      "best_season": "November–January (orcas), June–August (visibility)",
+      "wikidata_id": null,
+      "group_id": "cold-water-north-atlantic"
+    },
+    {
+      "id": "scotland-uk",
+      "name": "Scotland & UK",
+      "country_id": "GB",
+      "country": "United Kingdom",
+      "latitude": 57.5,
+      "longitude": -4.5,
+      "bounds": {
+        "min_lat": 50.0,
+        "max_lat": 61.0,
+        "min_lon": -8.0,
+        "max_lon": 2.0
+      },
+      "tagline": "Basking sharks, seals, and outstanding wrecks",
+      "description": "",
+      "best_season": "April–September",
+      "wikidata_id": null,
+      "group_id": "cold-water-north-atlantic"
+    },
+    {
+      "id": "iceland-greenland",
+      "name": "Iceland & Greenland",
+      "country_id": "IS",
+      "country": "Iceland",
+      "latitude": 64.5,
+      "longitude": -18.0,
+      "bounds": {
+        "min_lat": 63.0,
+        "max_lat": 67.0,
+        "min_lon": -24.5,
+        "max_lon": -13.0
+      },
+      "tagline": "Crystal clear geothermal diving and icebergs",
+      "description": "",
+      "best_season": "May–September",
+      "wikidata_id": null,
+      "group_id": "cold-water-north-atlantic"
+    },
+    {
+      "id": "canada-pacific",
+      "name": "British Columbia & Pacific Canada",
+      "country_id": "CA",
+      "country": "Canada",
+      "latitude": 50.0,
+      "longitude": -125.0,
+      "bounds": {
+        "min_lat": 48.0,
+        "max_lat": 54.0,
+        "min_lon": -130.0,
+        "max_lon": -122.0
+      },
+      "tagline": "Giant Pacific octopus, wolf eels, and kelp forests",
+      "description": "",
+      "best_season": "November–April (plankton blooms clear)",
+      "wikidata_id": null,
+      "group_id": "cold-water-north-atlantic"
+    },
+    {
+      "id": "ireland-west-coast",
+      "name": "Ireland & West Coast",
+      "country_id": "IE",
+      "country": "Ireland",
+      "latitude": 53.5,
+      "longitude": -9.5,
+      "bounds": {
+        "min_lat": 51.0,
+        "max_lat": 55.5,
+        "min_lon": -11.0,
+        "max_lon": -6.0
+      },
+      "tagline": "Basking sharks, seals, and stunning Atlantic wrecks",
+      "description": "",
+      "best_season": "May–September",
+      "wikidata_id": null,
+      "group_id": "cold-water-north-atlantic"
+    },
+    {
+      "id": "south-africa-cold-atlantic",
+      "name": "Antarctica & Sub-Antarctic",
+      "country_id": "AQ",
+      "country": "Antarctica",
+      "latitude": -63.0,
+      "longitude": -57.0,
+      "bounds": {
+        "min_lat": -75.0,
+        "max_lat": -55.0,
+        "min_lon": -90.0,
+        "max_lon": -20.0
+      },
+      "tagline": "The ultimate cold-water frontier — icebergs and leopard seals",
+      "description": "",
+      "best_season": "December–February (southern summer)",
+      "wikidata_id": null,
+      "group_id": "cold-water-north-atlantic"
+    },
+    {
+      "id": "northeast-usa",
+      "name": "New England & Northeast USA",
+      "country_id": "US",
+      "country": "United States",
+      "latitude": 42.5,
+      "longitude": -70.5,
+      "bounds": {
+        "min_lat": 41.0,
+        "max_lat": 45.0,
+        "min_lon": -72.0,
+        "max_lon": -67.0
+      },
+      "tagline": "Cold Atlantic wrecks and lobster capital",
+      "description": "",
+      "best_season": "June–October",
+      "wikidata_id": null,
+      "group_id": "cold-water-north-atlantic"
+    },
+    {
+      "id": "okinawa-japan",
+      "name": "Okinawa, Japan",
+      "country_id": "JP",
+      "country": "Japan",
+      "latitude": 26.5,
+      "longitude": 128.0,
+      "bounds": {
+        "min_lat": 24.0,
+        "max_lat": 28.5,
+        "min_lon": 122.0,
+        "max_lon": 131.0
+      },
+      "tagline": "Whale sharks, mantas, and WWII wrecks",
+      "description": "",
+      "best_season": "May–October",
+      "wikidata_id": null,
+      "group_id": "japan-east-asia"
+    },
+    {
+      "id": "izu-peninsula-japan",
+      "name": "Izu Peninsula & Sagami Bay",
+      "country_id": "JP",
+      "country": "Japan",
+      "latitude": 34.7,
+      "longitude": 138.9,
+      "bounds": {
+        "min_lat": 34.5,
+        "max_lat": 35.3,
+        "min_lon": 138.7,
+        "max_lon": 140.0
+      },
+      "tagline": "World-class macro and incredible nudibranch diversity",
+      "description": "",
+      "best_season": "Year-round; winter for nudibranchs",
+      "wikidata_id": null,
+      "group_id": "japan-east-asia"
+    },
+    {
+      "id": "taiwan",
+      "name": "Taiwan & Green Island",
+      "country_id": "TW",
+      "country": "Taiwan",
+      "latitude": 22.65,
+      "longitude": 121.5,
+      "bounds": {
+        "min_lat": 21.5,
+        "max_lat": 25.5,
+        "min_lon": 120.0,
+        "max_lon": 122.5
+      },
+      "tagline": "Current-swept pinnacles and underwater hot springs",
+      "description": "",
+      "best_season": "April–October",
+      "wikidata_id": null,
+      "group_id": "japan-east-asia"
+    },
+    {
+      "id": "korea-china-seas",
+      "name": "South Korea & Yellow Sea",
+      "country_id": "KR",
+      "country": "South Korea",
+      "latitude": 34.5,
+      "longitude": 127.0,
+      "bounds": {
+        "min_lat": 33.0,
+        "max_lat": 38.0,
+        "min_lon": 124.0,
+        "max_lon": 130.0
+      },
+      "tagline": "Haenyeo heritage and cold-water wrecks",
+      "description": "",
+      "best_season": "July–September",
+      "wikidata_id": null,
+      "group_id": "japan-east-asia"
+    },
+    {
+      "id": "hokkaido-northern-japan",
+      "name": "Hokkaido & Northern Japan",
+      "country_id": "JP",
+      "country": "Japan",
+      "latitude": 43.5,
+      "longitude": 141.5,
+      "bounds": {
+        "min_lat": 41.5,
+        "max_lat": 45.5,
+        "min_lon": 139.0,
+        "max_lon": 145.5
+      },
+      "tagline": "Ice diving, sea angels, and cold Pacific critters",
+      "description": "",
+      "best_season": "January–April (ice); June–October (warmer)",
+      "wikidata_id": null,
+      "group_id": "japan-east-asia"
+    },
+    {
+      "id": "hong-kong-guangdong",
+      "name": "Hong Kong & South China Sea",
+      "country_id": "HK",
+      "country": "Hong Kong",
+      "latitude": 22.3,
+      "longitude": 114.2,
+      "bounds": {
+        "min_lat": 21.0,
+        "max_lat": 23.5,
+        "min_lon": 113.0,
+        "max_lon": 115.5
+      },
+      "tagline": "Surprising reefs on Asia's doorstep",
+      "description": "",
+      "best_season": "September–December",
+      "wikidata_id": null,
+      "group_id": "japan-east-asia"
+    },
+    {
+      "id": "ogasawara-islands",
+      "name": "Ogasawara (Bonin) Islands",
+      "country_id": "JP",
+      "country": "Japan",
+      "latitude": 27.1,
+      "longitude": 142.2,
+      "bounds": {
+        "min_lat": 24.0,
+        "max_lat": 27.8,
+        "min_lon": 141.0,
+        "max_lon": 143.0
+      },
+      "tagline": "Darwin's Japan — endemic species 1,000km from Tokyo",
+      "description": "",
+      "best_season": "April–November",
+      "wikidata_id": null,
+      "group_id": "japan-east-asia"
+    },
+    {
+      "id": "south-africa-eastern-cape",
+      "name": "KwaZulu-Natal & Eastern Cape",
       "country_id": "ZA",
-      "latitude": -29.7,
-      "longitude": 31.1
+      "country": "South Africa",
+      "latitude": -29.8,
+      "longitude": 31.0,
+      "bounds": {
+        "min_lat": -35.0,
+        "max_lat": -27.0,
+        "min_lon": 27.0,
+        "max_lon": 33.0
+      },
+      "tagline": "Sardine run, tiger sharks, and epic pelagics",
+      "description": "",
+      "best_season": "June–July (sardine run); November–April (clear water)",
+      "wikidata_id": null,
+      "group_id": "south-africa-south-atlantic"
     },
     {
-      "id": "south-america",
-      "name": "South America",
-      "latitude": 0.09296814799999946,
-      "longitude": -62.178480296
+      "id": "south-africa-western-cape",
+      "name": "Western Cape & False Bay",
+      "country_id": "ZA",
+      "country": "South Africa",
+      "latitude": -34.1,
+      "longitude": 18.5,
+      "bounds": {
+        "min_lat": -35.0,
+        "max_lat": -33.0,
+        "min_lon": 17.5,
+        "max_lon": 19.5
+      },
+      "tagline": "Great white sharks, cape fur seals, and cold Atlantic reefs",
+      "description": "",
+      "best_season": "June–October (great whites); December–March (seals)",
+      "wikidata_id": null,
+      "group_id": "south-africa-south-atlantic"
     },
     {
-      "id": "southeast-asia",
-      "name": "Southeast Asia",
-      "latitude": 8.450481055,
-      "longitude": 111.98982616666666
+      "id": "st-helena-ascension",
+      "name": "St. Helena & Ascension Island",
+      "country_id": "SH",
+      "country": "Saint Helena",
+      "latitude": -15.9,
+      "longitude": -5.7,
+      "bounds": {
+        "min_lat": -16.1,
+        "max_lat": -15.7,
+        "min_lon": -5.9,
+        "max_lon": -5.5
+      },
+      "tagline": "Napoleon's exile island — whale sharks and pristine Atlantic reefs",
+      "description": "",
+      "best_season": "November–April",
+      "wikidata_id": null,
+      "group_id": "south-africa-south-atlantic"
     },
     {
-      "id": "thailand",
-      "name": "Thailand",
-      "country_id": "TH",
-      "latitude": 9.5,
-      "longitude": 100.0
+      "id": "mozambique-north",
+      "name": "Northern Mozambique & Quirimbas",
+      "country_id": "MZ",
+      "country": "Mozambique",
+      "latitude": -12.0,
+      "longitude": 40.5,
+      "bounds": {
+        "min_lat": -15.0,
+        "max_lat": -10.0,
+        "min_lon": 39.5,
+        "max_lon": 41.5
+      },
+      "tagline": "Pristine archipelago reefs in northern Mozambique",
+      "description": "",
+      "best_season": "June–October",
+      "wikidata_id": null,
+      "group_id": "south-africa-south-atlantic"
     }
   ]
 }

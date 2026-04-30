@@ -51,7 +51,7 @@ public struct DiveMapView: UIViewControllerRepresentable {
     public var onSelect: (String) -> Void
     public var onRegionChange: (DiveMapViewport) -> Void
     public var onLoadFailure: (() -> Void)?
-    public var onClusterTap: ((CLLocationCoordinate2D, Int) -> Void)?
+    public var onClusterTap: ((DiveMapClusterSelection) -> Void)?
     public var onTileLoadingChange: ((Bool) -> Void)?
 
     public class Coordinator {
@@ -78,7 +78,7 @@ public struct DiveMapView: UIViewControllerRepresentable {
         onSelect: @escaping (String) -> Void = { _ in },
         onRegionChange: @escaping (DiveMapViewport) -> Void = { _ in },
         onLoadFailure: (() -> Void)? = nil,
-        onClusterTap: ((CLLocationCoordinate2D, Int) -> Void)? = nil,
+        onClusterTap: ((DiveMapClusterSelection) -> Void)? = nil,
         onTileLoadingChange: ((Bool) -> Void)? = nil
     ) {
         self.annotations = annotations

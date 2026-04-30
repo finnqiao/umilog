@@ -13,6 +13,8 @@ public final class FeaturedDestinationService: ObservableObject {
 
     private let persistence = MapStatePersistence.shared
     private let geographyRepository: GeographyRepository
+    private let siteRepository: SiteRepository
+    private let topSiteRotationLimit = 7
 
     /// The currently selected featured destination (nil if returning user)
     @Published public private(set) var activeDestination: FeaturedDestination?
@@ -22,12 +24,13 @@ public final class FeaturedDestinationService: ObservableObject {
 
     public init(database: AppDatabase = .shared) {
         self.geographyRepository = GeographyRepository(database: database)
+        self.siteRepository = SiteRepository(database: database)
     }
 
     // MARK: - Public Interface
 
-    /// Check if this is a first-time launch and select a featured destination.
-    /// Returns the destination to show, or nil for returning users.
+    /// Check if this is a first-time launch and select a featured top site.
+    /// Returns the site-backed destination to show, or nil for returning users.
     public func checkAndSelectFeatured() -> FeaturedDestination? {
         // Returning users skip featured experience
         guard !persistence.hasLaunchedBefore else {
@@ -40,17 +43,13 @@ public final class FeaturedDestinationService: ObservableObject {
             return nil
         }
 
-        // Select destination based on day of year (deterministic daily rotation)
-        let destination = selectDestinationForToday()
-
-        // Validate destination has sites in database
-        if let validatedDestination = validateDestination(destination) {
-            activeDestination = validatedDestination
+        if let destination = selectTopSiteForToday() {
+            activeDestination = destination
             isShowingFeatured = true
-            return validatedDestination
+            return destination
         }
 
-        // Fallback: try other destinations
+        // Fallback: try curated regions only if ranked sites are unavailable.
         return selectFallbackDestination()
     }
 
@@ -70,10 +69,28 @@ public final class FeaturedDestinationService: ObservableObject {
 
     // MARK: - Selection Logic
 
-    private func selectDestinationForToday() -> FeaturedDestination {
-        let dayOfYear = Calendar.current.ordinality(of: .day, in: .year, for: Date()) ?? 1
-        let index = dayOfYear % FeaturedDestination.curated.count
-        return FeaturedDestination.curated[index]
+    private func selectTopSiteForToday() -> FeaturedDestination? {
+        do {
+            let rankedSites = try siteRepository.fetchRanked(limit: topSiteRotationLimit)
+                .filter { $0.latitude.isFinite && $0.longitude.isFinite }
+            guard !rankedSites.isEmpty else { return nil }
+
+            let dayOfYear = Calendar.current.ordinality(of: .day, in: .year, for: Date()) ?? 1
+            let index = (dayOfYear - 1) % rankedSites.count
+            let site = rankedSites[index]
+            return FeaturedDestination(
+                id: site.id,
+                regionId: site.regionId ?? site.region,
+                displayName: site.name,
+                tagline: site.location,
+                latitude: site.latitude,
+                longitude: site.longitude,
+                zoomLevel: 8.5
+            )
+        } catch {
+            logger.warning("Failed to select top site: \(error.localizedDescription, privacy: .public)")
+            return nil
+        }
     }
 
     private func validateDestination(_ destination: FeaturedDestination) -> FeaturedDestination? {

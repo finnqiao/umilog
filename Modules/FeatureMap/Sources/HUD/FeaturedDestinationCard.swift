@@ -1,7 +1,7 @@
 import SwiftUI
 import UmiDesignSystem
 
-/// Floating card shown to first-time users showcasing a featured dive destination.
+/// Floating card shown to first-time users showcasing a featured dive site.
 /// Appears after camera animation completes and auto-dismisses after 4 seconds.
 struct FeaturedDestinationCard: View {
     let destination: FeaturedDestination
@@ -76,7 +76,7 @@ struct FeaturedDestinationCard: View {
             dismissTask?.cancel()
         }
         .accessibilityElement(children: .combine)
-        .accessibilityLabel("Featured destination: \(destination.displayName). \(destination.tagline)")
+        .accessibilityLabel("Featured dive site: \(destination.displayName). \(destination.tagline)")
         .accessibilityHint("Tap anywhere on the map to explore")
     }
 

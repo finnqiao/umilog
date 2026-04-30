@@ -1,7 +1,7 @@
 import Foundation
 import CoreLocation
 
-/// A curated dive destination shown to first-time users for inspiration.
+/// A featured dive location shown to first-time users for inspiration.
 public struct FeaturedDestination: Identifiable {
     public let id: String
     public let regionId: String
@@ -31,8 +31,7 @@ public struct FeaturedDestination: Identifiable {
 // MARK: - Curated Destinations
 
 extension FeaturedDestination {
-    /// Curated list of photogenic dive regions with high site density.
-    /// Rotates daily to provide "inspire my next trip" experience.
+    /// Curated region fallback used only when ranked site data is unavailable.
     public static let curated: [FeaturedDestination] = [
         FeaturedDestination(
             regionId: "red-sea-egypt",

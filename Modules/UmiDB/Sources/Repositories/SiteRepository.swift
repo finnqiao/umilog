@@ -12,15 +12,14 @@ public final class SiteRepository {
         let sql = """
         SELECT COUNT(*)
         FROM sites
-        WHERE id NOT LIKE 'dive_site_%'
-          AND id NOT LIKE 'site_%'
+        WHERE id LIKE 'curated_%'
         """
         return (try Int.fetchOne(db, sql: sql) ?? 0) > 0
     }
 
     private func legacyFilterSQL(alias: String? = nil) -> String {
         let prefix = alias.map { "\($0)." } ?? ""
-        return "\(prefix)id NOT LIKE 'dive_site_%' AND \(prefix)id NOT LIKE 'site_%'"
+        return "(\(prefix)id LIKE 'curated_%' OR \(prefix)wishlist = 1 OR \(prefix)isPlanned = 1 OR \(prefix)visitedCount > 0)"
     }
 
     private func rankedOrderSQL(alias: String? = nil) -> String {
@@ -266,9 +265,15 @@ public final class SiteRepository {
             SELECT s.*
             FROM sites s
             LEFT JOIN site_aliases sa ON sa.site_id = s.id
+            LEFT JOIN countries c ON c.id = s.country_id
+            LEFT JOIN regions r ON r.id = s.region_id
+            LEFT JOIN areas a ON a.id = s.area_id
             WHERE (
                 LOWER(s.name) LIKE LOWER(?)
                 OR LOWER(s.location) LIKE LOWER(?)
+                OR LOWER(COALESCE(c.name, '')) LIKE LOWER(?)
+                OR LOWER(COALESCE(r.name, '')) LIKE LOWER(?)
+                OR LOWER(COALESCE(a.name, '')) LIKE LOWER(?)
                 OR LOWER(COALESCE(s.destination_slug, '')) LIKE LOWER(?)
                 OR sa.alias_normalized LIKE ?
             )\(legacyClause)
@@ -280,6 +285,9 @@ public final class SiteRepository {
                         WHEN sa.alias_normalized = ? THEN 850
                         WHEN LOWER(s.name) LIKE LOWER(?) THEN 700
                         WHEN sa.alias_normalized LIKE ? THEN 650
+                        WHEN LOWER(COALESCE(c.name, '')) = LOWER(?) THEN 620
+                        WHEN LOWER(COALESCE(r.name, '')) = LOWER(?) THEN 600
+                        WHEN LOWER(COALESCE(a.name, '')) = LOWER(?) THEN 580
                         WHEN LOWER(COALESCE(s.destination_slug, '')) LIKE LOWER(?) THEN 500
                         ELSE 0
                     END
@@ -290,8 +298,8 @@ public final class SiteRepository {
                 db,
                 sql: sql,
                 arguments: [
-                    like, like, like, normalizedLike,
-                    trimmed, normalized, like, prefixLike, like
+                    like, like, like, like, like, like, normalizedLike,
+                    trimmed, normalized, like, prefixLike, trimmed, trimmed, trimmed, like
                 ]
             )
         }

@@ -79,8 +79,7 @@ struct FallbackShelfContent: View {
             SectionHeader(title: "Popular Regions", icon: "globe")
 
             LazyVGrid(columns: [
-                GridItem(.flexible()),
-                GridItem(.flexible())
+                GridItem(.adaptive(minimum: 136), spacing: 12)
             ], spacing: 12) {
                 ForEach(popularRegions) { region in
                     RegionCard(region: region) {
@@ -178,9 +177,11 @@ private struct RegionChip: View {
                     .font(.caption)
                     .fontWeight(.medium)
 
-                Text("(\(region.siteCount))")
-                    .font(.caption2)
-                    .foregroundStyle(Color.mist)
+                if region.siteCount > 0 {
+                    Text("(\(region.siteCount))")
+                        .font(.caption2)
+                        .foregroundStyle(Color.mist)
+                }
             }
             .foregroundStyle(Color.foam)
             .padding(.horizontal, 12)
@@ -206,6 +207,8 @@ private struct RegionCard: View {
                         .font(.subheadline)
                         .fontWeight(.semibold)
                         .foregroundStyle(Color.foam)
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.82)
 
                     Spacer()
 
@@ -218,12 +221,15 @@ private struct RegionCard: View {
                     Label(region.countryName, systemImage: "globe")
                         .font(.caption2)
                         .foregroundStyle(Color.mist)
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.82)
 
                     Spacer()
 
-                    Text("\(region.siteCount) sites")
+                    Text(siteCountText)
                         .font(.caption2)
                         .foregroundStyle(Color.lagoon)
+                        .lineLimit(1)
                 }
             }
             .padding(12)
@@ -231,6 +237,10 @@ private struct RegionCard: View {
             .clipShape(RoundedRectangle(cornerRadius: 12))
         }
         .buttonStyle(.plain)
+    }
+
+    private var siteCountText: String {
+        region.siteCount > 0 ? "\(region.siteCount) sites" : "Explore"
     }
 }
 

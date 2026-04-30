@@ -95,6 +95,15 @@ enum MapUIReducer {
                 returnContext: returnContext
             ))
 
+        case (.explore(let ctx), .openSiteInspectionWithReturnSurface(let siteId, let returnSurface)):
+            var returnContext = ctx
+            returnContext.previewingSite = nil
+            return .inspectSite(SiteInspectionContext(
+                siteId: siteId,
+                returnContext: returnContext,
+                returnSurface: returnSurface
+            ))
+
         case (.explore(let ctx), .openFilter):
             return .filter(FilterContext(
                 exploreFilters: currentFilters,
@@ -110,6 +119,18 @@ enum MapUIReducer {
         // MARK: - Inspect Mode Transitions
 
         case (.inspectSite(let ctx), .closeSiteInspection):
+            if let returnSurface = ctx.returnSurface {
+                switch returnSurface {
+                case .clusterExpand(let clusterContext):
+                    return .clusterExpand(clusterContext)
+                case .search(let searchContext):
+                    return .search(searchContext)
+                case .filter(let filterContext):
+                    return .filter(filterContext)
+                case .nearMe(let nearMeContext):
+                    return .nearMe(nearMeContext)
+                }
+            }
             return .explore(ctx.returnContext)
 
         case (.inspectSite(let ctx), .openSearch):
@@ -138,7 +159,8 @@ enum MapUIReducer {
                 return .inspectSite(SiteInspectionContext(
                     siteId: siteId,
                     returnContext: ctx.returnContext,
-                    returnSearchContext: ctx
+                    returnSearchContext: ctx,
+                    returnSurface: .search(ctx)
                 ))
             } else {
                 // No selection - return to explore
@@ -205,6 +227,30 @@ enum MapUIReducer {
             exploreCtx.hierarchyLevel = .country(countryId)
             return .explore(exploreCtx)
 
+        case (.search(let ctx), .drillDownToRegion(let regionId)):
+            var exploreCtx = ctx.returnContext
+            let countryId = exploreCtx.hierarchyLevel.countryId
+            exploreCtx.hierarchyLevel = .region(countryId: countryId, regionId: regionId)
+            exploreCtx.previewingSite = nil
+            return .explore(exploreCtx)
+
+        case (.search(let ctx), .drillDownToArea(let areaId, let explicitRegion)):
+            guard let regionId = explicitRegion ?? ctx.returnContext.hierarchyLevel.regionId else {
+                return state
+            }
+            var exploreCtx = ctx.returnContext
+            exploreCtx.hierarchyLevel = .area(regionId: regionId, areaId: areaId)
+            exploreCtx.previewingSite = nil
+            return .explore(exploreCtx)
+
+        case (.search(let ctx), .openSiteInspection(let siteId)):
+            return .inspectSite(SiteInspectionContext(
+                siteId: siteId,
+                returnContext: ctx.returnContext,
+                returnSearchContext: ctx,
+                returnSurface: .search(ctx)
+            ))
+
         // MARK: - Cluster Expand Transitions
 
         case (.explore(let ctx), .openClusterExpand(let clusterCtx)):
@@ -213,6 +259,8 @@ enum MapUIReducer {
             updatedClusterCtx = ClusterExpandContext(
                 clusterCenter: clusterCtx.clusterCenter,
                 siteCount: clusterCtx.siteCount,
+                memberSiteIds: clusterCtx.memberSiteIds,
+                expansionZoomLevel: clusterCtx.expansionZoomLevel,
                 returnContext: ctx
             )
             return .clusterExpand(updatedClusterCtx)
@@ -224,7 +272,8 @@ enum MapUIReducer {
             // Allow opening site inspection from cluster expand
             return .inspectSite(SiteInspectionContext(
                 siteId: siteId,
-                returnContext: ctx.returnContext
+                returnContext: ctx.returnContext,
+                returnSurface: .clusterExpand(ctx)
             ))
 
         // MARK: - Near Me Transitions
@@ -242,13 +291,21 @@ enum MapUIReducer {
         case (.nearMe(let ctx), .openSiteInspection(let siteId)):
             return .inspectSite(SiteInspectionContext(
                 siteId: siteId,
-                returnContext: ctx.returnContext
+                returnContext: ctx.returnContext,
+                returnSurface: .nearMe(ctx)
             ))
 
         case (.nearMe(let ctx), .openSearch):
             return .search(SearchContext(
                 query: "",
                 returnContext: ctx.returnContext
+            ))
+
+        case (.filter(let ctx), .openSiteInspection(let siteId)):
+            return .inspectSite(SiteInspectionContext(
+                siteId: siteId,
+                returnContext: ctx.returnContext,
+                returnSurface: .filter(ctx)
             ))
 
         // MARK: - Invalid Transitions

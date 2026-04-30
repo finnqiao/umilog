@@ -12,6 +12,7 @@ public struct Region: Codable, Identifiable, Hashable {
     public let wikidataId: String?
     public let tagline: String?
     public let description: String?
+    public let groupId: String?
 
     /// Computed property for MapKit compatibility
     public var coordinate: CLLocationCoordinate2D? {
@@ -27,7 +28,8 @@ public struct Region: Codable, Identifiable, Hashable {
         longitude: Double? = nil,
         wikidataId: String? = nil,
         tagline: String? = nil,
-        description: String? = nil
+        description: String? = nil,
+        groupId: String? = nil
     ) {
         self.id = id
         self.name = name
@@ -37,6 +39,7 @@ public struct Region: Codable, Identifiable, Hashable {
         self.wikidataId = wikidataId
         self.tagline = tagline
         self.description = description
+        self.groupId = groupId
     }
 }
 
@@ -53,6 +56,7 @@ extension Region: FetchableRecord, PersistableRecord {
         static let wikidataId = Column(CodingKeys.wikidataId)
         static let tagline = Column(CodingKeys.tagline)
         static let description = Column(CodingKeys.description)
+        static let groupId = Column(CodingKeys.groupId)
     }
 
     enum CodingKeys: String, CodingKey {
@@ -64,12 +68,14 @@ extension Region: FetchableRecord, PersistableRecord {
         case wikidataId = "wikidata_id"
         case tagline
         case description
+        case groupId = "group_id"
     }
 }
 
 // MARK: - Associations
 extension Region {
     public static let country = belongsTo(Country.self)
+    public static let group = belongsTo(RegionGroup.self, using: ForeignKey(["group_id"]))
     public static let areas = hasMany(Area.self)
     public static let sites = hasMany(DiveSite.self)
 }

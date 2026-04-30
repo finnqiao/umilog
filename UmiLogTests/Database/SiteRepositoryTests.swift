@@ -151,6 +151,26 @@ final class SiteRepositoryTests: XCTestCase {
         XCTAssertEqual(results.first?.id, "cape-kri")
     }
 
+    func testSearch_matchesCountryNameThroughHierarchy() throws {
+        try database.write { db in
+            try Country(id: "ID", name: "Indonesia", continent: "Asia").insert(db)
+        }
+        try siteRepository.create(
+            TestDatabase.makeSite(
+                id: "blue-magic",
+                name: "Blue Magic",
+                latitude: -0.45,
+                longitude: 130.81,
+                region: "Coral Triangle",
+                countryId: "ID"
+            )
+        )
+
+        let results = try siteRepository.search(query: "Indonesia")
+
+        XCTAssertEqual(results.map(\.id), ["blue-magic"])
+    }
+
     func testFetchAll_ordersByCuratedSignals() throws {
         try siteRepository.createMany([
             TestDatabase.makeSite(id: "alpha", name: "Alpha", curationScore: 7.0, popularityScore: 7.0),
@@ -163,6 +183,17 @@ final class SiteRepositoryTests: XCTestCase {
     }
 
     func testToggleWishlist_preservesCuratedMetadata() throws {
+        try database.write { db in
+            try Country(id: "ID", name: "Indonesia", continent: "Asia").insert(db)
+            try Region(id: "coral-triangle", name: "Coral Triangle", countryId: "ID").insert(db)
+            try Area(
+                id: "nusa-penida-lembongan",
+                name: "Nusa Penida & Lembongan",
+                regionId: "coral-triangle",
+                countryId: "ID"
+            ).insert(db)
+        }
+
         let site = TestDatabase.makeSite(
             id: "toyapakeh",
             name: "Toyapakeh",
